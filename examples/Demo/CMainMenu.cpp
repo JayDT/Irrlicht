@@ -17,9 +17,9 @@ bool CMainMenu::run(bool& outFullscreen, bool& outMusic, bool& outShadows,
 			bool& outAdditive, bool& outVSync, bool& outAA,
 			video::E_DRIVER_TYPE& outDriver)
 {
-	//video::E_DRIVER_TYPE driverType = video::EDT_DIRECT3D9;
+	video::E_DRIVER_TYPE driverType = video::EDT_DIRECT3D11;
 	//video::E_DRIVER_TYPE driverType = video::EDT_OPENGL;
-	video::E_DRIVER_TYPE driverType = video::EDT_BURNINGSVIDEO;
+	//video::E_DRIVER_TYPE driverType = video::EDT_BURNINGSVIDEO;
 	//video::E_DRIVER_TYPE driverType = video::EDT_SOFTWARE;
 
 	MenuDevice = createDevice(driverType,
@@ -63,9 +63,10 @@ bool CMainMenu::run(bool& outFullscreen, bool& outMusic, bool& outShadows,
 	// add list box
 
 	gui::IGUIListBox* box = guienv->addListBox(core::rect<int>(10,10,220,120), optTab, 1);
-	box->addItem(L"OpenGL 1.5");
-	box->addItem(L"Direct3D 9.0c");
-	box->addItem(L"Burning's Video 0.47");
+	box->addItem(L"OpenGL 4");
+	box->addItem(L"Direct3D 11");
+    box->addItem(L"Vulkan 1.1");
+    box->addItem(L"Burning's Video 0.47");
 	box->addItem(L"Irrlicht Software Renderer 1.0");
 	box->setSelected(selected);
 
@@ -231,7 +232,7 @@ bool CMainMenu::run(bool& outFullscreen, bool& outMusic, bool& outShadows,
 	{
 		if (MenuDevice->isWindowActive())
 		{
-			driver->beginScene(video::ECBF_DEPTH, video::SColor(0,0,0,0));
+			driver->beginScene(false, true, video::SColor(0,0,0,0));
 
 			if (irrlichtBack)
 				driver->draw2DImage(irrlichtBack,
@@ -255,9 +256,10 @@ bool CMainMenu::run(bool& outFullscreen, bool& outMusic, bool& outShadows,
 	switch(selected)
 	{
 	case 0:	outDriver = video::EDT_OPENGL; break;
-	case 1:	outDriver = video::EDT_DIRECT3D9; break;
-	case 2:	outDriver = video::EDT_BURNINGSVIDEO; break;
-	case 3:	outDriver = video::EDT_SOFTWARE; break;
+	case 1:	outDriver = video::EDT_DIRECT3D11; break;
+    case 2:	outDriver = video::EDT_VULKAN; break;
+    case 3:	outDriver = video::EDT_BURNINGSVIDEO; break;
+	case 4:	outDriver = video::EDT_SOFTWARE; break;
 	}
 
 	return start;

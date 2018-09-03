@@ -122,7 +122,7 @@ irr::video::CVulkanHardwareBuffer::~CVulkanHardwareBuffer()
 
     for (VulkanGraphicsPipelineState* pipeline : Pipelines)
         if (pipeline)
-            delete pipeline;
+            pipeline->drop();
 
     for (BufferDesc& buffer : VertexBufferStreams)
     {
@@ -458,7 +458,7 @@ u32 irr::video::CVulkanHardwareBuffer::GetMemoryAccessType(E_HARDWARE_BUFFER_ACC
     if (AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC)
         return VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 
-    return VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+    return VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
 }
 
 void irr::video::CVulkanHardwareBuffer::SetCommandBuffer(VulkanCommandBuffer * cb)
@@ -477,10 +477,24 @@ VulkanGraphicsPipelineState * irr::video::CVulkanHardwareBuffer::GetPipeline(u8 
     return Pipelines[idx];
 }
 
+void irr::video::CVulkanHardwareBuffer::SetPipeline(u8 idx, VulkanGraphicsPipelineState * pl)
+{
+    if (Pipelines.size() <= idx)
+        Pipelines.resize(size_t(idx + 1));
+
+    if (Pipelines[idx])
+        Pipelines[idx]->drop();
+
+    Pipelines[idx] = pl;
+
+    if (Pipelines[idx])
+        Pipelines[idx]->grab();
+}
+
 void irr::video::CVulkanHardwareBuffer::SetGpuParams(u8 idx, VulkanGpuParams * param)
 {
     if (mGpuParams.size() <= idx)
-        mGpuParams.resize(idx + 1);
+        mGpuParams.resize(size_t(idx + 1));
 
     if (mGpuParams[idx])
         mGpuParams[idx]->drop();

@@ -63,6 +63,9 @@ VulkanGraphicsPipelineState::~VulkanGraphicsPipelineState()
 
         for (auto& entry : mPerDeviceData[i].pipelines)
             entry.second->drop();
+
+        if (mPerDeviceData[i].pipelineLayout != VK_NULL_HANDLE)
+            vkDestroyPipelineLayout(mPerDeviceData[i].device->getLogical(), mPerDeviceData[i].pipelineLayout, VulkanDevice::gVulkanAllocator);
         
         mPerDeviceData[i].pipelines.clear();
         mPerDeviceData[i].samplers.clear();
@@ -358,8 +361,8 @@ void VulkanGraphicsPipelineState::initialize()
         for (uint32_t st = 0; st < MATERIAL_MAX_TEXTURES; ++st)
         {
             VkSamplerCreateInfo& samplerCI = mSamplerInfo[st];
-            VkResult result = vkCreateSampler(devices[i]->getLogical(), &samplerCI, VulkanDevice::gVulkanAllocator, &mPerDeviceData[i].mSampler[st]);
-            assert(result == VK_SUCCESS);
+
+            mPerDeviceData[i].mSampler[st] = CreateSampler(i, st, samplerCI);
         }
     }
 
@@ -488,7 +491,7 @@ void irr::video::VulkanGraphicsPipelineState::update(u8 deviceIdx, const irr::vi
         E_BLEND_FACTOR srcFact = E_BLEND_FACTOR::EBF_ONE, dstFact = E_BLEND_FACTOR::EBF_ZERO, srcFactAlpha = E_BLEND_FACTOR::EBF_ONE, dstFactAlpha = E_BLEND_FACTOR::EBF_ZERO;
         E_BLEND_OPERATION blendOp = E_BLEND_OPERATION::EBO_ADD, blendOpAlpha = E_BLEND_OPERATION::EBO_ADD;
         E_MODULATE_FUNC modulate = E_MODULATE_FUNC::EMFN_MODULATE_1X;
-        u32 alphaSource = 1.f;
+        u32 alphaSource = EAS_TEXTURE;
 
         switch (material.MaterialType)
         {
@@ -521,9 +524,16 @@ void irr::video::VulkanGraphicsPipelineState::update(u8 deviceIdx, const irr::vi
                 pack_textureBlendFunc(srcFact, dstFact, modulate, alphaSource, srcFactAlpha, dstFactAlpha, blendOp, blendOpAlpha);
                 break;
             }
+            case E_MATERIAL_TYPE::EMT_ONETEXTURE_BLEND:
+            {
+                unpack_textureBlendFunc(srcFact, dstFact, modulate, alphaSource, material.uMaterialTypeParam, &srcFactAlpha, &dstFactAlpha, &blendOp, &blendOpAlpha);
+                blendEnabled = blendOp != E_BLEND_OPERATION::EBO_NONE || blendOpAlpha != E_BLEND_OPERATION::EBO_NONE;
+                break;
+            }
             default:
             {
                 unpack_textureBlendFunc(srcFact, dstFact, modulate, alphaSource, material.uMaterialTypeParam, &srcFactAlpha, &dstFactAlpha, &blendOp, &blendOpAlpha);
+                blendEnabled = blendOp != E_BLEND_OPERATION::EBO_NONE || blendOpAlpha != E_BLEND_OPERATION::EBO_NONE;
                 break;
             }
         }
@@ -614,23 +624,7 @@ void irr::video::VulkanGraphicsPipelineState::update(u8 deviceIdx, const irr::vi
             if (mPerDeviceData[i].device == nullptr)
                 continue;
 
-            u64 samplerGUID = 0;
-            samplerGUID |= (mMaterial.TextureLayer[st].LODBias & 0xFF) << 18;
-            samplerGUID |= (mMaterial.TextureLayer[st].TextureWrapV & 0xF) << 14;
-            samplerGUID |= (mMaterial.TextureLayer[st].TextureWrapU & 0xF) << 10;
-            samplerGUID |= (mMaterial.TextureLayer[st].AnisotropicFilter & 0xFF) << 2;
-            samplerGUID |= (mMaterial.TextureLayer[st].TrilinearFilter & 0x1) << 1;
-            samplerGUID |= mMaterial.TextureLayer[st].BilinearFilter & 0x1;
-
-            VkSampler& _sampler = perDeviceData.samplers[samplerGUID];
-            if (!_sampler)
-            {
-                VkSamplerCreateInfo& samplerCI = mSamplerInfo[st];
-                VkResult result = vkCreateSampler(mPerDeviceData[i].device->getLogical(), &samplerCI, VulkanDevice::gVulkanAllocator, &_sampler);
-                assert(result == VK_SUCCESS);
-            }
-
-            mPerDeviceData[i].mSampler[st] = _sampler;
+            mPerDeviceData[i].mSampler[st] = CreateSampler(i, st, samplerCI);
         }
     }
 
@@ -638,6 +632,27 @@ void irr::video::VulkanGraphicsPipelineState::update(u8 deviceIdx, const irr::vi
 
     if (mIsDirty)
         mRequestPipelineGuid = CreatePipelineGuid();
+}
+
+VkSampler VulkanGraphicsPipelineState::CreateSampler(u8 deviceId, u8 st, VkSamplerCreateInfo& samplerCI)
+{
+    u32 samplerGUID = 0;
+    samplerGUID |= u32(mMaterial.TextureLayer[st].LODBias & 0xFF) << 18;
+    samplerGUID |= u32(mMaterial.TextureLayer[st].TextureWrapV & 0xF) << 14;
+    samplerGUID |= u32(mMaterial.TextureLayer[st].TextureWrapU & 0xF) << 10;
+    samplerGUID |= u32(mMaterial.TextureLayer[st].AnisotropicFilter & 0xFF) << 2;
+    samplerGUID |= u32(mMaterial.TextureLayer[st].TrilinearFilter & 0x1) << 1;
+    samplerGUID |= mMaterial.TextureLayer[st].BilinearFilter & 0x1;
+
+    VkSampler& _sampler = mPerDeviceData[deviceId].samplers[samplerGUID];
+    if (!_sampler)
+    {
+        VkSamplerCreateInfo& samplerCI = mSamplerInfo[st];
+        VkResult result = vkCreateSampler(mPerDeviceData[deviceId].device->getLogical(), &samplerCI, VulkanDevice::gVulkanAllocator, &_sampler);
+        assert(result == VK_SUCCESS);
+    }
+
+    return _sampler;
 }
 
 VulkanPipeline* VulkanGraphicsPipelineState::getPipeline(uint32_t deviceIdx, VulkanFramebuffer* framebuffer, uint32_t readOnlyFlags, scene::E_PRIMITIVE_TYPE drawOp, CVulkanVertexDeclaration* vertexInput)

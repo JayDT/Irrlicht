@@ -238,59 +238,59 @@ bool COpenGLShaderMaterialRenderer::checkError(const irr::c8* type)
 
 bool COpenGLShaderMaterialRenderer::createPixelShader(const c8* pxsh)
 {
-	if (!pxsh)
-		return true;
-
-	const core::stringc inshdr(pxsh);
-	core::stringc shdr;
-	const s32 pos = inshdr.find("#_IRR_FOG_MODE_");
-	const u32 numShaders = (-1 != pos)?4:1;
-
-	for (u32 i=0; i<numShaders; ++i)
-	{
-		if (i==0)
-		{
-			shdr=inshdr;
-		}
-		else
-		{
-			shdr = inshdr.subString(0, pos);
-			switch (i) {
-				case 1: shdr += "OPTION ARB_fog_linear;"; break;
-				case 2: shdr += "OPTION ARB_fog_exp;"; break;
-				case 3: shdr += "OPTION ARB_fog_exp2;"; break;
-			}
-			shdr += inshdr.subString(pos+16, inshdr.size()-pos-16);
-		}
-		Driver->extGlGenPrograms(1, &PixelShader[i]);
-#ifdef GL_ARB_fragment_program
-		Driver->extGlBindProgram(GL_FRAGMENT_PROGRAM_ARB, PixelShader[i]);
-#elif defined GL_NV_fragment_program
-		Driver->extGlBindProgram(GL_FRAGMENT_PROGRAM_NV, PixelShader[i]);
-#endif
-
-		// clear error buffer
-		while(glGetError() != GL_NO_ERROR)
-			{}
-
-#ifdef GL_ARB_fragment_program
-		// compile
-		Driver->extGlProgramString(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB,
-				shdr.size(), shdr.c_str());
-#elif defined GL_NV_fragment_program
-		Driver->extGlLoadProgram(GL_FRAGMENT_PROGRAM_NV, PixelShader[i],
-				shdr.size(), shdr.c_str());
-#endif
-
-		if (checkError("Pixel shader"))
-		{
-			Driver->extGlDeletePrograms(1, &PixelShader[i]);
-			PixelShader[i]=0;
-
-			return false;
-		}
-	}
-
+//	if (!pxsh)
+//		return true;
+//
+//	const core::stringc inshdr(pxsh);
+//	core::stringc shdr;
+//	const s32 pos = inshdr.find("#_IRR_FOG_MODE_");
+//	const u32 numShaders = (-1 != pos)?4:1;
+//
+//	for (u32 i=0; i<numShaders; ++i)
+//	{
+//		if (i==0)
+//		{
+//			shdr=inshdr;
+//		}
+//		else
+//		{
+//			shdr = inshdr.subString(0, pos);
+//			switch (i) {
+//				case 1: shdr += "OPTION ARB_fog_linear;"; break;
+//				case 2: shdr += "OPTION ARB_fog_exp;"; break;
+//				case 3: shdr += "OPTION ARB_fog_exp2;"; break;
+//			}
+//			shdr += inshdr.subString(pos+16, inshdr.size()-pos-16);
+//		}
+//		Driver->extGlGenPrograms(1, &PixelShader[i]);
+//#ifdef GL_ARB_fragment_program
+//		Driver->extGlBindProgram(GL_FRAGMENT_PROGRAM_ARB, PixelShader[i]);
+//#elif defined GL_NV_fragment_program
+//		Driver->extGlBindProgram(GL_FRAGMENT_PROGRAM_NV, PixelShader[i]);
+//#endif
+//
+//		// clear error buffer
+//		while(glGetError() != GL_NO_ERROR)
+//			{}
+//
+//#ifdef GL_ARB_fragment_program
+//		// compile
+//		Driver->extGlProgramString(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB,
+//				shdr.size(), shdr.c_str());
+//#elif defined GL_NV_fragment_program
+//		Driver->extGlLoadProgram(GL_FRAGMENT_PROGRAM_NV, PixelShader[i],
+//				shdr.size(), shdr.c_str());
+//#endif
+//
+//		if (checkError("Pixel shader"))
+//		{
+//			Driver->extGlDeletePrograms(1, &PixelShader[i]);
+//			PixelShader[i]=0;
+//
+//			return false;
+//		}
+//	}
+//
 	return true;
 }
 

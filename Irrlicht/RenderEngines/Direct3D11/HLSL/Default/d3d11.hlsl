@@ -328,9 +328,7 @@ LightConstantData buildConstantLighting(float3 normal, float3 worldPos)
         if (d > g_lights[i].Range)
             continue;
 
-        ret.AmbientLight += g_lights[i].Ambient.rgb;
-        ret.AmbientLight *= 0.5f;
-        float3 finalDiffuse = g_lights[i].Diffuse.rgb;
+        float3 finalDiffuse = g_lights[i].Ambient.rgb + g_lights[i].Diffuse.rgb;
 
         if (g_lights[i].Type == 0)
         {
@@ -377,7 +375,22 @@ PixelOutput ps_main(PS_INPUT input)
     if (g_nTexture > 0)
     {
         float4 textureColor2;
-        textureColor = shaderTexture.Sample(SampleType, input.tex);
+        if (g_material.Type == EMT_SPHERE_MAP)
+        {
+            float3 u = normalize(input.position.xyz);
+            float3 n = normalize(input.normal);
+            float3 r = reflect(u, n);
+            float m = 2.0 * sqrt(r.x * r.x + r.y * r.y + (r.z + 1.0) * (r.z + 1.0));
+            float2 tex;
+            tex.x = r.x / m + 0.5;
+            tex.y = r.y / m + 0.5;
+
+            textureColor = shaderTexture.Sample(SampleType, tex);
+        }
+        else
+        {
+            textureColor = shaderTexture.Sample(SampleType, input.tex);
+        }
 
         // check material type, and add color operation correctly
         [branch]
@@ -439,10 +452,8 @@ PixelOutput ps_main(PS_INPUT input)
         };
 
         //[branch]
-        if (g_bAlphaTest > 0)
-        {
-            clip(textureColor.a - g_fAlphaRef);
-        }
+        if (g_bAlphaTest > 0 && g_fAlphaRef > textureColor.a)
+            clip(-1);
 
         if (g_material.Lighted)
         {

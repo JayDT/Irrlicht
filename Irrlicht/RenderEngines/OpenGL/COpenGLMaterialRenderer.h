@@ -101,14 +101,14 @@ public:
                 transparent = false;
 
                 Driver->GetStateCache()->setEnabled(OGLStateEntries::OGL_BLEND, false);
-                Driver->GetStateCache()->setEnabled(OGLStateEntries::OGL_ALPHA_TEST, false);
+                //Driver->GetStateCache()->setEnabled(OGLStateEntries::OGL_ALPHA_TEST, false);
             }
             else
             {
                 transparent = true;
 
                 Driver->GetStateCache()->setEnabled(OGLStateEntries::OGL_BLEND, true);
-                Driver->GetStateCache()->setEnabled(OGLStateEntries::OGL_ALPHA_TEST, true);
+                //Driver->GetStateCache()->setEnabled(OGLStateEntries::OGL_ALPHA_TEST, true);
                 Driver->GetStateCache()->setBlendEquation(Driver->getOGLBlendOp((E_BLEND_OPERATION)blendOp), Driver->getOGLBlendOp((E_BLEND_OPERATION)blendOpAlpha));
                 Driver->GetStateCache()->setBlendFunc(Driver->getGLBlend(srcFact), Driver->getGLBlend(dstFact), Driver->getGLBlend(srcFactAlpha), Driver->getGLBlend(dstFactAlpha));
             }
@@ -233,7 +233,7 @@ public:
 			|| material.uMaterialTypeParam != lastMaterial.uMaterialTypeParam )
 		{
             Driver->GetStateCache()->setEnabled(OGLStateEntries::OGL_BLEND, true);
-            Driver->GetStateCache()->setEnabled(OGLStateEntries::OGL_ALPHA_TEST, true);
+            //Driver->GetStateCache()->setEnabled(OGLStateEntries::OGL_ALPHA_TEST, true);
             Driver->GetStateCache()->setBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 	}
@@ -267,7 +267,7 @@ public:
 		if (material.MaterialType != lastMaterial.MaterialType || resetAllRenderstates)
 		{
             Driver->GetStateCache()->setEnabled(OGLStateEntries::OGL_BLEND, false);
-            Driver->GetStateCache()->setEnabled(OGLStateEntries::OGL_ALPHA_TEST, true);
+            //Driver->GetStateCache()->setEnabled(OGLStateEntries::OGL_ALPHA_TEST, true);
 
 			//glEnable(GL_ALPHA_TEST);
 			//glAlphaFunc(GL_GREATER, 0.5f);

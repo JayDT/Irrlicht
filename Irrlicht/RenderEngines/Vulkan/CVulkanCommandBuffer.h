@@ -115,7 +115,7 @@ namespace irr
          * Represents a direct wrapper over an internal Vulkan command buffer. This is unlike VulkanCommandBuffer which is a
          * higher level class, and it allows for re-use by internally using multiple low-level command buffers.
          */
-        class VulkanCmdBuffer
+        class VulkanCmdBuffer : public irr::IReferenceCounted
         {
             /** Possible states a command buffer can be in. */
             enum class State
@@ -134,7 +134,7 @@ namespace irr
 
         public:
             VulkanCmdBuffer(VulkanDevice& device, uint32_t id, VkCommandPool pool, uint32_t queueFamily, bool secondary);
-            ~VulkanCmdBuffer();
+            virtual ~VulkanCmdBuffer();
 
             /** Returns an unique identifier of this command buffer. */
             uint32_t getId() const { return mId; }

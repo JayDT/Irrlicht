@@ -51,7 +51,7 @@ namespace irr
         };
 
         /**	Vulkan implementation of a graphics pipeline state. */
-        class VulkanGraphicsPipelineState
+        class VulkanGraphicsPipelineState : public irr::IReferenceCounted
         {
         public:
             VulkanGraphicsPipelineState(const irr::video::SMaterial& desc, CVulkanGLSLProgram* shader, CVulkanVertexDeclaration* inputLayout, GpuDeviceFlags deviceMask);
@@ -117,6 +117,7 @@ namespace irr
 
         protected:
 
+            VkSampler CreateSampler(u8 deviceId, u8 st, VkSamplerCreateInfo& samplerCI);
             u64 CreatePipelineGuid();
 
             friend class VulkanCmdBuffer;

@@ -177,6 +177,15 @@ COpenGLDriver::~COpenGLDriver()
         cgDestroyContext(CgContext);
     #endif
 
+    SetShader(nullptr);
+
+    for (auto rtt : RenderTargets)
+    {
+        rtt->drop();
+    }
+
+    RenderTargets.clear();
+
     RequestedLights.clear();
 
     deleteMaterialRenders();
@@ -186,6 +195,14 @@ COpenGLDriver::~COpenGLDriver()
     deleteAllTextures();
     removeAllOcclusionQueries();
     removeAllHardwareBuffers();
+
+    for (s32 i = 0; i < (s32)E_VERTEX_TYPE::EVT_MAX_VERTEX_TYPE; ++i)
+    {
+        if (!DynamicHardwareBuffer[i])
+            continue;
+
+        DynamicHardwareBuffer[i]->drop();
+    }
 
     if (ContextManager)
     {
@@ -872,7 +889,7 @@ void irr::video::COpenGLDriver::drawMeshBuffer(const scene::IMeshBuffer * mb, sc
     if (instanceCount > 1)
         glDrawElementsInstanced(renderPrimitive, mb->GetIndexRangeCount(), mb->getIndexType() == E_INDEX_TYPE::EIT_32BIT ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT, (void*)(sizeof(u16) * mb->GetIndexRangeStart()), instanceCount);
     else if (mb->GetSubBufferCount())
-        glDrawRangeElements(renderPrimitive, mb->GetVertexRangeStart(), mb->GetVertexRangeEnd(), mb->GetIndexRangeCount(), mb->getIndexType() == E_INDEX_TYPE::EIT_32BIT ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT, (void*)(sizeof(u16) * mb->GetIndexRangeStart()));
+        glDrawRangeElements(renderPrimitive, mb->GetVertexRangeStart(), mb->GetVertexRangeStart() + mb->GetVertexRangeEnd(), mb->GetIndexRangeCount(), mb->getIndexType() == E_INDEX_TYPE::EIT_32BIT ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT, (void*)(sizeof(u16) * mb->GetIndexRangeStart()));
     else
         glDrawElements(renderPrimitive, mb->getIndexCount(), mb->getIndexType() == E_INDEX_TYPE::EIT_32BIT ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT, (void*)0);
 
@@ -1115,11 +1132,13 @@ bool irr::video::COpenGLDriver::uploadVertexData(const void * vertices, u32 vert
     {
         DynamicHardwareBuffer[vType] = new COpenGLHardwareBuffer(this, nullptr, nullptr, E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, 0, static_cast<COpenGLVertexDeclaration*>(GetVertexDeclaration(vType)));
 
-        //static_cast<COpenGLVertexDeclaration*>(GetVertexDeclaration(vType))->SetVertexType(vType);
+        static_cast<COpenGLVertexDeclaration*>(GetVertexDeclaration(vType))->SetVertexType(vType);
 
         DynamicHardwareBuffer[vType]->UpdateBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, vertices, getVertexPitchFromType(vType) * vertexCount);
         DynamicHardwareBuffer[vType]->UpdateBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_INDEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, indexList, indexCount * (iType == E_INDEX_TYPE::EIT_32BIT ? sizeof(u32) : sizeof(u16)));
 
+        static_cast<COpenGLVertexDeclaration*>(GetVertexDeclaration(vType))->SetVertexType(E_VERTEX_TYPE::EVT_MAX_VERTEX_TYPE);
+        
         testGLError();
     }
     else
@@ -1508,6 +1527,9 @@ void COpenGLDriver::setBasicRenderStates(const SMaterial& material, const SMater
     // Sampler
     for (u32 st = 0; st < MaxTextureUnits; ++st)
     {
+        if (!CurrentTexture[st])
+            continue;
+
         GLuint sampler = m_stateCache.getSampler(st);
         bool useMipMap = CurrentTexture[st] ? CurrentTexture[st]->hasMipMaps() : material.UseMipMaps;
 
@@ -1540,8 +1562,10 @@ void COpenGLDriver::setBasicRenderStates(const SMaterial& material, const SMater
             lastmaterial.TextureLayer[st].BilinearFilter != material.TextureLayer[st].BilinearFilter ||
             lastmaterial.TextureLayer[st].TrilinearFilter != material.TextureLayer[st].TrilinearFilter ||
             lastmaterial.TextureLayer[st].AnisotropicFilter != material.TextureLayer[st].AnisotropicFilter ||
-            lastmaterial.UseMipMaps != useMipMap)
+            GetStateCache()->getUseMipMaps(st) != useMipMap)
         {
+            GetStateCache()->setUseMipMaps(st, useMipMap);
+
             glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, (material.TextureLayer[st].BilinearFilter || material.TextureLayer[st].TrilinearFilter) ? GL_LINEAR : GL_NEAREST);
 
             if (useMipMap)
@@ -1646,11 +1670,74 @@ void COpenGLDriver::setBasicRenderStates(const SMaterial& material, const SMater
             (material.ColorMask & ECP_ALPHA)?GL_TRUE:GL_FALSE);
     }
 
-    if (queryFeature(EVDF_BLEND_OPERATIONS) /*&& (resetAllRenderStates|| lastmaterial.BlendOperation != material.BlendOperation)*/)
+    if (resetAllRenderStates || lastmaterial.MaterialType != material.MaterialType || lastmaterial.BlendOperation != material.BlendOperation || lastmaterial.uMaterialTypeParam != material.uMaterialTypeParam)
     {
-        m_stateCache.setEnabled(OGLStateEntries::OGL_BLEND, material.BlendOperation != EBO_NONE);
-        m_stateCache.setBlendEquation(getOGLBlendOp((E_BLEND_OPERATION)material.BlendOperation));
+        bool blendEnabled = material.BlendOperation != E_BLEND_OPERATION::EBO_NONE;
+        E_BLEND_FACTOR srcFact = E_BLEND_FACTOR::EBF_ONE, dstFact = E_BLEND_FACTOR::EBF_ZERO, srcFactAlpha = E_BLEND_FACTOR::EBF_ONE, dstFactAlpha = E_BLEND_FACTOR::EBF_ZERO;
+        E_BLEND_OPERATION blendOp = E_BLEND_OPERATION::EBO_ADD, blendOpAlpha = E_BLEND_OPERATION::EBO_ADD;
+        E_MODULATE_FUNC modulate = E_MODULATE_FUNC::EMFN_MODULATE_1X;
+        u32 alphaSource = EAS_TEXTURE;
+
+        switch (material.MaterialType)
+        {
+            case E_MATERIAL_TYPE::EMT_SOLID:
+            case E_MATERIAL_TYPE::EMT_TRANSPARENT_ALPHA_CHANNEL_REF:
+            {
+                blendEnabled = false;
+                break;
+            }
+            //case E_MATERIAL_TYPE::EMT_TRANSPARENT_ALPHA_CHANNEL_REF:
+            //    pack_textureBlendFunc(srcFact, dstFact, modulate, alphaSource, srcFactAlpha, dstFactAlpha, blendOp, blendOpAlpha);
+            //    break;
+            case E_MATERIAL_TYPE::EMT_REFLECTION_2_LAYER:
+            case E_MATERIAL_TYPE::EMT_TRANSPARENT_ALPHA_CHANNEL:
+            {
+                blendEnabled = true;
+                blendOp = E_BLEND_OPERATION::EBO_ADD;
+                srcFact = E_BLEND_FACTOR::EBF_SRC_ALPHA;
+                dstFact = E_BLEND_FACTOR::EBF_ONE_MINUS_SRC_ALPHA;
+                pack_textureBlendFunc(srcFact, dstFact, modulate, alphaSource, srcFactAlpha, dstFactAlpha, blendOp, blendOpAlpha);
+                break;
+            }
+            case E_MATERIAL_TYPE::EMT_TRANSPARENT_ADD_COLOR:
+            case E_MATERIAL_TYPE::EMT_TRANSPARENT_VERTEX_ALPHA:
+            {
+                blendEnabled = true;
+                blendOp = E_BLEND_OPERATION::EBO_ADD;
+                srcFact = E_BLEND_FACTOR::EBF_ONE;
+                dstFact = E_BLEND_FACTOR::EBF_ONE_MINUS_SRC_COLOR;
+                srcFactAlpha = E_BLEND_FACTOR::EBF_ZERO;
+                dstFactAlpha = E_BLEND_FACTOR::EBF_ZERO;
+                pack_textureBlendFunc(srcFact, dstFact, modulate, alphaSource, srcFactAlpha, dstFactAlpha, blendOp, blendOpAlpha);
+                break;
+            }
+            default:
+            {
+                unpack_textureBlendFunc(srcFact, dstFact, modulate, alphaSource, material.uMaterialTypeParam, &srcFactAlpha, &dstFactAlpha, &blendOp, &blendOpAlpha);
+                blendEnabled = blendOp != E_BLEND_OPERATION::EBO_NONE || blendOpAlpha != E_BLEND_OPERATION::EBO_NONE;
+                break;
+            }
+        }
+
+        if (!blendEnabled && blendOpAlpha == E_BLEND_OPERATION::EBO_NONE)
+        {
+            GetStateCache()->setEnabled(OGLStateEntries::OGL_BLEND, false);
+            //GetStateCache()->setEnabled(OGLStateEntries::OGL_ALPHA_TEST, false);
+        }
+        else
+        {
+            GetStateCache()->setEnabled(OGLStateEntries::OGL_BLEND, blendEnabled);
+            //GetStateCache()->setEnabled(OGLStateEntries::OGL_ALPHA_TEST, blendOpAlpha != E_BLEND_OPERATION::EBO_NONE);
+            GetStateCache()->setBlendEquation(getOGLBlendOp((E_BLEND_OPERATION)blendOp), getOGLBlendOp((E_BLEND_OPERATION)blendOpAlpha));
+            GetStateCache()->setBlendFunc(getGLBlend(srcFact), getGLBlend(dstFact), getGLBlend(srcFactAlpha), getGLBlend(dstFactAlpha));
+        }
     }
+
+    //if (queryFeature(EVDF_BLEND_OPERATIONS) && (resetAllRenderStates|| lastmaterial.BlendOperation != material.BlendOperation))
+    //{
+    //    m_stateCache.setEnabled(OGLStateEntries::OGL_BLEND, material.BlendOperation != EBO_NONE);
+    //    m_stateCache.setBlendEquation(getOGLBlendOp((E_BLEND_OPERATION)material.BlendOperation));
+    //}
 
     // Polygon Offset
     if (queryFeature(EVDF_POLYGON_OFFSET) && (resetAllRenderStates ||
@@ -2010,6 +2097,9 @@ void COpenGLDriver::setViewPort(const core::rect<s32>& area)
 //! volume. Next use IVideoDriver::drawStencilShadow() to visualize the shadow.
 void COpenGLDriver::drawStencilShadowVolume(const core::array<core::vector3df>& triangles, bool zfail, u32 debugDataVisible)
 {
+    if (!Params.Stencilbuffer)
+        return;
+
     if (triangles.empty())
         return;
     

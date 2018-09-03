@@ -37,6 +37,18 @@ CVulkanRenderTarget::~CVulkanRenderTarget()
 
     if (Sync)
         Sync->drop();
+
+    for (u32 i = 0; i < Texture.size(); ++i)
+    {
+        if (Texture[i])
+            Texture[i]->drop();
+    }
+
+    if (DepthStencil)
+    {
+        DepthStencil->drop();
+        DepthStencil = 0;
+    }
 }
 
 void CVulkanRenderTarget::setTexture(const core::array<ITexture*>& texture, ITexture* depthStencil)
@@ -126,7 +138,6 @@ void CVulkanRenderTarget::setTexture(const core::array<ITexture*>& texture, ITex
                     Surface.depth.baseLayer = 0;
                     Surface.depth.format = VulkanUtility::getPixelFormat(currentTexture->getColorFormat());
                     Surface.depth.image = currentTexture->GetVkImages(0);
-                    Surface.depth.image->grab();
                 }
             }
         }

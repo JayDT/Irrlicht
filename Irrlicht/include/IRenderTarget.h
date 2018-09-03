@@ -25,6 +25,8 @@ namespace video
 		{
 		}
 
+        virtual ~IRenderTarget() {}
+
 		//! Returns an array of previously set textures.
 		const core::array<ITexture*>& getTexture() const
 		{

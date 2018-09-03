@@ -2426,6 +2426,9 @@ void CD3D11Driver::setAmbientLight(const SColorf& color)
 
 void CD3D11Driver::drawStencilShadowVolume(const core::array<core::vector3df>& triangles, bool zfail, u32 debugDataVisible)
 {
+    if (!Params.Stencilbuffer)
+        return;
+
     if (triangles.empty())
         return;
 
@@ -3749,7 +3752,7 @@ bool CD3D11Driver::uploadVertexData(const void* vertices, u32 vertexCount,
     // Parse information about buffers
     const u32 vertexStride = vType == E_VERTEX_TYPE::EVT_SHADOW ? sizeof(core::vector3df) : getVertexPitchFromType(vType);
     const u32 indexStride = video::getIndexSize(iType); // == video::EIT_16BIT ? 2 : 4;
-    const DXGI_FORMAT indexFormat = iType == video::EIT_16BIT ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
+    const DXGI_FORMAT indexFormat = iType == video::EIT_16BIT ? DXGI_FORMAT::DXGI_FORMAT_R16_UINT : DXGI_FORMAT::DXGI_FORMAT_R32_UINT;
     const UINT offset = 0;
 
     // reallocated if needed
@@ -3796,6 +3799,10 @@ bool CD3D11Driver::uploadVertexData(const void* vertices, u32 vertexCount,
 
         // set index buffer
         ImmediateContext->IASetIndexBuffer( DynIndexBuffer, indexFormat, 0 );
+    }
+    else
+    {
+        ImmediateContext->IASetIndexBuffer(nullptr, DXGI_FORMAT::DXGI_FORMAT_R16_UINT, 0);
     }
 
     return true;

@@ -5,6 +5,7 @@
 #include "CVulkanDescriptorLayout.h"
 #include "CVulkanGpuPipelineState.h"
 #include "CVulkanGpuParams.h"
+#include "CVulkanDevice.h"
 #include "os.h"
 #include "IMaterialRenderer.h"
 
@@ -26,6 +27,13 @@ irr::video::CVulkanGLSLProgram::CVulkanGLSLProgram(video::IVideoDriver * context
 
 irr::video::CVulkanGLSLProgram::~CVulkanGLSLProgram()
 {
+    if (mLayout)
+        delete mLayout;
+
+    for (auto modul : mStages)
+    {
+        vkDestroyShaderModule(Driver->_getPrimaryDevice()->getLogical(), modul.second, VulkanDevice::gVulkanAllocator);
+    }
 }
 
 void irr::video::CVulkanGLSLProgram::bind()

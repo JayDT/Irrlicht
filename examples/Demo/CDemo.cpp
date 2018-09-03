@@ -110,7 +110,7 @@ void CDemo::run()
 			if (timeForThisScene != -1)
 				clearFlag |= video::ECBF_COLOR;
 
-			driver->beginScene(clearFlag, backColor);
+			driver->beginScene(clearFlag & video::ECBF_COLOR, clearFlag & video::ECBF_DEPTH, backColor);
 
 			smgr->drawAll();
 			guienv->drawAll();

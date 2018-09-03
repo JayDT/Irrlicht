@@ -80,6 +80,8 @@ VulkanCmdBufferPool::~VulkanCmdBufferPool()
     {
         for (uint32_t i = 0; i < _MAX_VULKAN_CB_PER_QUEUE_FAMILY; i++)
         {
+            if (entry.buffers[i] != nullptr)
+                entry.buffers[i]->drop();
             entry.buffers[i] = nullptr;
         }
 
@@ -275,6 +277,15 @@ VulkanCmdBuffer::~VulkanCmdBuffer()
             mInterQueueSemaphores[i]->drop();
     }
 
+    if (mFramebuffer)
+        mFramebuffer->drop();
+
+    if (getGpuParams())
+        getGpuParams()->drop();
+
+    //if (mGraphicsPipeline)
+    //    mGraphicsPipeline
+
     vkDestroyFence(device, mFence, VulkanDevice::gVulkanAllocator);
     vkFreeCommandBuffers(device, mPool, 1, &mCmdBuffer);
 
@@ -396,20 +407,28 @@ void VulkanCmdBuffer::endRenderPass()
 void VulkanCmdBuffer::allocateSemaphores(VkSemaphore* semaphores)
 {
     if (mIntraQueueSemaphore != nullptr)
+    {
         mIntraQueueSemaphore->drop();
+        mIntraQueueSemaphore->drop();
+    }
 
     //if (!mIntraQueueSemaphore)
         mIntraQueueSemaphore = new VulkanSemaphore(mDevice.getDriver());
+        mIntraQueueSemaphore->grab();
 
     semaphores[0] = mIntraQueueSemaphore->getHandle();
 
     for (uint32_t i = 0; i < _MAX_VULKAN_CB_DEPENDENCIES; i++)
     {
         if (mInterQueueSemaphores[i] != nullptr)
+        {
             mInterQueueSemaphores[i]->drop();
+            mInterQueueSemaphores[i]->drop();
+        }
 
         //if (!mInterQueueSemaphores[i])
             mInterQueueSemaphores[i] = new VulkanSemaphore(mDevice.getDriver());
+            mInterQueueSemaphores[i]->grab();
         semaphores[i + 1] = mInterQueueSemaphores[i]->getHandle();
     }
 
@@ -2439,7 +2458,11 @@ RenderSurfaceMaskBits VulkanCmdBuffer::getFBReadMask()
 
 VulkanCommandBuffer::~VulkanCommandBuffer()
 {
-    mBuffer->reset();
+    if (mBuffer != nullptr)
+    {
+        mBuffer->reset();
+        mBuffer->drop();
+    }
 }
 
 void VulkanCommandBuffer::acquireNewBuffer()
@@ -2447,11 +2470,15 @@ void VulkanCommandBuffer::acquireNewBuffer()
     VulkanCmdBufferPool& pool = mDevice._getPrimaryDevice()->getCmdBufferPool();
 
     if (mBuffer != nullptr)
+    {
         assert(mBuffer->isSubmitted());
+        mBuffer->drop();
+    }
 
     uint32_t queueFamily = mDevice._getPrimaryDevice()->getQueueFamily(mType);
     //if (!mBuffer)
         mBuffer = pool.getBuffer(queueFamily, mIsSecondary);
+        mBuffer->grab();
     //else
     //{
     //    mBuffer->reset();

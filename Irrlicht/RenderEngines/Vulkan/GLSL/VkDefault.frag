@@ -132,12 +132,10 @@ void buildConstantLighting(vec3 normal, vec3 worldPos, inout LightConstantData r
         vec3 V = g_lights[i].Position.xyz - worldPos;
         float d = length(V);
 
-        //if (d > g_lights[i].Range)
-        //    continue;
+        if (d > g_lights[i].Range)
+            continue;
 
-        ret.AmbientLight += g_lights[i].Ambient.rgb;
-        ret.AmbientLight *= 0.5f;
-        vec3 finalDiffuse = g_lights[i].Diffuse.rgb;
+        vec3 finalDiffuse = g_lights[i].Ambient.rgb + g_lights[i].Diffuse.rgb;
 
         if (g_lights[i].Type == 0)
         {
@@ -185,7 +183,22 @@ void main()
     if (g_nTexture > 0)
     {
         vec4 textureColor2;
-        textureColor = texture(shaderTexture, _input.tex);
+        if (g_material.Type == EMT_SPHERE_MAP)
+        {
+	        vec3 u = normalize( vec3(_input.position) );
+	        vec3 n = normalize( _input.normal );
+	        vec3 r = reflect( u, n );
+	        float m = 2.0 * sqrt( r.x*r.x + r.y*r.y + (r.z+1.0)*(r.z+1.0) );
+            vec2 tex;
+	        tex.x = r.x/m + 0.5;
+	        tex.y = r.y/m + 0.5;
+
+            textureColor = texture(shaderTexture, tex);
+        }
+        else
+        {
+            textureColor = texture(shaderTexture, _input.tex);
+        }
     
         switch(g_material.Type)
         {

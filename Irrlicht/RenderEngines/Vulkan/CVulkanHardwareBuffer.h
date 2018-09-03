@@ -237,13 +237,7 @@ namespace irr
             VulkanCommandBuffer* GetCommandBuffer() { return CommandBuffer; }
             void SetCommandBuffer(VulkanCommandBuffer* cb);
             VulkanGraphicsPipelineState* GetPipeline(u8 idx);
-            void SetPipeline(u8 idx, VulkanGraphicsPipelineState* pl)
-            {
-                if (Pipelines.size() <= idx)
-                    Pipelines.resize(idx + 1);
-
-                Pipelines[idx] = pl;
-            }
+            void SetPipeline(u8 idx, VulkanGraphicsPipelineState* pl);
             VulkanGpuParams * GetGpuParams(u8 idx) { return mGpuParams[idx]; }
             void SetGpuParams(u8 idx, VulkanGpuParams * param);
 

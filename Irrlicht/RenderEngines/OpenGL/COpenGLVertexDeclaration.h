@@ -31,14 +31,14 @@ namespace irr
             core::array<OpenGLVERTEXELEMENT> VertexDeclarationMap;
             std::vector<irr::u32> VertexPitch;
             COpenGLDriver* Driver;
-            //E_VERTEX_TYPE mVType;
+            E_VERTEX_TYPE mVType = E_VERTEX_TYPE::EVT_MAX_VERTEX_TYPE;
 
         public:
             COpenGLVertexDeclaration(COpenGLDriver* driver);
             virtual ~COpenGLVertexDeclaration();
 
             // Workaround for Dynamic hardware buffer
-            //void SetVertexType(E_VERTEX_TYPE vtype) { mVType = vtype; }
+            void SetVertexType(E_VERTEX_TYPE vtype) { mVType = vtype; }
             core::array<OpenGLVERTEXELEMENT> const& getVertexDeclaration();
             void createInputLayout(const COpenGLHardwareBuffer * hwBuffer);
             irr::u32 GetVertexPitch(irr::u8 inputSlot) const { return VertexPitch[inputSlot]; }

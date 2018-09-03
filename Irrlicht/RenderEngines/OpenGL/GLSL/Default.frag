@@ -126,12 +126,10 @@ void buildConstantLighting(vec3 normal, vec3 worldPos, inout LightConstantData r
         vec3 V = g_lights[i].Position.xyz - worldPos;
         float d = length(V);
 
-        //if (d > g_lights[i].Range)
-        //    continue;
+        if (d > g_lights[i].Range)
+            continue;
 
-        ret.AmbientLight += g_lights[i].Ambient.rgb;
-        ret.AmbientLight *= 0.5f;
-        vec3 finalDiffuse = g_lights[i].Diffuse.rgb;
+        vec3 finalDiffuse = g_lights[i].Ambient.rgb + g_lights[i].Diffuse.rgb;
 
         if (g_lights[i].Type == 0)
         {
@@ -179,7 +177,22 @@ void main()
     if (g_nTexture > 0)
     {
         vec4 textureColor2;
-        textureColor = texture(shaderTexture, _input.tex);
+        if (g_material.Type == EMT_SPHERE_MAP)
+        {
+	        vec3 u = normalize( vec3(_input.position) );
+	        vec3 n = normalize( _input.normal );
+	        vec3 r = reflect( u, n );
+	        float m = 2.0 * sqrt( r.x*r.x + r.y*r.y + (r.z+1.0)*(r.z+1.0) );
+            vec2 tex;
+	        tex.x = r.x/m + 0.5;
+	        tex.y = r.y/m + 0.5;
+
+            textureColor = texture(shaderTexture, tex);
+        }
+        else
+        {
+            textureColor = texture(shaderTexture, _input.tex);
+        }
     
         switch(g_material.Type)
         {
@@ -202,7 +215,7 @@ void main()
             case EMT_LIGHTMAP:
             case EMT_LIGHTMAP_LIGHTING:
                 textureColor2 = texture(shaderTexture2, _input.tex2);
-
+        
                 textureColor = (textureColor * _input.color.bgra);
 	            textureColor = textureColor * textureColor2;
                 break;
@@ -212,24 +225,24 @@ void main()
                 vec3 V = normalize(g_eyePositionVert.xyz);
                 //input.normal.w = 0;
                 vec3 normal = normalize(_input.normal);
-
-                vec3 reflectVec = normalize(reflect(V, normal));
+        
+                vec3 reflectVec = reflect(V, normal);
                 textureColor2 = texture(shaderTexture2, reflectVec.xy);
-
+        
                 textureColor = (textureColor * _input.color.bgra);
 	            textureColor = textureColor * textureColor2;
                 break;
             case EMT_LIGHTMAP_M2:
             case EMT_LIGHTMAP_LIGHTING_M2:
                 textureColor2 = texture(shaderTexture2, _input.tex2);
-
+        
                 textureColor = (textureColor * _input.color.bgra);
 	            textureColor = (textureColor * textureColor2) * 2.0;
                 break;
             case EMT_LIGHTMAP_M4:
             case EMT_LIGHTMAP_LIGHTING_M4:
                 textureColor2 = texture(shaderTexture2, _input.tex2);
-
+        
                 textureColor = (textureColor * _input.color.bgra);
 	            textureColor = (textureColor * textureColor2) * 4.0;
                 break;
@@ -237,14 +250,14 @@ void main()
 
         if (g_bAlphaTest > 0 && g_fAlphaRef > textureColor.a)
             discard;
-
+        
         if (g_material.Lighted == true)
         {
             LightConstantData lightData;
             buildConstantLighting(_input.normal, _input.UPPos, lightData);
             textureColor.rgb *= lightData.DiffuseLight + lightData.AmbientLight /*+ lightData.SpecularLight*/;
         }
-
+        
         if (g_material.Fogged == true)
         {
             float distance = length(_input.position.xyz - g_eyePositionVert.xyz);
@@ -264,7 +277,7 @@ void main()
                textureColor = _input.color.bgra;
                break;
            case EMT_SOLID_2_LAYER:
-               textureColor = (g_material.Ambient.bgra * _input.color.bgra);
+               textureColor = (g_material.Ambient * _input.color.bgra);
                break;
        };
     }

@@ -67,6 +67,9 @@ namespace irr
             GLfloat mPointSize;
             GLfloat mPointSizeMin;
             GLfloat mPointSizeMax;
+
+            GLboolean UseMipMaps[5];
+
         public:
             COpenGLStateCacheManager(void);
 
@@ -229,6 +232,9 @@ namespace irr
 
             void getFBO(GLuint& frameBufferID) const;
             void setFBO(GLuint frameBufferID);
+
+            GLboolean getUseMipMaps(GLubyte layer) const { return UseMipMaps[layer]; }
+            void setUseMipMaps(GLubyte layer, GLboolean value) { UseMipMaps[layer] = value; }
 
         };
     }

@@ -13,6 +13,11 @@ VulkanQueue::VulkanQueue(VulkanDevice& device, VkQueue queue, GpuQueueType type,
         mSubmitDstWaitMask[i] = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 }
 
+VulkanQueue::~VulkanQueue()
+{
+
+}
+
 bool VulkanQueue::isExecuting() const
 {
     if (mLastCommandBuffer == nullptr)

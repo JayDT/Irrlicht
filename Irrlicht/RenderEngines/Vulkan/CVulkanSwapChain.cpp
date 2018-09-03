@@ -173,7 +173,7 @@ void VulkanSwapChain::rebuild(VulkanDevice* device, VkSurfaceKHR surface, uint32
         result = vkCreateImage(logicalDevice, &depthStencilImageCI, VulkanDevice::gVulkanAllocator, &depthStencilImage);
         assert(result == VK_SUCCESS);
 
-        bool hasStencil = depthFormat == VkFormat::VK_FORMAT_D32_SFLOAT_S8_UINT || depthFormat == VkFormat::VK_FORMAT_D24_UNORM_S8_UINT;
+        bool hasStencil = IImage::isStencilFormat(VulkanUtility::getPixelFormat(depthFormat));
 
         imageDesc.image = depthStencilImage;
         imageDesc.usage = hasStencil ? ETCF_USAGE_DEPTHSTENCIL : ETCF_USAGE_DEPTH;
@@ -197,11 +197,9 @@ void VulkanSwapChain::rebuild(VulkanDevice* device, VkSurfaceKHR surface, uint32
         desc.offscreen = false;
         desc.color[0].format = colorFormat;
         desc.color[0].image = mSurfaces[i].image;
-        desc.color[0].image->grab();
         desc.color[0].baseLayer = 0;
         desc.depth.format = depthFormat;
         desc.depth.image = mDepthStencilImage;
-        desc.depth.image->grab();
         desc.depth.baseLayer = 0;
 
         mSurfaces[i].framebuffer = new VulkanFramebuffer(device->getDriver(), desc);

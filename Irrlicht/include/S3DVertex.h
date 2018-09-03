@@ -290,6 +290,8 @@ inline u32 getVertexPitchFromType(E_VERTEX_TYPE vertexType)
 {
     switch (vertexType)
     {
+        case video::EVT_SHADOW:
+            return sizeof(core::vector3df);
         case video::EVT_SKINNING:
             return sizeof(video::S3DSkinningVertex);
         case video::EVT_2TCOORDS:

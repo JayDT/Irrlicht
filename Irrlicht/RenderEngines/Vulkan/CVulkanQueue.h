@@ -23,6 +23,7 @@ namespace irr
         {
         public:
             VulkanQueue(VulkanDevice& device, VkQueue queue, GpuQueueType type, uint32_t index);
+            ~VulkanQueue();
 
             /** Returns the internal handle to the Vulkan queue object. */
             VkQueue getHandle() const { return mQueue; }

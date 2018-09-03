@@ -473,10 +473,12 @@ void CWGLManager::destroyContext()
 {
 	if (PrimaryContext.OpenGLWin32.HRc)
 	{
-		if (!wglMakeCurrent((HDC)PrimaryContext.OpenGLWin32.HDc, 0))
+        if (!wglMakeCurrent((HDC)PrimaryContext.OpenGLWin32.HDc, 0))
 			os::Printer::log("Release of render context failed.", ELL_WARNING);
 
-		if (!wglDeleteContext((HGLRC)PrimaryContext.OpenGLWin32.HRc))
+        wglMakeCurrent(NULL, NULL);
+
+        if (!wglDeleteContext((HGLRC)PrimaryContext.OpenGLWin32.HRc))
 			os::Printer::log("Deletion of render context failed.", ELL_WARNING);
 		if (PrimaryContext.OpenGLWin32.HRc== PrimaryContext.OpenGLWin32.HRc)
 			PrimaryContext.OpenGLWin32.HRc=0;

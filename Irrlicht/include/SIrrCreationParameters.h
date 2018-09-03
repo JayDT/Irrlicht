@@ -50,6 +50,8 @@ namespace irr
 			Stereobuffer(false),
 			HighPrecisionFPU(false),
 			EventReceiver(0),
+            ConsoleReceiver(0),
+            CustomReceiver(0),
 			WindowId(0),
 #ifdef _DEBUG
 			LoggingLevel(ELL_DEBUG),
@@ -86,6 +88,8 @@ namespace irr
 			Stereobuffer = other.Stereobuffer;
 			HighPrecisionFPU = other.HighPrecisionFPU;
 			EventReceiver = other.EventReceiver;
+            ConsoleReceiver = other.ConsoleReceiver;
+            CustomReceiver = other.CustomReceiver;
 			WindowId = other.WindowId;
 			LoggingLevel = other.LoggingLevel;
 			DriverMultithreaded = other.DriverMultithreaded;
@@ -220,6 +224,8 @@ namespace irr
 
 		//! A user created event receiver.
 		IEventReceiver* EventReceiver;
+        IEventReceiver* ConsoleReceiver;
+        IEventReceiver* CustomReceiver;
 
 		//! Window Id.
 		/** If this is set to a value other than 0, the Irrlicht Engine

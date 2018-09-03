@@ -177,10 +177,18 @@ void irr::video::COpenGLVertexDeclaration::createInputLayout(const COpenGLHardwa
         if (!glsl)
         {
             if (!hwBuffer->GetBuffer())
-                return;
+            {
+                if (mVType >= E_VERTEX_TYPE::EVT_MAX_VERTEX_TYPE)
+                    throw std::runtime_error("invalid operation");
 
-            glsl = static_cast<GLSLGpuShader*>(Driver->GetDefaultGPU(hwBuffer->GetBuffer()->getVertexType()));
+                glsl = static_cast<GLSLGpuShader*>(Driver->GetDefaultGPU(mVType));
+            }
+            else
+                glsl = static_cast<GLSLGpuShader*>(Driver->GetDefaultGPU(hwBuffer->GetBuffer()->getVertexType()));
         }
+
+        if (!glsl)
+            throw std::runtime_error("invalid operation");
 
         for (int i = 0; i != declArray.size(); ++i)
         {

@@ -88,9 +88,18 @@ irr::video::CVulkanDriver::CVulkanDriver(const SIrrlichtCreationParameters & par
 
 irr::video::CVulkanDriver::~CVulkanDriver()
 {
+    SetShader(nullptr);
+
     RequestedLights.clear();
 
     deleteMaterialRenders();
+
+    for (auto rtt : RenderTargets)
+    {
+        rtt->drop();
+    }
+
+    RenderTargets.clear();
 
     // I get a blue screen on my laptop, when I do not delete the
     // textures manually before releasing the dc. Oh how I love this.
@@ -110,30 +119,38 @@ irr::video::CVulkanDriver::~CVulkanDriver()
         CVulkanTexture::mStagingBufferCache.pop_back();
     }
 
-    //while (!ResourceList.empty())
-    //{
-    //    (*ResourceList.begin())->drop();
-    //    ResourceList.erase(ResourceList.begin());
-    //}
-
-    //for (s32 i = 0; i < (s32)E_VERTEX_TYPE::EVT_MAX_VERTEX_TYPE; ++i)
-    //{
-    //    if (!DynamicHardwareBuffer[i])
-    //        continue;
-    //
-    //    DynamicHardwareBuffer[i]->drop();
-    //}
+    for (s32 i = 0; i < (s32)E_VERTEX_TYPE::EVT_MAX_VERTEX_TYPE; ++i)
+    {
+        if (!DynamicHardwareBuffer[i])
+            continue;
+    
+        DynamicHardwareBuffer[i]->drop();
+    }
 
     mMainCommandBuffer->drop();
     mMainCommandBuffer = nullptr;
 
-    //for (s32 i = 0; i < ShaderModuls.size(); ++i)
-    //{
-    //    ShaderModuls[i]->destroy();
-    //    delete ShaderModuls[i];
-    //}
+    if (mPlatform)
+        delete mPlatform;
+
+    while (!ResourceList.empty())
+    {
+        auto itr = ResourceList.begin();
+        (*itr)->drop();
+        ResourceList.erase(*itr);
+    }
 
     ShaderModuls.clear();
+
+    vkDestroySampler(this->mPrimaryDevices->getLogical(), mDummySampler, VulkanDevice::gVulkanAllocator);
+
+    for (auto stages : mPipelines)
+    {
+        for (auto pipeline : stages.second)
+            pipeline.second->drop();
+    }
+
+    mPipelines.clear();
 
     for (s32 i = 0; i < _MAX_DEVICES; ++i)
     {
@@ -142,6 +159,12 @@ irr::video::CVulkanDriver::~CVulkanDriver()
     
         delete mDevices[i];
     }
+
+#if VULKAN_DEBUG_MODE
+    if (VulkanDispatcherExt.vkDestroyDebugReportCallbackEXT)
+        VulkanDispatcherExt.vkDestroyDebugReportCallbackEXT(mInstance, mDebugCallback, VulkanDevice::gVulkanAllocator);
+#endif
+
 
     if (mInstance)
         vkDestroyInstance(mInstance, NULL);
@@ -833,7 +856,10 @@ IHardwareBuffer * irr::video::CVulkanDriver::createHardwareBuffer(const scene::I
 
     VulkanGraphicsPipelineState*& pipeline = mPipelines[vkShader][static_cast<CVulkanVertexDeclaration*>(mb->GetVertexDeclaration())];
     if (!pipeline)
+    {
         pipeline = new VulkanGraphicsPipelineState(mb->getMaterial(), vkShader, static_cast<CVulkanVertexDeclaration*>(mb->GetVertexDeclaration()), GpuDeviceFlags::GDF_PRIMARY);
+        pipeline->initialize();
+    }
 
     if (mb->GetSubBufferCount())
     {
@@ -842,7 +868,6 @@ IHardwareBuffer * irr::video::CVulkanDriver::createHardwareBuffer(const scene::I
             const_cast<scene::IMeshBuffer *>(mb)->SetActiveSubBuffer(is);
 
             hwBuffer->SetPipeline(is, pipeline);
-            hwBuffer->GetPipeline(is)->initialize();
 
             hwBuffer->SetGpuParams(is, new VulkanGpuParams(this, vkShader, GpuDeviceFlags::GDF_PRIMARY)); // vkShader->GetDefaultGpuParams()); //
             hwBuffer->GetGpuParams(is)->initialize();
@@ -860,7 +885,6 @@ IHardwareBuffer * irr::video::CVulkanDriver::createHardwareBuffer(const scene::I
     else
     {
         hwBuffer->SetPipeline(0, pipeline);
-        hwBuffer->GetPipeline(0)->initialize();
 
         hwBuffer->SetGpuParams(0, new VulkanGpuParams(this, vkShader, GpuDeviceFlags::GDF_PRIMARY)); // vkShader->GetDefaultGpuParams()); //
         hwBuffer->GetGpuParams(0)->initialize();
@@ -1120,6 +1144,9 @@ void irr::video::CVulkanDriver::setAmbientLight(const SColorf & color)
 
 void irr::video::CVulkanDriver::drawStencilShadowVolume(const core::array<core::vector3df>& triangles, bool zfail, u32 debugDataVisible)
 {
+    if (!mCreateParams.Stencilbuffer)
+        return;
+
     if (triangles.empty())
         return;
 
@@ -1284,7 +1311,8 @@ void irr::video::CVulkanDriver::OnResize(const core::dimension2d<u32>& size)
 {
     CNullDriver::OnResize(size);
 
-    mPlatform->resizeSwapBuffers();
+    if (mPlatform->GetSwapChain()->getWidth() != size.Width || mPlatform->GetSwapChain()->getHeight() != size.Height)
+        mPlatform->resizeSwapBuffers();
 }
 
 void irr::video::CVulkanDriver::setBasicRenderStates(const SMaterial & material, const SMaterial & lastMaterial, bool resetAllRenderstates)
@@ -1596,6 +1624,7 @@ IShader * irr::video::CVulkanDriver::createShader(ShaderInitializerEntry * shade
     }
 
     gpuProgram->Init();
+    AddShaderModul(gpuProgram);
     return gpuProgram;
 }
 
@@ -1792,11 +1821,13 @@ bool irr::video::CVulkanDriver::uploadVertexData(const void * vertices, u32 vert
 
         VulkanGraphicsPipelineState*& pipeline = mPipelines[_vkShader][static_cast<CVulkanVertexDeclaration*>(GetVertexDeclaration(vType))];
         if (!pipeline)
+        {
             pipeline = new VulkanGraphicsPipelineState(GetMaterial(), _vkShader, static_cast<CVulkanVertexDeclaration*>(GetVertexDeclaration(vType)), GpuDeviceFlags::GDF_PRIMARY);
+            pipeline->initialize();
+        }
 
         DynamicHardwareBuffer[vType]->SetCommandBuffer(mMainCommandBuffer);
         DynamicHardwareBuffer[vType]->SetPipeline(0, pipeline); // new VulkanGraphicsPipelineState(GetMaterial(), _vkShader, static_cast<CVulkanVertexDeclaration*>(GetVertexDeclaration(vType)), GpuDeviceFlags::GDF_PRIMARY));
-        DynamicHardwareBuffer[vType]->GetPipeline(0)->initialize();
 
         DynamicHardwareBuffer[vType]->SetGpuParams(0, _vkShader->GetDefaultGpuParams());
     }

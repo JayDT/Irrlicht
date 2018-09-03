@@ -384,7 +384,7 @@ bool irr::video::CVulkanGLSLang::CompileShader(VkShaderModule * modul, E_ShaderT
         });
     
         optimizer.RegisterPerformancePasses();
-        optimizer.RegisterSizePasses();
+        //optimizer.RegisterSizePasses();
     
         if (!optimizer.Run(spirv.data(), spirv.size(), &spirv))
             return false;

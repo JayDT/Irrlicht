@@ -19,7 +19,7 @@ namespace irr
 //! constructor
 CIrrDeviceStub::CIrrDeviceStub(const SIrrlichtCreationParameters& params)
 : IrrlichtDevice(), VideoDriver(0), GUIEnvironment(0), SceneManager(0),
-    Timer(0), CursorControl(0), UserReceiver(nullptr), WorldReceiver(nullptr), ConsoleReceiver(params.EventReceiver),
+    Timer(0), CursorControl(0), UserReceiver(params.EventReceiver), WorldReceiver(params.CustomReceiver), ConsoleReceiver(params.ConsoleReceiver),
     Logger(0), Operator(0), Randomizer(0), FileSystem(0),
     InputReceivingSceneManager(0), VideoModeList(0),
     CreationParams(params), Close(false)
