@@ -756,7 +756,7 @@ bool irr::video::CVulkanTexture::createMipMaps(u32 level)
 
 bool irr::video::CVulkanTexture::isRenderTarget() const
 {
-    return false;
+    return UsageFlags & ETCF_USAGE_RENDERTARGET;
 }
 
 bool irr::video::CVulkanTexture::InitializeColorFormat(u32 flags, ECOLOR_FORMAT colorFormat)
