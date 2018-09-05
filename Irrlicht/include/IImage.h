@@ -228,9 +228,9 @@ public:
                 case ECF_DXT3:
                 case ECF_DXT4:
                 case ECF_DXT5:
-                    rowPitch = div(width + 3, 4).quot * 4;
-                    depthPitch = div(height + 3, 4).quot * 4 * rowPitch;
-                    rowPitch *= (getBitsPerPixelFromFormat(format) / 8.0);
+                    rowPitch = div(width + 3, 4).quot;
+                    rowPitch *= getBitsPerPixelFromFormat(format);
+                    depthPitch = div(height + 3, 4).quot * rowPitch;
                     return;
 
                 default:

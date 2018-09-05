@@ -169,11 +169,8 @@ namespace scene
 		/** @see bindTargetAndRotation() */
 		virtual bool getTargetAndRotationBinding(void) const =0;
 
-        //!
-        virtual void setFirstPersonMode(bool on) {}
-
-        //!
-        virtual bool isFirstPerson(void) const { return false; }
+        virtual u32 GetUserData() const = 0;
+        virtual void SetUserData(u32 value) = 0;
 
 		//! Writes attributes of the camera node
 		virtual void serializeAttributes(io::IAttributes* out, io::SAttributeReadWriteOptions* options=0) const

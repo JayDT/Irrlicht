@@ -1295,8 +1295,11 @@ bool VulkanCmdBuffer::bindGraphicsPipeline()
 
     vkCmdBindPipeline(mCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getHandle());
 
-    setStencilRef(mGraphicsPipeline->mMaterial.StencilFront.Reference);
-    mStencilRefRequiresBind = true;
+    if (mGraphicsPipeline->mMaterial.StencilFront.Reference != 0)
+    {
+        setStencilRef(mGraphicsPipeline->mMaterial.StencilFront.Reference);
+        mStencilRefRequiresBind = true;
+    }
 
     bindDynamicStates(false);
 
@@ -1347,13 +1350,13 @@ void VulkanCmdBuffer::bindDynamicStates(bool forceAll)
             _scissorRect.extent.width = mRenderTargetWidth;
             _scissorRect.extent.height = mRenderTargetHeight;
         }
-
+    
         //if (memcmp(&_scissorRect, &scissorRect, sizeof(VkViewport)))
         //{
             scissorRect = _scissorRect;
             vkCmdSetScissor(mCmdBuffer, 0, 1, &scissorRect);
         //}
-
+    
         mScissorRequiresBind = false;
     }
 }

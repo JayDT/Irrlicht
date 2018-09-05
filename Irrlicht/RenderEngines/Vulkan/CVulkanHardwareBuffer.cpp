@@ -15,6 +15,8 @@
 using namespace irr;
 using namespace video;
 
+static bool memory_type_from_properties(vk::PhysicalDeviceMemoryProperties const& memory_properties, uint32_t typeBits, vk::MemoryPropertyFlags requirements_mask, uint32_t *typeIndex);
+
 VulkanBuffer::VulkanBuffer(CVulkanDriver* owner, VkBuffer buffer, VkBufferView view, VmaAllocation allocation,
     uint32_t rowPitch, uint32_t slicePitch)
     : CVulkanDeviceResource(owner)
@@ -348,6 +350,7 @@ void irr::video::CVulkanHardwareBuffer::unlock(E_HARDWARE_BUFFER_TYPE type)
     {
         VulkanDevice* device = mMappedDeviceIdx == 0 ? Driver->_getPrimaryDevice() : Driver->_getDevice(mMappedDeviceIdx);
         desc.Buffer->unmap(device);
+        buffer->NotifySoftBound(VulkanUseFlag::Write);
     }
     else
     {
@@ -455,10 +458,11 @@ u32 irr::video::CVulkanHardwareBuffer::GetMemoryAccessType(E_HARDWARE_BUFFER_ACC
     if (AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_IMMUTABLE || AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_DEFAULT)
         return VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-    if (AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC)
-        return VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 
-    return VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+    if (AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC)
+        return VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+    return VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
 }
 
 void irr::video::CVulkanHardwareBuffer::SetCommandBuffer(VulkanCommandBuffer * cb)
@@ -583,9 +587,9 @@ VulkanBuffer * irr::video::CVulkanHardwareBuffer::GetCacheBuffer(VulkanDevice & 
 
     if (!descriptor.BufferCache->empty())
     {
-        size_t startIndex = descriptor.BufferCacheHint++;
+        size_t startIndex = descriptor.BufferCacheHint > descriptor.BufferCache->size() ? descriptor.BufferCache->size() - 1 : descriptor.BufferCacheHint++;
         if (descriptor.BufferCache->size() <= descriptor.BufferCacheHint)
-            --descriptor.BufferCacheHint;
+            descriptor.BufferCacheHint = 0;
         do
         {
             const BufferCacheDesc& entry = (*descriptor.BufferCache)[descriptor.BufferCacheHint];
@@ -598,7 +602,6 @@ VulkanBuffer * irr::video::CVulkanHardwareBuffer::GetCacheBuffer(VulkanDevice & 
             ++descriptor.BufferCacheHint;
             if (descriptor.BufferCache->size() <= descriptor.BufferCacheHint)
                 descriptor.BufferCacheHint = 0;
-
         } while (startIndex != descriptor.BufferCacheHint);
     }
 
@@ -696,7 +699,7 @@ VulkanBuffer * irr::video::CVulkanHardwareBuffer::CreateBuffer(VulkanDevice & de
     return vkbuffer;
 }
 
-bool irr::video::CVulkanHardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type, E_HARDWARE_BUFFER_ACCESS AccessType, const void * initialData, u32 size, u32 offset, u32 dataSize, u32 typeMask)
+bool irr::video::CVulkanHardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type, E_HARDWARE_BUFFER_ACCESS AccessType, const void * initialData, u32 size, u32 offset, u32 dataSize, u32 typeMask, s32 preferBuffer)
 {
     //if (VertexBufferStreams.size() <= (int)Type)
     //    VertexBufferStreams.resize(int(Type) + 1);
@@ -898,6 +901,9 @@ bool irr::video::CVulkanHardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type
 
         if (initialData)
         {
+            if (preferBuffer > -1)
+                desc.BufferCacheHint = preferBuffer - 1;
+
             u8* mappedPtr = (u8*)lock(Type, dataSize ? dataSize : size);
             memcpy(mappedPtr, initialData, dataSize ? dataSize : size);
             unlock(Type);

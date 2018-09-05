@@ -59,6 +59,7 @@ namespace irr
             };
 
             std::vector<StageDesc*> mStages;
+            s32 mShaderId = -1;
 
             ~ShaderInitializerEntry()
             {
@@ -556,6 +557,7 @@ namespace irr
                 , mDriver(driver)
                 , DataBuffer(nullptr)
                 , mShaderId(shaderId)
+                , mBinding(0)
                 , mBufferSize(0)
                 , mBufferCount(0)
                 , mActiveSubBuffer(0)

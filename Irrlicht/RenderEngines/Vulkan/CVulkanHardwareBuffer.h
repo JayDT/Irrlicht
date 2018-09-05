@@ -177,7 +177,7 @@ namespace irr
 
             VulkanBuffer* GetCacheBuffer(VulkanDevice & device, CVulkanHardwareBuffer::BufferDesc& descriptor, VkBufferCreateInfo& bufferCI, E_HARDWARE_BUFFER_ACCESS AccessType, u32 stride, bool readable);
             VulkanBuffer* CreateBuffer(VulkanDevice& device, VkBufferCreateInfo& bufferCI, E_HARDWARE_BUFFER_ACCESS AccessType, u32 stride, bool readable, bool staging = false);
-            bool UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type, E_HARDWARE_BUFFER_ACCESS AccessType, const void* initialData, u32 size, u32 offset = 0, u32 endoffset = 0, u32 typeMask = 0);
+            bool UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type, E_HARDWARE_BUFFER_ACCESS AccessType, const void* initialData, u32 size, u32 offset = 0, u32 endoffset = 0, u32 typeMask = 0, s32 preferBuffer = -1);
             u32 getVertexDeclarationStride(u8 inputSlot) const;
 
         public:

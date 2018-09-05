@@ -171,4 +171,8 @@ void irr::video::CVulkanDeviceResource::NotifySoftBound(VulkanUseFlag flags)
         mUseHandle.flags = flags;
         assert(mUseHandle.flags != VulkanUseFlag::None);
     }
+    else
+    {
+        mUseHandle.flags |= flags;
+    }
 }

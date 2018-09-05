@@ -17,8 +17,9 @@ namespace scene
 CCameraSceneNode::CCameraSceneNode(ISceneNode* parent, ISceneManager* mgr, s32 id,
 	const core::vector3df& position, const core::vector3df& lookat)
 	: ICameraSceneNode(parent, mgr, id, position),
-	Target(lookat), UpVector(0.0f, 1.0f, 0.0f), ZNear(1.0f), ZFar(3000.0f),
-	InputReceiverEnabled(true), TargetAndRotationAreBound(false)
+	Target(lookat), UpVector(0.0f, 1.0f, 0.0f), ZNear(1.0f), ZFar(3000.0f), UserData(0),
+	InputReceiverEnabled(true), TargetAndRotationAreBound(false),
+    IsDirty(true)
 {
 	#ifdef _DEBUG
 	setDebugName("CCameraSceneNode");
@@ -88,6 +89,7 @@ const core::matrix4& CCameraSceneNode::getViewMatrix() const
 void CCameraSceneNode::setViewMatrixAffector(const core::matrix4& affector)
 {
 	Affector = affector;
+    IsDirty = true;
 }
 
 
@@ -126,6 +128,7 @@ bool CCameraSceneNode::OnEvent(const SEvent& event)
 void CCameraSceneNode::setTarget(const core::vector3df& pos)
 {
 	Target = pos;
+    IsDirty = true;
 
 	if(TargetAndRotationAreBound)
 	{
@@ -144,6 +147,7 @@ void CCameraSceneNode::setRotation(const core::vector3df& rotation)
 {
 	if(TargetAndRotationAreBound)
 		Target = getAbsolutePosition() + rotation.rotationToDirection();
+    IsDirty = true;
 
 	ISceneNode::setRotation(rotation);
 }
@@ -162,6 +166,7 @@ const core::vector3df& CCameraSceneNode::getTarget() const
 void CCameraSceneNode::setUpVector(const core::vector3df& pos)
 {
 	UpVector = pos;
+    IsDirty = true;
 }
 
 
@@ -257,25 +262,29 @@ void CCameraSceneNode::render()
 //! update
 void CCameraSceneNode::updateMatrices()
 {
-	core::vector3df pos = getAbsolutePosition();
-	core::vector3df tgtv = Target - pos;
-	tgtv.normalize();
+    if (IsDirty)
+    {
+        core::vector3df pos = getAbsolutePosition();
+        core::vector3df tgtv = Target - pos;
+        tgtv.normalize();
 
-	// if upvector and vector to the target are the same, we have a
-	// problem. so solve this problem:
-	core::vector3df up = UpVector;
-	up.normalize();
+        // if upvector and vector to the target are the same, we have a
+        // problem. so solve this problem:
+        core::vector3df up = UpVector;
+        up.normalize();
 
-	f32 dp = tgtv.dotProduct(up);
+        f32 dp = tgtv.dotProduct(up);
 
-	if ( core::equals(core::abs_<f32>(dp), 1.f) )
-	{
-		up.X += 0.5f;
-	}
+        if (core::equals(core::abs_<f32>(dp), 1.f))
+        {
+            up.X += 0.5f;
+        }
 
-	ViewArea.getTransform(video::ETS_VIEW).buildCameraLookAtMatrixLH(pos, Target, up);
-	ViewArea.getTransform(video::ETS_VIEW) *= Affector;
-	recalculateViewArea();
+        ViewArea.getTransform(video::ETS_VIEW).buildCameraLookAtMatrixLH(pos, Target, up);
+        ViewArea.getTransform(video::ETS_VIEW) *= Affector;
+        recalculateViewArea();
+        IsDirty = false;
+    }
 }
 
 //! returns the axis aligned bounding box of this node

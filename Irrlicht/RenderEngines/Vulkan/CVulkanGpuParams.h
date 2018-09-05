@@ -39,6 +39,16 @@ namespace irr
 
             /** @copydoc GpuParams::setBuffer */
             void setBuffer(u32 set, u32 slot, const CVulkanHardwareBuffer* buffer);
+            s32 getBufferId(u32 set, u32 slot)
+            {
+                if (bufferBindingSlot.size() <= slot)
+                    return -1;
+
+                u32 bindingIdx = bufferBindingSlot[slot];
+                if (!mPerDeviceData[0])
+                    return -1;
+                return mPerDeviceData[0][set].writeInfos[bindingIdx].bufferId;
+            }
 
             /** @copydoc GpuParams::setSamplerState */
             void setSamplerState(u32 set, u32 slot, const VkSampler& sampler);
@@ -79,6 +89,7 @@ namespace irr
                     VkDescriptorBufferInfo buffer;
                     VkBufferView bufferView;
                 };
+                s32 bufferId = -1;
             };
 
             /** All GPU param data related to a single descriptor set. */

@@ -521,36 +521,39 @@ void COpenGLTexture::uploadTexture(bool newTexture, void* mipmapData, u32 level)
     if (!level && newTexture)
     {
         // auto generate if possible and no mipmap data is given
-        if (HasMipMaps && Driver->queryFeature(EVDF_MIP_MAP_AUTO_UPDATE))
+        if (HasMipMaps)
         {
-            if (Driver->getTextureCreationFlag(ETCF_OPTIMIZED_FOR_SPEED))
-                glHint(GL_GENERATE_MIPMAP_HINT_SGIS, GL_FASTEST);
-            else if (Driver->getTextureCreationFlag(ETCF_OPTIMIZED_FOR_QUALITY))
-                glHint(GL_GENERATE_MIPMAP_HINT_SGIS, GL_NICEST);
-            else
-                glHint(GL_GENERATE_MIPMAP_HINT_SGIS, GL_DONT_CARE);
-                //glHint(GL_GENERATE_MIPMAP_HINT_SGIS, GL_FASTEST);
-        
-            AutomaticMipmapUpdate = true;
-
-            u32 maxLevel = mostSignificantBitSet(std::max(image->getDimension().Width, image->getDimension().Height));
-            NumberOfMipLevels = maxLevel;
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, maxLevel);
-
-            if (!Driver->queryFeature(EVDF_FRAMEBUFFER_OBJECT))
+            if ((!image || image->GetMipLevelCount() <= 1) && Driver->queryFeature(EVDF_MIP_MAP_AUTO_UPDATE))
             {
-                glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE );
-            	MipmapLegacyMode=true;
+                if (Driver->getTextureCreationFlag(ETCF_OPTIMIZED_FOR_SPEED))
+                    glHint(GL_GENERATE_MIPMAP_HINT_SGIS, GL_FASTEST);
+                else if (Driver->getTextureCreationFlag(ETCF_OPTIMIZED_FOR_QUALITY))
+                    glHint(GL_GENERATE_MIPMAP_HINT_SGIS, GL_NICEST);
+                else
+                    glHint(GL_GENERATE_MIPMAP_HINT_SGIS, GL_DONT_CARE);
+                //glHint(GL_GENERATE_MIPMAP_HINT_SGIS, GL_FASTEST);
+
+                AutomaticMipmapUpdate = true;
+
+                u32 maxLevel = mostSignificantBitSet(std::max(image->getDimension().Width, image->getDimension().Height));
+                NumberOfMipLevels = maxLevel;
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, maxLevel);
+
+                if (!Driver->queryFeature(EVDF_FRAMEBUFFER_OBJECT))
+                {
+                    glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+                    MipmapLegacyMode = true;
+                }
+                else
+                    MipmapLegacyMode = false;
             }
             else
-                MipmapLegacyMode = false;
-        }
-        else
-        {
-            // Either generate manually due to missing capability
-            // or use predefined mipmap data
-            AutomaticMipmapUpdate = false;
-            regenerateMipMapLevels(image);
+            {
+                // Either generate manually due to missing capability
+                // or use predefined mipmap data
+                AutomaticMipmapUpdate = false;
+                regenerateMipMapLevels(image);
+            }
         }
 
         if (HasMipMaps) // might have changed in regenerateMipMapLevels

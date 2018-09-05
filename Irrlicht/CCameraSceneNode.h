@@ -13,7 +13,7 @@ namespace irr
 namespace scene
 {
 
-	class CCameraSceneNode : public ICameraSceneNode
+	class IRRLICHT_API CCameraSceneNode : public ICameraSceneNode
 	{
 	public:
 
@@ -148,6 +148,9 @@ namespace scene
 		//! Creates a clone of this scene node and its children.
 		virtual ISceneNode* clone(ISceneNode* newParent=0, ISceneManager* newManager=0);
 
+        u32 GetUserData() const { return UserData; }
+        void SetUserData(u32 value) { UserData = value; }
+
 	protected:
 
 		void recalculateProjectionMatrix();
@@ -161,11 +164,14 @@ namespace scene
 		f32 ZNear;	// value of the near view-plane.
 		f32 ZFar;	// Z-value of the far view-plane.
 
+        u32 UserData;
+
 		SViewFrustum ViewArea;
 		core::matrix4 Affector;
 
 		bool InputReceiverEnabled;
 		bool TargetAndRotationAreBound;
+        bool IsDirty;
 	};
 
 } // end namespace

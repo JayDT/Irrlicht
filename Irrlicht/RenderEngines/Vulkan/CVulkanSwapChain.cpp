@@ -109,7 +109,7 @@ void VulkanSwapChain::rebuild(VulkanDevice* device, VkSurfaceKHR surface, uint32
     swapChainCI.pQueueFamilyIndices = NULL;
     swapChainCI.presentMode = presentMode;
     swapChainCI.oldSwapchain = mSwapChain;
-    swapChainCI.clipped = VK_TRUE;
+    swapChainCI.clipped = VK_FALSE;
     swapChainCI.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 
     VkSwapchainKHR oldSwapChain = mSwapChain;

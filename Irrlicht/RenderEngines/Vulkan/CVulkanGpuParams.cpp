@@ -351,6 +351,7 @@ void VulkanGpuParams::setBuffer(u32 set, u32 slot, const CVulkanHardwareBuffer* 
                 continue;
     
             perSetData.writeInfos[bindingIdx].bufferView = bufferView;
+            perSetData.writeInfos[bindingIdx].bufferId = bufferDesc->BufferCacheHint;
             writeSetInfo.pTexelBufferView = &perSetData.writeInfos[bindingIdx].bufferView;
             perSetData.mSetsDirty = true;
         }
@@ -363,6 +364,7 @@ void VulkanGpuParams::setBuffer(u32 set, u32 slot, const CVulkanHardwareBuffer* 
                     continue;
 
                 perSetData.writeInfos[bindingIdx].buffer.buffer = vkBuffer;
+                perSetData.writeInfos[bindingIdx].bufferId = bufferDesc->BufferCacheHint;
                 perSetData.mSetsDirty = true;
             }
             else
@@ -371,6 +373,7 @@ void VulkanGpuParams::setBuffer(u32 set, u32 slot, const CVulkanHardwareBuffer* 
                     continue;
 
                 perSetData.writeInfos[bindingIdx].buffer.buffer = mShader->GetDriver()->GetDummyStorageBuffer()->GetBufferDesc(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS)->Buffer->getHandle();
+                perSetData.writeInfos[bindingIdx].bufferId = bufferDesc->BufferCacheHint;
                 perSetData.mSetsDirty = true;
             }
     

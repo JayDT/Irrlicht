@@ -26,10 +26,12 @@
 
 #include "DirectXDefines.h"
 
-//#include "wincodec.h"
+#ifdef HAVE_CSYSTEM_EXTENSION
+#include "System/Uri.h"
+#include "CFramework/System/Resource/ResourceManager.h"
 
-//#include <d2d1_1helper.h>
-//#include <d2dbasetypes.h>
+extern bool InitializeModulResourceDirect3D11();
+#endif
 
 #undef min
 #undef max
@@ -59,8 +61,6 @@ extern DirectX::XMMATRIX SphereMapMatrixD3D11;
     while( rest > 0 )             \
         rest = x->Release();      \
     x = 0;
-
-//extern bool InitializeModulResourceDirect3D11();
 
 extern irr::video::IShaderDataBuffer* CreateDefaultShaderBuffer();
 
@@ -145,7 +145,9 @@ CD3D11Driver::CD3D11Driver(const SIrrlichtCreationParameters& params, io::IFileS
     memset(blankImage->lock(), 0, (blankImage->getPitch() * blankImage->getDimension().Height));
     blankImage->unlock();
 
-    //InitializeModulResourceDirect3D11();
+#ifdef HAVE_CSYSTEM_EXTENSION
+    InitializeModulResourceDirect3D11();
+#endif
 }
 
 CD3D11Driver::~CD3D11Driver()
@@ -513,20 +515,20 @@ bool CD3D11Driver::initOutput(HWND hwnd, bool pureSoftware)
 
         UINT qualityLevels = 0;
 
-        //while (Params.AntiAlias > 0)
-        //{
-        //    if (SUCCEEDED(Device->CheckMultisampleQualityLevels(DXGI_FORMAT_B8G8R8A8_UNORM, (UINT)Params.AntiAlias, &qualityLevels)))
-        //    {
-        //        if (qualityLevels)
-        //        {
-        //            // Turn multisampling on.
-        //            present.SampleDesc.Count = Params.AntiAlias;
-        //            present.SampleDesc.Quality = qualityLevels - 1;
-        //            break;
-        //        }
-        //    }
-        //    --Params.AntiAlias;
-        //}
+        while (Params.AntiAlias > 0)
+        {
+            if (SUCCEEDED(Device->CheckMultisampleQualityLevels(present.Format, (UINT)Params.AntiAlias, &qualityLevels)))
+            {
+                if (qualityLevels)
+                {
+                    // Turn multisampling on.
+                    present.SampleDesc.Count = Params.AntiAlias;
+                    present.SampleDesc.Quality = qualityLevels - 1;
+                    break;
+                }
+            }
+            --Params.AntiAlias;
+        }
 
         if (Params.AntiAlias == 0)
         {
@@ -852,13 +854,18 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
     blankImage->grab();
     blankTexture = createDeviceDependentTexture(blankImage, "internal_null_texture");
 
+#ifdef HAVE_CSYSTEM_EXTENSION
+    auto resource = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/Direct3D11;/HLSL/Default/d3d11.hlsl", true))->ToMemoryStreamReader();
+#else
     System::IO::StandardDataSource fileMgr;
+    auto resource = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Direct3D11/HLSL/Default/d3d11.hlsl");
+#endif
+
     {
         video::IShaderDataBuffer* bufferHandler = CreateDefaultShaderBuffer();
 
         ShaderInitializerEntry shaderCI;
 
-        auto resource = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Direct3D11/HLSL/Default/d3d11.hlsl");
         shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_VERTEX_SHADER, "vs_main", "vs_4_0")->Buffers.push_back(bufferHandler);
         shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_FRAGMENT_SHADER, "ps_main", "ps_4_0");
         m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD] = static_cast<D3D11HLSLProgram*>(createShader(&shaderCI));
@@ -866,7 +873,6 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
         irr::video::VertexDeclaration* vertDecl = GetVertexDeclaration(E_VERTEX_TYPE::EVT_STANDARD);
         m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD]->m_inputLayout = static_cast<CD3D11VertexDeclaration*>(vertDecl)->getInputLayout(m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD]);
         m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD]->m_inputLayout->AddRef();
-        delete resource;
     }
 
     {
@@ -874,7 +880,6 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
 
         ShaderInitializerEntry shaderCI;
 
-        auto resource = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Direct3D11/HLSL/Default/d3d11.hlsl");
         shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_VERTEX_SHADER, "vs_main_t2", "vs_4_0")->Buffers.push_back(bufferHandler);
         shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_FRAGMENT_SHADER, "ps_main", "ps_4_0");
         m_defaultShader[E_VERTEX_TYPE::EVT_2TCOORDS] = static_cast<D3D11HLSLProgram*>(createShader(&shaderCI));
@@ -882,7 +887,6 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
         irr::video::VertexDeclaration* vertDecl = GetVertexDeclaration(E_VERTEX_TYPE::EVT_2TCOORDS);
         m_defaultShader[E_VERTEX_TYPE::EVT_2TCOORDS]->m_inputLayout = static_cast<CD3D11VertexDeclaration*>(vertDecl)->getInputLayout(m_defaultShader[E_VERTEX_TYPE::EVT_2TCOORDS]);
         m_defaultShader[E_VERTEX_TYPE::EVT_2TCOORDS]->m_inputLayout->AddRef();
-        delete resource;
     }
 
     {
@@ -890,7 +894,6 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
 
         ShaderInitializerEntry shaderCI;
 
-        auto resource = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Direct3D11/HLSL/Default/d3d11.hlsl");
         shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_VERTEX_SHADER, "vs_main_sk", "vs_4_0")->Buffers.push_back(bufferHandler);
         shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_FRAGMENT_SHADER, "ps_main", "ps_4_0");
         m_defaultShader[E_VERTEX_TYPE::EVT_SKINNING] = static_cast<D3D11HLSLProgram*>(createShader(&shaderCI));
@@ -898,7 +901,6 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
         irr::video::VertexDeclaration* vertDecl = GetVertexDeclaration(E_VERTEX_TYPE::EVT_SKINNING);
         m_defaultShader[E_VERTEX_TYPE::EVT_SKINNING]->m_inputLayout = static_cast<CD3D11VertexDeclaration*>(vertDecl)->getInputLayout(m_defaultShader[E_VERTEX_TYPE::EVT_SKINNING]);
         m_defaultShader[E_VERTEX_TYPE::EVT_SKINNING]->m_inputLayout->AddRef();
-        delete resource;
     }
 
     {
@@ -906,7 +908,6 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
 
         ShaderInitializerEntry shaderCI;
 
-        auto resource = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Direct3D11/HLSL/Default/d3d11.hlsl");
         shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_VERTEX_SHADER, "vs_main_bt", "vs_4_0")->Buffers.push_back(bufferHandler);
         shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_FRAGMENT_SHADER, "ps_main", "ps_4_0");
         m_defaultShader[E_VERTEX_TYPE::EVT_TANGENTS] = static_cast<D3D11HLSLProgram*>(createShader(&shaderCI));
@@ -914,7 +915,6 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
         irr::video::VertexDeclaration* vertDecl = GetVertexDeclaration(E_VERTEX_TYPE::EVT_TANGENTS);
         m_defaultShader[E_VERTEX_TYPE::EVT_TANGENTS]->m_inputLayout = static_cast<CD3D11VertexDeclaration*>(vertDecl)->getInputLayout(m_defaultShader[E_VERTEX_TYPE::EVT_TANGENTS]);
         m_defaultShader[E_VERTEX_TYPE::EVT_TANGENTS]->m_inputLayout->AddRef();
-        delete resource;
     }
 
     {
@@ -922,16 +922,16 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
 
         ShaderInitializerEntry shaderCI;
 
-        auto resource = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Direct3D11/HLSL/Default/d3d11.hlsl");
         shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_VERTEX_SHADER, "vs_main_sh", "vs_4_0")->Buffers.push_back(bufferHandler);
-        //shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_FRAGMENT_SHADER, "ps_main_sh", "ps_4_0");
         m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW] = static_cast<D3D11HLSLProgram*>(createShader(&shaderCI));
 
         irr::video::VertexDeclaration* vertDecl = GetVertexDeclaration(E_VERTEX_TYPE::EVT_SHADOW);
         m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW]->m_inputLayout = static_cast<CD3D11VertexDeclaration*>(vertDecl)->getInputLayout(m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW]);
         m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW]->m_inputLayout->AddRef();
-        delete resource;
     }
+
+    delete resource;
+
     return true;
 }
 
@@ -1028,6 +1028,7 @@ IShader * CD3D11Driver::createShader(ShaderInitializerEntry * shaderCreateInfo)
     }
 
     gpuProgram->Init();
+    shaderCreateInfo->mShaderId = AddShaderModul(gpuProgram, shaderCreateInfo->mShaderId);
     return gpuProgram;
 }
 
@@ -3242,7 +3243,7 @@ DXGI_FORMAT CD3D11Driver::getD3DFormatFromColorFormat(ECOLOR_FORMAT format) cons
 
     case ECF_RGBA8:
     case ECF_A8R8G8B8:
-        //return DXGI_FORMAT_R8G8B8A8_UNORM;
+        return DXGI_FORMAT_R8G8B8A8_UNORM;
 
     case ECF_B8G8R8A8:
         return DXGI_FORMAT_B8G8R8A8_UNORM;

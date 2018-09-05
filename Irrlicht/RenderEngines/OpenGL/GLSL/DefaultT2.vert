@@ -22,6 +22,7 @@ layout(location = 0) in vec3 Position;
 layout(location = 1) in vec3 Normal;
 layout(location = 2) in vec4 color;
 layout(location = 3) in vec2 texCoord;
+layout(location = 4) in vec2 texCoord2;
 
 out vertex_output
 {
@@ -40,7 +41,7 @@ void main()
 {
     mat4 MWorldMatrix = projectionMatrix * viewMatrix;
     vec4 position = worldMatrix * vec4(Position, 1.0f);
-    vec4 NormalL  = worldMatrix * vec4(Normal, 0.0);
+    vec4 NormalL  = vec4(Normal, 0.0);
 
     VertOut.normal   = NormalL.xyz;
     VertOut.UPPos    = position.xyz;
@@ -52,7 +53,7 @@ void main()
     vec4 texCoord1Alt = textureMatrix1 * vec4(texCoord, 0, 1);
     VertOut.tex = texCoord1Alt.xy / texCoord1Alt.w;
 
-    vec4 texCoord2Alt = textureMatrix2 * vec4(texCoord, 0, 1);
+    vec4 texCoord2Alt = textureMatrix2 * vec4(texCoord2, 0, 1);
     VertOut.tex2 = texCoord2Alt.xy / texCoord2Alt.w;
 
     VertOut.color    = color;

@@ -158,6 +158,8 @@ namespace irr
 
             GLSLGpuShader* ToGLSL() override final { return this; }
 
+            const std::vector<CGlslBufferDesc>& GetBlockBufferInfos() const { return ShaderBuffers; }
+
             const CGlslBufferDesc* getGPUProgramAttributeDesc(u32 index) const
             {
                 for (u32 i = 0; i != ShaderAttributes.size(); ++i)
@@ -168,6 +170,30 @@ namespace irr
                     }
                 }
                 return nullptr;
+            }
+
+            virtual u32 getBufferBinding(ShaderVariableDescriptor const* desc) const override
+            {
+                const CGlslBufferDesc& cbuffer = GetBlockBufferInfos()[desc->m_shaderIndex];
+                return cbuffer.binding;
+            }
+
+            virtual size_t getBufferSize(ShaderVariableDescriptor const* desc) const override
+            {
+                const CGlslBufferDesc& cbuffer = GetBlockBufferInfos()[desc->m_shaderIndex];
+                return cbuffer.DataBuffer.size();
+            }
+
+            virtual BufferVariableMemoryInfo getBufferVariableMemoryInfo(ShaderVariableDescriptor const* desc) const override
+            {
+                const CGlslBufferDesc& cbuffer = GetBlockBufferInfos()[desc->m_shaderIndex];
+                const auto& constantDecl = cbuffer.members[desc->m_location & 0xFF];
+
+                BufferVariableMemoryInfo info;
+                info.ElementSize = constantDecl.elementSize;
+                info.MemorySize = constantDecl.dataSize;
+                info.Offset = constantDecl.offset;
+                return info;
             }
 
             //svirtual void CommitValues(IShaderDataBuffer::E_UPDATE_TYPE updateType);

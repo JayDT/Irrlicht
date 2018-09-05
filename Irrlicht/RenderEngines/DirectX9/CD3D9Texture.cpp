@@ -294,8 +294,8 @@ bool CD3D9Texture::createTexture(u32 flags, IImage * image)
         //case ECF_RGBA_S3TC_DXT5:
         //    format = D3DFMT_DXT5;
         //    break;
-        default:
-        {
+        //default:
+        //{
             switch (getTextureFormatFromFlags(flags))
             {
                 case ETCF_ALWAYS_16_BIT:
@@ -328,7 +328,7 @@ bool CD3D9Texture::createTexture(u32 flags, IImage * image)
                     format = D3DFMT_A1R5G5B5;
                     break;
             }
-        }
+        //}
     }
 
 	if (Driver->getTextureCreationFlag(video::ETCF_NO_ALPHA_CHANNEL))

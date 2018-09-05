@@ -398,6 +398,9 @@ void GLSLReflectStorageBlocks(GLSLGpuShader* shader, std::vector<CGlslBufferDesc
                 glGetProgramResourceiv(shader->getProgramId(), GL_BUFFER_VARIABLE, memberId, 9, memberProps, sizeof(memberDescParams), &memberParamsDescLength, memberDescParams);
 
                 structDecl.varDesc.m_name = buf;
+                size_t trimmedArraySuffixIndex = structDecl.varDesc.m_name.find_last_of('[');
+                if (trimmedArraySuffixIndex != std::string::npos)
+                    structDecl.varDesc.m_name = structDecl.varDesc.m_name.substr(0, trimmedArraySuffixIndex);
                 structDecl.offset = memberDescParams[2];
                 structDecl.blockIndex = memberDescParams[3];
                 structDecl.arrayStride = memberDescParams[4];
@@ -431,11 +434,7 @@ void GLSLReflectStorageBlocks(GLSLGpuShader* shader, std::vector<CGlslBufferDesc
                 size_t dotIndex = structDecl.varDesc.m_name.find_last_of('.');
                 if (dotIndex != std::string::npos)
                 {
-
                     auto structName = structDecl.varDesc.m_name.substr(0, dotIndex);
-                    size_t trimmedArraySuffixIndex = structName.find_last_of('[', dotIndex);
-                    if (trimmedArraySuffixIndex != std::string::npos)
-                        structName = structName.substr(0, trimmedArraySuffixIndex);
                     structs[structName].push_back(&structDecl);
                 }
             }
@@ -443,7 +442,7 @@ void GLSLReflectStorageBlocks(GLSLGpuShader* shader, std::vector<CGlslBufferDesc
             for (int m = 0; m < desc.members.size() - 1; ++m)
             {
                 desc.members[m].varDesc.m_location = m;                          // Buffer Variable Index
-                desc.members[m].dataSize = desc.members[m + 1].offset - desc.members[m].offset;
+                desc.members[m].varDesc.m_size = desc.members[m].dataSize = desc.members[m + 1].offset - desc.members[m].offset;
                 if (desc.members[m].toplevel_arraysize > 1)  //ToDo: this wrong
                     desc.members[m].elementSize = desc.members[m].toplevel_arraystride;
                 else
@@ -457,13 +456,13 @@ void GLSLReflectStorageBlocks(GLSLGpuShader* shader, std::vector<CGlslBufferDesc
             {
                 // ToDo: need implement for intermediate arrays
                 int nextArrayElementOffset = desc.dataSize - desc.members.back().toplevel_arraystride * (desc.members.back().toplevel_arraysize - 1);
-                desc.members.back().dataSize = desc.members.back().toplevel_arraystride * desc.members.back().toplevel_arraysize;
+                desc.members.back().varDesc.m_size = desc.members.back().dataSize = desc.members.back().toplevel_arraystride * desc.members.back().toplevel_arraysize;
                 desc.members.back().elementSize = nextArrayElementOffset - desc.members.back().offset; //desc.members.back().dataSize / desc.members.back().varDesc.m_length; //ToDo: this wrong
                 shader->AddShaderVariable(&desc.members.back().varDesc);
             }
             else
             {
-                desc.members.back().dataSize = desc.dataSize - desc.members.back().offset;
+                desc.members.back().varDesc.m_size = desc.members.back().dataSize = desc.dataSize - desc.members.back().offset;
                 desc.members.back().elementSize = desc.members.back().dataSize / desc.members.back().varDesc.m_length; //ToDo: this wrong
                 shader->AddShaderVariable(&desc.members.back().varDesc);
             }
@@ -527,6 +526,7 @@ void GLSLReflectStorageBlocks(GLSLGpuShader* shader, std::vector<CGlslBufferDesc
                 {
                     desc.members[i] = structEntries[i - memberParams[2]];
                     desc.members[i].varDesc.m_location = i;
+                    desc.members[i].varDesc.m_size = desc.members[i].dataSize;
 
                     shader->AddShaderVariable(&desc.members[i].varDesc);
                 }
@@ -794,6 +794,7 @@ IShader * COpenGLDriver::createShader(ShaderInitializerEntry * shaderCreateInfo)
     }
 
     gpuProgram->Init();
+    shaderCreateInfo->mShaderId = AddShaderModul(gpuProgram, shaderCreateInfo->mShaderId);
     return gpuProgram;
 }
 

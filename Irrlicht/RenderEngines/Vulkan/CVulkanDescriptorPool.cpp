@@ -30,7 +30,7 @@ VulkanDescriptorPool::VulkanDescriptorPool(VulkanDevice& device)
     poolCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolCI.pNext = nullptr;
     poolCI.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-    poolCI.maxSets = sMaxSets * 10;
+    poolCI.maxSets = sMaxSets;
     poolCI.poolSizeCount = sizeof(poolSizes) / sizeof(poolSizes[0]);
     poolCI.pPoolSizes = poolSizes;
 

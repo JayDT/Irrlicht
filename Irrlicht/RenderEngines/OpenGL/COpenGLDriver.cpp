@@ -48,6 +48,15 @@
 #include "ContextManager/CNSOGLManager.h"
 #endif
 
+#ifdef HAVE_CSYSTEM_EXTENSION
+#include "System/Uri.h"
+#include "CFramework/System/Resource/ResourceManager.h"
+
+extern bool InitializeModulResourceOpenGL();
+#endif
+
+#define _DEBUG_OGL
+
 using namespace irr;
 using namespace irr::video;
 
@@ -62,7 +71,7 @@ void APIENTRY openglCallbackFunction(GLenum source,
                                            const GLchar* message,
                                            const void* userParam)
 {
-#ifdef _DEBUG
+#ifdef _DEBUG_OGL
     switch (severity) {
         case GL_DEBUG_SEVERITY_NOTIFICATION:
             return;
@@ -149,7 +158,9 @@ COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params, io::IFil
         0.0f, 0.0f, 1.0f, 0.0f,
         0.5f, 0.5f, 0.0f, 1.0f);
 
-    //InitializeModulResourceOpenGL();
+#ifdef HAVE_CSYSTEM_EXTENSION
+    InitializeModulResourceOpenGL();
+#endif
 }
 #endif
 
@@ -229,7 +240,7 @@ bool COpenGLDriver::initDriver()
     extGlSwapInterval(Params.Vsync ? 1 : 0);
 #endif
 
-#ifdef _DEBUG
+#ifdef _DEBUG_OGL
     GetStateCache()->setEnabled(GL_DEBUG_OUTPUT_SYNCHRONOUS, true);
     glDebugMessageCallback(openglCallbackFunction, nullptr);
     GLuint unusedIds = 0;
@@ -258,8 +269,13 @@ bool COpenGLDriver::initDriver()
 
         ShaderInitializerEntry shaderCI;
 
-        auto vertShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Vulkan/GLSL/vkDefault.vert"); //System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/CVulkan;/GLSL/VkDefault.vert", true));
-        auto fragShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/OpenGL/GLSL/Default.frag"); //System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/CVulkan;/GLSL/VkDefault.frag", true));
+#ifndef HAVE_CSYSTEM_EXTENSION
+        auto vertShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/OpenGL/GLSL/Default.vert");
+        auto fragShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/OpenGL/GLSL/Default.frag");
+#else
+        auto vertShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/Default.vert", true))->ToMemoryStreamReader();
+        auto fragShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/Default.frag", true))->ToMemoryStreamReader();
+#endif
 
         shaderCI.AddShaderStage(vertShader, E_ShaderTypes::EST_VERTEX_SHADER, "main", nullptr)->Buffers.push_back(bufferHandler);
         shaderCI.AddShaderStage(fragShader, E_ShaderTypes::EST_FRAGMENT_SHADER, "main", nullptr);
@@ -271,34 +287,22 @@ bool COpenGLDriver::initDriver()
         delete fragShader;
     }
 
-    /// ToDo: hlsl compile
-    //{
-    //    video::IShaderDataBuffer* bufferHandler = new irr::video::VulkanShaderGenericValuesBuffer(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH);
-    //
-    //    ShaderInitializerEntry shaderCI;
-    //
-    //    auto resource = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Direct3D11/HLSL/Default/d3d11.hlsl");
-    //    shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_VERTEX_SHADER, "vs_main", "vs_4_0")->Buffers.push_back(bufferHandler);
-    //    shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_FRAGMENT_SHADER, "ps_main", "ps_4_0");
-    //    m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD] = static_cast<CVulkanGLSLProgram*>(createShader(&shaderCI));
-    //
-    //    delete resource;
-    //}
-
     {
         video::IShaderDataBuffer* bufferHandler = new irr::video::ShaderGenericValuesBuffer(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH);
 
         ShaderInitializerEntry shaderCI;
 
-        auto vertShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Vulkan/GLSL/vkDefaultSH.vert"); //System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/CVulkan;/GLSL/VkDefault.vert", true));
-        //auto fragShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Vulkan/GLSL/vkDefault.frag"); //System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/CVulkan;/GLSL/VkDefault.frag", true));
+#ifndef HAVE_CSYSTEM_EXTENSION
+        auto vertShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/OpenGL/GLSL/DefaultSH.vert");
+#else
+        auto vertShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/DefaultSH.vert", true))->ToMemoryStreamReader();
+#endif
 
         shaderCI.AddShaderStage(vertShader, E_ShaderTypes::EST_VERTEX_SHADER, "main", nullptr)->Buffers.push_back(bufferHandler);
         //shaderCI.AddShaderStage(fragShader, E_ShaderTypes::EST_FRAGMENT_SHADER, "main", nullptr);
         m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW] = static_cast<GLSLGpuShader*>(createShader(&shaderCI));
 
         delete vertShader;
-        //delete fragShader;
     }
 
     {
@@ -306,8 +310,13 @@ bool COpenGLDriver::initDriver()
 
         ShaderInitializerEntry shaderCI;
 
-        auto vertShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Vulkan/GLSL/vkDefaultT2.vert"); //System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/CVulkan;/GLSL/VkDefault.vert", true));
-        auto fragShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/OpenGL/GLSL/Default.frag"); //System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/CVulkan;/GLSL/VkDefault.frag", true));
+#ifndef HAVE_CSYSTEM_EXTENSION
+        auto vertShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/OpenGL/GLSL/DefaultT2.vert");
+        auto fragShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/OpenGL/GLSL/Default.frag");
+#else
+        auto vertShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/DefaultT2.vert", true))->ToMemoryStreamReader();
+        auto fragShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/Default.frag", true))->ToMemoryStreamReader();
+#endif
 
         shaderCI.AddShaderStage(vertShader, E_ShaderTypes::EST_VERTEX_SHADER, "main", nullptr)->Buffers.push_back(bufferHandler);
         shaderCI.AddShaderStage(fragShader, E_ShaderTypes::EST_FRAGMENT_SHADER, "main", nullptr);
@@ -324,8 +333,13 @@ bool COpenGLDriver::initDriver()
 
         ShaderInitializerEntry shaderCI;
 
-        auto vertShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Vulkan/GLSL/vkDefaultSK.vert"); //System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/CVulkan;/GLSL/VkDefault.vert", true));
-        auto fragShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/OpenGL/GLSL/Default.frag"); //System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/CVulkan;/GLSL/VkDefault.frag", true));
+#ifndef HAVE_CSYSTEM_EXTENSION
+        auto vertShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/OpenGL/GLSL/DefaultSK.vert");
+        auto fragShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/OpenGL/GLSL/Default.frag");
+#else
+        auto vertShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/DefaultSK.vert", true))->ToMemoryStreamReader();
+        auto fragShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/Default.frag", true))->ToMemoryStreamReader();
+#endif
 
         shaderCI.AddShaderStage(vertShader, E_ShaderTypes::EST_VERTEX_SHADER, "main", nullptr)->Buffers.push_back(bufferHandler);
         shaderCI.AddShaderStage(fragShader, E_ShaderTypes::EST_FRAGMENT_SHADER, "main", nullptr);
@@ -1260,7 +1274,7 @@ void COpenGLDriver::setMaterial(const SMaterial& material)
 //! prints error if an error happened.
 bool COpenGLDriver::testGLError()
 {
-#ifdef _DEBUG
+#ifdef _DEBUG_OGL
     GLenum g = glGetError();
     switch (g)
     {
@@ -1562,7 +1576,7 @@ void COpenGLDriver::setBasicRenderStates(const SMaterial& material, const SMater
             lastmaterial.TextureLayer[st].BilinearFilter != material.TextureLayer[st].BilinearFilter ||
             lastmaterial.TextureLayer[st].TrilinearFilter != material.TextureLayer[st].TrilinearFilter ||
             lastmaterial.TextureLayer[st].AnisotropicFilter != material.TextureLayer[st].AnisotropicFilter ||
-            GetStateCache()->getUseMipMaps(st) != useMipMap)
+            bool(GetStateCache()->getUseMipMaps(st)) != useMipMap)
         {
             GetStateCache()->setUseMipMaps(st, useMipMap);
 
