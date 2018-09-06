@@ -88,7 +88,7 @@ CD3D11Driver::CD3D11Driver(const SIrrlichtCreationParameters& params, io::IFileS
     Output(0), CurrentInputLayout(0), DefaultBackBuffer(0), DefaultDepthBuffer(0),
     DynVertexBuffer(0), DynIndexBuffer(0), DynVertexBufferSize(0), DynIndexBufferSize(0),
     SceneSourceRect(0), LastVertexType((video::E_VERTEX_TYPE)-1), VendorID(0), ColorFormat(ECF_A8R8G8B8),
-    CurrentRenderMode(ERM_3D), MaxActiveLights(8), AlphaToCoverageSupport(true),
+    CurrentRenderMode(ERM_3D), AmbientLight(1.f, 1.f, 1.f, 1.f), MaxActiveLights(8), AlphaToCoverageSupport(true),
     DepthStencilFormat(DXGI_FORMAT_UNKNOWN), D3DColorFormat(DXGI_FORMAT_R8G8B8A8_UNORM),
     Params(params), CurrentDepthBuffer(nullptr), CurrentBackBuffer(nullptr),
     // DirectX 11 can handle much more than this value, but keep compatibility
@@ -469,25 +469,6 @@ bool CD3D11Driver::initOutput(HWND hwnd, bool pureSoftware)
     // Set to a single back buffer.
     present.BufferCount = 2;
 
-    // Set the width and height of the back buffer.
-    //present.BufferDesc.Width  = displayModes[selectedMode].Width;
-    //present.BufferDesc.Height = displayModes[selectedMode].Height;
-    //
-    //// Set regular 32-bit surface for the back buffer.
-    //present.BufferDesc.Format = displayModes[selectedMode].Format;
-    //
-    //// Set the refresh rate of the back buffer.
-    //if ( this->Params.Vsync )
-    //    present.BufferDesc.RefreshRate = displayModes[selectedMode].RefreshRate;
-    //else
-    //{
-    //    present.BufferDesc.RefreshRate.Numerator = 0;
-    //    present.BufferDesc.RefreshRate.Denominator = 1;
-    //}
-
-    // Set the handle for the window to render to.
-    //present.OutputWindow = hwnd;
-
     // Set the usage of the back buffer.
     present.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 
@@ -495,13 +476,14 @@ bool CD3D11Driver::initOutput(HWND hwnd, bool pureSoftware)
     {
         present.Width = displayModes[selectedMode].Width;
         present.Height = displayModes[selectedMode].Height;
+        present.Format = displayModes[selectedMode].Format;           // This is the most common swap chain format.
     }
-    else
+    else  // Fail Safe
     {
         present.Width  = 0;                                     // Use automatic sizing.
         present.Height = 0;
+        present.Format = D3DColorFormat;                        // This is the default suggest swap chain format.
     }
-    present.Format = DXGI_FORMAT_B8G8R8A8_UNORM;           // This is the most common swap chain format.
 
     // Turn multisampling off.
     present.SampleDesc.Count = 1;
@@ -538,59 +520,25 @@ bool CD3D11Driver::initOutput(HWND hwnd, bool pureSoftware)
     present.Stereo = false;
     present.Scaling = DXGI_SCALING_STRETCH;
     present.SwapEffect = DXGI_SWAP_EFFECT_DISCARD; // All Windows Store apps must use this SwapEffect.
-
-    // Set to full screen or windowed mode.
-    //present.Windowed = !Params.Fullscreen;
-
-    // Set the scan line ordering and scaling to unspecified.
-    //present.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-    //present.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-
-    // Discard the back buffer contents after presenting.
-    //present.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-    //present.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL; // All Windows Store apps must use this SwapEffect.
+    //present.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 
     // Don't set the advanced flags.
-    present.Flags = 0; // DXGI_SWAP_CHAIN_FLAG_DISPLAY_ONLY | DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT; // DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+    present.Flags = Params.Fullscreen ? DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH : 0; // allow full-screen switchin if need
 
     DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreenPresent;
-    fullscreenPresent.RefreshRate.Numerator = 0; // displayModes[selectedMode].RefreshRate;
-    fullscreenPresent.RefreshRate.Denominator = 1;
-    fullscreenPresent.Scaling = DXGI_MODE_SCALING_STRETCHED;
+    if (Params.Vsync && displayModes)
+    {
+        fullscreenPresent.RefreshRate = displayModes[selectedMode].RefreshRate;
+    }
+    else
+    {
+        fullscreenPresent.RefreshRate.Numerator = 0;
+        fullscreenPresent.RefreshRate.Denominator = 1;
+    }
+
+    fullscreenPresent.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
     fullscreenPresent.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
     fullscreenPresent.Windowed = !Params.Fullscreen;
-
-
-    //if ( Params.Fullscreen )
-    //{
-    //    present.BufferDesc.Scaling = DXGI_MODE_SCALING_STRETCHED;
-    //    present.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST;
-    //    present.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-    //    present.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-    //
-    //    // Optimization: query a display mode closest to requested.
-    //    // This will make surface flip, instead of blit
-    //    if ( Output )
-    //    {
-    //        DXGI_MODE_DESC* request = &(present.BufferDesc);
-    //        DXGI_MODE_DESC match;
-    //        ZeroMemory(&match, sizeof(DXGI_MODE_DESC));
-    //        hr = Output->FindClosestMatchingMode(request, &match, Device);
-    //        if ( SUCCEEDED(hr) )
-    //        {
-    //            present.BufferDesc.Format = match.Format;
-    //            present.BufferDesc.Height = match.Height;
-    //            present.BufferDesc.RefreshRate = match.RefreshRate;
-    //            present.BufferDesc.Scaling = match.Scaling;
-    //            present.BufferDesc.ScanlineOrdering = match.ScanlineOrdering;
-    //            present.BufferDesc.Width = match.Width;
-    //
-    //            // Adjust screen size accordingly
-    //            ScreenSize.Width = match.Width;
-    //            ScreenSize.Height = match.Height;
-    //        }
-    //    }
-    //}
 
     delete[] displayModes;
 
@@ -3243,10 +3191,10 @@ DXGI_FORMAT CD3D11Driver::getD3DFormatFromColorFormat(ECOLOR_FORMAT format) cons
 
     case ECF_RGBA8:
     case ECF_A8R8G8B8:
-        return DXGI_FORMAT_R8G8B8A8_UNORM;
+        return DXGI_FORMAT_B8G8R8A8_UNORM;
 
     case ECF_B8G8R8A8:
-        return DXGI_FORMAT_B8G8R8A8_UNORM;
+        return DXGI_FORMAT_R8G8B8A8_UNORM;
 
     case ECF_R16F:
         return DXGI_FORMAT_R16_FLOAT;
@@ -3290,10 +3238,10 @@ ECOLOR_FORMAT CD3D11Driver::getColorFormatFromD3DFormat(DXGI_FORMAT format) cons
         return ECF_R5G6B5;
 
     case DXGI_FORMAT_B8G8R8A8_UNORM:
-        //return ECF_B8G8R8A8;
+        return ECF_A8R8G8B8;
 
     case DXGI_FORMAT_R8G8B8A8_UNORM:
-        return ECF_A8R8G8B8;
+        return ECF_B8G8R8A8;
 
     case DXGI_FORMAT_R16_FLOAT:
         return ECF_R16F;

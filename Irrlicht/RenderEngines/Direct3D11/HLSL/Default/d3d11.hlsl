@@ -385,11 +385,11 @@ PixelOutput ps_main(PS_INPUT input)
             tex.x = r.x / m + 0.5;
             tex.y = r.y / m + 0.5;
 
-            textureColor = shaderTexture.Sample(SampleType, tex).bgra;
+            textureColor = shaderTexture.Sample(SampleType, tex);
         }
         else
         {
-            textureColor = shaderTexture.Sample(SampleType, input.tex).bgra;
+            textureColor = shaderTexture.Sample(SampleType, input.tex);
         }
 
         // check material type, and add color operation correctly
@@ -417,7 +417,7 @@ PixelOutput ps_main(PS_INPUT input)
             case EMT_SOLID_2_LAYER:
             case EMT_LIGHTMAP:
             case EMT_LIGHTMAP_LIGHTING:
-                textureColor2 = shaderTexture2.Sample(SampleType2, input.tex2).bgra;
+                textureColor2 = shaderTexture2.Sample(SampleType2, input.tex2);
 
                 textureColor = (textureColor * input.color.bgra);
                 textureColor = textureColor * textureColor2;
@@ -430,21 +430,21 @@ PixelOutput ps_main(PS_INPUT input)
                 float3 normal = normalize(input.normal);
 
                 float3 reflectVec = normalize(reflect(V, normal));
-                textureColor2 = shaderTexture2.Sample(SampleType2, reflectVec.xy).bgra;
+                textureColor2 = shaderTexture2.Sample(SampleType2, reflectVec.xy);
 
                 textureColor = (textureColor * input.color.bgra);
                 textureColor = textureColor * textureColor2;
                 break;
             case EMT_LIGHTMAP_M2:
             case EMT_LIGHTMAP_LIGHTING_M2:
-                textureColor2 = shaderTexture2.Sample(SampleType2, input.tex2).bgra;
+                textureColor2 = shaderTexture2.Sample(SampleType2, input.tex2);
 
                 textureColor = (textureColor * input.color.bgra);
                 textureColor = (textureColor * textureColor2) * 2.0;
                 break;
             case EMT_LIGHTMAP_M4:
             case EMT_LIGHTMAP_LIGHTING_M4:
-                textureColor2 = shaderTexture2.Sample(SampleType2, input.tex2).bgra;
+                textureColor2 = shaderTexture2.Sample(SampleType2, input.tex2);
 
                 textureColor = (textureColor * input.color.bgra);
                 textureColor = (textureColor * textureColor2) * 4.0;

@@ -148,6 +148,8 @@ namespace scene
 		//! Creates a clone of this scene node and its children.
 		virtual ISceneNode* clone(ISceneNode* newParent=0, ISceneManager* newManager=0);
 
+        virtual void updateAbsolutePosition() _IRR_OVERRIDE_;
+
         u32 GetUserData() const { return UserData; }
         void SetUserData(u32 value) { UserData = value; }
 

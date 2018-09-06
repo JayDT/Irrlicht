@@ -152,6 +152,12 @@ void CCameraSceneNode::setRotation(const core::vector3df& rotation)
 	ISceneNode::setRotation(rotation);
 }
 
+//! Set dirty flag for all transformation changes
+void CCameraSceneNode::updateAbsolutePosition()
+{
+    ISceneNode::updateAbsolutePosition();
+    IsDirty = true;
+}
 
 //! Gets the current look at target of the camera
 //! \return Returns the current look at target of the camera

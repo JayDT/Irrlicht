@@ -77,6 +77,7 @@ irr::video::CVulkanDriver::CVulkanDriver(const SIrrlichtCreationParameters & par
     , VendorID(0)
     , ColorFormat(ECF_A8R8G8B8)
     , CurrentRenderMode(ERM_3D)
+    , AmbientLight(1.f, 1.f, 1.f, 1.f)
     , MaxActiveLights(8)
     , MaxTextureUnits(MATERIAL_MAX_TEXTURES)
 {

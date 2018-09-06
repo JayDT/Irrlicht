@@ -143,7 +143,7 @@ void VulkanSwapChain::rebuild(VulkanDevice* device, VkSurfaceKHR surface, uint32
 
         mSurfaces[i].acquired = false;
         mSurfaces[i].needsWait = false;
-        mSurfaces[i].image = new VulkanImage(device->getDriver(), imageDesc, false);
+        mSurfaces[i].image = nullptr; // new VulkanImage(device->getDriver(), imageDesc, false);
         mSurfaces[i].sync = new VulkanSemaphore(device->getDriver());
     }
 
@@ -258,7 +258,8 @@ void VulkanSwapChain::clear(VkSwapchainKHR swapChain)
             surface.framebuffer->drop();
             surface.framebuffer = nullptr;
 
-            surface.image->drop();
+            if (surface.image != nullptr)
+                surface.image->drop();
             surface.image = nullptr;
 
             surface.sync->drop();

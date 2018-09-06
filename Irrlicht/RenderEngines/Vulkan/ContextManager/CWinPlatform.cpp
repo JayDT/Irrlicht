@@ -47,24 +47,20 @@ void irr::video::CWinVulkanPlatform::initialize()
     mColorSpace = format.colorSpace;
     mDepthFormat = format.depthFormat;
 
-    // Create swap chain
-    mSwapChain = new VulkanSwapChain();
-    mSwapChain->rebuild(presentDevice, mSurface, mDriver->getScreenSize().Width, mDriver->getScreenSize().Height, mDriver->mCreateParams.Vsync, mColorFormat, mColorSpace, true, mDepthFormat);
-
     // Make the window full screen if required
     if (mDriver->mCreateParams.Fullscreen)
     {
         if (!mIsFullScreen)
         {
             DEVMODE displayDeviceMode;
-    
+
             memset(&displayDeviceMode, 0, sizeof(displayDeviceMode));
             displayDeviceMode.dmSize = sizeof(DEVMODE);
             displayDeviceMode.dmBitsPerPel = 32;
             displayDeviceMode.dmPelsWidth = mDriver->getScreenSize().Width;
             displayDeviceMode.dmPelsHeight = mDriver->getScreenSize().Height;
             displayDeviceMode.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
-    
+
             //if (mDisplayFrequency)
             //{
             //    displayDeviceMode.dmDisplayFrequency = mDisplayFrequency;
@@ -75,13 +71,17 @@ void irr::video::CWinVulkanPlatform::initialize()
             //        assert("ChangeDisplaySettings with user display frequency failed.");
             //    }
             //}
-    
+
             if (ChangeDisplaySettingsEx(NULL, &displayDeviceMode, NULL, CDS_FULLSCREEN, NULL) != DISP_CHANGE_SUCCESSFUL)
             {
                 assert("ChangeDisplaySettings failed.");
             }
         }
     }
+
+    // Create swap chain
+    mSwapChain = new VulkanSwapChain();
+    mSwapChain->rebuild(presentDevice, mSurface, mDriver->getScreenSize().Width, mDriver->getScreenSize().Height, mDriver->mCreateParams.Vsync, mColorFormat, mColorSpace, true, mDepthFormat);
 }
 
 void irr::video::CWinVulkanPlatform::resizeSwapBuffers()
@@ -91,6 +91,38 @@ void irr::video::CWinVulkanPlatform::resizeSwapBuffers()
     //// Need to make sure nothing is using the swap buffer before we re-create it
     // Note: Optionally I can detect exactly on which queues (if any) are the swap chain images used on, and only wait
     // on those
+
+    // Make the window full screen if required
+    if (mDriver->mCreateParams.Fullscreen)
+    {
+        if (!mIsFullScreen)
+        {
+            DEVMODE displayDeviceMode;
+
+            memset(&displayDeviceMode, 0, sizeof(displayDeviceMode));
+            displayDeviceMode.dmSize = sizeof(DEVMODE);
+            displayDeviceMode.dmBitsPerPel = 32;
+            displayDeviceMode.dmPelsWidth = mDriver->getScreenSize().Width;
+            displayDeviceMode.dmPelsHeight = mDriver->getScreenSize().Height;
+            displayDeviceMode.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+
+            //if (mDisplayFrequency)
+            //{
+            //    displayDeviceMode.dmDisplayFrequency = mDisplayFrequency;
+            //    displayDeviceMode.dmFields |= DM_DISPLAYFREQUENCY;
+            //
+            //    if (ChangeDisplaySettingsEx(NULL, &displayDeviceMode, NULL, CDS_FULLSCREEN | CDS_TEST, NULL) != DISP_CHANGE_SUCCESSFUL)
+            //    {
+            //        assert("ChangeDisplaySettings with user display frequency failed.");
+            //    }
+            //}
+
+            if (ChangeDisplaySettingsEx(NULL, &displayDeviceMode, NULL, CDS_FULLSCREEN, NULL) != DISP_CHANGE_SUCCESSFUL)
+            {
+                assert("ChangeDisplaySettings failed.");
+            }
+        }
+    }
 
     mDriver->_getPrimaryDevice()->waitIdle();
     mSwapChain->rebuild(mDriver->_getPrimaryDevice(), mSurface, mDriver->getScreenSize().Width, mDriver->getScreenSize().Height, mDriver->mCreateParams.Vsync, mColorFormat, mColorSpace, true, mDepthFormat);

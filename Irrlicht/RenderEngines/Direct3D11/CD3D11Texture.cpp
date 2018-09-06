@@ -902,10 +902,13 @@ bool CD3D11Texture::InitializeColorFormat(u32 flags, ECOLOR_FORMAT colorFormat)
                     break;
                 case ECF_R8G8B8:
                 case ECF_A8R8G8B8:
+                    format = DXGI_FORMAT_B8G8R8A8_UNORM;
+                    break;
+                case ECF_B8G8R8A8:
                     format = DXGI_FORMAT_R8G8B8A8_UNORM;
                     break;
                 default:
-                    format = DXGI_FORMAT_R8G8B8A8_UNORM;
+                    format = DXGI_FORMAT_B8G8R8A8_UNORM;
                     break;
             }
             //switch ( getTextureFormatFromFlags(flags) )

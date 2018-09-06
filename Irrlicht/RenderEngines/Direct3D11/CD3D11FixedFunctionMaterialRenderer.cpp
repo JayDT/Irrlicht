@@ -157,6 +157,9 @@ void ShaderGenericValuesBuffer::UpdateBuffer(video::IShader * gpuProgram, scene:
     SMaterial& CurrentMaterial = Driver->GetMaterial();// !meshBuffer ? Driver->GetMaterial() : meshBuffer->getMaterial();
     video::IMaterialRenderer* rnd = Driver->getMaterialRenderer(CurrentMaterial.MaterialType);
 
+    ShaderGenericValuesBuffer::Material material;
+    ZeroMemory(&material, sizeof(ShaderGenericValuesBuffer::Material));
+
     *world = Driver->getTransform(ETS_WORLD);
     *view = Driver->getTransform(ETS_VIEW);
     *projection = Driver->getTransform(ETS_PROJECTION);
@@ -227,16 +230,21 @@ void ShaderGenericValuesBuffer::UpdateBuffer(video::IShader * gpuProgram, scene:
             if (fogColor)
                 *fogColor = video::SColorf(color);
         }
+
+        material.Ambient.set(
+            Driver->GetAmbientLight().getAlpha() * (float)CurrentMaterial.AmbientColor.getAlpha() / 255.f
+            , Driver->GetAmbientLight().getRed() * (float)CurrentMaterial.AmbientColor.getRed() / 255.f
+            , Driver->GetAmbientLight().getGreen() * (float)CurrentMaterial.AmbientColor.getGreen() / 255.f
+            , Driver->GetAmbientLight().getBlue() * (float)CurrentMaterial.AmbientColor.getBlue() / 255.f);
     }
-
-    ShaderGenericValuesBuffer::Material material;
-    ZeroMemory(&material, sizeof(ShaderGenericValuesBuffer::Material));
-
-    material.Ambient.set(
-        Driver->GetAmbientLight().getAlpha() * (float)CurrentMaterial.AmbientColor.getAlpha() / 255.f
-        , Driver->GetAmbientLight().getRed() * (float)CurrentMaterial.AmbientColor.getRed() / 255.f
-        , Driver->GetAmbientLight().getGreen() * (float)CurrentMaterial.AmbientColor.getGreen() / 255.f
-        , Driver->GetAmbientLight().getBlue() * (float)CurrentMaterial.AmbientColor.getBlue() / 255.f);
+    else
+    {
+        material.Ambient.set(
+            (float)CurrentMaterial.AmbientColor.getAlpha() / 255.f
+            , (float)CurrentMaterial.AmbientColor.getRed() / 255.f
+            , (float)CurrentMaterial.AmbientColor.getGreen() / 255.f
+            , (float)CurrentMaterial.AmbientColor.getBlue() / 255.f);
+    }
 
     material.Diffuse.set((float)CurrentMaterial.DiffuseColor.getAlpha() / 255.f
         , (float)CurrentMaterial.DiffuseColor.getRed() / 255.f
