@@ -243,8 +243,7 @@ namespace irr
                 irr::video::SColorf    Emissive;
                 float     Shininess;
                 int       Type;
-                bool      Lighted;
-                bool      Fogged;
+                int       Flags;
 
                 bool operator==(const Material& other) const
                 {

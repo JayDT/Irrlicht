@@ -8,7 +8,7 @@ using namespace irr::video;
 VulkanDescriptorSet::VulkanDescriptorSet(CVulkanDriver* owner, VkDescriptorSet set, VkDescriptorPool pool)
     : CVulkanDeviceResource(owner), mSet(set), mPool(pool)
 {
-    assert(mSet != nullptr);
+    assert(mSet != VK_NULL_HANDLE);
 }
 
 VulkanDescriptorSet::~VulkanDescriptorSet()

@@ -37,8 +37,9 @@ namespace irr
             void reset();
 
             // Inherited via CVulkanDeviceResource
-            virtual void OnDeviceLost(CVulkanDriver * device) override;
-            virtual void OnDeviceRestored(CVulkanDriver * device) override;
+            virtual void OnDeviceLost(CVulkanDriver * device) _IRR_OVERRIDE_;
+            virtual void OnDeviceRestored(CVulkanDriver * device) _IRR_OVERRIDE_;
+            virtual void OnDeviceDestroy(CVulkanDriver* device) _IRR_OVERRIDE_ {}
         private:
             VkEvent mEvent;
         };
@@ -80,8 +81,9 @@ namespace irr
             void reset(VkCommandBuffer cmdBuf);
 
             // Inherited via CVulkanDeviceResource
-            virtual void OnDeviceLost(CVulkanDriver * device) override;
-            virtual void OnDeviceRestored(CVulkanDriver * device) override;
+            virtual void OnDeviceLost(CVulkanDriver * device) _IRR_OVERRIDE_;
+            virtual void OnDeviceRestored(CVulkanDriver * device) _IRR_OVERRIDE_;
+            virtual void OnDeviceDestroy(CVulkanDriver* device) _IRR_OVERRIDE_ {}
 
         private:
             friend class VulkanQueryPool;

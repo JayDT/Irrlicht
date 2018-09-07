@@ -361,7 +361,7 @@ void Q3ShaderFactory (	Q3LevelLoadParameter &loadParam,
 		s32 shaderIndex = (s32) material.MaterialTypeParam2;
 
 		// the meshbuffer can be rendered without additional support, or it has no shader
-		IShader *shader = (IShader *) mesh->getShader ( shaderIndex );
+        quake3::IShader *shader = (quake3::IShader *) mesh->getShader ( shaderIndex );
 
 		// no shader, or mapped to existing material
 		if ( 0 == shader )
@@ -536,7 +536,7 @@ void Q3ModelFactory (	Q3LevelLoadParameter &loadParam,
 	const SMD3MeshBuffer *meshBuffer;
 	IMeshSceneNode* node;
 	ISceneNodeAnimator* anim;
-	const IShader *shader;
+	const quake3::IShader *shader;
 	u32 pos;
 	vector3df p;
 	u32 nodeCount = 0;

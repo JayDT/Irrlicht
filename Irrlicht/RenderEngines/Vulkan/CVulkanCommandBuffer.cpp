@@ -409,12 +409,10 @@ void VulkanCmdBuffer::allocateSemaphores(VkSemaphore* semaphores)
     if (mIntraQueueSemaphore != nullptr)
     {
         mIntraQueueSemaphore->drop();
-        mIntraQueueSemaphore->drop();
     }
 
     //if (!mIntraQueueSemaphore)
         mIntraQueueSemaphore = new VulkanSemaphore(mDevice.getDriver());
-        mIntraQueueSemaphore->grab();
 
     semaphores[0] = mIntraQueueSemaphore->getHandle();
 
@@ -423,12 +421,10 @@ void VulkanCmdBuffer::allocateSemaphores(VkSemaphore* semaphores)
         if (mInterQueueSemaphores[i] != nullptr)
         {
             mInterQueueSemaphores[i]->drop();
-            mInterQueueSemaphores[i]->drop();
         }
 
         //if (!mInterQueueSemaphores[i])
             mInterQueueSemaphores[i] = new VulkanSemaphore(mDevice.getDriver());
-            mInterQueueSemaphores[i]->grab();
         semaphores[i + 1] = mInterQueueSemaphores[i]->getHandle();
     }
 
@@ -2149,11 +2145,12 @@ void VulkanCmdBuffer::registerResource(VulkanFramebuffer* res, RenderSurfaceMask
     {
         assert(!useHandle.used);
 
-        mResources.push_back(res);
         useHandle.flags |= VulkanUseFlag::Write;
     }
     else
     {
+        mResources.push_back(res);
+
         useHandle.mPoolMask |= 1;
         useHandle.used = false;
         useHandle.flags = VulkanUseFlag::Write;

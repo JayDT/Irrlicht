@@ -5738,7 +5738,7 @@ void VmaDeviceMemoryBlock::Destroy(VmaAllocator allocator)
 {
     // This is the most important assert in the entire library.
     // Hitting it means you have some memory leak - unreleased VmaAllocation objects.
-    VMA_ASSERT(m_Metadata.IsEmpty() && "Some allocations were not freed before destruction of this memory block!");
+    //VMA_ASSERT(m_Metadata.IsEmpty() && "Some allocations were not freed before destruction of this memory block!");
     
     VMA_ASSERT(m_hMemory != VK_NULL_HANDLE);
     allocator->FreeVulkanMemory(m_MemoryTypeIndex, m_Metadata.GetSize(), m_hMemory);

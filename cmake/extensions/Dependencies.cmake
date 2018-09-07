@@ -418,37 +418,35 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/Dependencies/CMakeLists.txt")
   add_subdirectory(Dependencies)
 endif ()
 
-if (PROJECT_COPY_DEPENDENCIES)
+IF (BUILD_EXAMPLES)
+    file(COPY ${CMAKE_SOURCE_DIR}/media/ DESTINATION ${BIN_DIR}/media PATTERN *.*)
+ENDIF()
 
-    IF (BUILD_EXAMPLES)
-        file(COPY ${CMAKE_SOURCE_DIR}/media/ DESTINATION ${BIN_DIR}/media PATTERN *.*)
-    ENDIF()
-    IF (EXISTS ${PROJECTDEPS_PATH}/bin)
-        file(COPY ${PROJECTDEPS_PATH}/bin/ DESTINATION ${BIN_DIR} PATTERN *.*)
-    ENDIF()
+IF (NOT EXISTS ${PROJECTDEPS_PATH}/bin)
+    file(MAKE_DIRECTORY ${PROJECTDEPS_PATH}/bin)
+ENDIF()
+file(COPY ${PROJECTDEPS_PATH}/bin/ DESTINATION ${BIN_DIR} PATTERN *.*)
 
-  if (WIN32)
+if (WIN32)
 
-    IF (NOT EXISTS ${BIN_DIR}/debug)
-        file(MAKE_DIRECTORY ${BIN_DIR}/debug)
-    ENDIF()
-    IF (NOT EXISTS ${BIN_DIR}/release)
-        file(MAKE_DIRECTORY ${BIN_DIR}/release)
-    ENDIF()
+IF (NOT EXISTS ${BIN_DIR}/debug)
+    file(MAKE_DIRECTORY ${BIN_DIR}/debug)
+ENDIF()
+IF (NOT EXISTS ${BIN_DIR}/release)
+    file(MAKE_DIRECTORY ${BIN_DIR}/release)
+ENDIF()
 
-    IF (BUILD_EXAMPLES)
-        file(COPY ${CMAKE_SOURCE_DIR}/media/ DESTINATION ${BIN_DIR}/debug/media PATTERN *.*)
-        file(COPY ${CMAKE_SOURCE_DIR}/media/ DESTINATION ${BIN_DIR}/release/media PATTERN *.*)
-    ENDIF()
+IF (BUILD_EXAMPLES)
+    file(COPY ${CMAKE_SOURCE_DIR}/media/ DESTINATION ${BIN_DIR}/debug/media PATTERN *.*)
+    file(COPY ${CMAKE_SOURCE_DIR}/media/ DESTINATION ${BIN_DIR}/release/media PATTERN *.*)
+ENDIF()
 
-    # copy the required DLLs to the build directory
-    file(GLOB DLLS ${PROJECTDEPS_PATH}/bin/*.dll)
+# copy the required DLLs to the build directory
+file(GLOB DLLS ${PROJECTDEPS_PATH}/bin/*.dll)
 
-    file(COPY ${DLLS} DESTINATION ${BIN_DIR}/debug)
-    file(COPY ${DLLS} DESTINATION ${BIN_DIR}/release)
+file(COPY ${DLLS} DESTINATION ${BIN_DIR}/debug)
+file(COPY ${DLLS} DESTINATION ${BIN_DIR}/release)
   
-  endif ()
-
 endif ()
 
 #######################################################################

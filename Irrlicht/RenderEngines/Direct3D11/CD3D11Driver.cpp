@@ -911,10 +911,10 @@ void CD3D11Driver::CreateDeviceIndependentResources()
     //D2D1_FACTORY_OPTIONS options;
     //ZeroMemory(&options, sizeof(D2D1_FACTORY_OPTIONS));
 
-#if defined(_DEBUG)
-    // If the project is in a debug build, enable Direct2D debugging via SDK Layers.
-    options.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION;
-#endif
+//#if defined(_DEBUG)
+//    // If the project is in a debug build, enable Direct2D debugging via SDK Layers.
+//    options.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION;
+//#endif
 
     //DX::ThrowIfFailed(
     //    D2D1CreateFactory(

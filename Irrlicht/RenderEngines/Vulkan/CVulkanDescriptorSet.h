@@ -25,8 +25,9 @@ namespace irr
             void write(VkWriteDescriptorSet* entries, u32 count);
 
             // Inherited via CVulkanDeviceResource
-            virtual void OnDeviceLost(CVulkanDriver * device) override;
-            virtual void OnDeviceRestored(CVulkanDriver * device) override;
+            virtual void OnDeviceLost(CVulkanDriver * device) _IRR_OVERRIDE_;
+            virtual void OnDeviceRestored(CVulkanDriver * device) _IRR_OVERRIDE_;
+            virtual void OnDeviceDestroy(CVulkanDriver* device) _IRR_OVERRIDE_ {}
 
         protected:
             VkDescriptorSet mSet;

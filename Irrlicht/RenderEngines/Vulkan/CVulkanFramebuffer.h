@@ -72,7 +72,7 @@ namespace irr
 		 * @param[in]	desc	Description of the frame buffer.
 		 */
 		VulkanFramebuffer(CVulkanDriver* owner, const VULKAN_FRAMEBUFFER_DESC& desc);
-		~VulkanFramebuffer();
+		virtual ~VulkanFramebuffer();
 
 		/** Returns a unique ID of this framebuffer. */
 		uint32_t getId() const { return mId; }
@@ -188,8 +188,9 @@ namespace irr
 		static uint32_t sNextValidId;
 
         // Inherited via CVulkanDeviceResource
-        virtual void OnDeviceLost(CVulkanDriver * device) override;
-        virtual void OnDeviceRestored(CVulkanDriver * device) override;
+        virtual void OnDeviceLost(CVulkanDriver * device) _IRR_OVERRIDE_;
+        virtual void OnDeviceRestored(CVulkanDriver * device) _IRR_OVERRIDE_;
+        virtual void OnDeviceDestroy(CVulkanDriver* device) _IRR_OVERRIDE_ {}
 };
 
 	/** @} */

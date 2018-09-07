@@ -26,8 +26,15 @@ namespace irr
 
             virtual ~CVulkanDeviceResource();
 
+            // Notify the renderers that device resources need to be released.
+            // This ensures all references to the existing swap chain are released so that a new one can be created.
             virtual void OnDeviceLost(CVulkanDriver* device) = 0;
+
+            // Notify the renderers that resources can now be created again.
             virtual void OnDeviceRestored(CVulkanDriver* device) = 0;
+
+            // Mark the GPU resource destroyed on context destruction.
+            virtual void OnDeviceDestroy(CVulkanDriver* device) = 0;
 
             CVulkanDriver* GetDriver() const { return Driver; }
 

@@ -36,9 +36,9 @@ int main(int argc, char* argv[])
 
 	CMainMenu menu;
 
-#ifndef _DEBUG
+//#ifndef _DEBUG
 	if (menu.run(fullscreen, music, shadows, additive, vsync, aa, driverType))
-#endif
+//#endif
 	{
 		CDemo demo(fullscreen, music, shadows, additive, vsync, aa, driverType);
 		demo.run();

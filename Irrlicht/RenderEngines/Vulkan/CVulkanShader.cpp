@@ -30,6 +30,9 @@ irr::video::CVulkanGLSLProgram::~CVulkanGLSLProgram()
     if (mLayout)
         delete mLayout;
 
+    if (mParams)
+        mParams->drop();
+
     for (auto modul : mStages)
     {
         vkDestroyShaderModule(Driver->_getPrimaryDevice()->getLogical(), modul.second, VulkanDevice::gVulkanAllocator);

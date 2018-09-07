@@ -13,7 +13,7 @@ namespace irr
 {
     namespace video
     {
-        struct IRRLICHT_API VertexDeclaration : irr::IReferenceCounted
+        struct IRRLICHT_API VertexDeclaration : public virtual irr::IReferenceCounted
         {
             core::array<SVertexElement> mVertexElements;
 

@@ -29,21 +29,25 @@ VulkanGpuParams::VulkanGpuParams(CVulkanDriver* driver, CVulkanGLSLProgram* shad
 VulkanGpuParams::~VulkanGpuParams()
 {
     //std::unique_lock<std::mutex> lock(mMutex);
+    u32 numSets = mShader->getLayout() ? 1 : 0;
 
-    //u32 numSets = mParamInfo->getNumSets();
-    //for (u32 i = 0; i < _MAX_DEVICES; i++)
-    //{
-    //    if (mPerDeviceData[i].perSetData == nullptr)
-    //        continue;
-    //
-    //    for (u32 j = 0; j < numSets; j++)
-    //    {
-    //        for (auto& entry : mPerDeviceData[i].perSetData[j].sets)
-    //            entry->drop();
-    //
-    //        mPerDeviceData[i].perSetData[j].sets.~Vector<VulkanDescriptorSet*>();
-    //    }
-    //}
+    for (irr::u8 i = 0; i < _MAX_DEVICES; i++)
+    {
+        if (!mPerDeviceData[i])
+            continue;
+
+        for (u32 si = 0; si < numSets; si++)
+        {
+            PerSetData& perSetData = mPerDeviceData[i][si];
+
+            for (auto& entry : perSetData.sets)
+            {
+                entry->drop();
+            }
+
+            perSetData.sets.clear();
+        }
+    }
 }
 
 void VulkanGpuParams::initialize()

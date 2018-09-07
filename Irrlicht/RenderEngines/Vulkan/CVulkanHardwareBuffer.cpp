@@ -580,6 +580,12 @@ void irr::video::CVulkanHardwareBuffer::OnDeviceRestored(CVulkanDriver * device)
 {
 }
 
+void irr::video::CVulkanHardwareBuffer::OnDeviceDestroy(CVulkanDriver* device)
+{
+    // Release Allocation Rereference
+    drop();
+}
+
 VulkanBuffer * irr::video::CVulkanHardwareBuffer::GetCacheBuffer(VulkanDevice & device, CVulkanHardwareBuffer::BufferDesc& descriptor, VkBufferCreateInfo& bufferCI, E_HARDWARE_BUFFER_ACCESS AccessType, u32 stride, bool readable)
 {
     if (!descriptor.BufferCache)

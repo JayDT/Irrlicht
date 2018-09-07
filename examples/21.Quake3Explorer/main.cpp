@@ -598,7 +598,7 @@ void CQuake3EventHandler::createTextures()
 	for ( i = 0; i != 8; ++i )
 	{
 		image = driver->createImage ( video::ECF_A8R8G8B8, dim);
-		data = (u32*) image->getData ();
+		data = (u32*) image->GetData ();
 		for ( y = 0; y != dim.Height; ++y )
 		{
 			for ( x = 0; x != dim.Width; ++x )
@@ -616,7 +616,7 @@ void CQuake3EventHandler::createTextures()
 	for ( i = 0; i != 1; ++i )
 	{
 		image = driver->createImage ( video::ECF_A8R8G8B8, dim);
-		data = (u32*) image->getData ();
+		data = (u32*) image->GetData ();
 		for ( y = 0; y != dim.Height; ++y )
 		{
 			for ( x = 0; x != dim.Width; ++x )
@@ -1130,7 +1130,7 @@ void CQuake3EventHandler::addSceneTreeItem( ISceneNode * parent, IGUITreeViewNod
 	wchar_t msg[128];
 
 	s32 imageIndex;
-	list<ISceneNode*>::ConstIterator it = parent->getChildren().begin();
+	auto it = parent->getChildren().begin();
 	for (; it != parent->getChildren().end(); ++it)
 	{
 		switch ( (*it)->getType () )
@@ -1347,7 +1347,7 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 		else
 		if ( eve.GUIEvent.Caller == gui.ArchiveFileOpen && eve.GUIEvent.EventType == gui::EGET_FILE_SELECTED )
 		{
-			AddArchive ( gui.ArchiveFileOpen->getFileNameP() );
+			AddArchive ( gui.ArchiveFileOpen->getFileName() );
 			gui.ArchiveFileOpen = 0;
 		}
 		else
@@ -1519,7 +1519,7 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 				}
 
 				snprintf_irr(buf, 256, "%s_%ls_%.0f_%.0f_%.0f_%.0f_%.0f_%.0f.jpg",
-						DRIVER_TYPE_NAMES_SHORT[Game->Device->getVideoDriver()->getDriverType()],
+						"niy", //DRIVER_TYPE_NAMES_SHORT[Game->Device->getVideoDriver()->getDriverType()],
 						Game->CurrentMapName.c_str(),
 						pos.X, pos.Y, pos.Z,
 						rot.X, rot.Y, rot.Z
@@ -1551,7 +1551,7 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 */
 			if ( ItemParent )
 			{
-				list<ISceneNode*>::ConstIterator it = ItemParent->getChildren().begin();
+				auto it = ItemParent->getChildren().begin();
 				for (; it != ItemParent->getChildren().end(); ++it)
 				{
 					(*it)->setDebugDataVisible ( value );
@@ -1560,7 +1560,7 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 
 			if ( ShaderParent )
 			{
-				list<ISceneNode*>::ConstIterator it = ShaderParent->getChildren().begin();
+                auto it = ShaderParent->getChildren().begin();
 				for (; it != ShaderParent->getChildren().end(); ++it)
 				{
 					(*it)->setDebugDataVisible ( value );
@@ -1569,7 +1569,7 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 
 			if ( UnresolvedParent )
 			{
-				list<ISceneNode*>::ConstIterator it = UnresolvedParent->getChildren().begin();
+                auto it = UnresolvedParent->getChildren().begin();
 				for (; it != UnresolvedParent->getChildren().end(); ++it)
 				{
 					(*it)->setDebugDataVisible ( value );
@@ -1578,7 +1578,7 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 
 			if ( FogParent )
 			{
-				list<ISceneNode*>::ConstIterator it = FogParent->getChildren().begin();
+                auto it = FogParent->getChildren().begin();
 				for (; it != FogParent->getChildren().end(); ++it)
 				{
 					(*it)->setDebugDataVisible ( value );
@@ -1935,7 +1935,7 @@ void CQuake3EventHandler::Render()
                                                      ESNRP_TRANSPARENT_EFFECT +
                                                      ESNRP_SHADOW;
 		Game->Device->getSceneManager()->drawAll();
-		driver->clearBuffers(video::ECBF_DEPTH, video::SColor(255,0,0,0));
+		driver->clearZBuffer();
 
 		const vector3df oldPosition = cameraOld->getPosition();
 		const vector3df oldTarget   = cameraOld->getTarget();
@@ -1963,7 +1963,7 @@ void CQuake3EventHandler::Render()
 		camera->setTarget(focusPoint);
 
 		Game->Device->getSceneManager()->drawAll();
-		driver->clearBuffers(video::ECBF_DEPTH, video::SColor(255, 0, 0, 0));
+        driver->clearZBuffer();
 
 		//Right eye...
 		move.setTranslation( vector3df(1.5f,0.0f,0.0f) );

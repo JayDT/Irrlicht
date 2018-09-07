@@ -68,8 +68,7 @@ struct Material
     vec4    Emissive;
     float   Shininess;
     int     Type;
-    bool    Lighted;
-    bool    Fogged;
+    int     Flags;
 };
 
 layout(std430, binding = 2) buffer PixelConstats
@@ -85,8 +84,8 @@ layout(std430, binding = 2) buffer PixelConstats
     // w -> fogType
     vec4        g_fogParams;
     vec4        g_eyePositionVert;
-    Material    g_material;    
     Light       g_lights[MAX_LIGHTS];
+    Material    g_material;    
 };
 
 struct LightConstantData
@@ -251,14 +250,14 @@ void main()
         if (g_bAlphaTest > 0 && g_fAlphaRef > textureColor.a)
             discard;
         
-        if (g_material.Lighted == true)
+        if ((g_material.Flags & 1) != 0)
         {
             LightConstantData lightData;
             buildConstantLighting(_input.normal, _input.UPPos, lightData);
             textureColor.rgb *= lightData.DiffuseLight + lightData.AmbientLight /*+ lightData.SpecularLight*/;
         }
         
-        if (g_material.Fogged == true)
+        if ((g_material.Flags & 2) != 0)
         {
             float distance = length(_input.position.xyz - g_eyePositionVert.xyz);
             float fogDepth = distance - g_fogParams.x;

@@ -746,8 +746,8 @@ void ShaderGenericValuesBuffer::UpdateBuffer(video::IShader * gpuProgram, scene:
 
     material.Shininess = CurrentMaterial.Shininess;
     material.Type = CurrentMaterial.MaterialType;
-    material.Lighted = Driver->GetCurrentRenderMode() == COpenGLDriver::E_RENDER_MODE::ERM_3D && CurrentMaterial.Lighting;
-    material.Fogged = Driver->GetCurrentRenderMode() == COpenGLDriver::E_RENDER_MODE::ERM_3D && CurrentMaterial.FogEnable;
+    material.Flags |= Driver->GetCurrentRenderMode() == COpenGLDriver::E_RENDER_MODE::ERM_3D && CurrentMaterial.Lighting ? 1 : 0;
+    material.Flags |= Driver->GetCurrentRenderMode() == COpenGLDriver::E_RENDER_MODE::ERM_3D && CurrentMaterial.FogEnable ? 2 : 0;
 
     *ShaderMaterial = material;
 }

@@ -449,7 +449,7 @@ int main()
 
 		if (driver)
 		{
-			if ( irr::IrrlichtDevice::isDriverSupported( static_cast<E_DRIVER_TYPE>( driver->getValue() )))
+			//if ( irr::IrrlichtDevice::isDriverSupported( static_cast<E_DRIVER_TYPE>( driver->getValue() )))
 			{
 				// selected driver is supported, so we use it.
 				param.DriverType = static_cast<E_DRIVER_TYPE>( driver->getValue());

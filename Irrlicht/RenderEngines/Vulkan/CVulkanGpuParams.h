@@ -72,9 +72,9 @@ namespace irr
             bool UpdateDescriptors(VulkanCmdBuffer& buffer, VkDescriptorSet* sets);
 
             // Inherited via CVulkanDeviceResource
-            virtual void OnDeviceLost(CVulkanDriver * device) override;
-
-            virtual void OnDeviceRestored(CVulkanDriver * device) override;
+            virtual void OnDeviceLost(CVulkanDriver * device) _IRR_OVERRIDE_;
+            virtual void OnDeviceRestored(CVulkanDriver * device) _IRR_OVERRIDE_;
+            virtual void OnDeviceDestroy(CVulkanDriver* device) _IRR_OVERRIDE_ {}
 
             u8 GetTextureCount() const { return u8(TextureBindingSlot.size()); }
 

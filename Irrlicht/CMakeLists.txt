@@ -197,7 +197,7 @@ foreach(SRC ${IrrLicht_source})
 endforeach(SRC)
 
 CreateLibrary("irrlicht" "${IrrLicht_source}" "${LIBTYPE}" "${IrrLicht_libs}" "")
-ADD_CXX_PCH("irrlicht" Irrlicht.h Irrlicht.cpp)
+#ADD_CXX_PCH("irrlicht" Irrlicht.h Irrlicht.cpp)
 add_dependencies(irrlicht ZLIB)
 
 SET_TARGET_PROPERTIES (irrlicht PROPERTIES COMPILE_FLAGS "${RENDER_ENGINE_DEFINES}" )

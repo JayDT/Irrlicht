@@ -166,3 +166,8 @@ void irr::video::CVulkanVertexDeclaration::OnDeviceLost(CVulkanDriver * device)
 void irr::video::CVulkanVertexDeclaration::OnDeviceRestored(CVulkanDriver * device)
 {
 }
+
+void irr::video::CVulkanVertexDeclaration::OnDeviceDestroy(CVulkanDriver* device)
+{
+    drop();
+}

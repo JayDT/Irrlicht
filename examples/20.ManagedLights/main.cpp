@@ -237,8 +237,8 @@ private:
 	// specified scene node.
 	void turnOnZoneLights(scene::ISceneNode * node)
 	{
-		core::list<scene::ISceneNode*> const & children = node->getChildren();
-		for (core::list<scene::ISceneNode*>::ConstIterator child = children.begin();
+		auto const & children = node->getChildren();
+		for (auto child = children.begin();
 			child != children.end(); ++child)
 		{
 			if ((*child)->getType() == scene::ESNT_LIGHT)

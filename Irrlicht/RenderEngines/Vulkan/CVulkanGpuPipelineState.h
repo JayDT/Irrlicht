@@ -40,8 +40,9 @@ namespace irr
             bool isDepthReadOnly() const { return mReadOnlyDepth; }
 
             // Inherited via CVulkanDeviceResource
-            virtual void OnDeviceLost(CVulkanDriver * device) override;
-            virtual void OnDeviceRestored(CVulkanDriver * device) override;
+            virtual void OnDeviceLost(CVulkanDriver * device) _IRR_OVERRIDE_;
+            virtual void OnDeviceRestored(CVulkanDriver * device) _IRR_OVERRIDE_;
+            virtual void OnDeviceDestroy(CVulkanDriver* device) _IRR_OVERRIDE_ {}
 
         private:
             VkPipeline mPipeline;

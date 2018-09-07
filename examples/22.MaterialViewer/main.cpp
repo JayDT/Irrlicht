@@ -120,8 +120,8 @@ video::E_VERTEX_TYPE getVertexTypeForMaterialType(video::E_MATERIAL_TYPE materia
 		case EMT_ONETEXTURE_BLEND:
 			return EVT_STANDARD;
 
-		case EMT_FORCE_32BIT:
-			return EVT_STANDARD;
+		//case EMT_FORCE_32BIT:
+		//	return EVT_STANDARD;
 	}
 	return EVT_STANDARD;
 }
@@ -665,7 +665,7 @@ bool CApp::init(int argc, char *argv[])
 	Device = createDevice(Config.DriverType, Config.ScreenSize);
 	if (!Device)
 		return false;
-	Device->setWindowCaption( core::stringw(video::DRIVER_TYPE_NAMES[Config.DriverType]).c_str() );
+	//Device->setWindowCaption( core::stringw(video::DRIVER_TYPE_NAMES[Config.DriverType]).c_str() );
 	Device->setEventReceiver(this);
 
 	scene::ISceneManager* smgr = Device->getSceneManager();

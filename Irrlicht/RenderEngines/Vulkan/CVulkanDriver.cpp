@@ -141,17 +141,39 @@ irr::video::CVulkanDriver::~CVulkanDriver()
     if (mPlatform)
         delete mPlatform;
 
-    // ToDo: cleanup. This really bad idea
-    //while (!ResourceList.empty())
-    //{
-    //    auto itr = ResourceList.begin();
-    //    (*itr)->drop();
-    //    ResourceList.erase(*itr);
-    //}
+    while (!VertexDeclarations.empty())
+    {
+        static_cast<CVulkanVertexDeclaration*>(VertexDeclarations.begin()->second)->OnDeviceDestroy(this);
+        VertexDeclarations.erase(VertexDeclarations.begin());
+    }
+
+    size_t lastSize = ResourceList.size();
+    for (auto i = ResourceList.begin(); i != ResourceList.end();)
+    {
+        (*i)->OnDeviceDestroy(this);
+        if (lastSize == ResourceList.size())
+        {
+            ++i;
+            continue;
+        }
+
+        i = ResourceList.begin();
+        lastSize = ResourceList.size();
+    }
+
+    while (!ShaderModuls.empty())
+    {
+        static_cast<CVulkanGLSLProgram*>(ShaderModuls.getLast())->drop();
+        ShaderModuls.erase(ShaderModuls.size() - 1);
+    }
 
     ShaderModuls.clear();
 
     vkDestroySampler(this->mPrimaryDevices->getLogical(), mDummySampler, VulkanDevice::gVulkanAllocator);
+
+    if (blankTexture)
+        blankTexture->drop();
+    blankTexture = nullptr;
 
     for (auto stages : mPipelines)
     {
@@ -426,7 +448,11 @@ bool irr::video::CVulkanDriver::initDriver(HWND hwnd, bool pureSoftware)
     VkResult result = vkCreateSampler(_getPrimaryDevice()->getLogical(), &samplerCI, VulkanDevice::gVulkanAllocator, &mDummySampler);
     assert(result == VK_SUCCESS);
 
+    if (blankTexture)
+        blankTexture->drop();
     blankTexture = static_cast<CVulkanTexture*>(createDeviceDependentTexture(blankImage, "internal_null_texture"));
+    blankImage->drop();
+    blankImage = nullptr;
 
     System::IO::StandardDataSource fileMgr;
 
@@ -897,7 +923,6 @@ IHardwareBuffer * irr::video::CVulkanDriver::createHardwareBuffer(const scene::I
             hwBuffer->SetPipeline(is, pipeline);
 
             hwBuffer->SetGpuParams(is, vkShader->GetDefaultGpuParams());
-            hwBuffer->GetGpuParams(is)->drop();
 
             if (!updateHardwareBuffer(hwBuffer))
             {
@@ -913,7 +938,6 @@ IHardwareBuffer * irr::video::CVulkanDriver::createHardwareBuffer(const scene::I
         hwBuffer->SetPipeline(0, pipeline);
 
         hwBuffer->SetGpuParams(0, vkShader->GetDefaultGpuParams());
-        hwBuffer->GetGpuParams(0)->drop();
 
         if (!updateHardwareBuffer(hwBuffer))
         {

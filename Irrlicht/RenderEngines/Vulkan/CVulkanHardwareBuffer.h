@@ -49,6 +49,8 @@ namespace irr
             VulkanBuffer(CVulkanDriver* owner, VkBuffer buffer, VkBufferView view, VmaAllocation allocation, uint32_t rowPitch = 0, uint32_t slicePitch = 0);
             virtual ~VulkanBuffer();
 
+            virtual void OnDeviceDestroy(CVulkanDriver* device) _IRR_OVERRIDE_ {}
+
             /** Returns the internal handle to the Vulkan object. */
             VkBuffer getHandle() const { return mBuffer; }
 
@@ -258,8 +260,9 @@ namespace irr
             virtual void Finalize();
 
             // Inherited via D3D11DeviceResource
-            virtual void OnDeviceLost(CVulkanDriver * device) override;
-            virtual void OnDeviceRestored(CVulkanDriver * device) override;
+            virtual void OnDeviceLost(CVulkanDriver * device) _IRR_OVERRIDE_;
+            virtual void OnDeviceRestored(CVulkanDriver * device) _IRR_OVERRIDE_;
+            virtual void OnDeviceDestroy(CVulkanDriver* device) _IRR_OVERRIDE_;
         };
     }
 }

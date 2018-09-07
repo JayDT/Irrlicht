@@ -195,8 +195,10 @@ namespace irr
 
 
             // Inherited via D3D11DeviceResource
-            virtual void OnDeviceLost(CVulkanDriver * device) override;
-            virtual void OnDeviceRestored(CVulkanDriver * device) override;
+            virtual void OnDeviceLost(CVulkanDriver * device) _IRR_OVERRIDE_;
+            virtual void OnDeviceRestored(CVulkanDriver * device) _IRR_OVERRIDE_;
+            virtual void OnDeviceDestroy(CVulkanDriver* device) _IRR_OVERRIDE_ {}
+
         private:
 
             void ReflParseStruct(irr::video::CVulkanGLSLProgram::CbufferDesc& buffdesc, irr::video::CVulkanGLSLProgram::ShaderConstantDesc* parent, const glslang::TType* type, std::vector<irr::video::CVulkanGLSLProgram::ShaderConstantDesc>& Variables, std::string namePrefix);

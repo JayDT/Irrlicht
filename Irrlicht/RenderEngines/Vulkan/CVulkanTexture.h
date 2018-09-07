@@ -205,8 +205,9 @@ namespace irr
             mutable std::vector<ImageViewInfo> mImageInfos;
 
             // Inherited via CVulkanDeviceResource
-            virtual void OnDeviceLost(CVulkanDriver * device) override;
-            virtual void OnDeviceRestored(CVulkanDriver * device) override;
+            virtual void OnDeviceLost(CVulkanDriver * device) _IRR_OVERRIDE_;
+            virtual void OnDeviceRestored(CVulkanDriver * device) _IRR_OVERRIDE_;
+            virtual void OnDeviceDestroy(CVulkanDriver* device) _IRR_OVERRIDE_ {}
         };
 
         /** Represents a single sub-resource (face & mip level) of a larger image object. */
@@ -214,7 +215,7 @@ namespace irr
         {
         public:
             VulkanImageSubresource(CVulkanDriver* owner, VkImageLayout layout);
-
+            virtual ~VulkanImageSubresource() {}
             /**
             * Returns the layout the subresource is currently in. Note that this is only used to communicate layouts between
             * different command buffers, and will only be updated only after command buffer submit() call. In short this means
@@ -231,8 +232,9 @@ namespace irr
             VkImageLayout mLayout;
 
             // Inherited via CVulkanDeviceResource
-            virtual void OnDeviceLost(CVulkanDriver * device) override;
-            virtual void OnDeviceRestored(CVulkanDriver * device) override;
+            virtual void OnDeviceLost(CVulkanDriver * device) _IRR_OVERRIDE_;
+            virtual void OnDeviceRestored(CVulkanDriver * device) _IRR_OVERRIDE_;
+            virtual void OnDeviceDestroy(CVulkanDriver* device) _IRR_OVERRIDE_ {}
         };
 
         class CVulkanTexture : public ITexture//, public CVulkanDeviceResource
