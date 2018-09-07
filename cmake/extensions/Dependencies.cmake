@@ -16,7 +16,7 @@ find_package(LLVM REQUIRED)
 # Render Systems
 #######################################################################
 
-#find_package(OpenGL) # Use Build in
+find_package(OpenGL) # Use Build in
 find_package(DirectX)
 find_package(DirectX11)
 find_package(Vulkan)
@@ -45,7 +45,6 @@ FIND_PACKAGE(Threads REQUIRED)
 # folder where the required dependencies may be found.
 set(PROJECT_DEPENDENCIES_DIR "" CACHE PATH "Path to prebuilt PROJECT dependencies")
 option(PROJECT_BUILD_DEPENDENCIES "automatically build Ogre Dependencies (freetype, zzip, boost)" TRUE)
-option(USE_INBUILD_GLSLANG "" ON)
 
 getenv_path(PROJECT_DEPENDENCIES_DIR)
 if(PROJECT_BUILD_PLATFORM_EMSCRIPTEN)
@@ -133,31 +132,31 @@ if(PROJECT_BUILD_DEPENDENCIES AND NOT EXISTS ${PROJECTDEPS_PATH})
 
     set(BUILD_COMMAND_OPTS --target install --config ${DEP_BUILD_TYPE})
 
-    if(Vulkan_FOUND OR MSVC OR MINGW) # other platforms dont need this
+    if(NOT BUILD_IN_USE_GLSLANG AND (Vulkan_FOUND OR MSVC OR MINGW)) # other platforms dont need this
         message(STATUS "Building Glslang")
         file(DOWNLOAD
             https://github.com/KhronosGroup/glslang/archive/master-tot.tar.gz
             ${CMAKE_BINARY_DIR}/Glslang-master.tar.gz)
         execute_process(COMMAND ${CMAKE_COMMAND}
             -E tar xf Glslang-master.tar.gz WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-        if(NOT USE_INBUILD_GLSLANG)
-            execute_process(COMMAND ${CMAKE_COMMAND}
-                -DCMAKE_INSTALL_PREFIX=${PROJECTDEPS_PATH}
-                -DCMAKE_INSTALL_LIBDIR=${PROJECTDEPS_PATH}
-                -DCMAKE_BUILD_TYPE=${DEP_BUILD_TYPE}
-                -DBUILD_SHARED_LIBS=${PROJECTDEPS_SHARED}
-                -DENABLE_GLSLANG_INSTALL=ON
-                -G ${CMAKE_GENERATOR}
-                -DCMAKE_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}
-                ${CROSS}
-                ${CMAKE_BINARY_DIR}/glslang-master-tot
-                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/glslang-master-tot)
-            execute_process(COMMAND ${CMAKE_COMMAND} 
-                --build ${CMAKE_BINARY_DIR}/glslang-master-tot ${BUILD_COMMAND_OPTS})
-        endif(NOT USE_INBUILD_GLSLANG)
-
+        #if(NOT DEPLOY_GLSLANG)
+        #    execute_process(COMMAND ${CMAKE_COMMAND}
+        #        -DCMAKE_INSTALL_PREFIX=${PROJECTDEPS_PATH}
+        #        -DCMAKE_INSTALL_LIBDIR=${PROJECTDEPS_PATH}
+        #        -DCMAKE_BUILD_TYPE=${DEP_BUILD_TYPE}
+        #        -DBUILD_SHARED_LIBS=${PROJECTDEPS_SHARED}
+        #        -DENABLE_GLSLANG_INSTALL=ON
+        #        -G ${CMAKE_GENERATOR}
+        #        -DCMAKE_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}
+        #        ${CROSS}
+        #        ${CMAKE_BINARY_DIR}/glslang-master-tot
+        #        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/glslang-master-tot)
+        #    execute_process(COMMAND ${CMAKE_COMMAND} 
+        #        --build ${CMAKE_BINARY_DIR}/glslang-master-tot ${BUILD_COMMAND_OPTS})
+        #endif(NOT DEPLOY_GLSLANG)
+    
         message(STATUS "Building SPIRV-Tools") # 
-
+    
         file(DOWNLOAD
             https://github.com/KhronosGroup/SPIRV-Tools/archive/v2018.3.tar.gz
             ${CMAKE_BINARY_DIR}/SPIRV-Tools-master.tar.gz)
@@ -168,7 +167,7 @@ if(PROJECT_BUILD_DEPENDENCIES AND NOT EXISTS ${PROJECTDEPS_PATH})
         #    ${CMAKE_BINARY_DIR}/SPIRV-Headers-master.tar.gz)
         #execute_process(COMMAND ${CMAKE_COMMAND}
         #    -E tar xf SPIRV-Headers-master.tar.gz WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
+    
         execute_process(COMMAND ${CMAKE_COMMAND}
             -DCMAKE_INSTALL_PREFIX=${PROJECTDEPS_PATH}
             -DCMAKE_INSTALL_LIBDIR=${PROJECTDEPS_PATH}
@@ -182,47 +181,47 @@ if(PROJECT_BUILD_DEPENDENCIES AND NOT EXISTS ${PROJECTDEPS_PATH})
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/SPIRV-Tools-2018.3)
         execute_process(COMMAND ${CMAKE_COMMAND} 
             --build ${CMAKE_BINARY_DIR}/SPIRV-Tools-2018.3 ${BUILD_COMMAND_OPTS})
-    endif()
+    endif(NOT BUILD_IN_USE_GLSLANG AND (Vulkan_FOUND OR MSVC OR MINGW))
 
-    if(MSVC OR EMSCRIPTEN OR MINGW) # other platforms ship zlib
-        message(STATUS "Building zlib")
-        file(DOWNLOAD 
-            http://zlib.net/zlib-1.2.11.tar.gz
-            ${CMAKE_BINARY_DIR}/zlib-1.2.11.tar.gz 
-            EXPECTED_MD5 1c9f62f0778697a09d36121ead88e08e)
-        execute_process(COMMAND ${CMAKE_COMMAND} 
-            -E tar xf zlib-1.2.11.tar.gz WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-        execute_process(COMMAND ${CMAKE_COMMAND}
-            -DCMAKE_INSTALL_PREFIX=${PROJECTDEPS_PATH}
-            -DCMAKE_BUILD_TYPE=${DEP_BUILD_TYPE}
-            -DBUILD_SHARED_LIBS=${PROJECTDEPS_SHARED}
-            -G ${CMAKE_GENERATOR}
-            -DCMAKE_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}
-            ${CROSS}
-            ${CMAKE_BINARY_DIR}/zlib-1.2.11
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/zlib-1.2.11)
-        execute_process(COMMAND ${CMAKE_COMMAND} 
-            --build ${CMAKE_BINARY_DIR}/zlib-1.2.11 ${BUILD_COMMAND_OPTS})
-    endif()
+    #if(MSVC OR EMSCRIPTEN OR MINGW) # other platforms ship zlib
+    #    message(STATUS "Building zlib")
+    #    file(DOWNLOAD 
+    #        http://zlib.net/zlib-1.2.11.tar.gz
+    #        ${CMAKE_BINARY_DIR}/zlib-1.2.11.tar.gz 
+    #        EXPECTED_MD5 1c9f62f0778697a09d36121ead88e08e)
+    #    execute_process(COMMAND ${CMAKE_COMMAND} 
+    #        -E tar xf zlib-1.2.11.tar.gz WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+    #    execute_process(COMMAND ${CMAKE_COMMAND}
+    #        -DCMAKE_INSTALL_PREFIX=${PROJECTDEPS_PATH}
+    #        -DCMAKE_BUILD_TYPE=${DEP_BUILD_TYPE}
+    #        -DBUILD_SHARED_LIBS=${PROJECTDEPS_SHARED}
+    #        -G ${CMAKE_GENERATOR}
+    #        -DCMAKE_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}
+    #        ${CROSS}
+    #        ${CMAKE_BINARY_DIR}/zlib-1.2.11
+    #        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/zlib-1.2.11)
+    #    execute_process(COMMAND ${CMAKE_COMMAND} 
+    #        --build ${CMAKE_BINARY_DIR}/zlib-1.2.11 ${BUILD_COMMAND_OPTS})
+    #endif()
 
-    message(STATUS "Building ZZIPlib")
-    file(DOWNLOAD
-        https://github.com/paroj/ZZIPlib/archive/master.tar.gz
-        ${CMAKE_BINARY_DIR}/ZZIPlib-master.tar.gz)
-    execute_process(COMMAND ${CMAKE_COMMAND}
-        -E tar xf ZZIPlib-master.tar.gz WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-    execute_process(COMMAND ${CMAKE_COMMAND}
-        -DCMAKE_INSTALL_PREFIX=${PROJECTDEPS_PATH}
-        -DCMAKE_BUILD_TYPE=${DEP_BUILD_TYPE}
-        -DZLIB_ROOT=${PROJECTDEPS_PATH}
-        -DBUILD_SHARED_LIBS=${PROJECTDEPS_SHARED}
-        -G ${CMAKE_GENERATOR}
-        -DCMAKE_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}
-        ${CROSS}
-        ${CMAKE_BINARY_DIR}/ZZIPlib-master
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/ZZIPlib-master)
-    execute_process(COMMAND ${CMAKE_COMMAND} 
-        --build ${CMAKE_BINARY_DIR}/ZZIPlib-master ${BUILD_COMMAND_OPTS})
+    #message(STATUS "Building ZZIPlib")
+    #file(DOWNLOAD
+    #    https://github.com/paroj/ZZIPlib/archive/master.tar.gz
+    #    ${CMAKE_BINARY_DIR}/ZZIPlib-master.tar.gz)
+    #execute_process(COMMAND ${CMAKE_COMMAND}
+    #    -E tar xf ZZIPlib-master.tar.gz WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+    #execute_process(COMMAND ${CMAKE_COMMAND}
+    #    -DCMAKE_INSTALL_PREFIX=${PROJECTDEPS_PATH}
+    #    -DCMAKE_BUILD_TYPE=${DEP_BUILD_TYPE}
+    #    -DZLIB_ROOT=${PROJECTDEPS_PATH}
+    #    -DBUILD_SHARED_LIBS=${PROJECTDEPS_SHARED}
+    #    -G ${CMAKE_GENERATOR}
+    #    -DCMAKE_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}
+    #    ${CROSS}
+    #    ${CMAKE_BINARY_DIR}/ZZIPlib-master
+    #    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/ZZIPlib-master)
+    #execute_process(COMMAND ${CMAKE_COMMAND} 
+    #    --build ${CMAKE_BINARY_DIR}/ZZIPlib-master ${BUILD_COMMAND_OPTS})
     
     message(STATUS "Building freetype")
     file(DOWNLOAD
@@ -251,27 +250,27 @@ if(PROJECT_BUILD_DEPENDENCIES AND NOT EXISTS ${PROJECTDEPS_PATH})
     execute_process(COMMAND ${CMAKE_COMMAND}
         --build ${CMAKE_BINARY_DIR}/freetype-2.9/objs ${BUILD_COMMAND_OPTS})
 
-    if(MSVC OR MINGW) # other platforms dont need this
-        message(STATUS "Building SDL2")
-        file(DOWNLOAD
-            https://libsdl.org/release/SDL2-2.0.8.tar.gz
-            ${CMAKE_BINARY_DIR}/SDL2-2.0.8.tar.gz)
-        execute_process(COMMAND ${CMAKE_COMMAND} 
-            -E tar xf SDL2-2.0.8.tar.gz WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-        execute_process(COMMAND ${CMAKE_COMMAND}
-            -E make_directory ${CMAKE_BINARY_DIR}/SDL2-build)
-        execute_process(COMMAND ${CMAKE_COMMAND}
-            -DCMAKE_INSTALL_PREFIX=${PROJECTDEPS_PATH}
-            -DCMAKE_BUILD_TYPE=${DEP_BUILD_TYPE}
-            -DSDL_STATIC=FALSE
-            -G ${CMAKE_GENERATOR}
-            -DCMAKE_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}
-            ${CROSS}
-            ${CMAKE_BINARY_DIR}/SDL2-2.0.8
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/SDL2-build)
-        execute_process(COMMAND ${CMAKE_COMMAND}
-            --build ${CMAKE_BINARY_DIR}/SDL2-build ${BUILD_COMMAND_OPTS})
-    endif()
+    #if(MSVC OR MINGW) # other platforms dont need this
+    #    message(STATUS "Building SDL2")
+    #    file(DOWNLOAD
+    #        https://libsdl.org/release/SDL2-2.0.8.tar.gz
+    #        ${CMAKE_BINARY_DIR}/SDL2-2.0.8.tar.gz)
+    #    execute_process(COMMAND ${CMAKE_COMMAND} 
+    #        -E tar xf SDL2-2.0.8.tar.gz WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+    #    execute_process(COMMAND ${CMAKE_COMMAND}
+    #        -E make_directory ${CMAKE_BINARY_DIR}/SDL2-build)
+    #    execute_process(COMMAND ${CMAKE_COMMAND}
+    #        -DCMAKE_INSTALL_PREFIX=${PROJECTDEPS_PATH}
+    #        -DCMAKE_BUILD_TYPE=${DEP_BUILD_TYPE}
+    #        -DSDL_STATIC=FALSE
+    #        -G ${CMAKE_GENERATOR}
+    #        -DCMAKE_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}
+    #        ${CROSS}
+    #        ${CMAKE_BINARY_DIR}/SDL2-2.0.8
+    #        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/SDL2-build)
+    #    execute_process(COMMAND ${CMAKE_COMMAND}
+    #        --build ${CMAKE_BINARY_DIR}/SDL2-build ${BUILD_COMMAND_OPTS})
+    #endif()
 endif()
 
 #######################################################################
@@ -282,17 +281,17 @@ endif()
 find_package(ZLIB)
 macro_log_feature(ZLIB "zlib" "Simple data compression library" "http://www.zlib.net" FALSE "" "")
 AddInterfaceLibrary(ZLIB)
-IF (ZLIB_USE_BUILDIN)
+IF (NOT ZLIB_FOUND)
     SET(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/dep/zlib )
     SET(ZLIB_LIBRARIES zlib)
-ENDIF(ZLIB_USE_BUILDIN)
+ENDIF(NOT ZLIB_FOUND)
 
-if (ZLIB_FOUND)
-  # Find zziplib
-  find_package(ZZip)
-  macro_log_feature(ZZip "zziplib" "Extract data from zip archives" "http://zziplib.sourceforge.net" FALSE "" "")
-  AddInterfaceLibrary(ZZip)
-endif ()
+#if (ZLIB_FOUND)
+#  # Find zziplib
+#  find_package(ZZip)
+#  macro_log_feature(ZZip "zziplib" "Extract data from zip archives" "http://zziplib.sourceforge.net" FALSE "" "")
+#  AddInterfaceLibrary(ZZip)
+#endif ()
 
 # Find FreeImage
 find_package(FreeImage)
@@ -314,7 +313,7 @@ if (UNIX AND NOT APPLE AND NOT ANDROID AND NOT EMSCRIPTEN)
 endif ()
 
   
-if (USE_INBUILD_GLSLANG)
+if (NOT BUILD_IN_USE_GLSLANG) # DEPLOY_GLSLANG
     option(ENABLE_SPVREMAPPER "Enables building of SPVRemapper" ON)
     option(ENABLE_AMD_EXTENSIONS "Enables support of AMD-specific extensions" ON)
     option(ENABLE_GLSLANG_BINARIES "Builds glslangValidator and spirv-remap" OFF)
@@ -366,14 +365,14 @@ if (USE_INBUILD_GLSLANG)
     #target_include_directories(SPIRV PUBLIC ${CMAKE_BINARY_DIR}/Dependencies)
 
     AddInterfaceLibrary(Glslang)
-elseif (Vulkan_FOUND)
-  #set(CMAKE_FIND_ROOT_PATH "${CMAKE_BINARY_DIR}/glslang-master-tot" "${CMAKE_FIND_ROOT_PATH}")
-  
-  # Find Glslang
-  find_package(Glslang)
-  macro_log_feature(Glslang "Glslang" "Glslang SDK needed for building Vulkan driver" "https://github.com/KhronosGroup/glslang/" FALSE "" "")
-  AddInterfaceLibrary(Glslang)
-endif(USE_INBUILD_GLSLANG)
+#elseif (Vulkan_FOUND)
+#  #set(CMAKE_FIND_ROOT_PATH "${CMAKE_BINARY_DIR}/glslang-master-tot" "${CMAKE_FIND_ROOT_PATH}")
+#  
+#  # Find Glslang
+#  find_package(Glslang)
+#  macro_log_feature(Glslang "Glslang" "Glslang SDK needed for building Vulkan driver" "https://github.com/KhronosGroup/glslang/" FALSE "" "")
+#  AddInterfaceLibrary(Glslang)
+endif(NOT BUILD_IN_USE_GLSLANG)
 
 #######################################################################
 # Additional features
@@ -419,8 +418,38 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/Dependencies/CMakeLists.txt")
   add_subdirectory(Dependencies)
 endif ()
 
-# provide option to install dependencies on Windows
-include(InstallDependencies)
+if (PROJECT_COPY_DEPENDENCIES)
+
+    IF (BUILD_EXAMPLES)
+        file(COPY ${CMAKE_SOURCE_DIR}/media/ DESTINATION ${BIN_DIR}/media PATTERN *.*)
+    ENDIF()
+    IF (EXISTS ${PROJECTDEPS_PATH}/bin)
+        file(COPY ${PROJECTDEPS_PATH}/bin/ DESTINATION ${BIN_DIR} PATTERN *.*)
+    ENDIF()
+
+  if (WIN32)
+
+    IF (NOT EXISTS ${BIN_DIR}/debug)
+        file(MAKE_DIRECTORY ${BIN_DIR}/debug)
+    ENDIF()
+    IF (NOT EXISTS ${BIN_DIR}/release)
+        file(MAKE_DIRECTORY ${BIN_DIR}/release)
+    ENDIF()
+
+    IF (BUILD_EXAMPLES)
+        file(COPY ${CMAKE_SOURCE_DIR}/media/ DESTINATION ${BIN_DIR}/debug/media PATTERN *.*)
+        file(COPY ${CMAKE_SOURCE_DIR}/media/ DESTINATION ${BIN_DIR}/release/media PATTERN *.*)
+    ENDIF()
+
+    # copy the required DLLs to the build directory
+    file(GLOB DLLS ${PROJECTDEPS_PATH}/bin/*.dll)
+
+    file(COPY ${DLLS} DESTINATION ${BIN_DIR}/debug)
+    file(COPY ${DLLS} DESTINATION ${BIN_DIR}/release)
+  
+  endif ()
+
+endif ()
 
 #######################################################################
 # Find all necessary

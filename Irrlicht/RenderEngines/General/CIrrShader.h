@@ -49,12 +49,12 @@ namespace irr
         {
             struct StageDesc
             {
-                System::IO::IFileReader* DataStream;
+                System::IO::IFileReader* DataStream = nullptr;
                 core::stringc EntryPoint;
                 core::stringc ShaderModel;
                 std::vector<IShaderDataBuffer*> Buffers;
-                E_GPU_SHADING_LANGUAGE ShadingLang;
-                E_ShaderTypes ShaderStageType;
+                E_GPU_SHADING_LANGUAGE ShadingLang = E_GPU_SHADING_LANGUAGE::EGSL_DEFAULT;
+                E_ShaderTypes ShaderStageType = E_ShaderTypes::EST_HIGH_LEVEL_SHADER;
                 size_t DataStreamOffset = 0;
             };
 
@@ -122,7 +122,7 @@ namespace irr
         {
             struct ShaderDataBufferElementExepction : public std::exception
             {
-                ShaderDataBufferElementExepction(const char* message) : std::exception(message)
+                ShaderDataBufferElementExepction(const char* message) : std::exception()
                 {
 
                 }

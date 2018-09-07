@@ -11,7 +11,7 @@ namespace video
 {
 
 	//! Abstracted and easy to use fixed function/programmable pipeline material modes.
-	enum E_MATERIAL_TYPE
+	enum E_MATERIAL_TYPE : u8
 	{
 		//! Standard solid material.
 		/** Only first texture is used, which is supposed to be the
@@ -194,8 +194,6 @@ namespace video
 
         // Full shader control
         EMT_DUMMY,
-        //! This value is not used. It only forces this enumeration to compile to 32 bit.
-		EMT_FORCE_32BIT = 0x7fffffff
 	};
 
 	//! Array holding the built in material type names

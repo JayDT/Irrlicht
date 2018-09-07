@@ -130,23 +130,28 @@ typedef HANDLE MODUL_LIBRARY_HANDLE;
 
 #if COMPILER == COMPILER_GNU
 #  define FORMAT_STRING(p) p
-#  define ATTR_NORETURN __attribute__((noreturn))
-#  define ATTR_PRINTF(F,V) __attribute__ ((format (printf, F, V)))
+#  define ATTR_NORETURN __attribute__((__noreturn__))
+#  define ATTR_PRINTF(F, V) 
+// __attribute__ ((__format__ (__printf__, F, V)))
+#  define ATTR_ALIGNED(x) __attribute__ ((aligned(x)))
+#  define ATTR_THREAD __thread
 #else //COMPILER != COMPILER_GNU
 #  include <sal.h>
 #  define FORMAT_STRING(p) _In_z_ _Printf_format_string_ p
 #  define ATTR_NORETURN
 #  define ATTR_PRINTF(F,V)
+#  define ATTR_ALIGNED(x) __declspec(align(x))
+#  define ATTR_THREAD __declspec(thread)
 #endif //COMPILER == COMPILER_GNU
 
 #if defined(IGNORE_DEPRECATED_WARNING)
-#define _DEPRECATED_
+#define ATTR_DEPRECATED
 #elif _MSC_VER >= 1310 //vs 2003 or higher
-#define DEPRECATED_ __declspec(deprecated)
+#define ATTR_DEPRECATED __declspec(deprecated)
 #elif (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1)) // all versions above 3.0 should support this feature
-#define DEPRECATED_  __attribute__ ((deprecated))
+#define ATTR_DEPRECATED  __attribute__ ((deprecated))
 #else
-#define DEPRECATED_
+#define ATTR_DEPRECATED
 #endif
 
 //! Defines an override macro, to protect virtual functions from typos and other mismatches
@@ -154,13 +159,13 @@ typedef HANDLE MODUL_LIBRARY_HANDLE;
 virtual void somefunc() _OVERRIDE_;
 */
 #if ( ((__GNUC__ > 4 ) || ((__GNUC__ == 4 ) && (__GNUC_MINOR__ >= 7))) && (defined(__GXX_EXPERIMENTAL_CXX0X) || __cplusplus >= 201103L) )
-#define OVERRIDE_ override
+#define ATTR_OVERRIDE override
 #elif (_MSC_VER >= 1600 ) /* supported since MSVC 2010 */
-#define OVERRIDE_ override
+#define ATTR_OVERRIDE override
 #elif (__clang_major__ >= 3)
-#define OVERRIDE_ override
+#define ATTR_OVERRIDE override
 #else
-#define OVERRIDE_
+#define ATTR_OVERRIDE
 #endif
 
 // GCC have alternative #pragma pack(N) syntax and old gcc version not support pack(push,N), also any gcc version not support it at some platform
@@ -191,9 +196,9 @@ typedef unsigned __int64 uint64_t;
 #endif
 
 #if COMPILER != COMPILER_MICROSOFT
-typedef uint16      WORD;
-typedef uint32      DWORD;
-typedef uint64      QWORD;
+typedef short unsigned          WORD;
+typedef long unsigned           DWORD;
+typedef long long unsigned      QWORD;
 
 #  ifndef __forceinline
 #      define __forceinline __attribute__((__always_inline__)) inline

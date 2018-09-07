@@ -85,7 +85,7 @@ namespace irr
             }
 
             //! multiply by another matrix
-            inline irr::core::matrix4 matrix4x3::operator*(irr::core::matrix4 const& m2) const
+            inline irr::core::matrix4 operator*(irr::core::matrix4 const& m2) const
             {
                 irr::core::matrix4 m3;
                 memset(&m3, 0, sizeof(m3));

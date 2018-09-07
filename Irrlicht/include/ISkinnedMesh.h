@@ -27,6 +27,22 @@ namespace scene
 		EIM_COUNT
 	};
 
+    namespace detail
+    {
+        template<typename T>
+        inline T interpolate(const float r, const T &v1, const T &v2)
+        {
+            return static_cast<T>(v1*(1.0f - r) + v2 * r);
+        }
+
+        template<>
+        inline core::quaternion interpolate<core::quaternion>(const float r, const core::quaternion &v1, const core::quaternion &v2)
+        {
+            core::quaternion ret;
+            return ret.slerp(v1, v2, r);
+        }
+    };
+
 
 	//! Interface for using some special functions of Skinned meshes
 	class IRRLICHT_API ISkinnedMesh : public IAnimatedMesh
@@ -135,19 +151,6 @@ namespace scene
                 mParent = nullptr;
 			}
 
-            template<typename T>
-            inline T interpolate(const float r, const T &v1, const T &v2)
-            {
-                return static_cast<T>(v1*(1.0f - r) + v2*r);
-            }
-
-            template<>
-            inline core::quaternion interpolate<core::quaternion>(const float r, const core::quaternion &v1, const core::quaternion &v2)
-            {
-                core::quaternion ret;
-                return ret.slerp(v1, v2, r);
-            }
-
             template<typename T, typename AT>
             void getValue(T& ret, core::array<AT> &array, float frame, s32 rangeStart, s32 rangeEnd)
             {
@@ -160,7 +163,7 @@ namespace scene
                 {
                     float keyTime = array[i].frame;
                     float keyTimeNext = array[i + 1].frame;
-
+                
                     if (frame >= keyTime && frame <= keyTimeNext &&
                         keyTime <= rangeEnd && keyTime >= rangeStart) //Keys should to be sorted by frame
                     {
@@ -170,7 +173,7 @@ namespace scene
                     }
                 }
 
-                //Test the Hints...
+                ////Test the Hints...
                 //if (LastIndex >= 0 && (uint)LastIndex < PositionKeys.size())
                 //{
                 //    //check this hint
@@ -205,11 +208,11 @@ namespace scene
                 //Do interpolation...
                 if (pos != -1)
                 {
-                    /*if (InterpolationMode == EIM_CONSTANT || foundPositionIndex == 0)
-                    {
-                        ret = KeyA.value;
-                    }
-                    else if (InterpolationMode == EIM_LINEAR)*/
+                    //if (InterpolationMode == EIM_CONSTANT || foundPositionIndex == 0)
+                    //{
+                    //    ret = KeyA.value;
+                    //}
+                    //else if (InterpolationMode == EIM_LINEAR)
                     {
                         const AT& KeyA = array[pos];
                         const AT& KeyB = array[pos + 1];
@@ -217,7 +220,7 @@ namespace scene
                         if (KeyB.frame <= rangeEnd && KeyB.frame >= rangeStart)
                         {
                             float r = (frame - KeyA.frame) / (float)(KeyB.frame - KeyA.frame);
-                            ret = interpolate(r, KeyA.value, KeyB.value);
+                            ret = detail::interpolate(r, KeyA.value, KeyB.value);
                         }
                         else
                         {

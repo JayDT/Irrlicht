@@ -97,8 +97,7 @@ if(_IRR_DYNAMIC_)
       list(APPEND IrrLicht_libs
       OpenGL)
       list(APPEND IrrLicht_libs
-        ${OPENGL0_LIBRARY}
-        ${OPENGL1_LIBRARY})          
+        ${OPENGL_LIBRARIES})          
   endif(IRR_BUILD_RENDERSYSTEM_GL EQUAL 1)
   
   #! Only define _IRR_COMPILE_WITH_DIRECT3D_8_ if you have an appropriate DXSDK, e.g. Summer 2004
@@ -131,31 +130,21 @@ if(_IRR_DYNAMIC_)
       list(APPEND IrrLicht_libs 
       CVulkan)
       list(APPEND IrrLicht_libs 
-      Vulkan::Vulkan
-      Glslang)
+        Vulkan::Vulkan
+        Glslang)
 
-   LINK_DIRECTORIES(${CMAKE_BINARY_DIR}/Dependencies)
+      LINK_DIRECTORIES(${CMAKE_BINARY_DIR}/Dependencies)
 
   endif(IRR_BUILD_RENDERSYSTEM_Vulkan EQUAL 1)
 
+
+  IF (WIN32)
+      list(APPEND IrrLicht_libs 
+        winmm)
+  ENDIF(WIN32)
+
 #  install(TARGETS irrlicht DESTINATION ${CMAKE_INSTALL_PREFIX}) # irrlicht needs to go to the install dir on windows as it's a dll
 endif(_IRR_DYNAMIC_)
-
-source_group("video\\OpenGL"
-  REGULAR_EXPRESSION OpenGL
-)
-
-source_group("video\\Direct3D9"
-  REGULAR_EXPRESSION D3D9
-)
-
-source_group("video\\Direct3D11"
-  REGULAR_EXPRESSION D3D11
-)
-
-source_group("video\\Direct3D11\\Shaders"
-  REGULAR_EXPRESSION hlsl
-)
 
 source_group("video\\Software"
   REGULAR_EXPRESSION .*\(CSoftware|CTR\).*
@@ -208,7 +197,7 @@ foreach(SRC ${IrrLicht_source})
 endforeach(SRC)
 
 CreateLibrary("irrlicht" "${IrrLicht_source}" "${LIBTYPE}" "${IrrLicht_libs}" "")
-
+ADD_CXX_PCH("irrlicht" Irrlicht.h Irrlicht.cpp)
 add_dependencies(irrlicht ZLIB)
 
 SET_TARGET_PROPERTIES (irrlicht PROPERTIES COMPILE_FLAGS "${RENDER_ENGINE_DEFINES}" )

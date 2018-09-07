@@ -15,9 +15,9 @@
 
 #include "os.h"
 
-#if ENABLE_OPT
+//#if ENABLE_OPT
 #include "spirv-tools/optimizer.hpp"
-#endif
+//#endif
 
 #if ENABLE_OPT
 using namespace spvtools;

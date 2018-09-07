@@ -4,6 +4,13 @@
 #include <cmath>
 #include <functional>
 
+#ifdef _WIN32
+#  if defined(__MINGW32__) || defined(__CYGWIN__)
+#       include <minwindef.h>
+#       include <libloaderapi.h>
+#  endif
+#endif
+
 //#define foreach(v, a, t) for (t v=(a).begin(); v!=(a).end(); ++v)
 //#define for_each(v, a) for (auto v=(a).begin(); v!=(a).end(); ++v)
 //#define for_inc(v, a) for (auto v=0; v!=a; ++v)
@@ -63,25 +70,25 @@ namespace System
         template <typename Derived>
         std::shared_ptr<Derived> shared_from_base_dynamic()
         {
-            return std::dynamic_pointer_cast<Derived>(shared_from_this());
+            return std::dynamic_pointer_cast<Derived>(this->shared_from_this());
         }
 
         template <typename Derived>
         std::shared_ptr<Derived> shared_from_base_static()
         {
-            return std::static_pointer_cast<Derived>(shared_from_this());
+            return std::static_pointer_cast<Derived>(this->shared_from_this());
         }
 
         template <typename Derived>
         std::weak_ptr<Derived> weak_from_base_dynamic()
         {
-            return std::dynamic_pointer_cast<Derived>(shared_from_this());
+            return std::dynamic_pointer_cast<Derived>(this->shared_from_this());
         }
 
         template <typename Derived>
         std::weak_ptr<Derived> weak_from_base_static()
         {
-            return std::static_pointer_cast<Derived>(shared_from_this());
+            return std::static_pointer_cast<Derived>(this->shared_from_this());
         }
     };
 
@@ -97,7 +104,7 @@ namespace System
         }
     };
 
-#ifdef WIN32
+#ifdef _WIN32
     __forceinline uint64_t GetCurrentModule()
     { // NB: XP+ solution!
         HMODULE hModule = NULL;

@@ -163,11 +163,6 @@ macro(AddInterfaceLibrary _Prefix)
         target_link_libraries(${_Prefix} INTERFACE ${${_Prefix}_LIBRARIES})
         target_include_directories(${_Prefix} INTERFACE ${${_Prefix}_INCLUDE_DIRS})
      ENDIF(DEFINED ${_Prefix}_INCLUDE_DIR)
-        
-        SET(${_Prefix}_USE_BUILDIN FALSE)
-        MESSAGE (${ASTATUS} "Added ${_Prefix} interface. Disabled build in mode")
-    else(${_Prefix}_FOUND)
-        SET(${_Prefix}_USE_BUILDIN TRUE)
     endif( ${_Prefix}_FOUND )
 endmacro(AddInterfaceLibrary)
 

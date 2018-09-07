@@ -400,7 +400,7 @@ void VulkanGpuParams::setSamplerState(u32 set, u32 slot, const VkSampler& sample
         if (perSetData.writeInfos[bindingIdx].image.sampler == sampler)
             continue;
     
-        if (sampler != nullptr)
+        if (sampler != VK_NULL_HANDLE)
         {
             VkSampler vkSampler = sampler;
 

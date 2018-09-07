@@ -141,12 +141,13 @@ irr::video::CVulkanDriver::~CVulkanDriver()
     if (mPlatform)
         delete mPlatform;
 
-    while (!ResourceList.empty())
-    {
-        auto itr = ResourceList.begin();
-        (*itr)->drop();
-        ResourceList.erase(*itr);
-    }
+    // ToDo: cleanup. This really bad idea
+    //while (!ResourceList.empty())
+    //{
+    //    auto itr = ResourceList.begin();
+    //    (*itr)->drop();
+    //    ResourceList.erase(*itr);
+    //}
 
     ShaderModuls.clear();
 
@@ -298,7 +299,8 @@ void irr::video::CVulkanDriver::initialize()
     VkResult result = vkCreateInstance(&instanceInfo, VulkanDevice::gVulkanAllocator, &mInstance);
     assert(result == VK_SUCCESS);
 
-    VulkanDispatcherExt.init(mInstance);
+    vk::Instance _instance(mInstance);
+    VulkanDispatcherExt.init(_instance);
 
     // Set up debugging
 #if VULKAN_DEBUG_MODE
@@ -347,8 +349,6 @@ void irr::video::CVulkanDriver::initialize()
 
     if (!mPrimaryDevices)
         mPrimaryDevices = mDevices[0];
-
-    VulkanDispatcherExt.init(mInstance, _getPrimaryDevice()->getLogical());
 
     // Create main command buffer
     mMainCommandBuffer = new VulkanCommandBuffer(this, GQT_GRAPHICS, 0, 0, false);
@@ -1574,7 +1574,7 @@ bool irr::video::CVulkanDriver::SyncShaderConstant(CVulkanHardwareBuffer* HWBuff
             CShaderBuffer* bufferCache = static_cast<CShaderBuffer*>((*HWBuffer->GetBuffer()->GetShaderConstantBuffers())[cbuffer->binding]);
             constantBuffer = static_cast<CVulkanHardwareBuffer*>(bufferCache->getHardwareBuffer());
             changeId = bufferCache->getChangedID();
-            dataBuffer = bufferCache->DataBuffer;
+            dataBuffer = (s8*)bufferCache->DataBuffer;
             dataBufferSize = bufferCache->mBufferSize;
 
             if (bufferCache->getHardwareMappingHint() == scene::E_HARDWARE_MAPPING::EHM_DYNAMIC)
@@ -1590,7 +1590,7 @@ bool irr::video::CVulkanDriver::SyncShaderConstant(CVulkanHardwareBuffer* HWBuff
             constantBuffer = cbuffer->getHardwareBuffer();
 
             changeId = cbuffer->getChangeId();
-            dataBuffer = cbuffer->DataBuffer.pointer();
+            dataBuffer = (s8*)cbuffer->DataBuffer.pointer();
             dataBufferSize = cbuffer->DataBuffer.size();;
 
             if (cbuffer->getHardwareMappingHint() == scene::E_HARDWARE_MAPPING::EHM_DYNAMIC)
@@ -1751,7 +1751,8 @@ void irr::video::CVulkanDriver::setRenderStates2DMode(bool alpha, bool texture, 
         // Adjust projection
         const core::dimension2d<u32>& renderTargetSize = getCurrentRenderTargetSize();
 
-        m = (core::matrix4&)glm::ortho(0.0f, (f32)renderTargetSize.Width, 0.0f, (f32)renderTargetSize.Height, 0.0f, 1.0f);
+        auto _tmp_mat = glm::ortho(0.0f, (f32)renderTargetSize.Width, 0.0f, (f32)renderTargetSize.Height, 0.0f, 1.0f);
+        m = (core::matrix4&)_tmp_mat;
         Matrices[ETS_PROJECTION] = m;
 
         Transformation3DChanged = false;

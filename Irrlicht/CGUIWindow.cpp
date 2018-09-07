@@ -327,7 +327,7 @@ bool CGUIWindow::OnEvent(const SEvent& event)
                 }
                 else if (IsResizeable)
                 {
-                    auto& rect = getAbsolutePosition();
+                    auto rect = getAbsolutePosition();
 
                     // TOP
                     if (HasActionModeFlags(EAMF_RESIZE_T) && abs(event.MouseInput.Y - rect.UpperLeftCorner.Y) < 4
@@ -545,7 +545,7 @@ bool CGUIWindow::OnEvent(const SEvent& event)
                 }
                 else
                 {
-                    auto& rect = getAbsolutePosition();
+                    auto rect = getAbsolutePosition();
 
                     auto mousepoint = core::vector2di(event.MouseInput.X, event.MouseInput.Y);
                     if (HasActionModeFlags(EAMF_RESIZE_BR) && (mousepoint - rect.LowerRightCorner).getLength() < 5)

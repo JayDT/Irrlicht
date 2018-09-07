@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 #include "zlib.h"
-#include <cassert>
+#include <assert.h>
 
 #ifdef STDC
 #  include <string.h>

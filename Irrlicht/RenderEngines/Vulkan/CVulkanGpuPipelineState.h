@@ -127,7 +127,7 @@ namespace irr
             {
                 u64 pipelineGuid = 0;
                 VulkanDevice* device = nullptr;
-                VkPipelineLayout pipelineLayout = nullptr;
+                VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
                 VulkanPipeline* pipeline = nullptr;
                 VkSampler mSampler[MATERIAL_MAX_TEXTURES];
                 std::map<u64, VulkanPipeline*> pipelines;

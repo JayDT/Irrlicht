@@ -191,14 +191,14 @@ public:
 		return Range<Num>( min, max );
 	}
 
-	void setRange( Range<Num>& range )
+	void setRange( const Range<Num>& range )
 	{
 		min = range.start;
 		max = range.end;
 		clampVal();
 	}
 
-	Range<Num>& operator= ( Range<Num>& range )
+	Range<Num>& operator= (const Range<Num>& range )
 	{
 		min = range.start;
 		max = range.end;

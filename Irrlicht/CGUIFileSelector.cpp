@@ -946,7 +946,7 @@ void CGUIFileSelector::populatePCDrives()
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
 	GetLogicalDriveStrings(32,dr_avail);
-	while(*temp!=NULL) { // Split the buffer by null
+	while(*temp!=0) { // Split the buffer by null
 		dr_type=GetDriveType((LPCSTR)temp);
         auto _tmp = converter.from_bytes(temp);
 		switch(dr_type) {
@@ -1054,15 +1054,15 @@ void CGUIFileSelector::populateLinuxFAV()
 	// Can't get the other subfolders as they are translated for each language.
 	//addPlacePaths(L"User Home folder",L"~/",driver->getTexture("../media/art/places_folder.png"));
 
-	addPlacePaths((wchar_t *)L"file_text_home",L"/home",driver->getTexture("../media/art/places_folder.png"));
+	addPlacePaths((wchar_t *)L"file_text_home", (wchar_t *)L"/home",driver->getTexture("../media/art/places_folder.png"));
 
-	addPlacePaths((wchar_t *)L"file_text_media",L"/media",driver->getTexture("../media/art/places_folder.png"));
+	addPlacePaths((wchar_t *)L"file_text_media", (wchar_t *)L"/media",driver->getTexture("../media/art/places_folder.png"));
 
-	addPlacePaths((wchar_t *)L"file_text_usr",L"/usr",driver->getTexture("../media/art/places_folder.png"));
+	addPlacePaths((wchar_t *)L"file_text_usr", (wchar_t *)L"/usr",driver->getTexture("../media/art/places_folder.png"));
 
-	addPlacePaths((wchar_t *)L"file_text_dev",L"/dev",driver->getTexture("../media/art/places_folder.png"));
+	addPlacePaths((wchar_t *)L"file_text_dev", (wchar_t *)L"/dev",driver->getTexture("../media/art/places_folder.png"));
 
-	addPlacePaths((wchar_t *)L"file_text_mnt",L"/mnt",driver->getTexture("../media/art/places_folder.png"));
+	addPlacePaths((wchar_t *)L"file_text_mnt", (wchar_t *)L"/mnt",driver->getTexture("../media/art/places_folder.png"));
 
 
 }

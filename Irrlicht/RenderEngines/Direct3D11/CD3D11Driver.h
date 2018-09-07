@@ -19,9 +19,9 @@
 #include "CD3D11Resources.h"
 
 #include <d3d11_1.h>
-#include <d2d1_2.h>
+//#include <d2d1_2.h>
 //#include <dwrite.h>
-#include <wincodec.h>
+//#include <wincodec.h>
 
 #if _DEBUG
 #define DEVEL_LOG(msg,code)	os::Printer::log(msg, code)	

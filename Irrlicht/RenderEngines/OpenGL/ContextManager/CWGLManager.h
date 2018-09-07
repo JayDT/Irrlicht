@@ -60,6 +60,7 @@ namespace video
         bool swapBuffers();
 
     private:
+
         SIrrlichtCreationParameters Params;
 		SExposedVideoData PrimaryContext;
 		s32 PixelFormat;

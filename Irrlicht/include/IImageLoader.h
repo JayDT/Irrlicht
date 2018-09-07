@@ -43,11 +43,6 @@ public:
 	/** \param file File handle to check.
 	\return Pointer to newly created image, or 0 upon error. */
 	virtual IImage* loadImage(io::IReadFile* file) const = 0;
-
-    //! Creates a surface from the file
-    /** \param file File handle to check.
-    \return Pointer to newly created image, or 0 upon error. */
-    virtual IImage* loadImage(io::IReadFile* file, void*& mipmapData) const { return nullptr; }
 };
 
 

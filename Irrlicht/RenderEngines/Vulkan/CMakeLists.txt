@@ -7,13 +7,16 @@ else(_IRR_DYNAMIC_)
 endif(_IRR_DYNAMIC_)
 
 include_directories(
-${CMAKE_CURRENT_SOURCE_DIR}
-${Vulkan_INCLUDE_DIRS}
-${Glslang_INCLUDE_DIR}
-${CMAKE_SOURCE_DIR}/dep/include
-${CMAKE_SOURCE_DIR}/contrib/IrrLicht
-${CMAKE_SOURCE_DIR}/contrib/IrrLicht/include
-${CMAKE_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${Vulkan_INCLUDE_DIRS}
+    ${ZLIB_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/dep/include
+    ${CMAKE_SOURCE_DIR}/contrib/IrrLicht
+    ${CMAKE_SOURCE_DIR}/contrib/IrrLicht/include
+    ${CMAKE_SOURCE_DIR}/dep/SPIRV/Glslang
+    ${CMAKE_SOURCE_DIR}/dep/SPIRV/Glslang/glslang/Public
+    ${CMAKE_SOURCE_DIR}/dep/SPIRV/Glslang/SPIRV
+    ${CMAKE_SOURCE_DIR}/dep/SPIRV/SPIRV-Tools/include
 )
 
 file(GLOB_RECURSE CVulkan_Source RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp *.c *.h *.hpp *.vert *.frag)
@@ -56,6 +59,9 @@ if(_IRR_DYNAMIC_)
         Glslang
     )
     install(TARGETS CVulkan DESTINATION ${CMAKE_INSTALL_PREFIX})
+    IF (WIN32)
+        target_link_libraries (CVulkan winmm)
+    ENDIF(WIN32)
 else()
     add_definitions(-D_LIB_SOURCE_ROOT="${CMAKE_CURRENT_SOURCE_DIR}")
     add_definitions(-D_IRR_COMPILE_WITH_VULKAN_)

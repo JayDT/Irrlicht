@@ -23,7 +23,7 @@ namespace video
 	class ITexture;
 
 	//! Flag for EMT_ONETEXTURE_BLEND, ( BlendFactor ) BlendFunc = source * sourceFactor + dest * destFactor
-	enum E_BLEND_FACTOR
+	enum E_BLEND_FACTOR : u8
 	{
 		EBF_ZERO	= 0,			//!< src & dest	(0, 0, 0, 0)
 		EBF_ONE,					//!< src & dest	(1, 1, 1, 1)
@@ -39,7 +39,7 @@ namespace video
 	};
 
 	//! Values defining the blend operation used when blend is enabled
-	enum E_BLEND_OPERATION
+	enum E_BLEND_OPERATION : u8
 	{
 		EBO_NONE = 0,	//!< No blending happens
 		EBO_ADD,		//!< Default blending adds the color values
@@ -54,7 +54,7 @@ namespace video
 	};
 
     /**	Types of action that can happen on the stencil buffer. */
-    enum E_STENCIL_OPERATION
+    enum E_STENCIL_OPERATION : u8
     {
         ESO_KEEP,           //!< Leave the stencil buffer unchanged.
         ESO_ZERO,           //!< Set the stencil value to zero.
@@ -67,7 +67,7 @@ namespace video
     };
 
 	//! MaterialTypeParam: e.g. DirectX: D3DTOP_MODULATE, D3DTOP_MODULATE2X, D3DTOP_MODULATE4X
-	enum E_MODULATE_FUNC
+	enum E_MODULATE_FUNC : u8
 	{
 		EMFN_MODULATE_1X	= 1,
 		EMFN_MODULATE_2X	= 2,
@@ -75,7 +75,7 @@ namespace video
 	};
 
 	//! Comparison function, e.g. for depth buffer test
-	enum E_COMPARISON_FUNC
+	enum E_COMPARISON_FUNC : u8
 	{
 		//! Test never succeeds, this equals disable
 		ECFN_NEVER=0,
@@ -96,7 +96,7 @@ namespace video
 	};
 
 	//! Enum values for enabling/disabling color planes for rendering
-	enum E_COLOR_PLANE
+	enum E_COLOR_PLANE : u8
 	{
 		//! No color enabled
 		ECP_NONE=0,
@@ -117,7 +117,7 @@ namespace video
 	//! Source of the alpha value to take
 	/** This is currently only supported in EMT_ONETEXTURE_BLEND. You can use an
 	or'ed combination of values. Alpha values are modulated (multiplicated). */
-	enum E_ALPHA_SOURCE
+	enum E_ALPHA_SOURCE : u8
 	{
 		//! Use no alpha, somewhat redundant with other settings
 		EAS_NONE=0,
@@ -181,7 +181,7 @@ namespace video
 	modes. In those cases, FSAA/multisampling is defined by the device mode
 	chosen upon creation via irr::SIrrCreationParameters.
 	*/
-	enum E_ANTI_ALIASING_MODE
+	enum E_ANTI_ALIASING_MODE : u8
 	{
 		//! Use to turn off anti-aliasing for this material
 		EAAM_OFF=0,
@@ -207,7 +207,7 @@ namespace video
 	instead of the lighting factor which is the same for all faces of that material.
 	The default is to use vertex color for the diffuse value, another pretty common value is to use
 	vertex color for both diffuse and ambient factor. */
-	enum E_COLOR_MATERIAL
+	enum E_COLOR_MATERIAL : u8
 	{
 		//! Don't use vertex color for lighting
 		ECM_NONE=0,
@@ -225,7 +225,7 @@ namespace video
 
 	//! Flags for the definition of the polygon offset feature
 	/** These flags define whether the offset should be into the screen, or towards the eye. */
-	enum E_POLYGON_OFFSET
+	enum E_POLYGON_OFFSET : u8
 	{
 		//! Push pixel towards the far plane, away from the eye
 		/** This is typically used for rendering inner areas. */
@@ -273,10 +273,10 @@ namespace video
         u8 WriteMask;
         struct
         {
-            E_COMPARISON_FUNC Comparsion : 4;
-            E_STENCIL_OPERATION DepthFailOp : 4;
-            E_STENCIL_OPERATION PassOp : 4;
-            E_STENCIL_OPERATION FailOp : 4;
+            /*E_COMPARISON_FUNC*/ u8 Comparsion : 4;
+            /*E_STENCIL_OPERATION*/ u8 DepthFailOp : 4;
+            /*E_STENCIL_OPERATION*/ u8 PassOp : 4;
+            /*E_STENCIL_OPERATION*/ u8 FailOp : 4;
         };
         u8 Reference;
     };
@@ -476,7 +476,7 @@ namespace video
 		//! Store the blend operation of choice
 		/** Values to be chosen from E_BLEND_OPERATION. The actual way to use this value
 		is not yet determined, so ignore it for now. */
-		E_BLEND_OPERATION BlendOperation:4;
+		/*E_BLEND_OPERATION*/ u8 BlendOperation:4;
 
 		//! Factor specifying how far the polygon offset should be made
 		/** Specifying 0 disables the polygon offset. The direction is specified spearately.
@@ -485,7 +485,7 @@ namespace video
 
 		//! Flag defining the direction the polygon offset is applied to.
 		/** Can be to front or to back, specififed by values from E_POLYGON_OFFSET. */
-		E_POLYGON_OFFSET PolygonOffsetDirection:1;
+		/*E_POLYGON_OFFSET*/ bool PolygonOffsetDirection:1;
 
 		//! Draw as wireframe or filled triangles? Default: false
 		/** The user can access a material flag using

@@ -50,7 +50,7 @@ namespace irr
 namespace gui
 {
 
-enum E_WINDOW_DOCK_TYPE;
+enum E_WINDOW_DOCK_TYPE : u8;
 class IGUIElement;
 class IGUIFont;
 class IGUISpriteBank;

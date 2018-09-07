@@ -74,7 +74,7 @@ bool irr::video::CVulkanGLSLProgram::initializeUniforms(irr::video::CVulkanGLSLa
             buffdesc.shaderType = shaderType;
             buffdesc.binding = bufferEntry.getBinding();
 
-            buffdesc.varDesc.m_name = bufferEntry.name;
+            buffdesc.varDesc.m_name = bufferEntry.name.c_str();
             buffdesc.varDesc.m_location = i;
             buffdesc.varDesc.m_shaderIndex = ShaderBuffers.size() - 1;
             buffdesc.varDesc.m_type = ESVT_UNIFORM;
@@ -106,7 +106,7 @@ void irr::video::CVulkanGLSLProgram::ReflParseStruct(irr::video::CVulkanGLSLProg
         if (pVariable.type->getQualifier().hasAlign())
             structDecl.varDesc.m_size = pVariable.type->getQualifier().layoutAlign;
 
-        structDecl.varDesc.m_name = pVariable.type->getFieldName();
+        structDecl.varDesc.m_name = pVariable.type->getFieldName().c_str();
         structDecl.varDesc.m_length = pVariable.type->getArraySizes() ? pVariable.type->getArraySizes()->getDimSize(0) : 1;
         structDecl.varDesc.m_variableType = pVariable.type->getBasicType();
         structDecl.elementSize = 0;
@@ -182,7 +182,7 @@ bool irr::video::CVulkanGLSLProgram::initializeConstantBuffers(irr::video::CVulk
 
         buffdesc.binding = bufferEntry.getBinding();
 
-        buffdesc.varDesc.m_name = bufferEntry.name;
+        buffdesc.varDesc.m_name = bufferEntry.name.c_str();
         buffdesc.varDesc.m_location = i;
         buffdesc.varDesc.m_shaderIndex = ShaderBuffers.size() - 1;
         buffdesc.varDesc.m_type = ESVT_CONSTANT;
@@ -213,7 +213,7 @@ bool irr::video::CVulkanGLSLProgram::CreateShaderModul(E_ShaderTypes type, CVulk
                 desc.m_type = ESVT_ATTRIBUTE;
                 desc.m_length = attrEntry.getType()->getArraySizes() ? attrEntry.getType()->getArraySizes()->getDimSize(0) : 1;
 
-                desc.m_name = attrEntry.name;
+                desc.m_name = attrEntry.name.c_str();
                 if (attrEntry.getType()->getQualifier().hasIndex())
                     desc.m_location = attrEntry.getType()->getQualifier().layoutIndex; // attrEntry.index;
                 else

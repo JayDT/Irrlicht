@@ -32,7 +32,7 @@ namespace irr
 {
 namespace video
 {
-    enum class E_HARDWARE_BUFFER_TYPE : u32;
+    enum class E_HARDWARE_BUFFER_TYPE : u8;
     class CD3D9Driver;
     class CD3D9HardwareBuffer;
 

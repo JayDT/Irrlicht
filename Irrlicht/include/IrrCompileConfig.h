@@ -467,7 +467,7 @@ B3D, MS3D or X meshes */
 #define _IRR_COMPILE_WITH_SMF_LOADER_
 #ifdef NO_IRR_COMPILE_WITH_SMF_LOADER_
 #undef _IRR_COMPILE_WITH_SMF_LOADER_
-#endif*/
+#endif
 
 //! Define _IRR_COMPILE_WITH_IRR_WRITER_ if you want to write static .irrMesh files
 #define _IRR_COMPILE_WITH_IRR_WRITER_

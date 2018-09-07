@@ -789,7 +789,7 @@ VulkanImage* irr::video::CVulkanTexture::createImage(VulkanDevice& device, u32 u
     VkResult result = vkCreateImage(vkDevice, &mImageCI, VulkanDevice::gVulkanAllocator, &imgDesc.image);
     assert(result == VK_SUCCESS);
 
-    imgDesc.allocation = device.allocateMemory(imgDesc.image, flags);
+    imgDesc.allocation = device.allocateImageMemory(imgDesc.image, flags);
     imgDesc.layout = mImageCI.initialLayout;
     imgDesc.type = mTextureType;
     imgDesc.format = VulkanUtility::getPixelFormat(getColorFormat());
@@ -1062,7 +1062,7 @@ bool irr::video::CVulkanTexture::createTextureBuffer(bool readable, uint64_t siz
     assert(result == VK_SUCCESS);
 
     VkMemoryPropertyFlags flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    VmaAllocation allocation = Device->allocateMemory(buffer, flags);
+    VmaAllocation allocation = Device->allocateBufferMemory(buffer, flags);
 
     mStagingBuffer = new VulkanBuffer(Driver, buffer, VK_NULL_HANDLE, allocation, 0, 0);
     if (readable)

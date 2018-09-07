@@ -35,9 +35,9 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-CreateLibrary("zlib" "${zlib_SRCS}" "STATIC" "" "")
+CreateLibrary("ZLIB" "${zlib_SRCS}" "STATIC" "" "")
 
-set_target_properties(zlib
+set_target_properties(ZLIB
     PROPERTIES
       FOLDER
         "dep")

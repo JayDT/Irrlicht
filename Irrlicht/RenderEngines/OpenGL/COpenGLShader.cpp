@@ -13,6 +13,8 @@
 #include <SDL/SDL.h>
 #endif
 
+#include <algorithm>
+
 using namespace irr;
 using namespace irr::video;
 
@@ -400,7 +402,7 @@ void GLSLReflectStorageBlocks(GLSLGpuShader* shader, std::vector<CGlslBufferDesc
                 structDecl.varDesc.m_name = buf;
                 size_t trimmedArraySuffixIndex = structDecl.varDesc.m_name.find_last_of('[');
                 if (trimmedArraySuffixIndex != std::string::npos)
-                    structDecl.varDesc.m_name = structDecl.varDesc.m_name.substr(0, trimmedArraySuffixIndex);
+                    structDecl.varDesc.m_name = structDecl.varDesc.m_name.substr(0, trimmedArraySuffixIndex) + structDecl.varDesc.m_name.substr(trimmedArraySuffixIndex + 3);
                 structDecl.offset = memberDescParams[2];
                 structDecl.blockIndex = memberDescParams[3];
                 structDecl.arrayStride = memberDescParams[4];

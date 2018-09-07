@@ -36,26 +36,6 @@
 #pragma warning( disable: 4996)
 #endif
 
-struct SSurface
-{
-    irr::video::ITexture* Surface;
-
-    bool operator < (const SSurface& other) const
-    {
-        return Surface->getName() < other.Surface->getName();
-    }
-};
-
-template<>
-class std::hash<SSurface>
-{
-    public:
-    size_t operator() (SSurface const& key) const
-    {
-        return std::hash<std::string>()(key.Surface->getName().getPath().c_str());
-    }
-};
-
 namespace irr
 {
 namespace io
@@ -379,7 +359,7 @@ namespace video
         virtual IImage* createImageFromFile(const io::path& filename) _IRR_OVERRIDE_;
 
         //! Creates a software image from a file.
-        virtual IImage* createImageFromFile(io::IReadFile* file, void*& mipmapData) _IRR_OVERRIDE_;
+        virtual IImage* createImageFromFile(io::IReadFile* file) _IRR_OVERRIDE_;
 
         //! Creates a software image from a byte array.
         /** \param useForeignMemory: If true, the image will use the data pointer
@@ -420,15 +400,16 @@ namespace video
         bool setActiveTexture(u32 stage, const video::ITexture* texture) { return false;  }
         virtual bool setRenderStates3DMode() { return false; }
 
-        template<typename TValue>
-        ShaderDataBufferElementObject<TValue> CreateShaderVariableObject(video::IShader* shader, const char* variable)
-        {
-            auto desc = shader->GetGPUVariableDesc(name);
-            if (!desc)
-                return nullptr;
-
-            return new ShaderDataBufferElementObject<TValue>(desc);
-        }
+        // Rework Shader
+        //template<typename TValue>
+        //ShaderDataBufferElementObject<TValue> CreateShaderVariableObject(video::IShader* shader, const char* variable)
+        //{
+        //    auto desc = shader->GetGPUVariableDesc(name);
+        //    if (!desc)
+        //        return nullptr;
+        //
+        //    return new ShaderDataBufferElementObject<TValue>(desc);
+        //}
 
     protected:
 

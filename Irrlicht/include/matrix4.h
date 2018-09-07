@@ -2337,18 +2337,6 @@ namespace core
         return mat*scalar;
     }
 
-    template <class T>
-    inline core::vector3d<T> operator*(const core::vector3d<T>& mat)
-    {
-        core::vector3d<T> vector;
-
-        vector.X = mat.X*M[0] + mat.Y*M[4] + mat.Z*M[8] + M[12];
-        vector.Y = mat.X*M[1] + mat.Y*M[5] + mat.Z*M[9] + M[13];
-        vector.Z = mat.X*M[2] + mat.Y*M[6] + mat.Z*M[10] + M[14];
-
-        return vector;
-    }
-
     //! Typedef for f32 matrix
     typedef CMatrix4<f32> matrix4;
 

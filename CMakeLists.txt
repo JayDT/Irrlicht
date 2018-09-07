@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.6 FATAL_ERROR)
 
-project(IrrlichtDV VERSION 0.0.1 LANGUAGES C CXX)
+project(IrrlichtDV VERSION 0.0.1 LANGUAGES CXX C)
 
 message("")
 message("Configuration:")
@@ -57,20 +57,13 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 message(STATUS "Prepare Dependencies:")
 
-include(ExampleBuild REQUIRED)
+IF (BUILD_EXAMPLES)
+    include(ExampleBuild REQUIRED)
+ENDIF()
 include(FindPkgMacros REQUIRED)
 include(Dependencies REQUIRED)
 
 message(STATUS "Complete Dependencies")
-message("")
-message("")
-
-# debug related
-#message(STATUS "CMAKE_C_FLAGS ${CMAKE_C_FLAGS}")
-#message(STATUS "CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}")
-#message(STATUS "CMAKE_C_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG}")
-#message(STATUS "CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG}")
-
 message("")
 message("")
 

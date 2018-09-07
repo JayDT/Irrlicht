@@ -27,7 +27,7 @@ namespace irr
         enum E_VERTEX_ELEMENT_SEMANTIC : irr::u8;
         struct IShaderDataBuffer;
 
-        enum class E_HARDWARE_BUFFER_TYPE : u32
+        enum class E_HARDWARE_BUFFER_TYPE : u8
         {
             //! Change the index mapping
             EHBT_INDEX = 0,
@@ -47,7 +47,7 @@ namespace irr
             EHBT_SYSTEM
         };
 
-        enum class E_HARDWARE_BUFFER_ACCESS : u32
+        enum class E_HARDWARE_BUFFER_ACCESS : u8
         {
             EHBA_DYNAMIC = 0,
             EHBA_DEFAULT,

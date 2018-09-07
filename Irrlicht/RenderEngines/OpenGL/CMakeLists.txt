@@ -7,12 +7,13 @@ else(_IRR_DYNAMIC_)
 endif(_IRR_DYNAMIC_)
 
 include_directories(
-${CMAKE_CURRENT_SOURCE_DIR}
-${OPENGL_INCLUDE_DIR}
-${CMAKE_SOURCE_DIR}/dep/include
-${CMAKE_SOURCE_DIR}/contrib/IrrLicht
-${CMAKE_SOURCE_DIR}/contrib/IrrLicht/include
-${CMAKE_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${OPENGL_INCLUDE_DIRS}
+    ${ZLIB_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/dep/include
+    ${CMAKE_SOURCE_DIR}/contrib/IrrLicht
+    ${CMAKE_SOURCE_DIR}/contrib/IrrLicht/include
+    ${CMAKE_SOURCE_DIR}
 )
 
 file(GLOB_RECURSE OpenGL_Source RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp *.c *.h *.hpp *.vert *.frag)
@@ -47,7 +48,10 @@ add_dependencies(OpenGL ZLIB)
 #)
 
 if(_IRR_DYNAMIC_)
-    target_link_libraries (OpenGL ${OPENGL0_LIBRARY} ${OPENGL1_LIBRARY} Winmm ZLIB)
+    target_link_libraries (OpenGL ${OPENGL_LIBRARIES} ZLIB)
+    IF (WIN32)
+        target_link_libraries (OpenGL winmm)
+    ENDIF(WIN32)
     install(TARGETS OpenGL DESTINATION ${CMAKE_INSTALL_PREFIX})
 else()
     add_definitions(-D_LIB_SOURCE_ROOT="${CMAKE_CURRENT_SOURCE_DIR}")

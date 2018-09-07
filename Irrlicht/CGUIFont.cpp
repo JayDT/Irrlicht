@@ -280,12 +280,8 @@ bool CGUIFont::load(io::IReadFile* file)
     if (!Driver)
         return false;
 
-    void* mipmapData = nullptr;
-    auto texture = loadTexture(Driver->createImageFromFile(file, mipmapData),
+    auto texture = loadTexture(Driver->createImageFromFile(file),
                 file->getFileName());
-
-    if (mipmapData)
-        delete[]mipmapData;
 
     return texture;
 }

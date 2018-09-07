@@ -1216,7 +1216,7 @@ namespace video
 		\return The created image.
 		If you no longer need the image, you should call IImage::drop().
 		See IReferenceCounted::drop() for more information. */
-        virtual IImage* createImageFromFile(io::IReadFile* file, void*& mipmapData) = 0;
+        virtual IImage* createImageFromFile(io::IReadFile* file) = 0;
 
 		//! Writes the provided image to a file.
 		/** Requires that there is a suitable image writer registered

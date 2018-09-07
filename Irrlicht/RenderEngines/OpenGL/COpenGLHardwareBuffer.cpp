@@ -11,11 +11,6 @@
 #include "COpenGLDriver.h"
 #include "os.h"
 
-#define SAFE_RELEASE(x)                     \
-	if(x)				                    \
-		Driver->extGlDeleteBuffers(1, &x); 	\
-	x = 0;
-
 using namespace irr;
 using namespace video;
 
@@ -67,7 +62,7 @@ COpenGLHardwareBuffer::~COpenGLHardwareBuffer()
             VertexBufferStreams[i].TempBuffer = 0;
         }
 
-        SAFE_RELEASE(VertexBufferStreams[i].buffer);
+        SAFE_BUFFER_DELETE(VertexBufferStreams[i].buffer);
     }
 
     Driver->extGlDeleteVertexArrays(1, &vba_verticesID);

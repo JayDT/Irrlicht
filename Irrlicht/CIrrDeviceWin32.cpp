@@ -1301,6 +1301,21 @@ void CIrrDeviceWin32::invalidate(irr::core::recti const& rect)
     InvalidateRect(HWnd, &_rect, FALSE);
 }
 
+void __InternalTimerCallbackDriver(HWND hwnd,          // handle to window for timer messages 
+    UINT message,       // WM_TIMER message 
+    UINT_PTR idTimer,   // timer identifier 
+    DWORD dwTime)
+{
+    CIrrDeviceWin32* dev = getDeviceFromHWnd(hwnd);
+
+    if (dev)
+    {
+        auto timer = dev->m_activeTimers.find(idTimer);
+        if (timer != dev->m_activeTimers.end() && timer->second)
+            timer->second();
+    }
+}
+
 void CIrrDeviceWin32::setTimer(u32 id, uint interval, std::function<void()> const& callback)
 {
     m_activeTimers[id] = callback;
@@ -1308,21 +1323,7 @@ void CIrrDeviceWin32::setTimer(u32 id, uint interval, std::function<void()> cons
     SetTimer(HWnd,              // handle to main window 
         (UINT)id,               // timer identifier 
         interval,               // interval 
-        (TIMERPROC)[](
-            HWND hwnd,          // handle to window for timer messages 
-            UINT message,       // WM_TIMER message 
-            UINT_PTR idTimer,   // timer identifier 
-            DWORD dwTime)       // current system time 
-    {
-        CIrrDeviceWin32* dev = getDeviceFromHWnd(hwnd);
-
-        if (dev)
-        {
-            auto timer = dev->m_activeTimers.find(idTimer);
-            if (timer != dev->m_activeTimers.end() && timer->second)
-                timer->second();
-        }
-    }); // timer callback
+        (TIMERPROC)__InternalTimerCallbackDriver); // timer callback
 }
 
 void CIrrDeviceWin32::unsetTimer(u32 id)

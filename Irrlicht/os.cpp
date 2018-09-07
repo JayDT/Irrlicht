@@ -6,6 +6,7 @@
 #include "irrString.h"
 #include "IrrCompileConfig.h"
 #include "irrMath.h"
+#include <time.h>
 
 #if defined(_IRR_COMPILE_WITH_SDL_DEVICE_)
 	#include <SDL/SDL_endian.h>
@@ -15,9 +16,9 @@
 	#include <stdlib.h>
 	#define bswap_16(X) _byteswap_ushort(X)
 	#define bswap_32(X) _byteswap_ulong(X)
-#if (_MSC_VER >= 1400)
-	#define localtime localtime_s
-#endif
+//#if (_MSC_VER >= 1400)
+//	#define localtime _localtime_s
+//#endif
 #elif defined(_IRR_OSX_PLATFORM_)
 	#include <libkern/OSByteOrder.h>
 	#define bswap_16(X) OSReadSwapInt16(&X,0)
@@ -271,24 +272,25 @@ namespace os
 		time_t rawtime;
 		time(&rawtime);
 
-		struct tm timeinfo;
-		localtime(&timeinfo, &rawtime);
+		struct tm * timeinfo;
+		timeinfo = localtime(&rawtime);
 
 		// init with all 0 to indicate error
-		ITimer::RealTimeDate date={0};
+		ITimer::RealTimeDate date;
+		memset(&date, 0, sizeof(date));
 		// at least Windows returns NULL on some illegal dates
-		//if (timeinfo)
+		if (timeinfo)
 		{
 			// set useful values if succeeded
-			date.Hour=(u32)timeinfo.tm_hour;
-			date.Minute=(u32)timeinfo.tm_min;
-			date.Second=(u32)timeinfo.tm_sec;
-			date.Day=(u32)timeinfo.tm_mday;
-			date.Month=(u32)timeinfo.tm_mon+1;
-			date.Year=(u32)timeinfo.tm_year+1900;
-			date.Weekday=(ITimer::EWeekday)timeinfo.tm_wday;
-			date.Yearday=(u32)timeinfo.tm_yday+1;
-			date.IsDST=timeinfo.tm_isdst != 0;
+			date.Hour=(u32)timeinfo->tm_hour;
+			date.Minute=(u32)timeinfo->tm_min;
+			date.Second=(u32)timeinfo->tm_sec;
+			date.Day=(u32)timeinfo->tm_mday;
+			date.Month=(u32)timeinfo->tm_mon+1;
+			date.Year=(u32)timeinfo->tm_year+1900;
+			date.Weekday=(ITimer::EWeekday)timeinfo->tm_wday;
+			date.Yearday=(u32)timeinfo->tm_yday+1;
+			date.IsDST=timeinfo->tm_isdst != 0;
 		}
 		return date;
 	}

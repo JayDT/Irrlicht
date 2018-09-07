@@ -24,12 +24,11 @@ namespace irr
 namespace gui
 {
     class IGUIButton;
-    enum E_WINDOW_DOCK_TYPE;
     struct DockedElementInfo;
 
     class IGUIEnvironment;
 
-    enum E_WINDOW_DOCK_TYPE
+    enum E_WINDOW_DOCK_TYPE : u8
     {
         EWD_DOCK_LEFT = 0,
         EWD_DOCK_RIGHT,

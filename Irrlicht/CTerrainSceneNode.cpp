@@ -82,10 +82,8 @@ namespace scene
 
 		Mesh->MeshBuffers.clear();
 		const u32 startTime = os::Timer::getRealTime();
-        void* mipmapData = nullptr;
-        video::IImage* heightMap = SceneManager->getVideoDriver()->createImageFromFile(file, mipmapData);
-        if (mipmapData)
-            delete[]mipmapData;
+
+        video::IImage* heightMap = SceneManager->getVideoDriver()->createImageFromFile(file);
 
 		if (!heightMap)
 		{

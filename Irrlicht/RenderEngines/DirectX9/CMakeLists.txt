@@ -9,14 +9,13 @@ else(_IRR_DYNAMIC_)
 endif(_IRR_DYNAMIC_)
 
 include_directories(
-${CMAKE_CURRENT_SOURCE_DIR}
-${CMAKE_SOURCE_DIR}/dep/WInclude/zlib
-${CMAKE_SOURCE_DIR}/dep/WInclude
-${CMAKE_SOURCE_DIR}/dep/include
-${CMAKE_SOURCE_DIR}/contrib/IrrLicht
-${CMAKE_SOURCE_DIR}/contrib/IrrLicht/include
-${DirectX9_INCLUDE_DIR}
-${CMAKE_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${ZLIB_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/dep/include
+    ${CMAKE_SOURCE_DIR}/contrib/IrrLicht
+    ${CMAKE_SOURCE_DIR}/contrib/IrrLicht/include
+    ${DirectX9_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}
 )
 
 file(GLOB_RECURSE DirectX9_Source RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp *.c *.h *.hpp *.hlsl)
@@ -25,10 +24,10 @@ setup_hlsl(${DirectX9_Source})
 
 CreateLibrary("DirectX9" "${DirectX9_Source}" "${LIBTYPE}" "" "")
 
-add_dependencies(DirectX9 zlib)
+add_dependencies(DirectX9 ZLIB)
 
 if(_IRR_DYNAMIC_)
-    target_link_libraries (DirectX9 ${DirectX_LIBRARY} ${DirectX_D3DX9_LIBRARY} ${DirectX_DXGUID_LIBRARY} Winmm zlib)
+    target_link_libraries (DirectX9 ${DirectX_LIBRARY} ${DirectX_D3DX9_LIBRARY} ${DirectX_DXGUID_LIBRARY} Winmm ZLIB)
     install(TARGETS DirectX9 DESTINATION ${CMAKE_INSTALL_PREFIX})
 else()
     add_definitions(-D_LIB_SOURCE_ROOT="${CMAKE_CURRENT_SOURCE_DIR}")

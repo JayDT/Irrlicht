@@ -1295,7 +1295,7 @@ bool VulkanCmdBuffer::bindGraphicsPipeline()
 
     vkCmdBindPipeline(mCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getHandle());
 
-    if (mGraphicsPipeline->mMaterial.StencilFront.Reference != 0)
+    //if (mGraphicsPipeline->mMaterial.StencilFront.Reference != 0)
     {
         setStencilRef(mGraphicsPipeline->mMaterial.StencilFront.Reference);
         mStencilRefRequiresBind = true;

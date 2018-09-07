@@ -404,7 +404,7 @@ SurfaceFormat VulkanDevice::getSurfaceFormat(const VkSurfaceKHR& surface, bool s
     return output;
 }
 
-VmaAllocation VulkanDevice::allocateMemory(VkImage image, VkMemoryPropertyFlags flags)
+VmaAllocation VulkanDevice::allocateImageMemory(VkImage image, VkMemoryPropertyFlags flags)
 {
     VmaAllocationCreateInfo allocCI = {};
     allocCI.requiredFlags = flags;
@@ -420,7 +420,7 @@ VmaAllocation VulkanDevice::allocateMemory(VkImage image, VkMemoryPropertyFlags 
     return allocation;
 }
 
-VmaAllocation VulkanDevice::allocateMemory(VkBuffer buffer, VkMemoryPropertyFlags flags)
+VmaAllocation VulkanDevice::allocateBufferMemory(VkBuffer buffer, VkMemoryPropertyFlags flags)
 {
     VmaAllocationCreateInfo allocCI = {};
     allocCI.requiredFlags = flags;

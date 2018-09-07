@@ -95,13 +95,13 @@ namespace irr
              * Allocates memory for the provided image, and binds it to the image. Returns null if it cannot find memory
              * with the specified flags.
              */
-            VmaAllocation allocateMemory(VkImage image, VkMemoryPropertyFlags flags);
+            VmaAllocation allocateImageMemory(VkImage image, VkMemoryPropertyFlags flags);
 
             /**
              * Allocates memory for the provided buffer, and binds it to the buffer. Returns null if it cannot find memory
              * with the specified flags.
              */
-            VmaAllocation allocateMemory(VkBuffer buffer, VkMemoryPropertyFlags flags);
+            VmaAllocation allocateBufferMemory(VkBuffer buffer, VkMemoryPropertyFlags flags);
 
             /** Frees a previously allocated block of memory. */
             void freeMemory(VmaAllocation allocation);

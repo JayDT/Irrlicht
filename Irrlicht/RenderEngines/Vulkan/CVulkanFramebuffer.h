@@ -4,6 +4,8 @@
 #include "CVulkanSharedDefines.h"
 #include "CVulkanResources.h"
 
+#include <unordered_map>
+
 namespace irr
 {
     namespace video

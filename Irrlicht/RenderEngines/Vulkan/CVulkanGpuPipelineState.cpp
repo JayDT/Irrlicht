@@ -181,19 +181,19 @@ void VulkanGraphicsPipelineState::initialize()
     mMultiSampleInfo.alphaToOneEnable       = VK_FALSE;
 
     VkStencilOpState stencilFrontInfo;
-    stencilFrontInfo.compareOp      = VulkanUtility::getCompareOp(mMaterial.StencilFront.Comparsion);
-    stencilFrontInfo.depthFailOp    = VulkanUtility::getStencilOp(mMaterial.StencilFront.DepthFailOp);
-    stencilFrontInfo.passOp         = VulkanUtility::getStencilOp(mMaterial.StencilFront.PassOp);
-    stencilFrontInfo.failOp         = VulkanUtility::getStencilOp(mMaterial.StencilFront.FailOp);
+    stencilFrontInfo.compareOp      = VulkanUtility::getCompareOp((E_COMPARISON_FUNC)mMaterial.StencilFront.Comparsion);
+    stencilFrontInfo.depthFailOp    = VulkanUtility::getStencilOp((E_STENCIL_OPERATION)mMaterial.StencilFront.DepthFailOp);
+    stencilFrontInfo.passOp         = VulkanUtility::getStencilOp((E_STENCIL_OPERATION)mMaterial.StencilFront.PassOp);
+    stencilFrontInfo.failOp         = VulkanUtility::getStencilOp((E_STENCIL_OPERATION)mMaterial.StencilFront.FailOp);
     stencilFrontInfo.reference      = 0; // Dynamic
     stencilFrontInfo.compareMask    = (uint32_t)mMaterial.StencilFront.Mask;
     stencilFrontInfo.writeMask      = (uint32_t)mMaterial.StencilFront.WriteMask;
 
     VkStencilOpState stencilBackInfo;
-    stencilBackInfo.compareOp       = VulkanUtility::getCompareOp(mMaterial.StencilBack.Comparsion);
-    stencilBackInfo.depthFailOp     = VulkanUtility::getStencilOp(mMaterial.StencilBack.DepthFailOp);
-    stencilBackInfo.passOp          = VulkanUtility::getStencilOp(mMaterial.StencilBack.PassOp);
-    stencilBackInfo.failOp          = VulkanUtility::getStencilOp(mMaterial.StencilBack.FailOp);
+    stencilBackInfo.compareOp       = VulkanUtility::getCompareOp((E_COMPARISON_FUNC)mMaterial.StencilBack.Comparsion);
+    stencilBackInfo.depthFailOp     = VulkanUtility::getStencilOp((E_STENCIL_OPERATION)mMaterial.StencilBack.DepthFailOp);
+    stencilBackInfo.passOp          = VulkanUtility::getStencilOp((E_STENCIL_OPERATION)mMaterial.StencilBack.PassOp);
+    stencilBackInfo.failOp          = VulkanUtility::getStencilOp((E_STENCIL_OPERATION)mMaterial.StencilBack.FailOp);
     stencilBackInfo.reference       = 0; // Dynamic
     stencilBackInfo.compareMask     = (uint32_t)mMaterial.StencilBack.Mask;
     stencilBackInfo.writeMask       = (uint32_t)mMaterial.StencilBack.WriteMask;
@@ -394,19 +394,19 @@ void irr::video::VulkanGraphicsPipelineState::update(u8 deviceIdx, const irr::vi
             mIsDirty = true;
 
         VkStencilOpState stencilFrontInfo;
-        stencilFrontInfo.compareOp      = VulkanUtility::getCompareOp(material.StencilFront.Comparsion);
-        stencilFrontInfo.depthFailOp    = VulkanUtility::getStencilOp(material.StencilFront.DepthFailOp);
-        stencilFrontInfo.passOp         = VulkanUtility::getStencilOp(material.StencilFront.PassOp);
-        stencilFrontInfo.failOp         = VulkanUtility::getStencilOp(material.StencilFront.FailOp);
+        stencilFrontInfo.compareOp      = VulkanUtility::getCompareOp((E_COMPARISON_FUNC)material.StencilFront.Comparsion);
+        stencilFrontInfo.depthFailOp    = VulkanUtility::getStencilOp((E_STENCIL_OPERATION)material.StencilFront.DepthFailOp);
+        stencilFrontInfo.passOp         = VulkanUtility::getStencilOp((E_STENCIL_OPERATION)material.StencilFront.PassOp);
+        stencilFrontInfo.failOp         = VulkanUtility::getStencilOp((E_STENCIL_OPERATION)material.StencilFront.FailOp);
         stencilFrontInfo.reference      = 0; // Dynamic
         stencilFrontInfo.compareMask    = (uint32_t)material.StencilFront.Mask;
         stencilFrontInfo.writeMask      = (uint32_t)material.StencilFront.WriteMask;
 
         VkStencilOpState stencilBackInfo;
-        stencilBackInfo.compareOp       = VulkanUtility::getCompareOp(material.StencilBack.Comparsion);
-        stencilBackInfo.depthFailOp     = VulkanUtility::getStencilOp(material.StencilBack.DepthFailOp);
-        stencilBackInfo.passOp          = VulkanUtility::getStencilOp(material.StencilBack.PassOp);
-        stencilBackInfo.failOp          = VulkanUtility::getStencilOp(material.StencilBack.FailOp);
+        stencilBackInfo.compareOp       = VulkanUtility::getCompareOp((E_COMPARISON_FUNC)material.StencilBack.Comparsion);
+        stencilBackInfo.depthFailOp     = VulkanUtility::getStencilOp((E_STENCIL_OPERATION)material.StencilBack.DepthFailOp);
+        stencilBackInfo.passOp          = VulkanUtility::getStencilOp((E_STENCIL_OPERATION)material.StencilBack.PassOp);
+        stencilBackInfo.failOp          = VulkanUtility::getStencilOp((E_STENCIL_OPERATION)material.StencilBack.FailOp);
         stencilBackInfo.reference       = 0; // Dynamic
         stencilBackInfo.compareMask     = (uint32_t)material.StencilBack.Mask;
         stencilBackInfo.writeMask       = (uint32_t)material.StencilBack.WriteMask;

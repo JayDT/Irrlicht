@@ -347,7 +347,7 @@ namespace scene
 
         public:
         //! Default constructor for empty meshbuffer
-        CMeshBufferEx() : CMeshBuffer(), m_gpuProgram(nullptr), ActiveSubBuffer(0)
+        CMeshBufferEx() : CMeshBuffer<T>(), m_gpuProgram(nullptr), ActiveSubBuffer(0)
         {
 #ifdef _DEBUG
             setDebugName("SMeshBufferEx");
@@ -373,13 +373,13 @@ namespace scene
         //! Get Material of this buffer.
         virtual const video::SMaterial& getMaterial() const
         {
-            return (!SubBuffer.empty() ? SubBuffer[ActiveSubBuffer]->Material : Material);
+            return (!SubBuffer.empty() ? SubBuffer[ActiveSubBuffer]->Material : this->getMaterial());
         }
 
         //! Get Material of this buffer.
         virtual video::SMaterial& getMaterial()
         {
-            return (!SubBuffer.empty() ? SubBuffer[ActiveSubBuffer]->Material : Material);
+            return (!SubBuffer.empty() ? SubBuffer[ActiveSubBuffer]->Material : this->getMaterial());
         }
 
         virtual void InitSubBuffers(u16 count)
@@ -420,7 +420,7 @@ namespace scene
         }
         virtual s32 GetVertexRangeEnd()   const
         {
-            return !SubBuffer.empty() ? SubBuffer[ActiveSubBuffer]->m_vectiesEnd : getVertexCount();
+            return !SubBuffer.empty() ? SubBuffer[ActiveSubBuffer]->m_vectiesEnd : this->getVertexCount();
         }
         virtual s32 GetIndexRangeStart()  const
         {
@@ -428,7 +428,7 @@ namespace scene
         }
         virtual s32 GetIndexRangeCount()  const
         {
-            return !SubBuffer.empty() ? SubBuffer[ActiveSubBuffer]->m_indicesCount : getIndexCount();
+            return !SubBuffer.empty() ? SubBuffer[ActiveSubBuffer]->m_indicesCount : this->getIndexCount();
         }
     };
 

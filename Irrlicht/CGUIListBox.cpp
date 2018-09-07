@@ -14,6 +14,8 @@
 #include "CGUIScrollBar.h"
 #include "os.h"
 
+#include <algorithm>
+
 namespace irr
 {
 namespace gui

@@ -40,11 +40,6 @@ THE SOFTWARE.
 #endif
 
 #include <GL/glew.h>
-#ifdef WIN32
-#include <GL/wglew.h>
-#else
-#include <GL/glxew.h>
-#endif
 
 #include "IrrCompileConfig.h"
 
@@ -69,6 +64,17 @@ THE SOFTWARE.
 #include <GL/gl.h>
 #endif
 #endif
+
+#ifdef _WIN32
+#include <GL/wglew.h>
+#else
+#include <GL/glxew.h>
+#endif
+
+#define SAFE_BUFFER_DELETE(x)               \
+	if(x)				                    \
+		Driver->extGlDeleteBuffers(1, &x); 	\
+	x = 0;
 
 #endif
 #endif // OGRE_GLSUPPORT_H

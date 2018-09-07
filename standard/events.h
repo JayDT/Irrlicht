@@ -109,17 +109,6 @@ namespace System
             virtual void Detach() = 0;
             virtual bool IsValid() = 0;
             virtual bool IsGeneric() { return false; }
-            virtual bool IsEqual(void* object, void* func) const = 0;
-
-            inline bool IsEqual(IEventHook* rhs) const
-            {
-                return rhs && getInstancePtr() == rhs->getInstancePtr() && getHash() == rhs->getHash();
-            }
-
-            //bool Equal(System::Reflection::VariantBase const& v) const override final
-            //{
-            //    return System::Reflection::Object::Equal(v);
-            //}
         };
 
         struct IEventHandler
@@ -187,13 +176,9 @@ namespace System
                 Invalidate();
             }
 
-            //virtual size_t getHash() const = 0;
-            //virtual void* getInstancePtr() const = 0;
-
+            virtual bool IsEqual(EventHook<T_EventArg>* _delegate) const = 0;
             virtual std::string ToString() const { return "EventHook"; }
 
-            //virtual void operator()(void*, EventArg&) const = 0;
-            virtual bool IsSame(EventHook<T_EventArg>* _delegate) const = 0;
             virtual bool IsThreadSafe() const = 0;
             virtual void SetThreadSafe() {}
 
@@ -260,8 +245,7 @@ namespace System
                 }
             }
             virtual void operator()(void* sender, T_EventArg& arg) { if (_hookCall) (_hookCall->*_fnHookCall)(sender, arg); }
-            virtual bool IsEqual(void* object, void* func) const { return (object == (void*)_hookCall && func == (void*)_fnHookGenericPtr); }
-            virtual bool IsSame(EventHook<T_EventArg>* _delegate) const { return _delegate->getHash() == getHash() && ((EventFuncHook*)_delegate)->_hookCall == _hookCall; }
+            virtual bool IsEqual(EventHook<T_EventArg>* _delegate) const { return (_delegate->getHash() == getHash() && ((EventFuncHook*)_delegate)->_hookCall == _hookCall && _fnHookCall == ((EventFuncHook*)_delegate)->_fnHookCall); }
             virtual void SetThreadSafe() override { isThreadSafe = true; }
             virtual bool IsThreadSafe() const override { return isThreadSafe; }
             virtual bool IsValid() override { return _hookCall != NULL; }
@@ -291,7 +275,7 @@ namespace System
             virtual size_t getHash() const override
             {
                 size_t hash = typeid(TInstance).hash_code();
-                System::hash_combine(hash, size_t(reinterpret_cast<intptr_t>(reinterpret_cast<void* const&>(_fnHookGenericPtr))));
+                System::hash_combine(hash, size_t(reinterpret_cast<intptr_t>((void*)(_fnHookGenericPtr))));
                 return hash;
             }
             virtual void* getInstancePtr() const override { return (void*)_instance.lock().get(); }
@@ -306,8 +290,7 @@ namespace System
                 }
             }
             virtual void operator()(void* sender, TEventArg& arg) { if (!_instance.expired()) (_instance.lock().get()->*_fnHookCall)(sender, (TEventArg&)arg); }
-            virtual bool IsEqual(void* object, void* func) const { return (object == _instance.lock().get() && func == (void*)_fnHookGenericPtr); }
-            virtual bool IsSame(EventHook<TEventArg>* _delegate) const { return _delegate->getHash() == getHash() && ((EventMethodHook*)_delegate)->_instance.lock().get() == _instance.lock().get(); }
+            virtual bool IsEqual(EventHook<TEventArg>* _delegate) const { return _delegate->getHash() == getHash() && _delegate->getInstancePtr() == _instance.lock().get(); }
             virtual void SetThreadSafe() override { isThreadSafe = true; }
             virtual bool IsThreadSafe() const override { return isThreadSafe; }
             virtual bool IsValid() override { return _instance.lock().get() != nullptr; }
@@ -353,7 +336,6 @@ namespace System
         //    }
         //    virtual void operator()(void* sender, TEventArg& arg) { if (!_instance.expired()) _fnHookCall->Invoke(_instance.lock().get(), sender, arg); }
         //    virtual bool IsEqual(void* object, void* func) const { return (object == _instance.lock().get() && func == (void*)_fnHookGenericPtr); }
-        //    virtual bool IsSame(EventHook<TEventArg>* _delegate) const { return _delegate->getHash() == getHash() && ((EventReflectionHook*)_delegate)->_instance.lock().get() == _instance.lock().get(); }
         //    virtual void SetThreadSafe() override { isThreadSafe = true; }
         //    virtual bool IsThreadSafe() const override { return isThreadSafe; }
         //    virtual bool IsValid() override { return _instance.lock().get() != nullptr; }
@@ -389,7 +371,6 @@ namespace System
         //        _fnHookCall->Invoke(_instance, sender, e);
         //    }
         //    virtual bool IsEqual(void* object, void* func) const override { return (object == _instance.toPointer() && func == (void*)_fnHookCall); }
-        //    virtual bool IsSame(EventHook<EventArg>* _delegate) const override { return _delegate->getHash() == getHash() && ((EventGenericReflectionHook*)_delegate)->_instance.toPointer() == _instance.toPointer(); }
         //    virtual void SetThreadSafe() override { isThreadSafe = true; }
         //    virtual bool IsThreadSafe() const override { return isThreadSafe; }
         //    virtual bool IsValid() override { return _instance.GetBase() != nullptr; }
@@ -413,16 +394,16 @@ namespace System
             explicit EventSFuncHook(HookCall ec) : EventHook<T_EventArg>(), _fnHookCall(ec) {}
             virtual ~EventSFuncHook() {}
 
-            virtual size_t getHash() const override { return size_t(reinterpret_cast<intptr_t>(reinterpret_cast<void* const&>(_fnHookGenericPtr))); }
+            virtual size_t getHash() const override { return typeid(HookCall).hash_code(); }
             virtual void* getInstancePtr() const override { return nullptr; }
 
             virtual std::string ToString() const override { return "EventSFuncHook"; }
             void operator()(void* sender, EventArg& e) const override final
             {
                 T_EventArg& _e = static_cast<T_EventArg&>(e);
-                _fnHookCall(sender, _e);
+                this->_fnHookCall(sender, _e);
             }
-            virtual void operator()(void* sender, T_EventArg& arg) { _fnHookCall(sender, arg); }
+            virtual void operator()(void* sender, T_EventArg& arg) { this->_fnHookCall(sender, arg); }
             virtual bool IsThreadSafe() const override { return true; }
             virtual bool IsValid() override { return true; }
 
@@ -431,21 +412,9 @@ namespace System
                 EventHook<T_EventArg>::Detach();
             }
 
-#if defined(WIN32) && _MSC_VER < 1900 // Not support "Generalized lambda capture"
-            virtual bool IsEqual(void* /*object*/, void* func) const { assert(false); return false; }
-            virtual bool IsSame(EventHook<T_EventArg>* _delegate) const { return _delegate->getHash() == getHash(); }
+            virtual bool IsEqual(EventHook<T_EventArg>* _delegate) const { return _delegate->getHash() == getHash(); }
 
-            HookCall _fnHookCall; // Not Supported "Unrestricted unions"
-#else
-            virtual bool IsEqual(void* /*object*/, void* func) const { return (func == (void*)_fnHookGenericPtr); }
-            virtual bool IsSame(EventHook<T_EventArg>* _delegate) const { return _delegate->getHash() == getHash(); }
-
-            union
-            {
-                HookCall _fnHookCall;
-                void* _fnHookGenericPtr;
-            };
-#endif
+            HookCall _fnHookCall;
         };
 
         struct DelegateObject : public IDelegateObject
@@ -585,15 +554,16 @@ namespace System
                 Unlock();
             }
 
-			void AddHandler(System::Events::IEventHook* handle) override final
+			void AddHandler(System::Events::IEventHook* _delegate) override final
             {
-				ImplHook* eventHandle = dynamic_cast<ImplHook*>(handle);
-				(*(Impl*)this) += eventHandle;
+				ImplHook* eventHandle = dynamic_cast<ImplHook*>(_delegate);
+                if (eventHandle)
+				    (*(Impl*)this) += eventHandle;
             }
 
-			void RemoveHandler(System::Events::IEventHook* handle) override final
+			void RemoveHandler(System::Events::IEventHook* _delegate) override final
             {
-				(*this) -= handle;
+                InvalidateEvent(_delegate);
 			}
 
             template<typename T>
@@ -610,7 +580,7 @@ namespace System
 
                 for ( typename Impl::HookIterator iHook = Impl::begin(); iHook != Impl::end(); )
                 {
-                    if (!(*iHook)->IsValid() || (*iHook)->IsSame(_delegate))
+                    if (!(*iHook)->IsValid() || (*iHook)->IsEqual(_delegate))
                     {
                         for (typename Impl::HookIterator* m_iHook : m_iHookDeeps)
                             if ((*m_iHook) != Impl::end() && (*m_iHook) == iHook)
@@ -635,35 +605,10 @@ namespace System
                 _delegate->Attach(this);
             }
 
-            //virtual void operator+=(IEventHook* _delegate)
-            //{
-            //    auto event = dynamic_cast<EventHook<T_EventArg>*>(_delegate);
-            //    if (!event)
-            //        throw std::runtime_error("invalid eventhandler");
-            //    Impl:: operator+=(event);
-            //    _delegate->Attach(this);
-            //}
-
             // This not delete delegate (internal call delegate invalidate from handler)
             void operator-=(IEventHook* _delegate) override
             {
-                Lock();
-
-                for (typename Impl::HookIterator iHook = Impl::begin(); iHook != Impl::end();)
-                {
-                    // @ToDo: Because Lambda function ptr is not unique required rework remove methods!!!
-                    if ((*iHook) == _delegate) //->Equal((EventHook<T_EventArg>*)_delegate))
-                    {
-                        for (typename Impl::HookIterator* m_iHook : m_iHookDeeps)
-                            if ((*m_iHook) != Impl::end() && (*m_iHook) == iHook)
-                                ++(*m_iHook);
-
-                        this->m_list.erase(iHook++);
-                    }
-                    else
-                        ++iHook;
-                }
-                Unlock();
+                InvalidateEvent(_delegate);
             }
 
             EventHook<T_EventArg>* operator+=(std::function<void(void*, T_EventArg&)> f)
@@ -681,47 +626,21 @@ namespace System
 
             virtual void InvalidateEvent(IEventHook* _delegate) override
             {
+                ImplHook* eventHandle = dynamic_cast<ImplHook*>(_delegate);
+                if (!eventHandle)
+                    return;
+
                 Lock();
 
                 for (typename Impl::HookIterator iHook = Impl::begin(); iHook != Impl::end();)
                 {
-                    if (*iHook == _delegate)
+                    if ((*iHook)->IsEqual(eventHandle))
                     {
                         for (typename Impl::HookIterator* m_iHook : m_iHookDeeps)
                             if ((*m_iHook) != Impl::end() && (*m_iHook) == iHook)
                                 ++(*m_iHook);
 
                         this->m_list.erase(iHook++);
-                    }
-                    else
-                        ++iHook;
-                }
-                Unlock();
-            }
-
-            template<typename T_HOOKCALL>
-            void Remove(void* obj, T_HOOKCALL func)
-            {
-                Lock();
-                union
-                {
-                    T_HOOKCALL handle;
-                    void* genericHandler;
-                } pFunc;
-
-                pFunc.handle = func;
-
-                for (typename Impl::HookIterator iHook = Impl::begin(); iHook != Impl::end();)
-                {
-                    if (!(*iHook)->IsValid() || (*iHook)->IsEqual(obj, pFunc.genericHandler))
-                    {
-                        for (typename Impl::HookIterator* m_iHook : m_iHookDeeps)
-                            if ((*m_iHook) != Impl::end() && (*m_iHook) == iHook)
-                                ++(*m_iHook);
-
-                        EventHook<T_EventArg>* delegatePtr = *iHook;
-                        this->m_list.erase(iHook++);
-                        delete delegatePtr;
                     }
                     else
                         ++iHook;

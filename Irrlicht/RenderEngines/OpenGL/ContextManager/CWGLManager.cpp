@@ -22,10 +22,10 @@ namespace irr
 namespace video
 {
 
-__declspec(thread) SExposedVideoData PreviouslyContext;
+ATTR_THREAD void* PreviouslyContext;
 
 CWGLManager::CWGLManager()
-	: PrimaryContext(SExposedVideoData(0)), PixelFormat(0)
+	: PrimaryContext(SExposedVideoData(0)), PixelFormat(0), ColorFormat(ECOLOR_FORMAT::ECF_UNKNOWN)
 {
 	#ifdef _DEBUG
 	setDebugName("CWGLManager");
@@ -453,10 +453,11 @@ bool CWGLManager::activateContext(const SExposedVideoData& videoData)
 			os::Printer::log("Render Context switch failed.");
 			return false;
 		}
-        PreviouslyContext = videoData;
+
+        PreviouslyContext = videoData.OpenGLWin32.HDc;
 	}
 	// set back to main context
-	else if (!videoData.OpenGLWin32.HWnd && PreviouslyContext.OpenGLWin32.HDc != PrimaryContext.OpenGLWin32.HDc)
+	else if (!videoData.OpenGLWin32.HWnd && PreviouslyContext != PrimaryContext.OpenGLWin32.HDc)
 	{
         if (!wglMakeCurrent((HDC)PrimaryContext.OpenGLWin32.HDc, (HGLRC)PrimaryContext.OpenGLWin32.HRc))
 		{
@@ -464,7 +465,7 @@ bool CWGLManager::activateContext(const SExposedVideoData& videoData)
 			return false;
 		}
 
-        PreviouslyContext = PrimaryContext;
+        PreviouslyContext = PrimaryContext.OpenGLWin32.HDc;
 	}
 	return true;
 }

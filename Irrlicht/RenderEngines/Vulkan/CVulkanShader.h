@@ -92,7 +92,7 @@ namespace irr
                     case E_ShaderTypes::EST_GEOMETRY_SHADER:
                     case E_ShaderTypes::EST_FRAGMENT_SHADER:
                     case E_ShaderTypes::EST_COMPUTE_SHADER:
-                        return mStages[type].second != nullptr ? true : false;
+                        return mStages[type].second != VK_NULL_HANDLE ? true : false;
                 }
 
                 return false;
@@ -204,14 +204,14 @@ namespace irr
 
         struct VulkanShaderGenericValuesBuffer : public video::IShaderDataBuffer
         {
-            __declspec(align(16)) struct MatrixBufferType
+            struct ATTR_ALIGNED(16) MatrixBufferType
             {
                 core::matrix4 world;
                 core::matrix4 view;
                 core::matrix4 projection;
             };
 
-            __declspec(align(16)) struct Light
+            struct ATTR_ALIGNED(16) Light
             {
                 float Position[4];
                 float Atten[4];
@@ -235,7 +235,7 @@ namespace irr
                 }
             };
 
-            __declspec(align(16)) struct Material
+            struct ATTR_ALIGNED(16) Material
             {
                 irr::video::SColorf    Ambient;
                 irr::video::SColorf    Diffuse;
@@ -257,7 +257,7 @@ namespace irr
                 }
             };
 
-            __declspec(align(16)) struct PixelConstantBufferType
+            struct ATTR_ALIGNED(16) PixelConstantBufferType
             {
                 int         nTexture;
                 int         AlphaTest;

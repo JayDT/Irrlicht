@@ -607,7 +607,8 @@ VulkanBuffer * irr::video::CVulkanHardwareBuffer::GetCacheBuffer(VulkanDevice & 
 
     // Cannot find an empty set, allocate a new one
     VulkanBuffer* buffer = CreateBuffer(device, bufferCI, AccessType, stride, readable, false);
-    BufferCacheDesc& cacheEntry = descriptor.BufferCache->emplace_back();
+    descriptor.BufferCache->emplace_back();
+    BufferCacheDesc& cacheEntry = descriptor.BufferCache->back();
     cacheEntry.Offset = descriptor.Offset;
     cacheEntry.Stride = descriptor.Stride;
     cacheEntry.bufferCI = bufferCI;
@@ -683,7 +684,7 @@ VulkanBuffer * irr::video::CVulkanHardwareBuffer::CreateBuffer(VulkanDevice & de
     assert(result == VK_SUCCESS);
 
     VkMemoryPropertyFlags flags = GetMemoryAccessType(AccessType);
-    VmaAllocation allocation = Device->allocateMemory(buffer, flags);
+    VmaAllocation allocation = Device->allocateBufferMemory(buffer, flags);
 
     VulkanBuffer* vkbuffer =  new VulkanBuffer(Driver, buffer, VK_NULL_HANDLE, allocation, stride);
 

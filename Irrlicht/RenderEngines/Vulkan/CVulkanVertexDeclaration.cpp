@@ -107,7 +107,8 @@ void irr::video::CVulkanVertexDeclaration::initialize()
         BindDecl.binding = mVertexElements[i].SlotIndex;
         BindDecl.inputRate = mVertexElements[i].PerInstance ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX;
 
-        VkVertexInputAttributeDescription& desc = VertexDeclaration.emplace_back();
+        VertexDeclaration.emplace_back();
+        VkVertexInputAttributeDescription& desc = VertexDeclaration.back();
 
         desc.location = i;
         desc.binding = mVertexElements[i].SlotIndex;

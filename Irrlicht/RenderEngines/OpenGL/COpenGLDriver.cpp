@@ -1645,8 +1645,8 @@ void COpenGLDriver::setBasicRenderStates(const SMaterial& material, const SMater
     {
         GetStateCache()->setEnabled(OGLStateEntries::OGL_STENCIL_TEST, material.StencilTest);
         
-        glStencilOp(getOGLStencilOp(material.StencilFront.FailOp), getOGLStencilOp(material.StencilFront.DepthFailOp), getOGLStencilOp(material.StencilFront.PassOp));
-        glStencilFunc(getDepthFunction(material.StencilFront.Comparsion), material.StencilFront.Reference, material.StencilFront.Mask);
+        glStencilOp(getOGLStencilOp((E_STENCIL_OPERATION)material.StencilFront.FailOp), getOGLStencilOp((E_STENCIL_OPERATION)material.StencilFront.DepthFailOp), getOGLStencilOp((E_STENCIL_OPERATION)material.StencilFront.PassOp));
+        glStencilFunc(getDepthFunction((E_COMPARISON_FUNC)material.StencilFront.Comparsion), material.StencilFront.Reference, material.StencilFront.Mask);
         GetStateCache()->setStencilMask(material.StencilFront.WriteMask);
     }
 

@@ -3,9 +3,10 @@
 
 #ifdef _IRR_COMPILE_WITH_DIRECT3D_11_
 
-#define _WIN32_WINNT 0x600
 #include <stdio.h>
 #include <fstream>
+
+#define _WIN32_WINNT 0x600
 #include <comdef.h>  // you will need this
 
 #include <DirectXMath.h>
@@ -907,8 +908,8 @@ bool CD3D11Driver::initDriver2D(HWND hwnd, bool pureSoftware)
 // These are the resources required independent of the device.
 void CD3D11Driver::CreateDeviceIndependentResources()
 {
-    D2D1_FACTORY_OPTIONS options;
-    ZeroMemory(&options, sizeof(D2D1_FACTORY_OPTIONS));
+    //D2D1_FACTORY_OPTIONS options;
+    //ZeroMemory(&options, sizeof(D2D1_FACTORY_OPTIONS));
 
 #if defined(_DEBUG)
     // If the project is in a debug build, enable Direct2D debugging via SDK Layers.
@@ -1909,11 +1910,11 @@ bool CD3D11Driver::updateHardwareBuffer(IHardwareBuffer *hwBuffer)
     if ( !hwBuffer )
         return false;
 
-    if ( !hwBuffer->GetBuffer()->GetGPUProgram() )
-    {
-        hwBuffer->GetBuffer()->SetGPUProgram(m_defaultShader[hwBuffer->GetBuffer()->getVertexType()]);
-        _IRR_DEBUG_BREAK_IF(!hwBuffer->GetBuffer()->GetGPUProgram());
-    }
+    //if ( !hwBuffer->GetBuffer()->GetGPUProgram() )
+    //{
+    //    hwBuffer->GetBuffer()->SetGPUProgram(m_defaultShader[hwBuffer->GetBuffer()->getVertexType()]);
+    //    _IRR_DEBUG_BREAK_IF(!hwBuffer->GetBuffer()->GetGPUProgram());
+    //}
 
     if ( hwBuffer->GetBuffer()->getHardwareMappingHint_Vertex() == scene::EHM_NEVER || hwBuffer->GetBuffer()->getHardwareMappingHint_Index() == scene::EHM_NEVER )
         hwBuffer->GetBuffer()->setHardwareMappingHint(scene::EHM_DYNAMIC);
@@ -2727,15 +2728,15 @@ void CD3D11Driver::setBasicRenderStates(const SMaterial& material, const SMateri
         DepthStencilDesc.StencilWriteMask = material.StencilFront.WriteMask;
         DepthStencilDesc.StencilReadMask = material.StencilFront.Mask;
     
-        DepthStencilDesc.FrontFace.StencilFailOp = getStencilOp(material.StencilFront.FailOp);
-        DepthStencilDesc.FrontFace.StencilDepthFailOp = getStencilOp(material.StencilFront.DepthFailOp);
-        DepthStencilDesc.FrontFace.StencilPassOp = getStencilOp(material.StencilFront.PassOp);
-        DepthStencilDesc.FrontFace.StencilFunc = getDepthFunction(material.StencilFront.Comparsion);
+        DepthStencilDesc.FrontFace.StencilFailOp = getStencilOp((E_STENCIL_OPERATION)material.StencilFront.FailOp);
+        DepthStencilDesc.FrontFace.StencilDepthFailOp = getStencilOp((E_STENCIL_OPERATION)material.StencilFront.DepthFailOp);
+        DepthStencilDesc.FrontFace.StencilPassOp = getStencilOp((E_STENCIL_OPERATION)material.StencilFront.PassOp);
+        DepthStencilDesc.FrontFace.StencilFunc = getDepthFunction((E_COMPARISON_FUNC)material.StencilFront.Comparsion);
     
-        DepthStencilDesc.BackFace.StencilFailOp = getStencilOp(material.StencilBack.FailOp);
-        DepthStencilDesc.BackFace.StencilDepthFailOp = getStencilOp(material.StencilBack.DepthFailOp);
-        DepthStencilDesc.BackFace.StencilPassOp = getStencilOp(material.StencilBack.PassOp);
-        DepthStencilDesc.BackFace.StencilFunc = getDepthFunction(material.StencilBack.Comparsion);
+        DepthStencilDesc.BackFace.StencilFailOp = getStencilOp((E_STENCIL_OPERATION)material.StencilBack.FailOp);
+        DepthStencilDesc.BackFace.StencilDepthFailOp = getStencilOp((E_STENCIL_OPERATION)material.StencilBack.DepthFailOp);
+        DepthStencilDesc.BackFace.StencilPassOp = getStencilOp((E_STENCIL_OPERATION)material.StencilBack.PassOp);
+        DepthStencilDesc.BackFace.StencilFunc = getDepthFunction((E_COMPARISON_FUNC)material.StencilBack.Comparsion);
     }
 
     if (resetAllRenderstates || lastMaterial.DepthClipEnable != material.DepthClipEnable)

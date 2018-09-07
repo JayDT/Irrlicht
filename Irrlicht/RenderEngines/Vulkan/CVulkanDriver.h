@@ -39,6 +39,7 @@ namespace irr
         class VulkanSemaphore;
         class CVulkanPlatform;
         class VulkanSwapChain;
+        class CVulkanTexture;
         class VulkanGraphicsPipelineState;
 
         class CVulkanDriver : public CNullDriver, IMaterialRendererServices
@@ -331,6 +332,7 @@ namespace irr
             /** Returns the primary device that supports swap chain present operations. */
             VulkanDevice* _getPrimaryDevice() const { return mPrimaryDevices; }
             VulkanDevice* _getDevice(u8 idx) const { return mDevices[idx]; }
+            vk::DispatchLoaderDynamic& _getVulkanDispatcher() { return VulkanDispatcherExt; }
             u32 _getNumDevices() const { return mNumDevices; }
             VkInstance _getInstance() { return mInstance; }
             VulkanSwapChain* _getSwapChain();
@@ -381,7 +383,7 @@ namespace irr
 
             VulkanDevice* mDevices[_MAX_DEVICES];
             VulkanDevice* mPrimaryDevices;
-            VkSampler mDummySampler = nullptr;
+            VkSampler mDummySampler = VK_NULL_HANDLE;
             CVulkanHardwareBuffer* DynamicHardwareBuffer[(s32)E_VERTEX_TYPE::EVT_MAX_VERTEX_TYPE];
             CVulkanHardwareBuffer* mDummyStorageBuffer = nullptr;
             VulkanCommandBuffer* mMainCommandBuffer = nullptr;

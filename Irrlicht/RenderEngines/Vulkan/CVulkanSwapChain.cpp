@@ -178,7 +178,7 @@ void VulkanSwapChain::rebuild(VulkanDevice* device, VkSurfaceKHR surface, uint32
         imageDesc.image = depthStencilImage;
         imageDesc.usage = hasStencil ? ETCF_USAGE_DEPTHSTENCIL : ETCF_USAGE_DEPTH;
         imageDesc.format = depthFormat;
-        imageDesc.allocation = mDevice->allocateMemory(depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        imageDesc.allocation = mDevice->allocateImageMemory(depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
         mDepthStencilImage = new VulkanImage(device->getDriver(), imageDesc, true);
     }

@@ -594,8 +594,7 @@ video::VertexDeclaration * CNullDriver::GetVertexDeclaration(irr::u32 id)
 video::ITexture* CNullDriver::loadTextureFromFile(io::IReadFile* file, const io::path& hashName )
 {
     ITexture* texture = nullptr;
-    void* mipmapData = nullptr;
-    IImage* image = createImageFromFile(file, mipmapData);
+    IImage* image = createImageFromFile(file);
 
     if (image)
     {
@@ -1808,10 +1807,7 @@ IImage* CNullDriver::createImageFromFile(const io::path& filename)
 
     if (file)
     {
-        void* mipmapData = nullptr;;
-        image = createImageFromFile(file, mipmapData);
-        if (mipmapData)
-            delete[]mipmapData;
+        image = createImageFromFile(file);
         file->drop();
     }
     else
@@ -1822,7 +1818,7 @@ IImage* CNullDriver::createImageFromFile(const io::path& filename)
 
 
 //! Creates a software image from a file.
-IImage* CNullDriver::createImageFromFile(io::IReadFile* file, void*& mipmapData)
+IImage* CNullDriver::createImageFromFile(io::IReadFile* file)
 {
     if (!file)
         return 0;
@@ -1838,7 +1834,7 @@ IImage* CNullDriver::createImageFromFile(io::IReadFile* file, void*& mipmapData)
         {
             // reset file position which might have changed due to previous loadImage calls
             file->seek(0);
-            image = SurfaceLoader[i]->loadImage(file, mipmapData);
+            image = SurfaceLoader[i]->loadImage(file);
             if (!image)
                 image = SurfaceLoader[i]->loadImage(file);
             if (image)
@@ -1854,7 +1850,7 @@ IImage* CNullDriver::createImageFromFile(io::IReadFile* file, void*& mipmapData)
         if (SurfaceLoader[i]->isALoadableFileFormat(file))
         {
             file->seek(0);
-            image = SurfaceLoader[i]->loadImage(file, mipmapData);
+            image = SurfaceLoader[i]->loadImage(file);
             if (!image)
                 image = SurfaceLoader[i]->loadImage(file);
             if (image)

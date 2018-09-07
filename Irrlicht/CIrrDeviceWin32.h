@@ -32,8 +32,8 @@ namespace irr
 	{
 	    friend struct SJoystickWin32Control;
 
-        std::unordered_map<u32, std::function<void()>> m_activeTimers;
 	public:
+        std::unordered_map<u32, std::function<void()>> m_activeTimers;
 
 		//! constructor
 		CIrrDeviceWin32(const SIrrlichtCreationParameters& params);
