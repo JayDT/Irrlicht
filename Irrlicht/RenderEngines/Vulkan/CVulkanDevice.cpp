@@ -404,10 +404,13 @@ SurfaceFormat VulkanDevice::getSurfaceFormat(const VkSurfaceKHR& surface, bool s
     return output;
 }
 
-VmaAllocation VulkanDevice::allocateImageMemory(VkImage image, VkMemoryPropertyFlags flags)
+VmaAllocation VulkanDevice::allocateImageMemory(VkImage image, VkMemoryPropertyFlags flags, VkMemoryPropertyFlags preferflags /*= 0*/, u32 usage /*= 0*/, u32 createFlags /*= 0*/)
 {
     VmaAllocationCreateInfo allocCI = {};
+    allocCI.usage = VmaMemoryUsage(usage);
     allocCI.requiredFlags = flags;
+    allocCI.preferredFlags = preferflags;
+    allocCI.flags = VmaAllocationCreateFlags(createFlags);
 
     VmaAllocationInfo allocInfo;
     VmaAllocation allocation;
@@ -420,10 +423,13 @@ VmaAllocation VulkanDevice::allocateImageMemory(VkImage image, VkMemoryPropertyF
     return allocation;
 }
 
-VmaAllocation VulkanDevice::allocateBufferMemory(VkBuffer buffer, VkMemoryPropertyFlags flags)
+VmaAllocation VulkanDevice::allocateBufferMemory(VkBuffer buffer, VkMemoryPropertyFlags flags, VkMemoryPropertyFlags preferflags, u32 usage, u32 createFlags)
 {
     VmaAllocationCreateInfo allocCI = {};
+    allocCI.usage = VmaMemoryUsage(usage);
     allocCI.requiredFlags = flags;
+    allocCI.preferredFlags = preferflags;
+    allocCI.flags = VmaAllocationCreateFlags(createFlags);
 
     VmaAllocationInfo allocInfo;
     VmaAllocation memory;
@@ -441,13 +447,20 @@ void VulkanDevice::freeMemory(VmaAllocation allocation)
     vmaFreeMemory(mAllocator, allocation);
 }
 
-void VulkanDevice::getAllocationInfo(VmaAllocation allocation, VkDeviceMemory& memory, VkDeviceSize& offset)
+void VulkanDevice::getAllocationInfo(VmaAllocation allocation, VkDeviceMemory& memory, VkDeviceSize& offset, VkDeviceSize* size /*= nullptr*/)
 {
     VmaAllocationInfo allocInfo;
     vmaGetAllocationInfo(mAllocator, allocation, &allocInfo);
 
     memory = allocInfo.deviceMemory;
     offset = allocInfo.offset;
+    if (size)
+        *size = allocInfo.size;
+}
+
+bool VulkanDevice::IsPersistentMap(VmaAllocation allocation)
+{
+    return allocation->IsPersistentMap();
 }
 
 uint32_t VulkanDevice::findMemoryType(uint32_t requirementBits, VkMemoryPropertyFlags wantedFlags)

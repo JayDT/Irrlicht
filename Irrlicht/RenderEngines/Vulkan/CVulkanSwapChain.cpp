@@ -2,6 +2,7 @@
 #include "CVulkanTexture.h"
 #include "CVulkanDriver.h"
 #include "CVulkanDevice.h"
+#include "vk_mem_alloc.h"
 
 using namespace irr;
 using namespace irr::video;
@@ -165,7 +166,7 @@ void VulkanSwapChain::rebuild(VulkanDevice* device, VkSurfaceKHR surface, uint32
         //depthStencilImageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         depthStencilImageCI.samples = VK_SAMPLE_COUNT_1_BIT;
         depthStencilImageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
-        depthStencilImageCI.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+        depthStencilImageCI.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT /*| VK_IMAGE_USAGE_TRANSFER_SRC_BIT*/;
         depthStencilImageCI.pQueueFamilyIndices = nullptr;
         depthStencilImageCI.queueFamilyIndexCount = 0;
 
@@ -178,7 +179,8 @@ void VulkanSwapChain::rebuild(VulkanDevice* device, VkSurfaceKHR surface, uint32
         imageDesc.image = depthStencilImage;
         imageDesc.usage = hasStencil ? ETCF_USAGE_DEPTHSTENCIL : ETCF_USAGE_DEPTH;
         imageDesc.format = depthFormat;
-        imageDesc.allocation = mDevice->allocateImageMemory(depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        
+        imageDesc.allocation = mDevice->allocateImageMemory(depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0, VmaMemoryUsage::VMA_MEMORY_USAGE_GPU_ONLY, 0);
 
         mDepthStencilImage = new VulkanImage(device->getDriver(), imageDesc, true);
     }

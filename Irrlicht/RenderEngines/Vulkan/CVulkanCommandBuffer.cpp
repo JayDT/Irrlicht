@@ -443,6 +443,8 @@ void VulkanCmdBuffer::submit(VulkanQueue* queue, uint32_t queueIdx, uint32_t syn
 {
     assert(isReadyForSubmit());
 
+    //checkFenceStatus(true);
+
     // Make sure to reset the CB fence before we submit it
     VkResult result = vkResetFences(mDevice.getLogical(), 1, &mFence);
     assert(result == VK_SUCCESS);
@@ -2427,9 +2429,14 @@ RenderSurfaceMaskBits VulkanCmdBuffer::getFBReadMask()
     for (uint32_t i = 0; i < numColorAttachments; i++)
     {
         const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->getColorAttachment(i);
-        //ImageSubresourceInfo& subresourceInfo = findSubresourceInfo(fbAttachment.image, 0, 0);
+        if (!fbAttachment.image)
+            continue;
 
-        bool readOnly = true; //subresourceInfo.isShaderInput;
+        VulkanImageSubresource* subResource = fbAttachment.image->getSubresource(0, 0);
+        if (!subResource)
+            continue;
+        
+        bool readOnly = subResource->mImageSubresourceInfo.isShaderInput;
 
         if (readOnly)
             readMask |= ((u32)(1 << i));
@@ -2438,18 +2445,24 @@ RenderSurfaceMaskBits VulkanCmdBuffer::getFBReadMask()
     if (mFramebuffer->hasDepthAttachment())
     {
         const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->getDepthStencilAttachment();
-        //ImageSubresourceInfo& subresourceInfo = findSubresourceInfo(fbAttachment.image, 0, 0);
+        if (fbAttachment.image)
+        {
 
-        bool readOnly = true; // subresourceInfo.isShaderInput;
+            VulkanImageSubresource* subResource = fbAttachment.image->getSubresource(0, 0);
+            if (subResource)
+            {
+                bool readOnly = subResource->mImageSubresourceInfo.isShaderInput;
 
-        if (readOnly)
-            readMask |= (RT_DEPTH);
+                if (readOnly)
+                    readMask |= (RT_DEPTH);
 
-        if ((mRenderTargetReadOnlyFlags & FBT_DEPTH) != 0)
-            readMask |= (RT_DEPTH);
+                if ((mRenderTargetReadOnlyFlags & FBT_DEPTH) != 0)
+                    readMask |= (RT_DEPTH);
 
-        if ((mRenderTargetReadOnlyFlags & FBT_STENCIL) != 0)
-            readMask |= (RT_STENCIL);
+                if ((mRenderTargetReadOnlyFlags & FBT_STENCIL) != 0)
+                    readMask |= (RT_STENCIL);
+            }
+        }
     }
 
     return (RenderSurfaceMaskBits)readMask;

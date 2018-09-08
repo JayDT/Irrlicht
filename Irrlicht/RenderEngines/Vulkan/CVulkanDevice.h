@@ -4,8 +4,6 @@
 #include "CVulkanSharedDefines.h"
 #include "CVulkanCommandBuffer.h"
 
-#include "vk_mem_alloc.h"
-
 namespace irr
 {
     namespace video
@@ -95,19 +93,21 @@ namespace irr
              * Allocates memory for the provided image, and binds it to the image. Returns null if it cannot find memory
              * with the specified flags.
              */
-            VmaAllocation allocateImageMemory(VkImage image, VkMemoryPropertyFlags flags);
+            VmaAllocation allocateImageMemory(VkImage image, VkMemoryPropertyFlags flags, VkMemoryPropertyFlags preferflags = 0, u32 usage = 0, u32 createFlags = 0);
 
             /**
              * Allocates memory for the provided buffer, and binds it to the buffer. Returns null if it cannot find memory
              * with the specified flags.
              */
-            VmaAllocation allocateBufferMemory(VkBuffer buffer, VkMemoryPropertyFlags flags);
+            VmaAllocation allocateBufferMemory(VkBuffer buffer, VkMemoryPropertyFlags flags, VkMemoryPropertyFlags preferflags = 0, u32 usage = 0, u32 createFlags = 0);
 
             /** Frees a previously allocated block of memory. */
             void freeMemory(VmaAllocation allocation);
 
             /** Returns the device memory block and offset into the block for a specific memory allocation. */
-            void getAllocationInfo(VmaAllocation allocation, VkDeviceMemory& memory, VkDeviceSize& offset);
+            void getAllocationInfo(VmaAllocation allocation, VkDeviceMemory& memory, VkDeviceSize& offset, VkDeviceSize* size = nullptr);
+
+            bool IsPersistentMap(VmaAllocation allocation);
 
             VulkanTransferBuffer* getTransferBuffer(GpuQueueType type, u32 queueIdx);
             void flushTransferBuffers();

@@ -115,6 +115,8 @@ namespace irr
             VkDeviceMemory memory;
             VkDeviceSize memoryOffset;
 
+            mutable UINT8* persistdata;
+
             // Inherited via CVulkanDeviceResource
             virtual void OnDeviceLost(CVulkanDriver * device) override;
             virtual void OnDeviceRestored(CVulkanDriver * device) override;
@@ -206,7 +208,8 @@ namespace irr
             //! Get size of buffer in bytes
             virtual u32 size(E_HARDWARE_BUFFER_TYPE type) const;
 
-            virtual u32 GetMemoryAccessType(E_HARDWARE_BUFFER_ACCESS access);
+            virtual u32 GetMemoryAccessType(E_HARDWARE_BUFFER_ACCESS access) { return GetMemoryAccessType(access, nullptr); }
+            u32 GetMemoryAccessType(E_HARDWARE_BUFFER_ACCESS access, u32* flags, u32* preferflags = nullptr, u32* usage = nullptr, u32* createFlags = nullptr);
 
             virtual u32 getChangeID(E_HARDWARE_BUFFER_TYPE type) const
             {

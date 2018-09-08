@@ -32,12 +32,22 @@ VulkanBuffer::VulkanBuffer(CVulkanDriver* owner, VkBuffer buffer, VkBufferView v
 
     VulkanDevice* device = Driver->_getPrimaryDevice();
     
-    device->getAllocationInfo(mAllocation, memory, memoryOffset);
+    VkDeviceSize bufferSize;
+    device->getAllocationInfo(mAllocation, memory, memoryOffset, &bufferSize);
+
+    persistdata = nullptr;
+    if (owner->_getPrimaryDevice()->IsPersistentMap(mAllocation))
+    {
+        map(owner->_getPrimaryDevice(), 0, bufferSize);
+    }
 }
 
 VulkanBuffer::~VulkanBuffer()
 {
     VulkanDevice* device = Driver->_getPrimaryDevice();
+
+    if (persistdata && Driver->_getPrimaryDevice()->IsPersistentMap(mAllocation))
+        vkUnmapMemory(Driver->_getPrimaryDevice()->getLogical(), memory);
 
     if (mView != VK_NULL_HANDLE)
         vkDestroyBufferView(device->getLogical(), mView, VulkanDevice::gVulkanAllocator);
@@ -48,15 +58,24 @@ VulkanBuffer::~VulkanBuffer()
 
 UINT8* VulkanBuffer::map(VulkanDevice * device, VkDeviceSize offset, VkDeviceSize length) const
 {
+    if (persistdata && device->IsPersistentMap(mAllocation))
+        return persistdata;
+
     UINT8* data;
     VkResult result = vkMapMemory(device->getLogical(), memory, memoryOffset + offset, length, 0, (void**)&data);
     assert(result == VK_SUCCESS);
+
+    if (device->IsPersistentMap(mAllocation))
+        persistdata = data;
 
     return data;
 }
 
 void VulkanBuffer::unmap(VulkanDevice * device)
 {
+    if (Driver->_getPrimaryDevice()->IsPersistentMap(mAllocation))
+        return;
+
     vkUnmapMemory(device->getLogical(), memory);
 }
 
@@ -453,16 +472,43 @@ u32 irr::video::CVulkanHardwareBuffer::size(E_HARDWARE_BUFFER_TYPE type) const
     return VertexBufferStreams[(u32)type].bufferCI.size;
 }
 
-u32 irr::video::CVulkanHardwareBuffer::GetMemoryAccessType(E_HARDWARE_BUFFER_ACCESS AccessType)
+u32 irr::video::CVulkanHardwareBuffer::GetMemoryAccessType(E_HARDWARE_BUFFER_ACCESS AccessType, u32* flags , u32* preferflags /*= nullptr*/, u32* usage /*= nullptr*/, u32* createFlags /*= nullptr*/)
 {
+    u32 _flags, _preferflags;
     if (AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_IMMUTABLE || AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_DEFAULT)
-        return VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    {
+        if (usage)
+            *usage = VmaMemoryUsage::VMA_MEMORY_USAGE_GPU_ONLY;
+        if (createFlags)
+            *createFlags = 0;
+        _preferflags = 0;
+        _flags = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    }
+    else if (AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC)
+    {
+        if (usage)
+            *usage = VmaMemoryUsage::VMA_MEMORY_USAGE_CPU_TO_GPU;
+        if (createFlags)
+            *createFlags = 0;
+        _flags = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+        _preferflags = 0; // VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    }
+    else
+    {
+        if (usage)
+            *usage = VmaMemoryUsage::VMA_MEMORY_USAGE_CPU_TO_GPU;
+        if (createFlags)
+            *createFlags = VMA_ALLOCATION_CREATE_MAPPED_BIT; // Persistent Mapped
+        _flags = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+        _preferflags = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+    }
 
+    if (flags)
+        *flags = _flags;
+    if (preferflags)
+        *preferflags = _preferflags;
 
-    if (AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC)
-        return VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-
-    return VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+    return _flags | _preferflags;
 }
 
 void irr::video::CVulkanHardwareBuffer::SetCommandBuffer(VulkanCommandBuffer * cb)
@@ -689,8 +735,12 @@ VulkanBuffer * irr::video::CVulkanHardwareBuffer::CreateBuffer(VulkanDevice & de
     VkResult result = vkCreateBuffer(Device->getLogical(), &bufferCI, VulkanDevice::gVulkanAllocator, &buffer);
     assert(result == VK_SUCCESS);
 
-    VkMemoryPropertyFlags flags = GetMemoryAccessType(AccessType);
-    VmaAllocation allocation = Device->allocateBufferMemory(buffer, flags);
+    VkMemoryPropertyFlags flags;
+    VkMemoryPropertyFlags preferflags;
+    u32 usage;
+    u32 createFlags;
+    GetMemoryAccessType(AccessType, &flags, &preferflags, &usage, &createFlags);
+    VmaAllocation allocation = Device->allocateBufferMemory(buffer, flags, preferflags, usage, createFlags);
 
     VulkanBuffer* vkbuffer =  new VulkanBuffer(Driver, buffer, VK_NULL_HANDLE, allocation, stride);
 
