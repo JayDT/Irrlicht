@@ -285,6 +285,8 @@ namespace irr
             video::ShaderDataBufferElementObject<VulkanShaderGenericValuesBuffer::Material>* ShaderMaterial;
             video::ShaderDataBufferElementArray<VulkanShaderGenericValuesBuffer::Light>* ShaderLight;
 
+            core::vector3df viewMatrixTranslationCache;
+
             VulkanShaderGenericValuesBuffer(video::IShaderDataBuffer::E_UPDATE_TYPE updateType);
 
             virtual ~VulkanShaderGenericValuesBuffer();

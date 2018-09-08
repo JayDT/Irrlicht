@@ -99,7 +99,7 @@ namespace irr
              * Allocates memory for the provided buffer, and binds it to the buffer. Returns null if it cannot find memory
              * with the specified flags.
              */
-            VmaAllocation allocateBufferMemory(VkBuffer buffer, VkMemoryPropertyFlags flags, VkMemoryPropertyFlags preferflags = 0, u32 usage = 0, u32 createFlags = 0);
+            VmaAllocation allocateBufferMemory(VkBuffer buffer, VkMemoryPropertyFlags flags, VkMemoryPropertyFlags preferflags = 0, u32 usage = 0, u32 createFlags = 0, void** mappedData = nullptr);
 
             /** Frees a previously allocated block of memory. */
             void freeMemory(VmaAllocation allocation);

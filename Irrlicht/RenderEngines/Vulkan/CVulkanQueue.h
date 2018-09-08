@@ -118,12 +118,14 @@ namespace irr
             VkQueue mQueue;
             GpuQueueType mType;
             uint32_t mIndex;
+            uint32_t mSemaphoreSubmitQueueSize;
+            uint8_t* mSemaphoreSubmitQueueData;
             VkPipelineStageFlags mSubmitDstWaitMask[_MAX_UNIQUE_QUEUES];
 
             std::vector<SubmitInfo> mQueuedBuffers;
             std::vector<VulkanSemaphore*> mQueuedSemaphores;
 
-            std::vector<SubmitInfo> mActiveSubmissions;
+            std::list<SubmitInfo> mActiveSubmissions;
             std::queue<VulkanCmdBuffer*> mActiveBuffers;
             std::queue<VulkanSemaphore*> mActiveSemaphores;
             VulkanCmdBuffer* mLastCommandBuffer;

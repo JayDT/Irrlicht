@@ -406,26 +406,19 @@ void VulkanCmdBuffer::endRenderPass()
 
 void VulkanCmdBuffer::allocateSemaphores(VkSemaphore* semaphores)
 {
-    if (mIntraQueueSemaphore != nullptr)
-    {
-        mIntraQueueSemaphore->drop();
-    }
-
-    //if (!mIntraQueueSemaphore)
+    if (!mIntraQueueSemaphore)
         mIntraQueueSemaphore = new VulkanSemaphore(mDevice.getDriver());
 
-    semaphores[0] = mIntraQueueSemaphore->getHandle();
+    if (semaphores)
+        semaphores[0] = mIntraQueueSemaphore->getHandle();
 
     for (uint32_t i = 0; i < _MAX_VULKAN_CB_DEPENDENCIES; i++)
     {
-        if (mInterQueueSemaphores[i] != nullptr)
-        {
-            mInterQueueSemaphores[i]->drop();
-        }
-
-        //if (!mInterQueueSemaphores[i])
+        if (!mInterQueueSemaphores[i])
             mInterQueueSemaphores[i] = new VulkanSemaphore(mDevice.getDriver());
-        semaphores[i + 1] = mInterQueueSemaphores[i]->getHandle();
+
+        if (semaphores)
+            semaphores[i + 1] = mInterQueueSemaphores[i]->getHandle();
     }
 
     mNumUsedInterQueueSemaphores = 0;
@@ -442,8 +435,6 @@ VulkanSemaphore* VulkanCmdBuffer::requestInterQueueSemaphore() const
 void VulkanCmdBuffer::submit(VulkanQueue* queue, uint32_t queueIdx, uint32_t syncMask)
 {
     assert(isReadyForSubmit());
-
-    //checkFenceStatus(true);
 
     // Make sure to reset the CB fence before we submit it
     VkResult result = vkResetFences(mDevice.getLogical(), 1, &mFence);
@@ -469,15 +460,15 @@ void VulkanCmdBuffer::submit(VulkanQueue* queue, uint32_t queueIdx, uint32_t syn
     for (auto& entry : mBuffers)
     {
         VulkanBuffer* resource = static_cast<VulkanBuffer*>(entry);
-
+    
         if (!resource->isExclusive())
             continue;
-
+    
         uint32_t currentQueueFamily = resource->getQueueFamily();
         if (currentQueueFamily != (uint32_t)-1 && currentQueueFamily != mQueueFamily)
         {
             std::vector<VkBufferMemoryBarrier>& barriers = mTransitionInfoTemp[currentQueueFamily].bufferBarriers;
-
+    
             barriers.push_back(VkBufferMemoryBarrier());
             VkBufferMemoryBarrier& barrier = barriers.back();
             barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
@@ -492,167 +483,171 @@ void VulkanCmdBuffer::submit(VulkanQueue* queue, uint32_t queueIdx, uint32_t syn
         }
     }
 
+    // ToDo: Need rework this
     // For images issue queue transitions, as above. Also issue layout transitions to their inital layouts.
-    std::vector<VkImageMemoryBarrier>& localBarriers = mTransitionInfoTemp[mQueueFamily].imageBarriers;
-    for (auto& entry : mImages)
-    {
-        VulkanImage* resource = static_cast<VulkanImage*>(entry);
-        //ImageInfo& imageInfo = mImageInfos[entry.second];
+    //std::vector<VkImageMemoryBarrier>* localBarriers = nullptr;
+    //for (auto& entry : mImages)
+    //{
+    //    VulkanImage* resource = static_cast<VulkanImage*>(entry);
+    //    //ImageInfo& imageInfo = mImageInfos[entry.second];
+    //
+    //    uint32_t currentQueueFamily = resource->getQueueFamily();
+    //    bool queueMismatch = resource->isExclusive() && currentQueueFamily != (uint32_t)-1
+    //        && currentQueueFamily != mQueueFamily;
+    //
+    //    //ImageSubresourceInfo* subresourceInfos = subImage->get//&mSubresourceInfoStorage[imageInfo.subresourceInfoIdx];
+    //    if (queueMismatch)
+    //    {
+    //        std::vector<VkImageMemoryBarrier>& barriers = mTransitionInfoTemp[currentQueueFamily].imageBarriers;
+    //
+    //        for (uint32_t i = 0; i < resource->mImageInfo.numSubresourceInfos; i++)
+    //        {
+    //            VulkanImageSubresource* subImage = resource->getSubresource(0, resource->mImageInfo.subresourceInfoIdx + i);
+    //            ImageSubresourceInfo& subresourceInfo = subImage->mImageSubresourceInfo;
+    //
+    //            uint32_t startIdx = (uint32_t)barriers.size();
+    //            resource->getBarriers(subresourceInfo.range, barriers);
+    //
+    //            for (uint32_t j = startIdx; j < (uint32_t)barriers.size(); j++)
+    //            {
+    //                VkImageMemoryBarrier& barrier = barriers[j];
+    //
+    //                barrier.dstAccessMask = resource->getAccessFlags(barrier.oldLayout);
+    //                barrier.newLayout = barrier.oldLayout;
+    //                barrier.srcQueueFamilyIndex = currentQueueFamily;
+    //                barrier.dstQueueFamilyIndex = mQueueFamily;
+    //            }
+    //        }
+    //    }
+    //
+    //    for (uint32_t i = 0; i < resource->mImageInfo.numSubresourceInfos; i++)
+    //    {
+    //        VulkanImageSubresource* subImage = resource->getSubresource(0, resource->mImageInfo.subresourceInfoIdx + i);
+    //        ImageSubresourceInfo& subresourceInfo = subImage->mImageSubresourceInfo;
+    //
+    //        VkImageLayout initialLayout = subresourceInfo.initialLayout;
+    //        if (initialLayout == VK_IMAGE_LAYOUT_UNDEFINED)
+    //            continue;
+    //
+    //        const VkImageSubresourceRange& range = subresourceInfo.range;
+    //        uint32_t mipEnd = range.baseMipLevel + range.levelCount;
+    //        uint32_t faceEnd = range.baseArrayLayer + range.layerCount;
+    //        if (!subresourceInfo.hasExternalTransition)
+    //        {
+    //            bool layoutMismatch = false;
+    //            for (uint32_t mip = range.baseMipLevel; mip < mipEnd; mip++)
+    //            {
+    //                for (uint32_t face = range.baseArrayLayer; face < faceEnd; face++)
+    //                {
+    //                    VulkanImageSubresource* subresource = resource->getSubresource(face, mip);
+    //                    if (subresource->getLayout() != initialLayout)
+    //                    {
+    //                        layoutMismatch = true;
+    //                        break;
+    //                    }
+    //                }
+    //
+    //                if (layoutMismatch)
+    //                    break;
+    //            }
+    //
+    //            if (layoutMismatch)
+    //            {
+    //                if (!localBarriers)
+    //                    localBarriers = &mTransitionInfoTemp[mQueueFamily].imageBarriers;
+    //
+    //                uint32_t startIdx = (uint32_t)localBarriers->size();
+    //                resource->getBarriers(subresourceInfo.range, *localBarriers);
+    //
+    //                for (uint32_t j = startIdx; j < (uint32_t)localBarriers->size(); j++)
+    //                {
+    //                    VkImageMemoryBarrier& barrier = (*localBarriers)[j];
+    //
+    //                    barrier.dstAccessMask = resource->getAccessFlags(initialLayout, subresourceInfo.isInitialReadOnly);
+    //                    barrier.newLayout = initialLayout;
+    //                }
+    //            }
+    //        }
+    //
+    //        for (uint32_t mip = range.baseMipLevel; mip < mipEnd; mip++)
+    //        {
+    //            for (uint32_t face = range.baseArrayLayer; face < faceEnd; face++)
+    //            {
+    //                VulkanImageSubresource* subresource = resource->getSubresource(face, mip);
+    //                subresource->setLayout(subresourceInfo.finalLayout);
+    //            }
+    //        }
+    //    }
+    //}
 
-        uint32_t currentQueueFamily = resource->getQueueFamily();
-        bool queueMismatch = resource->isExclusive() && currentQueueFamily != (uint32_t)-1
-            && currentQueueFamily != mQueueFamily;
-
-        //ImageSubresourceInfo* subresourceInfos = subImage->get//&mSubresourceInfoStorage[imageInfo.subresourceInfoIdx];
-        if (queueMismatch)
-        {
-            std::vector<VkImageMemoryBarrier>& barriers = mTransitionInfoTemp[currentQueueFamily].imageBarriers;
-
-            for (uint32_t i = 0; i < resource->mImageInfo.numSubresourceInfos; i++)
-            {
-                VulkanImageSubresource* subImage = resource->getSubresource(0, resource->mImageInfo.subresourceInfoIdx + i);
-                ImageSubresourceInfo& subresourceInfo = subImage->mImageSubresourceInfo;
-
-                uint32_t startIdx = (uint32_t)barriers.size();
-                resource->getBarriers(subresourceInfo.range, barriers);
-
-                for (uint32_t j = startIdx; j < (uint32_t)barriers.size(); j++)
-                {
-                    VkImageMemoryBarrier& barrier = barriers[j];
-
-                    barrier.dstAccessMask = resource->getAccessFlags(barrier.oldLayout);
-                    barrier.newLayout = barrier.oldLayout;
-                    barrier.srcQueueFamilyIndex = currentQueueFamily;
-                    barrier.dstQueueFamilyIndex = mQueueFamily;
-                }
-            }
-        }
-
-        for (uint32_t i = 0; i < resource->mImageInfo.numSubresourceInfos; i++)
-        {
-            VulkanImageSubresource* subImage = resource->getSubresource(0, resource->mImageInfo.subresourceInfoIdx + i);
-            ImageSubresourceInfo& subresourceInfo = subImage->mImageSubresourceInfo;
-
-            VkImageLayout initialLayout = subresourceInfo.initialLayout;
-            if (initialLayout == VK_IMAGE_LAYOUT_UNDEFINED)
-                continue;
-
-            const VkImageSubresourceRange& range = subresourceInfo.range;
-            uint32_t mipEnd = range.baseMipLevel + range.levelCount;
-            uint32_t faceEnd = range.baseArrayLayer + range.layerCount;
-            if (!subresourceInfo.hasExternalTransition)
-            {
-                bool layoutMismatch = false;
-                for (uint32_t mip = range.baseMipLevel; mip < mipEnd; mip++)
-                {
-                    for (uint32_t face = range.baseArrayLayer; face < faceEnd; face++)
-                    {
-                        VulkanImageSubresource* subresource = resource->getSubresource(face, mip);
-                        if (subresource->getLayout() != initialLayout)
-                        {
-                            layoutMismatch = true;
-                            break;
-                        }
-                    }
-
-                    if (layoutMismatch)
-                        break;
-                }
-
-                if (layoutMismatch)
-                {
-                    uint32_t startIdx = (uint32_t)localBarriers.size();
-                    resource->getBarriers(subresourceInfo.range, localBarriers);
-
-                    for (uint32_t j = startIdx; j < (uint32_t)localBarriers.size(); j++)
-                    {
-                        VkImageMemoryBarrier& barrier = localBarriers[j];
-
-                        barrier.dstAccessMask = resource->getAccessFlags(initialLayout, subresourceInfo.isInitialReadOnly);
-                        barrier.newLayout = initialLayout;
-                    }
-                }
-            }
-
-            for (uint32_t mip = range.baseMipLevel; mip < mipEnd; mip++)
-            {
-                for (uint32_t face = range.baseArrayLayer; face < faceEnd; face++)
-                {
-                    VulkanImageSubresource* subresource = resource->getSubresource(face, mip);
-                    subresource->setLayout(subresourceInfo.finalLayout);
-                }
-            }
-        }
-    }
-
-    for (auto& entry : mTransitionInfoTemp)
-    {
-        bool empty = entry.second.imageBarriers.size() == 0 && entry.second.bufferBarriers.size() == 0;
-        if (empty)
-            continue;
-
-        uint32_t entryQueueFamily = entry.first;
-
-        // No queue transition needed for entries on this queue (this entry is most likely an image layout transition)
-        if (entryQueueFamily == (uint32_t)-1 || entryQueueFamily == mQueueFamily)
-            continue;
-
-        VulkanCmdBuffer* cmdBuffer = device.getCmdBufferPool().getBuffer(entryQueueFamily, false);
-        VkCommandBuffer vkCmdBuffer = cmdBuffer->getHandle();
-
-        TransitionInfo& barriers = entry.second;
-        uint32_t numImgBarriers = (uint32_t)barriers.imageBarriers.size();
-        uint32_t numBufferBarriers = (uint32_t)barriers.bufferBarriers.size();
-
-        VkPipelineStageFlags srcStage = 0;
-        VkPipelineStageFlags dstStage = 0;
-        getPipelineStageFlags(barriers.imageBarriers, srcStage, dstStage);
-
-        vkCmdPipelineBarrier(vkCmdBuffer,
-            srcStage, dstStage,
-            0, 0, nullptr,
-            numBufferBarriers, barriers.bufferBarriers.data(),
-            numImgBarriers, barriers.imageBarriers.data());
-
-        // Find an appropriate queue to execute on
-        uint32_t otherQueueIdx = 0;
-        VulkanQueue* otherQueue = nullptr;
-        GpuQueueType otherQueueType = GQT_GRAPHICS;
-        for (uint32_t i = 0; i < GQT_COUNT; i++)
-        {
-            otherQueueType = (GpuQueueType)i;
-            if (device.getQueueFamily(otherQueueType) != entryQueueFamily)
-                continue;
-
-            uint32_t numQueues = device.getNumQueues(otherQueueType);
-            for (uint32_t j = 0; j < numQueues; j++)
-            {
-                // Try to find a queue not currently executing
-                VulkanQueue* curQueue = device.getQueue(otherQueueType, j);
-                if (!curQueue->isExecuting())
-                {
-                    otherQueue = curQueue;
-                    otherQueueIdx = j;
-                }
-            }
-
-            // Can't find empty one, use the first one then
-            if (otherQueue == nullptr)
-            {
-                otherQueue = device.getQueue(otherQueueType, 0);
-                otherQueueIdx = 0;
-            }
-
-            break;
-        }
-
-        syncMask |= CommandSyncMask::getGlobalQueueMask(otherQueueType, otherQueueIdx);
-
-        cmdBuffer->end();
-
-        // Note: If I switch back to doing layout transitions here, I need to wait on present semaphore
-        otherQueue->submit(cmdBuffer, nullptr, 0);
-    }
+    //for (auto& entry : mTransitionInfoTemp)
+    //{
+    //    bool empty = entry.second.imageBarriers.size() == 0 && entry.second.bufferBarriers.size() == 0;
+    //    if (empty)
+    //        continue;
+    //
+    //    uint32_t entryQueueFamily = entry.first;
+    //
+    //    // No queue transition needed for entries on this queue (this entry is most likely an image layout transition)
+    //    if (entryQueueFamily == (uint32_t)-1 || entryQueueFamily == mQueueFamily)
+    //        continue;
+    //
+    //    VulkanCmdBuffer* cmdBuffer = device.getCmdBufferPool().getBuffer(entryQueueFamily, false);
+    //    VkCommandBuffer vkCmdBuffer = cmdBuffer->getHandle();
+    //
+    //    TransitionInfo& barriers = entry.second;
+    //    uint32_t numImgBarriers = (uint32_t)barriers.imageBarriers.size();
+    //    uint32_t numBufferBarriers = (uint32_t)barriers.bufferBarriers.size();
+    //
+    //    VkPipelineStageFlags srcStage = 0;
+    //    VkPipelineStageFlags dstStage = 0;
+    //    getPipelineStageFlags(barriers.imageBarriers, srcStage, dstStage);
+    //
+    //    vkCmdPipelineBarrier(vkCmdBuffer,
+    //        srcStage, dstStage,
+    //        0, 0, nullptr,
+    //        numBufferBarriers, barriers.bufferBarriers.data(),
+    //        numImgBarriers, barriers.imageBarriers.data());
+    //
+    //    // Find an appropriate queue to execute on
+    //    uint32_t otherQueueIdx = 0;
+    //    VulkanQueue* otherQueue = nullptr;
+    //    GpuQueueType otherQueueType = GQT_GRAPHICS;
+    //    for (uint32_t i = 0; i < GQT_COUNT; i++)
+    //    {
+    //        otherQueueType = (GpuQueueType)i;
+    //        if (device.getQueueFamily(otherQueueType) != entryQueueFamily)
+    //            continue;
+    //
+    //        uint32_t numQueues = device.getNumQueues(otherQueueType);
+    //        for (uint32_t j = 0; j < numQueues; j++)
+    //        {
+    //            // Try to find a queue not currently executing
+    //            VulkanQueue* curQueue = device.getQueue(otherQueueType, j);
+    //            if (!curQueue->isExecuting())
+    //            {
+    //                otherQueue = curQueue;
+    //                otherQueueIdx = j;
+    //            }
+    //        }
+    //
+    //        // Can't find empty one, use the first one then
+    //        if (otherQueue == nullptr)
+    //        {
+    //            otherQueue = device.getQueue(otherQueueType, 0);
+    //            otherQueueIdx = 0;
+    //        }
+    //
+    //        break;
+    //    }
+    //
+    //    syncMask |= CommandSyncMask::getGlobalQueueMask(otherQueueType, otherQueueIdx);
+    //
+    //    cmdBuffer->end();
+    //
+    //    // Note: If I switch back to doing layout transitions here, I need to wait on present semaphore
+    //    otherQueue->submit(cmdBuffer, nullptr, 0);
+    //}
 
     uint32_t deviceIdx = device.getIndex();
 
@@ -679,34 +674,34 @@ void VulkanCmdBuffer::submit(VulkanQueue* queue, uint32_t queueIdx, uint32_t syn
     }
 
     // Issue second part of transition pipeline barriers (on this queue)
-    for (auto& entry : mTransitionInfoTemp)
-    {
-        bool empty = entry.second.imageBarriers.size() == 0 && entry.second.bufferBarriers.size() == 0;
-        if (empty)
-            continue;
-
-        VulkanCmdBuffer* cmdBuffer = device.getCmdBufferPool().getBuffer(mQueueFamily, false);
-        VkCommandBuffer vkCmdBuffer = cmdBuffer->getHandle();
-
-        TransitionInfo& barriers = entry.second;
-        uint32_t numImgBarriers = (uint32_t)barriers.imageBarriers.size();
-        uint32_t numBufferBarriers = (uint32_t)barriers.bufferBarriers.size();
-
-        VkPipelineStageFlags srcStage = 0;
-        VkPipelineStageFlags dstStage = 0;
-        getPipelineStageFlags(barriers.imageBarriers, srcStage, dstStage);
-
-        vkCmdPipelineBarrier(vkCmdBuffer,
-            srcStage, dstStage,
-            0, 0, nullptr,
-            numBufferBarriers, barriers.bufferBarriers.data(),
-            numImgBarriers, barriers.imageBarriers.data());
-
-        cmdBuffer->end();
-        queue->queueSubmit(cmdBuffer, mSemaphoresTemp.data(), numSemaphores);
-
-        numSemaphores = 0; // Semaphores are only needed the first time, since we're adding the buffers on the same queue
-    }
+    //for (auto& entry : mTransitionInfoTemp)
+    //{
+    //    bool empty = entry.second.imageBarriers.size() == 0 && entry.second.bufferBarriers.size() == 0;
+    //    if (empty)
+    //        continue;
+    //
+    //    VulkanCmdBuffer* cmdBuffer = device.getCmdBufferPool().getBuffer(mQueueFamily, false);
+    //    VkCommandBuffer vkCmdBuffer = cmdBuffer->getHandle();
+    //
+    //    TransitionInfo& barriers = entry.second;
+    //    uint32_t numImgBarriers = (uint32_t)barriers.imageBarriers.size();
+    //    uint32_t numBufferBarriers = (uint32_t)barriers.bufferBarriers.size();
+    //
+    //    VkPipelineStageFlags srcStage = 0;
+    //    VkPipelineStageFlags dstStage = 0;
+    //    getPipelineStageFlags(barriers.imageBarriers, srcStage, dstStage);
+    //
+    //    vkCmdPipelineBarrier(vkCmdBuffer,
+    //        srcStage, dstStage,
+    //        0, 0, nullptr,
+    //        numBufferBarriers, barriers.bufferBarriers.data(),
+    //        numImgBarriers, barriers.imageBarriers.data());
+    //
+    //    cmdBuffer->end();
+    //    queue->queueSubmit(cmdBuffer, mSemaphoresTemp.data(), numSemaphores);
+    //
+    //    numSemaphores = 0; // Semaphores are only needed the first time, since we're adding the buffers on the same queue
+    //}
 
     queue->queueSubmit(this, mSemaphoresTemp.data(), numSemaphores);
     queue->submitQueued();
@@ -773,8 +768,6 @@ bool VulkanCmdBuffer::checkFenceStatus(bool block) const
 void VulkanCmdBuffer::reset()
 {
     bool wasSubmitted = mState == State::Submitted;
-    //if (isRecording())
-    //    return;
 
     mState = State::Ready;
     vkResetCommandBuffer(mCmdBuffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT); // Note: Maybe better not to release resources?
@@ -837,9 +830,6 @@ void VulkanCmdBuffer::reset()
     mBuffers.clear();
     mOcclusionQueries.clear();
     mTimerQueries.clear();
-    //mImageInfos.clear();
-    //mSubresourceInfoStorage.clear();
-    //mPassTouchedSubresourceInfos.clear();
 }
 
 void VulkanCmdBuffer::setRenderTarget(const video::IRenderTarget* rt, uint32_t readOnlyFlags, RenderSurfaceMaskBits loadMask, bool LifeTimeBound)
@@ -930,9 +920,6 @@ void VulkanCmdBuffer::setRenderTarget(const video::IRenderTarget* rt, uint32_t r
 
     core::rect<s32> area(0, 0, mRenderTargetWidth, mRenderTargetHeight);
     setViewport(area);
-
-    // Re-set the params as they will need to be re-bound
-    //setGpuParams(mBoundParams);
 
     if (mFramebuffer != nullptr)
     {
@@ -1219,7 +1206,6 @@ void VulkanCmdBuffer::setVertexBuffers(uint32_t index, VulkanBuffer** buffers, u
         {
             mVertexBuffersTemp[0] = buffers[0]->getHandle();
             buffers[0]->NotifySoftBound(VulkanUseFlag::Read);
-            //registerResource(buffers[0], VulkanUseFlag::Read);
         }
         else
             mVertexBuffersTemp[0] = VK_NULL_HANDLE;
@@ -1230,7 +1216,6 @@ void VulkanCmdBuffer::setVertexBuffers(uint32_t index, VulkanBuffer** buffers, u
         {
             mVertexBuffersTemp[1] = buffers[1]->getHandle();
             buffers[1]->NotifySoftBound(VulkanUseFlag::Read);
-            //registerResource(buffers[1], VulkanUseFlag::Read);
         }
         else
             mVertexBuffersTemp[1] = VK_NULL_HANDLE;
@@ -1248,7 +1233,6 @@ void VulkanCmdBuffer::setIndexBuffer(VulkanBuffer* buffer, E_INDEX_TYPE type, Vk
         vkBuffer = buffer->getHandle();
         indexType = VulkanUtility::getIndexType(type);
         buffer->NotifySoftBound(VulkanUseFlag::Read);
-        //registerResource(buffer, VulkanUseFlag::Read);
     }
 
     vkCmdBindIndexBuffer(mCmdBuffer, vkBuffer, offset, indexType);
@@ -1289,11 +1273,10 @@ bool VulkanCmdBuffer::bindGraphicsPipeline()
     mPipeline = pipeline;
     mGraphicsPipeline->registerPipelineResources(this);
     pipeline->NotifySoftBound(VulkanUseFlag::Read);
-    //registerResource(pipeline, VulkanUseFlag::Read);
 
     vkCmdBindPipeline(mCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getHandle());
 
-    //if (mGraphicsPipeline->mMaterial.StencilFront.Reference != 0)
+    if (mGraphicsPipeline->mMaterial.StencilTest)
     {
         setStencilRef(mGraphicsPipeline->mMaterial.StencilFront.Reference);
         mStencilRefRequiresBind = true;
@@ -1444,26 +1427,26 @@ void VulkanCmdBuffer::updateFinalLayouts()
     if (mFramebuffer == nullptr)
         return;
 
-    uint32_t numColorAttachments = mFramebuffer->getNumColorAttachments();
-    for (uint32_t i = 0; i < numColorAttachments; i++)
-    {
-        const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->getColorAttachment(i);
-        ImageSubresourceInfo& subresourceInfo = findSubresourceInfo(fbAttachment.image, 0, 0);
-    
-        subresourceInfo.currentLayout = subresourceInfo.finalLayout;
-        subresourceInfo.requiredLayout = subresourceInfo.finalLayout;
-        subresourceInfo.hasTransitioned = true;
-    }
-    
-    if (mFramebuffer->hasDepthAttachment())
-    {
-        const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->getDepthStencilAttachment();
-        ImageSubresourceInfo& subresourceInfo = findSubresourceInfo(fbAttachment.image, 0, 0);
-    
-        subresourceInfo.currentLayout = subresourceInfo.finalLayout;
-        subresourceInfo.requiredLayout = subresourceInfo.finalLayout;
-        subresourceInfo.hasTransitioned = true;
-    }
+    //uint32_t numColorAttachments = mFramebuffer->getNumColorAttachments();
+    //for (uint32_t i = 0; i < numColorAttachments; i++)
+    //{
+    //    const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->getColorAttachment(i);
+    //    ImageSubresourceInfo& subresourceInfo = findSubresourceInfo(fbAttachment.image, 0, 0);
+    //
+    //    subresourceInfo.currentLayout = subresourceInfo.finalLayout;
+    //    subresourceInfo.requiredLayout = subresourceInfo.finalLayout;
+    //    subresourceInfo.hasTransitioned = true;
+    //}
+    //
+    //if (mFramebuffer->hasDepthAttachment())
+    //{
+    //    const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->getDepthStencilAttachment();
+    //    ImageSubresourceInfo& subresourceInfo = findSubresourceInfo(fbAttachment.image, 0, 0);
+    //
+    //    subresourceInfo.currentLayout = subresourceInfo.finalLayout;
+    //    subresourceInfo.requiredLayout = subresourceInfo.finalLayout;
+    //    subresourceInfo.hasTransitioned = true;
+    //}
 }
 
 void VulkanCmdBuffer::executeClearPass()
@@ -1921,9 +1904,6 @@ void VulkanCmdBuffer::registerResource(VulkanImage* res, const VkImageSubresourc
     
     if ((res->mUseHandle.mPoolMask & 1) == 0) // New element
     {
-        //uint32_t imageInfoIdx = insertResult.first->second;
-        //mImageInfos.push_back(ImageInfo());
-    
         mImages.push_back(res);
     
         ImageInfo& imageInfo = res->mImageInfo; //mImageInfos[imageInfoIdx];
@@ -1940,140 +1920,140 @@ void VulkanCmdBuffer::registerResource(VulkanImage* res, const VkImageSubresourc
     }
     else // Existing element
     {
-        ImageInfo& imageInfo = res->mImageInfo;
-    
-        assert(!res->mUseHandle.used);
-        res->mUseHandle.flags |= flags;
-    
-        // See if there is an overlap between existing ranges and the new range. And if so break them up accordingly.
-        //// First test for the simplest and most common case (same range or no overlap) to avoid more complex
-        //// computations.
-        VulkanImageSubresource* subImage = res->getSubresource(0, imageInfo.subresourceInfoIdx);
-        if (subImage)
-        {
-            ImageSubresourceInfo* subresources = &subImage->mImageSubresourceInfo;
-    
-            bool foundRange = false;
-            for (uint32_t i = 0; i < imageInfo.numSubresourceInfos; i++)
-            {
-                if (VulkanUtility::rangeOverlaps(subresources[i].range, range))
-                {
-                    if (subresources[i].range.layerCount == range.layerCount &&
-                        subresources[i].range.levelCount == range.levelCount &&
-                        subresources[i].range.baseArrayLayer == range.baseArrayLayer &&
-                        subresources[i].range.baseMipLevel == range.baseMipLevel)
-                    {
-                        // Just update existing range
-                        updateSubresourceInfo(res, 0, subresources[i], newLayout, finalLayout, flags, usage);
-                        //mPassTouchedSubresourceInfos.insert(imageInfo.subresourceInfoIdx + i);
-    
-                        foundRange = true;
-                        break;
-                    }
-    
-                    break;
-                }
-            }
-    
-            ////// We'll need to update subresource ranges or add new ones. The hope is that this code is trigger VERY rarely
-            ////// (for just a few specific textures per frame).
-            //if (!foundRange)
-            //{
-            //    std::array<VkImageSubresourceRange, 5> tempCutRanges;
-            //
-            //    {
-            //        std::vector<uint32_t> cutOverlappingRanges;
-            //        for (uint32_t i = 0; i < imageInfo.numSubresourceInfos; i++)
-            //        {
-            //            uint32_t subresourceIdx = imageInfo.subresourceInfoIdx + i;
-            //
-            //            VulkanImageSubresource* subImage = res->getSubresource(0, subresourceIdx);
-            //            if (!subImage)
-            //                continue;
-            //
-            //            ImageSubresourceInfo& subresource = subImage->mImageSubresourceInfo;
-            //
-            //            if (!VulkanUtility::rangeOverlaps(subresource.range, range))
-            //            {
-            //                // Just copy as is
-            //            }
-            //            else // Need to cut
-            //            {
-            //                uint32_t numCutRanges;
-            //                VulkanUtility::cutRange(subresource.range, range, tempCutRanges, numCutRanges);
-            //
-            //                for (uint32_t j = 0; j < numCutRanges; j++)
-            //                {
-            //                    // Create a copy of the original subresource with the new range
-            //                    ImageSubresourceInfo newInfo = subImage->mImageSubresourceInfo;
-            //                    newInfo.range = tempCutRanges[j];
-            //
-            //                    if (VulkanUtility::rangeOverlaps(tempCutRanges[j], range))
-            //                    {
-            //                        // Update overlapping sub-resource range with new data from this range
-            //                        updateSubresourceInfo(res, 0, newInfo, newLayout, finalLayout, flags, usage);
-            //
-            //                        // Keep track of the overlapping ranges for later
-            //                        cutOverlappingRanges.push_back((uint32_t)subresourceIdx);
-            //                    }
-            //
-            //                    //mSubresourceInfoStorage.push_back(newInfo);
-            //                    //mPassTouchedSubresourceInfos.insert((uint32_t)mSubresourceInfoStorage.size() - 1);
-            //                }
-            //            }
-            //        }
-            //
-            //        // Our range doesn't overlap with any existing ranges, so just add it
-            //        if (cutOverlappingRanges.size() == 0)
-            //        {
-            //            registerSubresourceInfo(range);
-            //        }
-            //        else // Search if overlapping ranges fully cover the requested range, and insert non-covered regions
-            //        {
-            //            std::queue<VkImageSubresourceRange> sourceRanges;
-            //            sourceRanges.push(range);
-            //
-            //            for (auto& entry : cutOverlappingRanges)
-            //            {
-            //                VulkanImageSubresource* subImage = res->getSubresource(0, entry);
-            //                if (!subImage)
-            //                    continue;
-            //
-            //                ImageSubresourceInfo& subresource = subImage->mImageSubresourceInfo;
-            //
-            //                VkImageSubresourceRange& overlappingRange = subresource.range;
-            //
-            //                uint32_t numSourceRanges = (uint32_t)sourceRanges.size();
-            //                for (uint32_t i = 0; i < numSourceRanges; i++)
-            //                {
-            //                    VkImageSubresourceRange sourceRange = sourceRanges.front();
-            //                    sourceRanges.pop();
-            //
-            //                    uint32_t numCutRanges;
-            //                    VulkanUtility::cutRange(sourceRange, overlappingRange, tempCutRanges, numCutRanges);
-            //
-            //                    for (uint32_t j = 0; j < numCutRanges; j++)
-            //                    {
-            //                        // We only care about ranges outside of the ones we already covered
-            //                        if (!VulkanUtility::rangeOverlaps(tempCutRanges[j], overlappingRange))
-            //                            sourceRanges.push(tempCutRanges[j]);
-            //                    }
-            //                }
-            //            }
-            //
-            //            // Any remaining range hasn't been covered yet
-            //            while (!sourceRanges.empty())
-            //            {
-            //                registerSubresourceInfo(sourceRanges.front());
-            //                sourceRanges.pop();
-            //            }
-            //        }
-            //
-            //        imageInfo.subresourceInfoIdx = (uint32_t)range.baseMipLevel; // mSubresourceInfoStorage.size();
-            //        imageInfo.numSubresourceInfos = range.levelCount;
-            //    }
-            //}
-        }
+        //ImageInfo& imageInfo = res->mImageInfo;
+        //
+        //assert(!res->mUseHandle.used);
+        //res->mUseHandle.flags |= flags;
+        //
+        //// See if there is an overlap between existing ranges and the new range. And if so break them up accordingly.
+        ////// First test for the simplest and most common case (same range or no overlap) to avoid more complex
+        ////// computations.
+        //VulkanImageSubresource* subImage = res->getSubresource(0, imageInfo.subresourceInfoIdx);
+        //if (subImage)
+        //{
+        //    ImageSubresourceInfo* subresources = &subImage->mImageSubresourceInfo;
+        //
+        //    bool foundRange = false;
+        //    for (uint32_t i = 0; i < imageInfo.numSubresourceInfos; i++)
+        //    {
+        //        if (VulkanUtility::rangeOverlaps(subresources[i].range, range))
+        //        {
+        //            if (subresources[i].range.layerCount == range.layerCount &&
+        //                subresources[i].range.levelCount == range.levelCount &&
+        //                subresources[i].range.baseArrayLayer == range.baseArrayLayer &&
+        //                subresources[i].range.baseMipLevel == range.baseMipLevel)
+        //            {
+        //                // Just update existing range
+        //                updateSubresourceInfo(res, 0, subresources[i], newLayout, finalLayout, flags, usage);
+        //                //mPassTouchedSubresourceInfos.insert(imageInfo.subresourceInfoIdx + i);
+        //
+        //                foundRange = true;
+        //                break;
+        //            }
+        //
+        //            break;
+        //        }
+        //    }
+        //
+        //    ////// We'll need to update subresource ranges or add new ones. The hope is that this code is trigger VERY rarely
+        //    ////// (for just a few specific textures per frame).
+        //    //if (!foundRange)
+        //    //{
+        //    //    std::array<VkImageSubresourceRange, 5> tempCutRanges;
+        //    //
+        //    //    {
+        //    //        std::vector<uint32_t> cutOverlappingRanges;
+        //    //        for (uint32_t i = 0; i < imageInfo.numSubresourceInfos; i++)
+        //    //        {
+        //    //            uint32_t subresourceIdx = imageInfo.subresourceInfoIdx + i;
+        //    //
+        //    //            VulkanImageSubresource* subImage = res->getSubresource(0, subresourceIdx);
+        //    //            if (!subImage)
+        //    //                continue;
+        //    //
+        //    //            ImageSubresourceInfo& subresource = subImage->mImageSubresourceInfo;
+        //    //
+        //    //            if (!VulkanUtility::rangeOverlaps(subresource.range, range))
+        //    //            {
+        //    //                // Just copy as is
+        //    //            }
+        //    //            else // Need to cut
+        //    //            {
+        //    //                uint32_t numCutRanges;
+        //    //                VulkanUtility::cutRange(subresource.range, range, tempCutRanges, numCutRanges);
+        //    //
+        //    //                for (uint32_t j = 0; j < numCutRanges; j++)
+        //    //                {
+        //    //                    // Create a copy of the original subresource with the new range
+        //    //                    ImageSubresourceInfo newInfo = subImage->mImageSubresourceInfo;
+        //    //                    newInfo.range = tempCutRanges[j];
+        //    //
+        //    //                    if (VulkanUtility::rangeOverlaps(tempCutRanges[j], range))
+        //    //                    {
+        //    //                        // Update overlapping sub-resource range with new data from this range
+        //    //                        updateSubresourceInfo(res, 0, newInfo, newLayout, finalLayout, flags, usage);
+        //    //
+        //    //                        // Keep track of the overlapping ranges for later
+        //    //                        cutOverlappingRanges.push_back((uint32_t)subresourceIdx);
+        //    //                    }
+        //    //
+        //    //                    //mSubresourceInfoStorage.push_back(newInfo);
+        //    //                    //mPassTouchedSubresourceInfos.insert((uint32_t)mSubresourceInfoStorage.size() - 1);
+        //    //                }
+        //    //            }
+        //    //        }
+        //    //
+        //    //        // Our range doesn't overlap with any existing ranges, so just add it
+        //    //        if (cutOverlappingRanges.size() == 0)
+        //    //        {
+        //    //            registerSubresourceInfo(range);
+        //    //        }
+        //    //        else // Search if overlapping ranges fully cover the requested range, and insert non-covered regions
+        //    //        {
+        //    //            std::queue<VkImageSubresourceRange> sourceRanges;
+        //    //            sourceRanges.push(range);
+        //    //
+        //    //            for (auto& entry : cutOverlappingRanges)
+        //    //            {
+        //    //                VulkanImageSubresource* subImage = res->getSubresource(0, entry);
+        //    //                if (!subImage)
+        //    //                    continue;
+        //    //
+        //    //                ImageSubresourceInfo& subresource = subImage->mImageSubresourceInfo;
+        //    //
+        //    //                VkImageSubresourceRange& overlappingRange = subresource.range;
+        //    //
+        //    //                uint32_t numSourceRanges = (uint32_t)sourceRanges.size();
+        //    //                for (uint32_t i = 0; i < numSourceRanges; i++)
+        //    //                {
+        //    //                    VkImageSubresourceRange sourceRange = sourceRanges.front();
+        //    //                    sourceRanges.pop();
+        //    //
+        //    //                    uint32_t numCutRanges;
+        //    //                    VulkanUtility::cutRange(sourceRange, overlappingRange, tempCutRanges, numCutRanges);
+        //    //
+        //    //                    for (uint32_t j = 0; j < numCutRanges; j++)
+        //    //                    {
+        //    //                        // We only care about ranges outside of the ones we already covered
+        //    //                        if (!VulkanUtility::rangeOverlaps(tempCutRanges[j], overlappingRange))
+        //    //                            sourceRanges.push(tempCutRanges[j]);
+        //    //                    }
+        //    //                }
+        //    //            }
+        //    //
+        //    //            // Any remaining range hasn't been covered yet
+        //    //            while (!sourceRanges.empty())
+        //    //            {
+        //    //                registerSubresourceInfo(sourceRanges.front());
+        //    //                sourceRanges.pop();
+        //    //            }
+        //    //        }
+        //    //
+        //    //        imageInfo.subresourceInfoIdx = (uint32_t)range.baseMipLevel; // mSubresourceInfoStorage.size();
+        //    //        imageInfo.numSubresourceInfos = range.levelCount;
+        //    //    }
+        //    //}
+        //}
     }
     
     //// Register any sub-resources
@@ -2368,23 +2348,6 @@ ImageSubresourceInfo& VulkanCmdBuffer::findSubresourceInfo(VulkanImage* image, u
 
     assert(false); // Caller should ensure the subresource actually exists, so this shouldn't happen
     return image->getSubresource(0, 0)->mImageSubresourceInfo;
-
-    //uint32_t imageInfoIdx = mImages[image];
-    //ImageInfo& imageInfo = mImageInfos[imageInfoIdx];
-    //
-    //ImageSubresourceInfo* subresourceInfos = &mSubresourceInfoStorage[imageInfo.subresourceInfoIdx];
-    //for (uint32_t i = 0; i < imageInfo.numSubresourceInfos; i++)
-    //{
-    //    ImageSubresourceInfo& entry = subresourceInfos[i];
-    //    if (face >= entry.range.baseArrayLayer && face < (entry.range.baseArrayLayer + entry.range.layerCount) &&
-    //        mip >= entry.range.baseMipLevel && mip < (entry.range.baseMipLevel + entry.range.levelCount))
-    //    {
-    //        return entry;
-    //    }
-    //}
-    //
-    //assert(false); // Caller should ensure the subresource actually exists, so this shouldn't happen
-    //return subresourceInfos[0];
 }
 
 void VulkanCmdBuffer::getInProgressQueries(std::vector<VulkanTimerQuery*>& timer, std::vector<VulkanOcclusionQuery*>& occlusion) const
@@ -2489,14 +2452,8 @@ void VulkanCommandBuffer::acquireNewBuffer()
     }
 
     uint32_t queueFamily = mDevice._getPrimaryDevice()->getQueueFamily(mType);
-    //if (!mBuffer)
-        mBuffer = pool.getBuffer(queueFamily, mIsSecondary);
-        mBuffer->grab();
-    //else
-    //{
-    //    mBuffer->reset();
-    //    mBuffer->begin();
-    //}
+    mBuffer = pool.getBuffer(queueFamily, mIsSecondary);
+    mBuffer->grab();
 }
 
 void VulkanCommandBuffer::submit(uint32_t syncMask)
@@ -2511,14 +2468,12 @@ void VulkanCommandBuffer::submit(uint32_t syncMask)
     mBuffer->executeLayoutTransitions();
 
     // Interrupt any in-progress queries (no in-progress queries allowed during command buffer submit)
-    std::vector<VulkanTimerQuery*> timerQueries;
-    std::vector<VulkanOcclusionQuery*> occlusionQueries;
-    mBuffer->getInProgressQueries(timerQueries, occlusionQueries);
+    mBuffer->getInProgressQueries(mcacheTimerQueries, mcacheOcclusionQueries);
     
-    for (auto& query : timerQueries)
+    for (auto& query : mcacheTimerQueries)
         query->_interrupt(*mBuffer);
     
-    for (auto& query : occlusionQueries)
+    for (auto& query : mcacheOcclusionQueries)
         query->_interrupt(*mBuffer);
 
     if (mBuffer->isRecording())
@@ -2528,27 +2483,13 @@ void VulkanCommandBuffer::submit(uint32_t syncMask)
     {
         mBuffer->submit(mQueue, mQueueIdx, syncMask);
         acquireNewBuffer();
-
-        VulkanDevice* device = mDevice._getDevice(mDeviceIdx);
-        if (device)
-        {
-            for (UINT32 i = 0; i < GQT_COUNT; i++)
-            {
-                UINT32 numQueues = device->getNumQueues((GpuQueueType)i);
-                for (UINT32 j = 0; j < numQueues; j++)
-                {
-                    VulkanQueue* queue = device->getQueue((GpuQueueType)i, j);
-                    queue->refreshStates(true, false);
-                }
-            }
-        }
     }
 
     // Resume interrupted queries on the new command buffer
-    for (auto& query : timerQueries)
+    for (auto& query : mcacheTimerQueries)
         query->_resume(*mBuffer);
     
-    for (auto& query : occlusionQueries)
+    for (auto& query : mcacheOcclusionQueries)
         query->_resume(*mBuffer);
 }
 

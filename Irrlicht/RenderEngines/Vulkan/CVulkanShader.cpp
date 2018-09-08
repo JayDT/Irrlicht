@@ -362,8 +362,12 @@ void VulkanShaderGenericValuesBuffer::UpdateBuffer(video::IShader * gpuProgram, 
     auto inv = Driver->getTransform(ETS_VIEW);
     if (Driver->GetCurrentRenderMode() == CVulkanDriver::E_RENDER_MODE::ERM_3D)
     {
-        inv.makeInverse();
-        eyePositionVert->setShaderValues(inv.getTranslation());
+        if (viewMatrixTranslationCache != inv.getTranslation())
+        {
+            viewMatrixTranslationCache = inv.getTranslation();
+            inv.makeInverse();
+            eyePositionVert->setShaderValues(inv.getTranslation());
+        }
 
         if (n)
         {

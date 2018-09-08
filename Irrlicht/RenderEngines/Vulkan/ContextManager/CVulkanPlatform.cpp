@@ -66,4 +66,18 @@ void irr::video::CVulkanPlatform::swapBuffers(UINT32 syncMask)
 
     queue->present(mSwapChain, mSemaphoresTemp, numSemaphores);
     mRequiresNewBackBuffer = true;
+
+    VulkanDevice* device = presentDevice;
+    if (device)
+    {
+        for (UINT32 i = 0; i < GQT_COUNT; i++)
+        {
+            UINT32 numQueues = device->getNumQueues((GpuQueueType)i);
+            for (UINT32 j = 0; j < numQueues; j++)
+            {
+                VulkanQueue* queue = device->getQueue((GpuQueueType)i, j);
+                queue->refreshStates(true, false);
+            }
+        }
+    }
 }

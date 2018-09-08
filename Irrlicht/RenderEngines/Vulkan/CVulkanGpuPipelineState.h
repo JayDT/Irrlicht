@@ -131,8 +131,8 @@ namespace irr
                 VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
                 VulkanPipeline* pipeline = nullptr;
                 VkSampler mSampler[MATERIAL_MAX_TEXTURES];
-                std::map<u64, VulkanPipeline*> pipelines;
-                std::map<u32, VkSampler> samplers;
+                std::unordered_map<u64, VulkanPipeline*> pipelines;
+                std::unordered_map<u32, VkSampler> samplers;
             };
 
             VkPipelineShaderStageCreateInfo mShaderStageInfos[5];

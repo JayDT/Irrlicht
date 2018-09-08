@@ -151,6 +151,7 @@ VKAPI_ATTR VkBool32 debugMsgCallback(VkDebugReportFlagsEXT flags, VkDebugReportO
 
     message << ": [" << pLayerPrefix << "] Code " << msgCode << ": " << pMsg << std::endl;
 
+
     if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
     {
         os::Printer::log(message.str().c_str());

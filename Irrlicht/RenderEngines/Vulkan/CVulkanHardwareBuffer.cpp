@@ -18,7 +18,7 @@ using namespace video;
 static bool memory_type_from_properties(vk::PhysicalDeviceMemoryProperties const& memory_properties, uint32_t typeBits, vk::MemoryPropertyFlags requirements_mask, uint32_t *typeIndex);
 
 VulkanBuffer::VulkanBuffer(CVulkanDriver* owner, VkBuffer buffer, VkBufferView view, VmaAllocation allocation,
-    uint32_t rowPitch, uint32_t slicePitch)
+    uint32_t rowPitch, uint32_t slicePitch, void* MappedData /*= nullptr*/)
     : CVulkanDeviceResource(owner)
     , mBuffer(buffer)
     , mView(view)
@@ -35,19 +35,12 @@ VulkanBuffer::VulkanBuffer(CVulkanDriver* owner, VkBuffer buffer, VkBufferView v
     VkDeviceSize bufferSize;
     device->getAllocationInfo(mAllocation, memory, memoryOffset, &bufferSize);
 
-    persistdata = nullptr;
-    if (owner->_getPrimaryDevice()->IsPersistentMap(mAllocation))
-    {
-        map(owner->_getPrimaryDevice(), 0, bufferSize);
-    }
+    pMappedData = (UINT8*)MappedData;
 }
 
 VulkanBuffer::~VulkanBuffer()
 {
     VulkanDevice* device = Driver->_getPrimaryDevice();
-
-    if (persistdata && Driver->_getPrimaryDevice()->IsPersistentMap(mAllocation))
-        vkUnmapMemory(Driver->_getPrimaryDevice()->getLogical(), memory);
 
     if (mView != VK_NULL_HANDLE)
         vkDestroyBufferView(device->getLogical(), mView, VulkanDevice::gVulkanAllocator);
@@ -58,22 +51,19 @@ VulkanBuffer::~VulkanBuffer()
 
 UINT8* VulkanBuffer::map(VulkanDevice * device, VkDeviceSize offset, VkDeviceSize length) const
 {
-    if (persistdata && device->IsPersistentMap(mAllocation))
-        return persistdata;
+    if (pMappedData)
+        return pMappedData;
 
     UINT8* data;
     VkResult result = vkMapMemory(device->getLogical(), memory, memoryOffset + offset, length, 0, (void**)&data);
     assert(result == VK_SUCCESS);
-
-    if (device->IsPersistentMap(mAllocation))
-        persistdata = data;
 
     return data;
 }
 
 void VulkanBuffer::unmap(VulkanDevice * device)
 {
-    if (Driver->_getPrimaryDevice()->IsPersistentMap(mAllocation))
+    if (pMappedData)
         return;
 
     vkUnmapMemory(device->getLogical(), memory);
@@ -500,7 +490,7 @@ u32 irr::video::CVulkanHardwareBuffer::GetMemoryAccessType(E_HARDWARE_BUFFER_ACC
         if (createFlags)
             *createFlags = VMA_ALLOCATION_CREATE_MAPPED_BIT; // Persistent Mapped
         _flags = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-        _preferflags = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+        _preferflags = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT; // | VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
     }
 
     if (flags)
@@ -739,10 +729,11 @@ VulkanBuffer * irr::video::CVulkanHardwareBuffer::CreateBuffer(VulkanDevice & de
     VkMemoryPropertyFlags preferflags;
     u32 usage;
     u32 createFlags;
+    void* mappedMemory = nullptr;
     GetMemoryAccessType(AccessType, &flags, &preferflags, &usage, &createFlags);
-    VmaAllocation allocation = Device->allocateBufferMemory(buffer, flags, preferflags, usage, createFlags);
+    VmaAllocation allocation = Device->allocateBufferMemory(buffer, flags, preferflags, usage, createFlags, &mappedMemory);
 
-    VulkanBuffer* vkbuffer =  new VulkanBuffer(Driver, buffer, VK_NULL_HANDLE, allocation, stride);
+    VulkanBuffer* vkbuffer =  new VulkanBuffer(Driver, buffer, VK_NULL_HANDLE, allocation, stride, 0, mappedMemory);
 
     if (staging)
     {

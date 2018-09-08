@@ -85,7 +85,7 @@ void VulkanSwapChain::rebuild(VulkanDevice* device, VkSurfaceKHR surface, uint32
 
     delete[](presentModes);
 
-    uint32_t numImages = surfaceCaps.minImageCount;
+    uint32_t numImages = std::max(3u, surfaceCaps.minImageCount);
 
     VkSurfaceTransformFlagsKHR transform = {};
     if (surfaceCaps.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
@@ -166,7 +166,7 @@ void VulkanSwapChain::rebuild(VulkanDevice* device, VkSurfaceKHR surface, uint32
         //depthStencilImageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         depthStencilImageCI.samples = VK_SAMPLE_COUNT_1_BIT;
         depthStencilImageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
-        depthStencilImageCI.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT /*| VK_IMAGE_USAGE_TRANSFER_SRC_BIT*/;
+        depthStencilImageCI.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
         depthStencilImageCI.pQueueFamilyIndices = nullptr;
         depthStencilImageCI.queueFamilyIndexCount = 0;
 

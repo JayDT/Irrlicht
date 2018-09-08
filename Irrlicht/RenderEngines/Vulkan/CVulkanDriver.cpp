@@ -570,6 +570,7 @@ bool irr::video::CVulkanDriver::beginScene(bool backBuffer, bool zBuffer, SColor
 
     mPlatform->acquireBackBuffer();
 
+    //mMainCommandBuffer->getInternal()->setSwapChain(_getSwapChain());
     mMainCommandBuffer->getInternal()->setRenderTarget(nullptr, 0, RenderSurfaceMaskBits::RT_ALL, true);
     mMainCommandBuffer->getInternal()->clearViewport(FrameBufferType::FBT_COLOR | FrameBufferType::FBT_DEPTH | FrameBufferType::FBT_STENCIL, color, 1.0f, 0, 0xFF);
 

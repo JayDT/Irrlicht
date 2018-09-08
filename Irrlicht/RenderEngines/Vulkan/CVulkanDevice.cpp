@@ -423,7 +423,7 @@ VmaAllocation VulkanDevice::allocateImageMemory(VkImage image, VkMemoryPropertyF
     return allocation;
 }
 
-VmaAllocation VulkanDevice::allocateBufferMemory(VkBuffer buffer, VkMemoryPropertyFlags flags, VkMemoryPropertyFlags preferflags, u32 usage, u32 createFlags)
+VmaAllocation VulkanDevice::allocateBufferMemory(VkBuffer buffer, VkMemoryPropertyFlags flags, VkMemoryPropertyFlags preferflags, u32 usage, u32 createFlags, void** mappedData /*= nullptr*/)
 {
     VmaAllocationCreateInfo allocCI = {};
     allocCI.usage = VmaMemoryUsage(usage);
@@ -435,6 +435,9 @@ VmaAllocation VulkanDevice::allocateBufferMemory(VkBuffer buffer, VkMemoryProper
     VmaAllocation memory;
     VkResult result = vmaAllocateMemoryForBuffer(mAllocator, buffer, &allocCI, &memory, &allocInfo);
     assert(result == VK_SUCCESS);
+
+    if (mappedData)
+        *mappedData = allocInfo.pMappedData;
 
     result = vkBindBufferMemory(mLogicalDevice, buffer, allocInfo.deviceMemory, allocInfo.offset);
     assert(result == VK_SUCCESS);

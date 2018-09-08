@@ -383,6 +383,8 @@ namespace irr
 
             VulkanGpuParams* getGpuParams() { return mBoundParams; }
 
+            void setSwapChain(VulkanSwapChain* chain) { mSwapChains.push_back(chain); }
+
         private:
             friend class VulkanCmdBufferPool;
             friend class VulkanCommandBuffer;
@@ -500,7 +502,7 @@ namespace irr
             std::vector<VulkanImage*> mQueuedLayoutTransitions;
             std::vector<VulkanEvent*> mQueuedEvents;
             std::vector<VulkanQuery*> mQueuedQueryResets;
-            std::unordered_set<VulkanSwapChain*> mSwapChains;
+            std::vector < VulkanSwapChain* > mSwapChains;
         };
 
         /** CommandBuffer implementation for Vulkan. */
@@ -537,6 +539,9 @@ namespace irr
             CVulkanDriver& mDevice;
             VulkanQueue* mQueue;
             uint32_t mIdMask;
+
+            std::vector<VulkanTimerQuery*> mcacheTimerQueries;
+            std::vector<VulkanOcclusionQuery*> mcacheOcclusionQueries;
         };
 
         /** Wrapper around a command buffer used specifically for transfer operations. */

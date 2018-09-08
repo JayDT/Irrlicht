@@ -46,7 +46,7 @@ namespace irr
             * @param[in]	rowPitch	If buffer maps to an image sub-resource, length of a single row (in elements).
             * @param[in]	slicePitch	If buffer maps to an image sub-resource, size of a single 2D surface (in elements).
             */
-            VulkanBuffer(CVulkanDriver* owner, VkBuffer buffer, VkBufferView view, VmaAllocation allocation, uint32_t rowPitch = 0, uint32_t slicePitch = 0);
+            VulkanBuffer(CVulkanDriver* owner, VkBuffer buffer, VkBufferView view, VmaAllocation allocation, uint32_t rowPitch = 0, uint32_t slicePitch = 0, void* MappedData = nullptr);
             virtual ~VulkanBuffer();
 
             virtual void OnDeviceDestroy(CVulkanDriver* device) _IRR_OVERRIDE_ {}
@@ -115,7 +115,7 @@ namespace irr
             VkDeviceMemory memory;
             VkDeviceSize memoryOffset;
 
-            mutable UINT8* persistdata;
+            mutable UINT8* pMappedData;
 
             // Inherited via CVulkanDeviceResource
             virtual void OnDeviceLost(CVulkanDriver * device) override;
