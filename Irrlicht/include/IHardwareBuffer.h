@@ -25,7 +25,6 @@ namespace irr
     namespace video
     {
         enum E_VERTEX_ELEMENT_SEMANTIC : irr::u8;
-        struct IShaderDataBuffer;
 
         enum class E_HARDWARE_BUFFER_TYPE : u8
         {
@@ -73,21 +72,17 @@ namespace irr
         class IRRLICHT_API IHardwareBuffer : public virtual IReferenceCounted
         {
             const scene::IMeshBuffer *MeshBuffer;
-            IShaderDataBuffer* InstanceBuffer;
             bool m_manualBind : 1;
             bool m_binded : 1;
 
             IHardwareBuffer(IHardwareBuffer const&);
         public:
 
-            IHardwareBuffer(scene::IMeshBuffer *meshBuffer, IShaderDataBuffer* instanceBuffer)
+            IHardwareBuffer(scene::IMeshBuffer *meshBuffer)
                 : MeshBuffer(meshBuffer)
-                , InstanceBuffer(instanceBuffer)
                 , m_manualBind(false)
                 , m_binded(false)
             {
-                //if (instanceBuffer && !GetBuffer()->GetGPUProgram())
-                //    throw std::runtime_error("invalid instance init");
             }
 
             virtual ~IHardwareBuffer() {}
@@ -139,8 +134,6 @@ namespace irr
 
             const scene::IMeshBuffer * GetBuffer() const { return MeshBuffer; }
             scene::IMeshBuffer * GetBuffer() { return (scene::IMeshBuffer *)MeshBuffer; }
-
-            IShaderDataBuffer* GetInstanceBuffer() { return InstanceBuffer; }
 
             virtual void Bind()
             {

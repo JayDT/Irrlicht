@@ -45,6 +45,8 @@ namespace irr
 {
     namespace video
     {
+        enum E_SHADER_VARIABLE_TYPE : u8;
+
         class VulkanDevice;
         class CVulkanDriver;
 
@@ -132,6 +134,8 @@ namespace irr
             
             ///** Checks if the two image subresource ranges have any overlapping subresources. */
             static bool rangeOverlaps(const VkImageSubresourceRange& a, const VkImageSubresourceRange& b);
+
+            static video::E_SHADER_VARIABLE_TYPE getShaderVariableTypeId(u32 glslangType);
         };
 
         /** @} */

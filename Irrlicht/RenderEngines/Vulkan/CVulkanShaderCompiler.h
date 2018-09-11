@@ -54,7 +54,7 @@ namespace irr
 
             virtual ~CVulkanGLSLang();
 
-            bool CompileShader(VkShaderModule * modul, E_ShaderTypes type, System::IO::IFileReader * file, const char * entryPoint, const char* shaderModel);
+            bool CompileShader(VkShaderModule * modul, E_SHADER_TYPES type, System::IO::IFileReader * file, const char * entryPoint, const char* shaderModel);
         };
     }
 }

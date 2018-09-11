@@ -64,6 +64,15 @@ DXGI_FORMAT getFormat(E_VERTEX_ELEMENT_TYPE type)
         case EVET_UINT4:
             return DXGI_FORMAT_R32G32B32A32_UINT;
 
+        case EVET_INT1:
+            return DXGI_FORMAT_R32_SINT;
+        case EVET_INT2:
+            return DXGI_FORMAT_R32G32_SINT;
+        case EVET_INT3:
+            return DXGI_FORMAT_R32G32B32_SINT;
+        case EVET_INT4:
+            return DXGI_FORMAT_R32G32B32A32_SINT;
+
         case EVET_SHORT2:
             return DXGI_FORMAT_R16G16_SINT;
         case EVET_SHORT4:

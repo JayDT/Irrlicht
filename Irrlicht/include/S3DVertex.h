@@ -303,6 +303,10 @@ inline u32 getVertexPitchFromType(E_VERTEX_TYPE vertexType)
     }
 }
 
+struct I3DStreamElement
+{
+
+};
 
 } // end namespace video
 } // end namespace irr

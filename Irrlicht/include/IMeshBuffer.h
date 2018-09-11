@@ -23,7 +23,7 @@ namespace irr
         enum E_VERTEX_ELEMENT_SEMANTIC : irr::u8;
         class IHardwareBuffer;
         struct IShader;
-        struct IShaderDataBuffer;
+        struct IConstantBuffer;
     }
 
     namespace video
@@ -104,6 +104,8 @@ namespace irr
 
 namespace scene
 {
+    class IStreamBuffer;
+
 	//! Struct for holding a mesh with a single material.
 	/** A part of an IMesh which has the same material on each face of that
 	group. Logical groups of an IMesh need not be put into separate mesh
@@ -306,9 +308,8 @@ namespace scene
                 m_vertexDecl->grab();
         }
 
-        virtual video::IShaderDataBuffer* GetHWInstanceBuffer() { return nullptr; }
-        virtual void SetHWInstanceBuffer(video::IShaderDataBuffer* instanceBuffer) {}
-        virtual const std::vector<video::IShaderDataBuffer*>* GetShaderConstantBuffers() const { return nullptr; }
+        virtual irr::scene::IStreamBuffer* getStreamBuffer() const { return nullptr; }
+        virtual const std::vector<video::IConstantBuffer*>* GetShaderConstantBuffers() const { return nullptr; }
 	};
 
 } // end namespace scene

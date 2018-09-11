@@ -12,15 +12,18 @@
 #include "glslang/Public/ShaderLang.h"
 #include "glslang/MachineIndependent/reflection.h"
 #include "SPIRV/GlslangToSpv.h"
+#include "glslang/Include/Common.h"
 
 using namespace irr;
 using namespace irr::video;
 
+extern EShLanguage GetCompileLang(E_SHADER_TYPES type);
+
 core::matrix4 VK_UnitMatrix;
 core::matrix4 VK_SphereMapMatrix;
 
-irr::video::CVulkanGLSLProgram::CVulkanGLSLProgram(video::IVideoDriver * context, E_ShaderTypes type)
-    : IShader(context, type)
+irr::video::CVulkanGLSLProgram::CVulkanGLSLProgram(video::IVideoDriver * context, E_SHADER_LANG type)
+    : CNullShader(context, type)
     , CVulkanDeviceResource(static_cast<CVulkanDriver*>(context))
 {
 }
@@ -39,14 +42,6 @@ irr::video::CVulkanGLSLProgram::~CVulkanGLSLProgram()
     }
 }
 
-void irr::video::CVulkanGLSLProgram::bind()
-{
-}
-
-void irr::video::CVulkanGLSLProgram::unbind()
-{
-}
-
 void irr::video::CVulkanGLSLProgram::Init()
 {
     getLayout();
@@ -59,11 +54,11 @@ bool irr::video::CVulkanGLSLProgram::enumInputLayout(void *)
     return false;
 }
 
-void irr::video::CVulkanGLSLProgram::BuildBufferDesc(irr::video::CVulkanGLSLang & compiler, E_ShaderTypes type)
+void irr::video::CVulkanGLSLProgram::BuildBufferDesc(irr::video::CVulkanGLSLang & compiler, E_SHADER_TYPES type)
 {
 }
 
-bool irr::video::CVulkanGLSLProgram::initializeUniforms(irr::video::CVulkanGLSLang& compiler, E_ShaderTypes shaderType)
+bool irr::video::CVulkanGLSLProgram::initializeUniforms(irr::video::CVulkanGLSLang& compiler, E_SHADER_TYPES shaderType)
 {
     uint32 num = compiler.Reflection->getNumUniforms();
     for (uint32 i = 0; i < num; ++i)
@@ -72,130 +67,266 @@ bool irr::video::CVulkanGLSLProgram::initializeUniforms(irr::video::CVulkanGLSLa
 
         if (bufferEntry.getType()->getBasicType() == glslang::TBasicType::EbtSampler)
         {
-            Textures.push_back(new CbufferDesc);
-            CbufferDesc& buffdesc = *Textures.back();
-            buffdesc.shaderType = shaderType;
-            buffdesc.binding = bufferEntry.getBinding();
-
-            buffdesc.varDesc.m_name = bufferEntry.name.c_str();
-            buffdesc.varDesc.m_location = i;
-            buffdesc.varDesc.m_shaderIndex = ShaderBuffers.size() - 1;
-            buffdesc.varDesc.m_type = ESVT_UNIFORM;
-
-            AddShaderVariable(&buffdesc.varDesc);
+            SShaderVariableScalar* var = new SShaderVariableScalar();
+            var->mName = bufferEntry.name.c_str();
+            var->mParent = nullptr;
+            var->mBuffer = nullptr;
+            var->mOffset = bufferEntry.getBinding();
+            var->mShaderStage = shaderType;
+            var->mType = CNullShader::GetShaderType(
+                VulkanUtility::getShaderVariableTypeId(bufferEntry.getType()->getBasicType()),
+                bufferEntry.getType()->getArraySizes() ? bufferEntry.getType()->getArraySizes()->getDimSize(0) : 1,
+                bufferEntry.getType()->getStruct() ? bufferEntry.getType()->getStruct()->size() : 0,
+                bufferEntry.getType()->getMatrixRows(),
+                bufferEntry.getType()->isMatrix() ? bufferEntry.getType()->getMatrixCols() : bufferEntry.getType()->getVectorSize(),
+                0,
+                0,
+                0,
+                bufferEntry.size
+            );
+            if (bufferEntry.getType()->getQualifier().hasIndex())
+                var->mLayoutIndex = bufferEntry.getType()->getQualifier().layoutIndex;
+            else
+                var->mLayoutIndex = -1;
+            var->mIsValid = true;
+            var->mIsDirty = false;
+            mTextures.push_back(var);
         }
+        //else // Uniforms
+        //{
+        //    SConstantBuffer* irrCB = new SConstantBuffer(this, shaderType);
+        //    AddConstantBuffer(irrCB);
+        //
+        //    // Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+        //    irrCB->mHwObject = static_cast<CVulkanHardwareBuffer*>(Driver->createHardwareBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS, E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC, bufferEntry.size));
+        //    irrCB->mHostMemory.resize(bufferEntry.size);
+        //
+        //    irrCB->mOffset = bufferEntry.offset;
+        //    irrCB->mBindPoint = bufferEntry.getBinding();
+        //    irrCB->mName = bufferEntry.name.c_str();
+        //    irrCB->mBufferType = ESVT_UNIFORM;
+        //
+        //    irrCB->mType = CNullShader::GetShaderType(
+        //        VulkanUtility::getShaderVariableTypeId(bufferEntry.getType()->getBasicType()),
+        //        bufferEntry.getType()->getArraySizes() ? bufferEntry.getType()->getArraySizes()->getDimSize(0) : 1,
+        //        bufferEntry.getType()->getStruct() ? bufferEntry.getType()->getStruct()->size() : 0,
+        //        bufferEntry.getType()->getMatrixRows(),
+        //        bufferEntry.getType()->isMatrix() ? bufferEntry.getType()->getMatrixCols() : bufferEntry.getType()->getVectorSize(),
+        //        0,
+        //        0,
+        //        0,
+        //        bufferEntry.size);
+        //
+        //    ReflParseStruct(irrCB, nullptr, bufferEntry.getType(), irrCB->mVariables, "", bufferEntry.size);
+        //}
     }
 
     return true;
 }
 
-void irr::video::CVulkanGLSLProgram::ReflParseStruct(irr::video::CVulkanGLSLProgram::CbufferDesc& buffdesc, irr::video::CVulkanGLSLProgram::ShaderConstantDesc* parent, const glslang::TType* type, std::vector<irr::video::CVulkanGLSLProgram::ShaderConstantDesc>& Variables, std::string namePrefix)
+void irr::video::CVulkanGLSLProgram::ReflParseStruct(glslang::TIntermediate* shaderIntermediate, SConstantBuffer* buffdesc, irr::video::IShaderVariable* parent, const glslang::TType* type,
+    std::vector<irr::video::IShaderVariable*>& Variables, std::string namePrefix, u32 pParentSize)
 {
-    std::string bufferPrefixName = buffdesc.varDesc.m_name + '.';
-
     uint32 elementNum = type->getStruct()->size();
     Variables.resize(elementNum);
     for (int m = 0; m < elementNum; ++m)
     {
-        const auto& pVariable = (*type->getStruct())[m];
+        const glslang::TTypeLoc& pVariable = (*type->getStruct())[m];
 
-        irr::video::CVulkanGLSLProgram::ShaderConstantDesc& structDecl = Variables[m];
-        structDecl.BufferDesc = &buffdesc;
-        structDecl.Parent = parent;
+        irr::video::IShaderVariable*& structDecl = Variables[m];
 
-        //assert(pVariable.type->getQualifier().hasOffset()); // ToDo: implement TParseContext::fixBlockUniformOffsets after know layout format
-        if (pVariable.type->getQualifier().hasOffset())
-            structDecl.offset = pVariable.type->getQualifier().layoutOffset;
-        if (pVariable.type->getQualifier().hasAlign())
-            structDecl.varDesc.m_size = pVariable.type->getQualifier().layoutAlign;
+        int memberSize;
+        int dummyStride;
+        u32 Offset;
+        glslang::TLayoutMatrix matrixLayout = pVariable.type->getQualifier().layoutMatrix;
+        int memberAlignment = shaderIntermediate->getBaseAlignment(*pVariable.type, memberSize, dummyStride, buffdesc->mLayout16ByteAlign,
+            matrixLayout != glslang::ElmNone ? matrixLayout == glslang::ElmRowMajor : buffdesc->mRowMajor);
 
-        structDecl.varDesc.m_name = pVariable.type->getFieldName().c_str();
-        structDecl.varDesc.m_length = pVariable.type->getArraySizes() ? pVariable.type->getArraySizes()->getDimSize(0) : 1;
-        structDecl.varDesc.m_variableType = pVariable.type->getBasicType();
-        structDecl.elementSize = 0;
+        if (!pVariable.type->getQualifier().hasOffset())
+        {
+            if (m > 0)
+            {
+                int memberSizePrev;
+                int dummyStridePrev;
+                const glslang::TTypeLoc& pVariablePrev = (*type->getStruct())[m - 1];
+                glslang::TLayoutMatrix subMatrixLayout = pVariablePrev.type->getQualifier().layoutMatrix;
+                int memberAlignment = shaderIntermediate->getBaseAlignment(*pVariablePrev.type, memberSizePrev, dummyStridePrev, buffdesc->mLayout16ByteAlign,
+                    subMatrixLayout != glslang::ElmNone ? subMatrixLayout == glslang::ElmRowMajor : buffdesc->mRowMajor);
 
-        structDecl.varDesc.m_location = m;                          // Buffer Variable Index
-        structDecl.varDesc.m_class = 0;
-        structDecl.varDesc.m_size = 0;
-        structDecl.varDesc.m_type = ESVT_CONSTANT;
-        structDecl.varDesc.m_shaderIndex = buffdesc.varDesc.m_shaderIndex; // Buffer Desc Index
+                Offset = Variables[m - 1]->_getOffset() + memberSizePrev;
+                // "The actual alignment of a member will be the greater of the specified align alignment and the standard
+                // (e.g., std140) base alignment for the member's type."
+                if (pVariable.type->getQualifier().hasAlign())
+                    memberAlignment = std::max(memberAlignment, pVariable.type->getQualifier().layoutAlign);
 
-        structDecl.name = bufferPrefixName + namePrefix + pVariable.type->getFieldName().c_str();
-        structDecl.varDesc.m_name = namePrefix + pVariable.type->getFieldName().c_str();
+                // "If the resulting offset is not a multiple of the actual alignment,
+                // increase it to the first offset that is a multiple of
+                // the actual alignment."
+                glslang::RoundToPow2(Offset, memberAlignment);
+            }
+            else
+            {
+                Offset = parent->_getOffset();
+            }
+        }
+        else
+        {
+            Offset = pVariable.type->getQualifier().layoutOffset;
+        }
+
+        //_IRR_DEBUG_BREAK_IF(!pVariable.type->getQualifier().hasOffset());
+        //if (pVariable.type->getQualifier().hasAlign())
+        //    structDecl.varDesc.m_size = pVariable.type->getQualifier().layoutAlign;
+
+        video::E_SHADER_VARIABLE_TYPE eShaderType = VulkanUtility::getShaderVariableTypeId(pVariable.type->getBasicType());
+        
+        SShaderType * _shaderType = CNullShader::GetShaderType(
+            eShaderType,
+            pVariable.type->getArraySizes() ? pVariable.type->getArraySizes()->getDimSize(0) : 1,
+            pVariable.type->getStruct() ? pVariable.type->getStruct()->size() : 0,
+            pVariable.type->getMatrixRows(),
+            pVariable.type->isMatrix() ? pVariable.type->getMatrixCols() : pVariable.type->getVectorSize(),
+            memberSize,
+            memberAlignment,
+            0,
+            0
+        );
 
         if (pVariable.type->getStruct())
         {
-            std::string _namePrefix = namePrefix + pVariable.type->getFieldName().c_str();
-            _namePrefix += '.';
+            SShaderVariableStruct* structVar = new SShaderVariableStruct();
+            structVar->mName = pVariable.type->getFieldName().c_str(); // (namePrefix + pVariable.type->getFieldName().c_str()).c_str();
+            structVar->mParent = parent;
+            structVar->mBuffer = buffdesc;
+            structVar->mOffset = Offset;
+            if (pVariable.type->getQualifier().hasIndex())
+                structVar->mLayoutIndex = pVariable.type->getQualifier().layoutIndex;
+            else
+                structVar->mLayoutIndex = -1;
+            structVar->mType = _shaderType;
+            structVar->mIsValid = true;
+            structVar->mIsDirty = true;
+            structVar->mLoaderData = pVariable.type;
 
-            ReflParseStruct(buffdesc, &structDecl, pVariable.type, structDecl.members, _namePrefix);
+            structDecl = structVar;
+        }
+        else if (pVariable.type->isMatrix())
+        {
+            SShaderVariableMatrix* matVar = new SShaderVariableMatrix();
+            matVar->mName = pVariable.type->getFieldName().c_str(); //(namePrefix + pVariable.type->getFieldName().c_str()).c_str();
+            matVar->mParent = parent;
+            matVar->mBuffer = buffdesc;
+            matVar->mOffset = Offset;
+            if (pVariable.type->getQualifier().hasIndex())
+                matVar->mLayoutIndex = pVariable.type->getQualifier().layoutIndex;
+            else
+                matVar->mLayoutIndex = -1;
+            matVar->mType = _shaderType;
+            matVar->mIsRowMajor = pVariable.type->getQualifier().layoutMatrix == glslang::TLayoutMatrix::ElmRowMajor;
+            matVar->mIsValid = true;
+            matVar->mIsDirty = true;
+
+            structDecl = matVar;
+        }
+        else if (pVariable.type->isScalar() || pVariable.type->isVector())
+        {
+            SShaderVariableScalar* var = new SShaderVariableScalar();
+            var->mName = pVariable.type->getFieldName().c_str(); //(namePrefix + pVariable.type->getFieldName().c_str()).c_str();
+            var->mParent = parent;
+            var->mBuffer = buffdesc;
+            var->mOffset = Offset;
+            if (pVariable.type->getQualifier().hasIndex())
+                var->mLayoutIndex = pVariable.type->getQualifier().layoutIndex;
+            else
+                var->mLayoutIndex = -1;
+            var->mType = _shaderType;
+            var->mIsValid = true;
+            var->mIsDirty = true;
+
+            structDecl = var;
         }
     }
 
-    std::sort(Variables.begin(), Variables.end(), [](irr::video::CVulkanGLSLProgram::ShaderConstantDesc const& lhs, irr::video::CVulkanGLSLProgram::ShaderConstantDesc const& rhs)
+    std::sort(Variables.begin(), Variables.end(), [](irr::video::IShaderVariable* lhs, irr::video::IShaderVariable* rhs)
     {
-        return lhs.offset < rhs.offset;
+        return lhs->_getOffset() < rhs->_getOffset();
     });
 
     for (int m = 0; m < elementNum - 1; ++m)
     {
-        auto& pVariable = Variables[m];
-        const auto& pVariableNext = Variables[m + 1];
+        auto pVariable = Variables[m];
+        auto pVariableNext = Variables[m + 1];
 
-        uint32 dataSize = pVariableNext.offset - pVariable.offset;
-        uint32 elementSize = dataSize / pVariable.varDesc.m_length;
+        uint32 stride = pVariable->getType()->Stride == 0 ? pVariableNext->_getOffset() - pVariable->_getOffset() : pVariable->getType()->Stride;
+        assert((pVariableNext->_getOffset() - pVariable->_getOffset()) == stride);
+        uint32 elementSize = stride / pVariable->getType()->Elements;
 
-        pVariable.varDesc.m_location = m;
-        pVariable.varDesc.m_size = dataSize;
-        pVariable.elementSize = elementSize;
-
-        AddShaderVariable(&pVariable.varDesc);
+        pVariable->getType()->ArrayStride = elementSize;
+        pVariable->getType()->Stride = stride;
     }
 
     auto& pVariable = Variables.back();
-    uint32 dataSize = parent ? 0 : buffdesc.DataBuffer.size() - pVariable.offset; // ToDo
-    uint32 elementSize = dataSize / pVariable.varDesc.m_length;
+    uint32 stride = pVariable->getType()->Stride == 0 ? ((parent ? (parent->_getOffset() + pParentSize) : pParentSize) - pVariable->_getOffset()) : pVariable->getType()->Stride; // ToDo
+    assert(((parent ? (parent->_getOffset() + pParentSize) : pParentSize) - pVariable->_getOffset()) == stride);
+    uint32 elementSize = stride / pVariable->getType()->Elements;
 
-    pVariable.varDesc.m_location = elementNum - 1;
-    pVariable.varDesc.m_size = dataSize;
-    pVariable.elementSize = elementSize;
+    pVariable->getType()->ArrayStride = elementSize;
+    pVariable->getType()->Stride = stride;
 
-    AddShaderVariable(&pVariable.varDesc);
+    for (int m = 0; m < elementNum; ++m)
+    {
+        auto pVariable = Variables[m];
+
+        if (pVariable->_asStruct() && pVariable->getType()->Members > 0)
+        {
+            std::string _namePrefix = (namePrefix + pVariable->GetName().c_str()).c_str();
+            _namePrefix += '.';
+
+            ReflParseStruct(shaderIntermediate, buffdesc, pVariable, static_cast<glslang::TType*>(pVariable->_asStruct()->mLoaderData), pVariable->_asStruct()->mVariables, _namePrefix, pVariable->getType()->Stride);
+        }
+    }
 }
 
-bool irr::video::CVulkanGLSLProgram::initializeConstantBuffers(irr::video::CVulkanGLSLang& compiler, E_ShaderTypes shaderType)
+bool irr::video::CVulkanGLSLProgram::initializeConstantBuffers(irr::video::CVulkanGLSLang& compiler, E_SHADER_TYPES shaderType)
 {
+    glslang::TIntermediate* shaderIntermediate = compiler.Program->getIntermediate(GetCompileLang(shaderType));
+
     uint32 num = compiler.Reflection->getNumUniformBlocks();
     for (uint32 i = 0; i < num; ++i)
     {
         const auto& bufferEntry = compiler.Reflection->getUniformBlock(i);
 
-        ShaderBuffers.push_back(new CbufferDesc);
-        CbufferDesc& buffdesc = *ShaderBuffers.back();
-
-        buffdesc.shaderType = shaderType;
+        SConstantBuffer* irrCB = new SConstantBuffer(this, shaderType);
+        AddConstantBuffer(irrCB);
 
         // Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-        buffdesc.m_constantBuffer = static_cast<CVulkanHardwareBuffer*>(Driver->createHardwareBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS, E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC, bufferEntry.size));
+        irrCB->mHwObject = static_cast<CVulkanHardwareBuffer*>(Driver->createHardwareBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS, E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC, bufferEntry.size));
+        irrCB->mHostMemory.resize(bufferEntry.size);
 
-        // init cpu cache
-        buffdesc.DataBuffer.set_used(bufferEntry.size);
-        memset(buffdesc.DataBuffer.pointer(), 0, buffdesc.DataBuffer.size());
-        buffdesc.ChangeId = 0;
+        irrCB->mOffset = bufferEntry.offset;
+        irrCB->mBindPoint = bufferEntry.getBinding();
+        irrCB->mName = bufferEntry.name.c_str();
+        irrCB->mBufferType = ESVT_CONSTANT;
+        irrCB->mRowMajor = bufferEntry.getType()->getQualifier().layoutMatrix == glslang::TLayoutMatrix::ElmRowMajor;
+        irrCB->mLayout16ByteAlign = bufferEntry.getType()->getQualifier().layoutAlign != glslang::TLayoutPacking::ElpStd140;
 
-        buffdesc.binding = bufferEntry.getBinding();
+        irrCB->mType = CNullShader::GetShaderType(
+            VulkanUtility::getShaderVariableTypeId(bufferEntry.getType()->getBasicType()),
+            1,
+            bufferEntry.getType()->getStruct()->size(),
+            0,
+            1,
+            0,
+            0,
+            0,
+            bufferEntry.size);
 
-        buffdesc.varDesc.m_name = bufferEntry.name.c_str();
-        buffdesc.varDesc.m_location = i;
-        buffdesc.varDesc.m_shaderIndex = ShaderBuffers.size() - 1;
-        buffdesc.varDesc.m_type = ESVT_CONSTANT;
-
-        ReflParseStruct(buffdesc, nullptr, bufferEntry.getType(), buffdesc.Variables, "");
+        ReflParseStruct(shaderIntermediate, irrCB, nullptr, bufferEntry.getType(), irrCB->mVariables, "", bufferEntry.size);
     }
     return true;
 }
 
-bool irr::video::CVulkanGLSLProgram::CreateShaderModul(E_ShaderTypes type, CVulkanDriver * device, System::IO::IFileReader * file, const char * entryPoint, const char* shaderModel)
+bool irr::video::CVulkanGLSLProgram::CreateShaderModul(E_SHADER_TYPES type, CVulkanDriver * device, System::IO::IFileReader * file, const char * entryPoint, const char* shaderModel)
 {
     irr::video::CVulkanGLSLang compiler(Driver);
     bool result = compiler.CompileShader(GetShaderModule(type), type, file, entryPoint, shaderModel);
@@ -203,28 +334,41 @@ bool irr::video::CVulkanGLSLProgram::CreateShaderModul(E_ShaderTypes type, CVulk
     {
         mStages[type].first = entryPoint;
 
-        if (type == E_ShaderTypes::EST_VERTEX_SHADER)
+        if (type == E_SHADER_TYPES::EST_VERTEX_SHADER)
         {
             uint32 num = compiler.Reflection->getNumAttributes();
             for (uint32 i = 0; i < num; ++i)
             {
                 const auto& attrEntry = compiler.Reflection->getAttribute(i);
 
-                Attributes.emplace_back();
-                ShaderVariableDescriptor& desc = Attributes.back();
-
-                desc.m_type = ESVT_ATTRIBUTE;
-                desc.m_length = attrEntry.getType()->getArraySizes() ? attrEntry.getType()->getArraySizes()->getDimSize(0) : 1;
-
-                desc.m_name = attrEntry.name.c_str();
+                SShaderVariableScalar* var = new SShaderVariableScalar();
+                var->mName = attrEntry.name.c_str();
+                var->mParent = nullptr;
+                var->mBuffer = nullptr;
+                var->mOffset = attrEntry.offset;
                 if (attrEntry.getType()->getQualifier().hasIndex())
-                    desc.m_location = attrEntry.getType()->getQualifier().layoutIndex; // attrEntry.index;
+                    var->mLayoutIndex = attrEntry.getType()->getQualifier().layoutIndex; // attrEntry.index;
                 else
-                    desc.m_location = i; // attrEntry.index;
-                desc.m_variableType = attrEntry.getType()->getBasicType();
-                desc.m_shaderIndex = Attributes.size() - 1;
+                    var->mLayoutIndex = i;
+
                 if (attrEntry.getType()->getQualifier().semanticName)
-                    desc.m_semantic = attrEntry.getType()->getQualifier().semanticName;
+                    var->mSemantic = attrEntry.getType()->getQualifier().semanticName;
+
+                var->mType = CNullShader::GetShaderType(
+                    VulkanUtility::getShaderVariableTypeId(attrEntry.getType()->getBasicType()),
+                    attrEntry.getType()->getArraySizes() ? attrEntry.getType()->getArraySizes()->getDimSize(0) : 1,
+                    0,
+                    attrEntry.getType()->getMatrixRows(),
+                    attrEntry.getType()->isMatrix() ? attrEntry.getType()->getMatrixCols() : attrEntry.getType()->getVectorSize(),
+                    0,
+                    0,
+                    attrEntry.getType()->getArraySizes() ? attrEntry.size / attrEntry.getType()->getArraySizes()->getDimSize(0) : 0,
+                    attrEntry.size
+                );
+
+                var->mIsValid = true;
+                var->mIsDirty = false;
+                mVertexInput.push_back(var);
             }
         }
 
@@ -238,25 +382,30 @@ VulkanDescriptorLayout* irr::video::CVulkanGLSLProgram::getLayout()
 {
     if (!mLayout)
     {
-        mBindings.resize(ShaderBuffers.size() + Textures.size());
+        mBindings.reserve(u32(mBuffers.size()) + u32(mTextures.size()));
 
-        for (int i = 0; i < ShaderBuffers.size(); ++i)
+        for (int i = 0; i < mBuffers.size(); ++i)
         {
-            const auto& buf = ShaderBuffers[i];
-            VkDescriptorSetLayoutBinding& bind = mBindings[i];
-            bind.binding = buf->binding;
-            bind.stageFlags = GetShaderStageBit(buf->shaderType);
-            bind.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; // VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            const auto& buf = mBuffers[i];
+            mBindings.push_back({});
+            VkDescriptorSetLayoutBinding& bind = mBindings.back();
+            bind.binding = buf->getBindingIndex();
+            bind.stageFlags = GetShaderStageBit(static_cast<SConstantBuffer*>(buf->getRootBuffer())->mShaderStage);
+            bind.descriptorType = buf->mBufferType == ESVT_CONSTANT ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             bind.descriptorCount = 1;
             bind.pImmutableSamplers = nullptr;
         }
 
-        for (int i = 0; i < Textures.size(); ++i)
+        for (int i = 0; i < mTextures.size(); ++i)
         {
-            const auto& buf = Textures[i];
-            VkDescriptorSetLayoutBinding& bind = mBindings[i + ShaderBuffers.size()];
-            bind.binding = buf->binding;
-            bind.stageFlags = GetShaderStageBit(buf->shaderType);
+            const auto& buf = mTextures[i];
+            if (buf->getType()->Type != E_SHADER_VARIABLE_TYPE::ESVT_SAMPLER)
+                continue;
+
+            mBindings.push_back({});
+            VkDescriptorSetLayoutBinding& bind = mBindings.back();
+            bind.binding = buf->_getOffset();
+            bind.stageFlags = GetShaderStageBit(static_cast<SShaderVariableScalar*>(buf)->mShaderStage);
             bind.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             bind.descriptorCount = 1;
             bind.pImmutableSamplers = nullptr;
@@ -281,165 +430,165 @@ void irr::video::CVulkanGLSLProgram::OnDeviceRestored(CVulkanDriver * device)
 {
 }
 
-VulkanShaderGenericValuesBuffer::VulkanShaderGenericValuesBuffer(video::IShaderDataBuffer::E_UPDATE_TYPE updateType) : video::IShaderDataBuffer(updateType)
-{
-    world = nullptr;
-    view = nullptr;
-    projection = nullptr;
-    nTexture = nullptr;
-    AlphaTest = nullptr;
-    LightCount = nullptr;
-    AlphaRef = nullptr;
-    ShaderMaterial = nullptr;
-    ShaderLight = nullptr;
-}
-
-VulkanShaderGenericValuesBuffer::~VulkanShaderGenericValuesBuffer()
-{
-}
-
-void VulkanShaderGenericValuesBuffer::InitializeFormShader(video::IShader * gpuProgram, void * Descriptor)
-{
-#define UNSAFE_ADD_DATABUFFER_ELEMENT(var, type, name) \
-    var = new video::ShaderDataBufferElementObject<type>(gpuProgram->GetGPUVariableDesc(name)); \
-    AddBufferElement(var);
-    UNSAFE_ADD_DATABUFFER_ELEMENT(world, core::matrix4, "worldMatrix");
-    UNSAFE_ADD_DATABUFFER_ELEMENT(view, core::matrix4, "viewMatrix");
-    UNSAFE_ADD_DATABUFFER_ELEMENT(projection, core::matrix4, "projectionMatrix");
-    UNSAFE_ADD_DATABUFFER_ELEMENT(textureMatrix1, core::matrix4, "textureMatrix1");
-    UNSAFE_ADD_DATABUFFER_ELEMENT(textureMatrix2, core::matrix4, "textureMatrix2");
-
-    UNSAFE_ADD_DATABUFFER_ELEMENT(nTexture, int, "g_nTexture");
-    UNSAFE_ADD_DATABUFFER_ELEMENT(AlphaTest, int, "g_bAlphaTest");
-    UNSAFE_ADD_DATABUFFER_ELEMENT(LightCount, int, "g_iLightCount");
-    UNSAFE_ADD_DATABUFFER_ELEMENT(AlphaRef, float, "g_fAlphaRef");
-    UNSAFE_ADD_DATABUFFER_ELEMENT(fogParams, video::SColorf, "g_fogParams");
-    UNSAFE_ADD_DATABUFFER_ELEMENT(fogColor, video::SColorf, "g_fogColor");
-    UNSAFE_ADD_DATABUFFER_ELEMENT(eyePositionVert, core::vector3df, "g_eyePositionVert");
-
-    UNSAFE_ADD_DATABUFFER_ELEMENT(ShaderMaterial, VulkanShaderGenericValuesBuffer::Material, "g_material");
-
-    gpuProgram->getVideoDriver()->setShaderMapping(projection->getDescription(), gpuProgram, irr::scene::E_HARDWARE_MAPPING::EHM_DYNAMIC);
-    gpuProgram->getVideoDriver()->setShaderMapping(ShaderMaterial->getDescription(), gpuProgram, irr::scene::E_HARDWARE_MAPPING::EHM_DYNAMIC);
-
-    ShaderLight = new video::ShaderDataBufferElementArray<VulkanShaderGenericValuesBuffer::Light>(gpuProgram->GetGPUVariableDesc("g_lights"));
-    AddBufferElement(ShaderLight);
-#undef UNSAFE_ADD_DATABUFFER_ELEMENT
-}
-
-void VulkanShaderGenericValuesBuffer::UpdateBuffer(video::IShader * gpuProgram, scene::IMeshBuffer * meshBuffer, scene::IMesh * mesh, scene::ISceneNode * node, u32 updateFlags)
-{
-    CVulkanDriver* Driver = static_cast<CVulkanDriver*>(gpuProgram->getVideoDriver());
-    SMaterial& CurrentMaterial = Driver->GetMaterial();// !meshBuffer ? Driver->GetMaterial() : meshBuffer->getMaterial();
-    //video::IMaterialRenderer* rnd = Driver->getMaterialRenderer(CurrentMaterial.MaterialType);
-
-    VulkanShaderGenericValuesBuffer::Material material;
-    memset(&material, 0, sizeof(VulkanShaderGenericValuesBuffer::Material));
-
-    *world = Driver->getTransform(ETS_WORLD);
-    *view = Driver->getTransform(ETS_VIEW);
-    *projection = Driver->getTransform(ETS_PROJECTION);
-
-    *AlphaRef = CurrentMaterial.MaterialType != EMT_ONETEXTURE_BLEND ? CurrentMaterial.MaterialType == ::EMT_TRANSPARENT_ALPHA_CHANNEL_REF ? CurrentMaterial.MaterialTypeParam : 0.5f : 0.0f;
-    *AlphaTest = CurrentMaterial.isTransparent(); // (rnd && rnd->isTransparent());
-    int _nTexture = 0;
-
-    *textureMatrix1 = CurrentMaterial.TextureLayer[0].getTextureMatrixConst();
-    if (CurrentMaterial.MaterialType == E_MATERIAL_TYPE::EMT_REFLECTION_2_LAYER || CurrentMaterial.MaterialType == E_MATERIAL_TYPE::EMT_TRANSPARENT_REFLECTION_2_LAYER || CurrentMaterial.MaterialType == E_MATERIAL_TYPE::EMT_SPHERE_MAP)
-        *textureMatrix2 = *(irr::core::matrix4*)&VK_SphereMapMatrix;
-    else
-        *textureMatrix2 = CurrentMaterial.TextureLayer[1].getTextureMatrixConst();
-
-    for (u8 i = 0; i < MATERIAL_MAX_TEXTURES; ++i)
-        if (Driver->getCurrentTexture(i) != nullptr)
-            ++_nTexture;
-
-    *nTexture = _nTexture;
-
-    int n = CurrentMaterial.Lighting ? Driver->getDynamicLightCount() : 0;
-    *LightCount = n;
-
-    auto inv = Driver->getTransform(ETS_VIEW);
-    if (Driver->GetCurrentRenderMode() == CVulkanDriver::E_RENDER_MODE::ERM_3D)
-    {
-        if (viewMatrixTranslationCache != inv.getTranslation())
-        {
-            viewMatrixTranslationCache = inv.getTranslation();
-            inv.makeInverse();
-            eyePositionVert->setShaderValues(inv.getTranslation());
-        }
-
-        if (n)
-        {
-            ShaderLight->ResetShaderValues();
-            for (int i = 0; i < n; i++)
-            {
-                VulkanShaderGenericValuesBuffer::Light l;
-                memset(&l, 0, sizeof(VulkanShaderGenericValuesBuffer::Light));
-                SLight dl = Driver->getDynamicLight(i);
-                memcpy(l.Position, &dl.Position.X, sizeof(float) * 3);
-                memcpy(l.Atten, &dl.Attenuation.X, sizeof(float) * 3);
-                l.Ambient = dl.AmbientColor;
-                l.Diffuse = dl.DiffuseColor;
-                l.Specular = dl.SpecularColor;
-                l.Range = dl.Radius;
-                l.Falloff = dl.Falloff;
-                l.Theta = dl.InnerCone * 2.0f * core::DEGTORAD;
-                l.Phi = dl.OuterCone * 2.0f * core::DEGTORAD;
-                l.Type = dl.Type;
-                *ShaderLight += l;
-            }
-        }
-
-        if (fogParams)
-        {
-            irr::video::SColor color;
-            irr::video::E_FOG_TYPE fogType;
-            f32 start;
-            f32 end;
-            f32 density;
-            bool pixelFog;
-            bool rangeFog;
-
-            gpuProgram->getVideoDriver()->getFog(color, fogType, start, end, density, pixelFog, rangeFog);
-
-            auto const& value = fogParams->m_values;
-            if (value.r != start || value.g != end || value.b != density || value.a != fogType)
-                *fogParams = video::SColorf(start, end, density, fogType);
-
-            if (fogColor)
-                *fogColor = video::SColorf(color);
-        }
-
-        material.Ambient.set(
-            Driver->GetAmbientLight().getAlpha() * (float)CurrentMaterial.AmbientColor.getAlpha() / 255.f
-            , Driver->GetAmbientLight().getRed() * (float)CurrentMaterial.AmbientColor.getRed() / 255.f
-            , Driver->GetAmbientLight().getGreen() * (float)CurrentMaterial.AmbientColor.getGreen() / 255.f
-            , Driver->GetAmbientLight().getBlue() * (float)CurrentMaterial.AmbientColor.getBlue() / 255.f);
-    }
-    else
-    {
-        material.Ambient.set(
-            (float)CurrentMaterial.AmbientColor.getAlpha() / 255.f
-            , (float)CurrentMaterial.AmbientColor.getRed() / 255.f
-            , (float)CurrentMaterial.AmbientColor.getGreen() / 255.f
-            , (float)CurrentMaterial.AmbientColor.getBlue() / 255.f);
-    }
-
-    material.Diffuse.set((float)CurrentMaterial.DiffuseColor.getAlpha() / 255.f
-        , (float)CurrentMaterial.DiffuseColor.getRed() / 255.f
-        , (float)CurrentMaterial.DiffuseColor.getGreen() / 255.f
-        , (float)CurrentMaterial.DiffuseColor.getBlue() / 255.f);
-
-    material.Emissive.set((float)CurrentMaterial.EmissiveColor.getAlpha() / 255.f
-        , (float)CurrentMaterial.EmissiveColor.getRed() / 255.f
-        , (float)CurrentMaterial.EmissiveColor.getGreen() / 255.f
-        , (float)CurrentMaterial.EmissiveColor.getBlue() / 255.f);
-
-    material.Shininess = CurrentMaterial.Shininess;
-    material.Type = CurrentMaterial.MaterialType;
-    material.Lighted = Driver->GetCurrentRenderMode() == CVulkanDriver::E_RENDER_MODE::ERM_3D && CurrentMaterial.Lighting;
-    material.Fogged = Driver->GetCurrentRenderMode() == CVulkanDriver::E_RENDER_MODE::ERM_3D && CurrentMaterial.FogEnable;
-
-    *ShaderMaterial = material;
-}
+//VulkanShaderGenericValuesBuffer::VulkanShaderGenericValuesBuffer(video::IShaderDataBuffer::E_UPDATE_TYPE updateType) : video::IShaderDataBuffer(updateType)
+//{
+//    world = nullptr;
+//    view = nullptr;
+//    projection = nullptr;
+//    nTexture = nullptr;
+//    AlphaTest = nullptr;
+//    LightCount = nullptr;
+//    AlphaRef = nullptr;
+//    ShaderMaterial = nullptr;
+//    ShaderLight = nullptr;
+//}
+//
+//VulkanShaderGenericValuesBuffer::~VulkanShaderGenericValuesBuffer()
+//{
+//}
+//
+//void VulkanShaderGenericValuesBuffer::InitializeFormShader(video::IShader * gpuProgram, void * Descriptor)
+//{
+//#define UNSAFE_ADD_DATABUFFER_ELEMENT(var, type, name) \
+//    var = new video::ShaderDataBufferElementObject<type>(gpuProgram->GetGPUVariableDesc(name)); \
+//    AddBufferElement(var);
+//    UNSAFE_ADD_DATABUFFER_ELEMENT(world, core::matrix4, "worldMatrix");
+//    UNSAFE_ADD_DATABUFFER_ELEMENT(view, core::matrix4, "viewMatrix");
+//    UNSAFE_ADD_DATABUFFER_ELEMENT(projection, core::matrix4, "projectionMatrix");
+//    UNSAFE_ADD_DATABUFFER_ELEMENT(textureMatrix1, core::matrix4, "textureMatrix1");
+//    UNSAFE_ADD_DATABUFFER_ELEMENT(textureMatrix2, core::matrix4, "textureMatrix2");
+//
+//    UNSAFE_ADD_DATABUFFER_ELEMENT(nTexture, int, "g_nTexture");
+//    UNSAFE_ADD_DATABUFFER_ELEMENT(AlphaTest, int, "g_bAlphaTest");
+//    UNSAFE_ADD_DATABUFFER_ELEMENT(LightCount, int, "g_iLightCount");
+//    UNSAFE_ADD_DATABUFFER_ELEMENT(AlphaRef, float, "g_fAlphaRef");
+//    UNSAFE_ADD_DATABUFFER_ELEMENT(fogParams, video::SColorf, "g_fogParams");
+//    UNSAFE_ADD_DATABUFFER_ELEMENT(fogColor, video::SColorf, "g_fogColor");
+//    UNSAFE_ADD_DATABUFFER_ELEMENT(eyePositionVert, core::vector3df, "g_eyePositionVert");
+//
+//    UNSAFE_ADD_DATABUFFER_ELEMENT(ShaderMaterial, VulkanShaderGenericValuesBuffer::Material, "g_material");
+//
+//    gpuProgram->getVideoDriver()->setShaderMapping(projection->getDescription(), gpuProgram, irr::scene::E_HARDWARE_MAPPING::EHM_DYNAMIC);
+//    gpuProgram->getVideoDriver()->setShaderMapping(ShaderMaterial->getDescription(), gpuProgram, irr::scene::E_HARDWARE_MAPPING::EHM_DYNAMIC);
+//
+//    ShaderLight = new video::ShaderDataBufferElementArray<VulkanShaderGenericValuesBuffer::Light>(gpuProgram->GetGPUVariableDesc("g_lights"));
+//    AddBufferElement(ShaderLight);
+//#undef UNSAFE_ADD_DATABUFFER_ELEMENT
+//}
+//
+//void VulkanShaderGenericValuesBuffer::UpdateBuffer(video::IShader * gpuProgram, scene::IMeshBuffer * meshBuffer, scene::IMesh * mesh, scene::ISceneNode * node, u32 updateFlags)
+//{
+//    CVulkanDriver* Driver = static_cast<CVulkanDriver*>(gpuProgram->getVideoDriver());
+//    SMaterial& CurrentMaterial = Driver->GetMaterial();// !meshBuffer ? Driver->GetMaterial() : meshBuffer->getMaterial();
+//    //video::IMaterialRenderer* rnd = Driver->getMaterialRenderer(CurrentMaterial.MaterialType);
+//
+//    VulkanShaderGenericValuesBuffer::Material material;
+//    memset(&material, 0, sizeof(VulkanShaderGenericValuesBuffer::Material));
+//
+//    *world = Driver->getTransform(ETS_WORLD);
+//    *view = Driver->getTransform(ETS_VIEW);
+//    *projection = Driver->getTransform(ETS_PROJECTION);
+//
+//    *AlphaRef = CurrentMaterial.MaterialType != EMT_ONETEXTURE_BLEND ? CurrentMaterial.MaterialType == ::EMT_TRANSPARENT_ALPHA_CHANNEL_REF ? CurrentMaterial.MaterialTypeParam : 0.5f : 0.0f;
+//    *AlphaTest = CurrentMaterial.isTransparent(); // (rnd && rnd->isTransparent());
+//    int _nTexture = 0;
+//
+//    *textureMatrix1 = CurrentMaterial.TextureLayer[0].getTextureMatrixConst();
+//    if (CurrentMaterial.MaterialType == E_MATERIAL_TYPE::EMT_REFLECTION_2_LAYER || CurrentMaterial.MaterialType == E_MATERIAL_TYPE::EMT_TRANSPARENT_REFLECTION_2_LAYER || CurrentMaterial.MaterialType == E_MATERIAL_TYPE::EMT_SPHERE_MAP)
+//        *textureMatrix2 = *(irr::core::matrix4*)&VK_SphereMapMatrix;
+//    else
+//        *textureMatrix2 = CurrentMaterial.TextureLayer[1].getTextureMatrixConst();
+//
+//    for (u8 i = 0; i < MATERIAL_MAX_TEXTURES; ++i)
+//        if (Driver->getCurrentTexture(i) != nullptr)
+//            ++_nTexture;
+//
+//    *nTexture = _nTexture;
+//
+//    int n = CurrentMaterial.Lighting ? Driver->getDynamicLightCount() : 0;
+//    *LightCount = n;
+//
+//    auto inv = Driver->getTransform(ETS_VIEW);
+//    if (Driver->GetCurrentRenderMode() == CVulkanDriver::E_RENDER_MODE::ERM_3D)
+//    {
+//        if (viewMatrixTranslationCache != inv.getTranslation())
+//        {
+//            viewMatrixTranslationCache = inv.getTranslation();
+//            inv.makeInverse();
+//            eyePositionVert->setShaderValues(inv.getTranslation());
+//        }
+//
+//        if (n)
+//        {
+//            ShaderLight->ResetShaderValues();
+//            for (int i = 0; i < n; i++)
+//            {
+//                VulkanShaderGenericValuesBuffer::Light l;
+//                memset(&l, 0, sizeof(VulkanShaderGenericValuesBuffer::Light));
+//                SLight dl = Driver->getDynamicLight(i);
+//                memcpy(l.Position, &dl.Position.X, sizeof(float) * 3);
+//                memcpy(l.Atten, &dl.Attenuation.X, sizeof(float) * 3);
+//                l.Ambient = dl.AmbientColor;
+//                l.Diffuse = dl.DiffuseColor;
+//                l.Specular = dl.SpecularColor;
+//                l.Range = dl.Radius;
+//                l.Falloff = dl.Falloff;
+//                l.Theta = dl.InnerCone * 2.0f * core::DEGTORAD;
+//                l.Phi = dl.OuterCone * 2.0f * core::DEGTORAD;
+//                l.Type = dl.Type;
+//                *ShaderLight += l;
+//            }
+//        }
+//
+//        if (fogParams)
+//        {
+//            irr::video::SColor color;
+//            irr::video::E_FOG_TYPE fogType;
+//            f32 start;
+//            f32 end;
+//            f32 density;
+//            bool pixelFog;
+//            bool rangeFog;
+//
+//            gpuProgram->getVideoDriver()->getFog(color, fogType, start, end, density, pixelFog, rangeFog);
+//
+//            auto const& value = fogParams->m_values;
+//            if (value.r != start || value.g != end || value.b != density || value.a != fogType)
+//                *fogParams = video::SColorf(start, end, density, fogType);
+//
+//            if (fogColor)
+//                *fogColor = video::SColorf(color);
+//        }
+//
+//        material.Ambient.set(
+//            Driver->GetAmbientLight().getAlpha() * (float)CurrentMaterial.AmbientColor.getAlpha() / 255.f
+//            , Driver->GetAmbientLight().getRed() * (float)CurrentMaterial.AmbientColor.getRed() / 255.f
+//            , Driver->GetAmbientLight().getGreen() * (float)CurrentMaterial.AmbientColor.getGreen() / 255.f
+//            , Driver->GetAmbientLight().getBlue() * (float)CurrentMaterial.AmbientColor.getBlue() / 255.f);
+//    }
+//    else
+//    {
+//        material.Ambient.set(
+//            (float)CurrentMaterial.AmbientColor.getAlpha() / 255.f
+//            , (float)CurrentMaterial.AmbientColor.getRed() / 255.f
+//            , (float)CurrentMaterial.AmbientColor.getGreen() / 255.f
+//            , (float)CurrentMaterial.AmbientColor.getBlue() / 255.f);
+//    }
+//
+//    material.Diffuse.set((float)CurrentMaterial.DiffuseColor.getAlpha() / 255.f
+//        , (float)CurrentMaterial.DiffuseColor.getRed() / 255.f
+//        , (float)CurrentMaterial.DiffuseColor.getGreen() / 255.f
+//        , (float)CurrentMaterial.DiffuseColor.getBlue() / 255.f);
+//
+//    material.Emissive.set((float)CurrentMaterial.EmissiveColor.getAlpha() / 255.f
+//        , (float)CurrentMaterial.EmissiveColor.getRed() / 255.f
+//        , (float)CurrentMaterial.EmissiveColor.getGreen() / 255.f
+//        , (float)CurrentMaterial.EmissiveColor.getBlue() / 255.f);
+//
+//    material.Shininess = CurrentMaterial.Shininess;
+//    material.Type = CurrentMaterial.MaterialType;
+//    material.Lighted = Driver->GetCurrentRenderMode() == CVulkanDriver::E_RENDER_MODE::ERM_3D && CurrentMaterial.Lighting;
+//    material.Fogged = Driver->GetCurrentRenderMode() == CVulkanDriver::E_RENDER_MODE::ERM_3D && CurrentMaterial.FogEnable;
+//
+//    *ShaderMaterial = material;
+//}

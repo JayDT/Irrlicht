@@ -185,165 +185,165 @@ const char OPENGL_PARALLAX_MAP_PSH[] =
 	"\n"\
 	"END\n";
 
-//! Constructor
-COpenGLParallaxMapRenderer::COpenGLParallaxMapRenderer(video::COpenGLDriver* driver,
-	s32& outMaterialTypeNr, IMaterialRenderer* baseMaterial)
-	: COpenGLShaderMaterialRenderer(driver, 0, baseMaterial), CompiledShaders(true)
-{
-
-	#ifdef _DEBUG
-	setDebugName("COpenGLParallaxMapRenderer");
-	#endif
-
-	// set this as callback. We could have done this in
-	// the initialization list, but some compilers don't like it.
-
-	CallBack = this;
-
-	// basically, this simply compiles the hard coded shaders if the
-	// hardware is able to do them, otherwise it maps to the base material
-
-	if (!driver->queryFeature(video::EVDF_ARB_FRAGMENT_PROGRAM_1) ||
-		!driver->queryFeature(video::EVDF_ARB_VERTEX_PROGRAM_1))
-	{
-		// this hardware is not able to do shaders. Fall back to
-		// base material.
-		outMaterialTypeNr = driver->addMaterialRenderer(this);
-		return;
-	}
-
-	// check if already compiled normal map shaders are there.
-
-	video::IMaterialRenderer* renderer = driver->getMaterialRenderer(EMT_PARALLAX_MAP_SOLID);
-
-	if (renderer)
-	{
-		// use the already compiled shaders
-		video::COpenGLParallaxMapRenderer* nmr = reinterpret_cast<video::COpenGLParallaxMapRenderer*>(renderer);
-		CompiledShaders = false;
-
-		VertexShader = nmr->VertexShader;
-		PixelShader = nmr->PixelShader;
-
-		outMaterialTypeNr = driver->addMaterialRenderer(this);
-	}
-	else
-	{
-		// compile shaders on our own
-		init(outMaterialTypeNr, OPENGL_PARALLAX_MAP_VSH, OPENGL_PARALLAX_MAP_PSH, EVT_TANGENTS);
-	}
-
-	// fallback if compilation has failed
-	if (-1==outMaterialTypeNr)
-		outMaterialTypeNr = driver->addMaterialRenderer(this);
-}
-
-
-//! Destructor
-COpenGLParallaxMapRenderer::~COpenGLParallaxMapRenderer()
-{
-	if (CallBack == this)
-		CallBack = 0;
-
-	if (!CompiledShaders)
-	{
-		// prevent this from deleting shaders we did not create
-		VertexShader = 0;
-		PixelShader.clear();
-	}
-}
-
-
-void COpenGLParallaxMapRenderer::OnSetMaterial(const video::SMaterial& material,
-	const video::SMaterial& lastMaterial,
-	bool resetAllRenderstates, video::IMaterialRendererServices* services)
-{
-	COpenGLShaderMaterialRenderer::OnSetMaterial(material, lastMaterial,
-			resetAllRenderstates, services);
-
-	CurrentScale = material.MaterialTypeParam;
-}
-
-
-
-//! Returns the render capability of the material.
-s32 COpenGLParallaxMapRenderer::getRenderCapability() const
-{
-	if (Driver->queryFeature(video::EVDF_ARB_FRAGMENT_PROGRAM_1) &&
-		Driver->queryFeature(video::EVDF_ARB_VERTEX_PROGRAM_1))
-		return 0;
-
-	return 1;
-}
-
-
-//! Called by the engine when the vertex and/or pixel shader constants for an
-//! material renderer should be set.
-void COpenGLParallaxMapRenderer::OnSetConstants(IMaterialRendererServices* services, s32 userData)
-{
-	video::IVideoDriver* driver = services->getVideoDriver();
-
-	// set transposed world matrix
-	const core::matrix4& tWorld = driver->getTransform(video::ETS_WORLD).getTransposed();
-	services->setVertexShaderConstant(tWorld.pointer(), 0, 4);
-
-	// set transposed worldViewProj matrix
-	core::matrix4 worldViewProj(driver->getTransform(video::ETS_PROJECTION));
-	worldViewProj *= driver->getTransform(video::ETS_VIEW);
-	worldViewProj *= driver->getTransform(video::ETS_WORLD);
-	core::matrix4 tr(worldViewProj.getTransposed());
-	services->setVertexShaderConstant(tr.pointer(), 8, 4);
-
-	// here we fetch the fixed function lights from the driver
-	// and set them as constants
-
-	u32 cnt = driver->getDynamicLightCount();
-
-	// Load the inverse world matrix.
-	core::matrix4 invWorldMat;
-	driver->getTransform(video::ETS_WORLD).getInverse(invWorldMat);
-
-	for (u32 i=0; i<2; ++i)
-	{
-		video::SLight light;
-
-		if (i<cnt)
-			light = driver->getDynamicLight(i);
-		else
-		{
-			light.DiffuseColor.set(0,0,0); // make light dark
-			light.Radius = 1.0f;
-		}
-
-		light.DiffuseColor.a = 1.0f/(light.Radius*light.Radius); // set attenuation
-
-		// Transform the light by the inverse world matrix to get it into object space.
-		invWorldMat.transformVect(light.Position);
-		
-		services->setVertexShaderConstant(
-			reinterpret_cast<const f32*>(&light.Position), 12+(i*2), 1);
-
-		services->setVertexShaderConstant(
-			reinterpret_cast<const f32*>(&light.DiffuseColor), 13+(i*2), 1);
-	}
-
-	// Obtain the view position by transforming 0,0,0 by the inverse view matrix
-	// and then multiply this by the inverse world matrix.
-	core::vector3df viewPos(0.0f, 0.0f, 0.0f);
-	core::matrix4 inverseView;
-	driver->getTransform(video::ETS_VIEW).getInverse(inverseView);
-	inverseView.transformVect(viewPos);
-	invWorldMat.transformVect(viewPos);
-	services->setVertexShaderConstant(reinterpret_cast<const f32*>(&viewPos.X), 16, 1);
-
-	// set scale factor
-	f32 factor = 0.02f; // default value
-	if (CurrentScale != 0.0f)
-		factor = CurrentScale;
-
-	f32 c6[] = {factor, factor, factor, factor};
-	services->setPixelShaderConstant(c6, 0, 1);
-}
+////! Constructor
+//COpenGLParallaxMapRenderer::COpenGLParallaxMapRenderer(video::COpenGLDriver* driver,
+//	s32& outMaterialTypeNr, IMaterialRenderer* baseMaterial)
+//	: COpenGLShaderMaterialRenderer(driver, 0, baseMaterial), CompiledShaders(true)
+//{
+//
+//	#ifdef _DEBUG
+//	setDebugName("COpenGLParallaxMapRenderer");
+//	#endif
+//
+//	// set this as callback. We could have done this in
+//	// the initialization list, but some compilers don't like it.
+//
+//	CallBack = this;
+//
+//	// basically, this simply compiles the hard coded shaders if the
+//	// hardware is able to do them, otherwise it maps to the base material
+//
+//	if (!driver->queryFeature(video::EVDF_ARB_FRAGMENT_PROGRAM_1) ||
+//		!driver->queryFeature(video::EVDF_ARB_VERTEX_PROGRAM_1))
+//	{
+//		// this hardware is not able to do shaders. Fall back to
+//		// base material.
+//		outMaterialTypeNr = driver->addMaterialRenderer(this);
+//		return;
+//	}
+//
+//	// check if already compiled normal map shaders are there.
+//
+//	video::IMaterialRenderer* renderer = driver->getMaterialRenderer(EMT_PARALLAX_MAP_SOLID);
+//
+//	if (renderer)
+//	{
+//		// use the already compiled shaders
+//		video::COpenGLParallaxMapRenderer* nmr = reinterpret_cast<video::COpenGLParallaxMapRenderer*>(renderer);
+//		CompiledShaders = false;
+//
+//		VertexShader = nmr->VertexShader;
+//		PixelShader = nmr->PixelShader;
+//
+//		outMaterialTypeNr = driver->addMaterialRenderer(this);
+//	}
+//	else
+//	{
+//		// compile shaders on our own
+//		init(outMaterialTypeNr, OPENGL_PARALLAX_MAP_VSH, OPENGL_PARALLAX_MAP_PSH, EVT_TANGENTS);
+//	}
+//
+//	// fallback if compilation has failed
+//	if (-1==outMaterialTypeNr)
+//		outMaterialTypeNr = driver->addMaterialRenderer(this);
+//}
+//
+//
+////! Destructor
+//COpenGLParallaxMapRenderer::~COpenGLParallaxMapRenderer()
+//{
+//	if (CallBack == this)
+//		CallBack = 0;
+//
+//	if (!CompiledShaders)
+//	{
+//		// prevent this from deleting shaders we did not create
+//		VertexShader = 0;
+//		PixelShader.clear();
+//	}
+//}
+//
+//
+//void COpenGLParallaxMapRenderer::OnSetMaterial(const video::SMaterial& material,
+//	const video::SMaterial& lastMaterial,
+//	bool resetAllRenderstates, video::IMaterialRendererServices* services)
+//{
+//	COpenGLShaderMaterialRenderer::OnSetMaterial(material, lastMaterial,
+//			resetAllRenderstates, services);
+//
+//	CurrentScale = material.MaterialTypeParam;
+//}
+//
+//
+//
+////! Returns the render capability of the material.
+//s32 COpenGLParallaxMapRenderer::getRenderCapability() const
+//{
+//	if (Driver->queryFeature(video::EVDF_ARB_FRAGMENT_PROGRAM_1) &&
+//		Driver->queryFeature(video::EVDF_ARB_VERTEX_PROGRAM_1))
+//		return 0;
+//
+//	return 1;
+//}
+//
+//
+////! Called by the engine when the vertex and/or pixel shader constants for an
+////! material renderer should be set.
+//void COpenGLParallaxMapRenderer::OnSetConstants(IMaterialRendererServices* services, s32 userData)
+//{
+//	video::IVideoDriver* driver = services->getVideoDriver();
+//
+//	// set transposed world matrix
+//	const core::matrix4& tWorld = driver->getTransform(video::ETS_WORLD).getTransposed();
+//	services->setVertexShaderConstant(tWorld.pointer(), 0, 4);
+//
+//	// set transposed worldViewProj matrix
+//	core::matrix4 worldViewProj(driver->getTransform(video::ETS_PROJECTION));
+//	worldViewProj *= driver->getTransform(video::ETS_VIEW);
+//	worldViewProj *= driver->getTransform(video::ETS_WORLD);
+//	core::matrix4 tr(worldViewProj.getTransposed());
+//	services->setVertexShaderConstant(tr.pointer(), 8, 4);
+//
+//	// here we fetch the fixed function lights from the driver
+//	// and set them as constants
+//
+//	u32 cnt = driver->getDynamicLightCount();
+//
+//	// Load the inverse world matrix.
+//	core::matrix4 invWorldMat;
+//	driver->getTransform(video::ETS_WORLD).getInverse(invWorldMat);
+//
+//	for (u32 i=0; i<2; ++i)
+//	{
+//		video::SLight light;
+//
+//		if (i<cnt)
+//			light = driver->getDynamicLight(i);
+//		else
+//		{
+//			light.DiffuseColor.set(0,0,0); // make light dark
+//			light.Radius = 1.0f;
+//		}
+//
+//		light.DiffuseColor.a = 1.0f/(light.Radius*light.Radius); // set attenuation
+//
+//		// Transform the light by the inverse world matrix to get it into object space.
+//		invWorldMat.transformVect(light.Position);
+//		
+//		services->setVertexShaderConstant(
+//			reinterpret_cast<const f32*>(&light.Position), 12+(i*2), 1);
+//
+//		services->setVertexShaderConstant(
+//			reinterpret_cast<const f32*>(&light.DiffuseColor), 13+(i*2), 1);
+//	}
+//
+//	// Obtain the view position by transforming 0,0,0 by the inverse view matrix
+//	// and then multiply this by the inverse world matrix.
+//	core::vector3df viewPos(0.0f, 0.0f, 0.0f);
+//	core::matrix4 inverseView;
+//	driver->getTransform(video::ETS_VIEW).getInverse(inverseView);
+//	inverseView.transformVect(viewPos);
+//	invWorldMat.transformVect(viewPos);
+//	services->setVertexShaderConstant(reinterpret_cast<const f32*>(&viewPos.X), 16, 1);
+//
+//	// set scale factor
+//	f32 factor = 0.02f; // default value
+//	if (CurrentScale != 0.0f)
+//		factor = CurrentScale;
+//
+//	f32 c6[] = {factor, factor, factor, factor};
+//	services->setPixelShaderConstant(c6, 0, 1);
+//}
 
 
 } // end namespace video

@@ -163,140 +163,140 @@ namespace video
 		"\n"\
 		"";
 
-	CD3D9NormalMapRenderer::CD3D9NormalMapRenderer(
-		IDirect3DDevice9* d3ddev, video::IVideoDriver* driver, 
-		s32& outMaterialTypeNr, IMaterialRenderer* baseMaterial)
-		: CD3D9ShaderMaterialRenderer(d3ddev, driver, 0, baseMaterial)
-	{
-		#ifdef _DEBUG
-		setDebugName("CD3D9NormalMapRenderer");
-		#endif
-	
-		// set this as callback. We could have done this in 
-		// the initialization list, but some compilers don't like it.
-
-		CallBack = this;
-
-		// basically, this thing simply compiles the hardcoded shaders
-		// if the hardware is able to do them, otherwise it maps to the
-		// base material
-
-		if (!driver->queryFeature(video::EVDF_PIXEL_SHADER_1_1) ||
-			!driver->queryFeature(video::EVDF_VERTEX_SHADER_1_1))
-		{
-			// this hardware is not able to do shaders. Fall back to
-			// base material.
-			outMaterialTypeNr = driver->addMaterialRenderer(this);
-			return;
-		}
-
-		// check if already compiled normal map shaders are there.
-
-		video::IMaterialRenderer* renderer = driver->getMaterialRenderer(EMT_NORMAL_MAP_SOLID);
-		if (renderer)
-		{
-			// use the already compiled shaders 
-			video::CD3D9NormalMapRenderer* nmr = (video::CD3D9NormalMapRenderer*)renderer;
-			VertexShader = nmr->VertexShader;
-			if (VertexShader)
-				VertexShader->AddRef();
-
-			PixelShader = nmr->PixelShader;
-			if (PixelShader)
-				PixelShader->AddRef();
-
-			outMaterialTypeNr = driver->addMaterialRenderer(this);
-		}
-		else
-		{
-			// compile shaders on our own
-			if (driver->queryFeature(video::EVDF_PIXEL_SHADER_2_0))
-			{
-				init(outMaterialTypeNr, D3D9_NORMAL_MAP_VSH, D3D9_NORMAL_MAP_PSH_2_0);
-			}
-			else
-			{
-				init(outMaterialTypeNr, D3D9_NORMAL_MAP_VSH, D3D9_NORMAL_MAP_PSH_1_1);
-			}
-		}
-		// something failed, use base material
-		if (-1==outMaterialTypeNr)
-			driver->addMaterialRenderer(this);
-	}
-
-
-	CD3D9NormalMapRenderer::~CD3D9NormalMapRenderer()
-	{
-		if (CallBack == this)
-			CallBack = 0;
-	}
-
-
-	bool CD3D9NormalMapRenderer::OnRender(IMaterialRendererServices* service, E_VERTEX_TYPE vtxtype)
-	{
-		if (vtxtype != video::EVT_TANGENTS)
-		{
-			os::Printer::log("Error: Normal map renderer only supports vertices of type EVT_TANGENTS", ELL_ERROR);
-			return false;
-		}
-
-		return CD3D9ShaderMaterialRenderer::OnRender(service, vtxtype);
-	}
-
-
-	//! Returns the render capability of the material. 
-	s32 CD3D9NormalMapRenderer::getRenderCapability() const
-	{
-		if (Driver->queryFeature(video::EVDF_PIXEL_SHADER_1_1) &&
-			Driver->queryFeature(video::EVDF_VERTEX_SHADER_1_1))
-			return 0;
-
-		return 1;
-	}
-
-
-	//! Called by the engine when the vertex and/or pixel shader constants
-	//! for an material renderer should be set.
-	void CD3D9NormalMapRenderer::OnSetConstants(IMaterialRendererServices* services, s32 userData)
-	{
-		video::IVideoDriver* driver = services->getVideoDriver();
-
-		// set transposed world matrix
-		services->setVertexShaderConstant(driver->getTransform(video::ETS_WORLD).getTransposed().pointer(), 0, 4);
-
-		// set transposed worldViewProj matrix
-		core::matrix4 worldViewProj(driver->getTransform(video::ETS_PROJECTION));
-		worldViewProj *= driver->getTransform(video::ETS_VIEW);
-		worldViewProj *= driver->getTransform(video::ETS_WORLD);
-		services->setVertexShaderConstant(worldViewProj.getTransposed().pointer(), 8, 4);
-
-		// here we've got to fetch the fixed function lights from the
-		// driver and set them as constants
-
-		u32 cnt = driver->getDynamicLightCount();
-
-		for (u32 i=0; i<2; ++i)
-		{
-			SLight light; 
-
-			if (i<cnt)
-				light = driver->getDynamicLight(i);
-			else
-			{
-				light.DiffuseColor.set(0,0,0); // make light dark
-				light.Radius = 1.0f;
-			}
-
-			light.DiffuseColor.a = 1.0f/(light.Radius*light.Radius); // set attenuation
-
-			services->setVertexShaderConstant(reinterpret_cast<const f32*>(&light.Position), 12+(i*2), 1);
-			services->setVertexShaderConstant(reinterpret_cast<const f32*>(&light.DiffuseColor), 13+(i*2), 1);
-		}
-
-		// this is not really necessary in d3d9 (used a def instruction), but to be sure:
-		f32 c95[] = {0.5f, 0.5f, 0.5f, 0.5f};
-		services->setVertexShaderConstant(c95, 95, 1);
-	}
+	//CD3D9NormalMapRenderer::CD3D9NormalMapRenderer(
+	//	IDirect3DDevice9* d3ddev, video::IVideoDriver* driver, 
+	//	s32& outMaterialTypeNr, IMaterialRenderer* baseMaterial)
+	//	: CD3D9ShaderMaterialRenderer(d3ddev, driver, 0, baseMaterial)
+	//{
+	//	#ifdef _DEBUG
+	//	setDebugName("CD3D9NormalMapRenderer");
+	//	#endif
+	//
+	//	// set this as callback. We could have done this in 
+	//	// the initialization list, but some compilers don't like it.
+    //
+	//	CallBack = this;
+    //
+	//	// basically, this thing simply compiles the hardcoded shaders
+	//	// if the hardware is able to do them, otherwise it maps to the
+	//	// base material
+    //
+	//	if (!driver->queryFeature(video::EVDF_PIXEL_SHADER_1_1) ||
+	//		!driver->queryFeature(video::EVDF_VERTEX_SHADER_1_1))
+	//	{
+	//		// this hardware is not able to do shaders. Fall back to
+	//		// base material.
+	//		outMaterialTypeNr = driver->addMaterialRenderer(this);
+	//		return;
+	//	}
+    //
+	//	// check if already compiled normal map shaders are there.
+    //
+	//	video::IMaterialRenderer* renderer = driver->getMaterialRenderer(EMT_NORMAL_MAP_SOLID);
+	//	if (renderer)
+	//	{
+	//		// use the already compiled shaders 
+	//		video::CD3D9NormalMapRenderer* nmr = (video::CD3D9NormalMapRenderer*)renderer;
+	//		VertexShader = nmr->VertexShader;
+	//		if (VertexShader)
+	//			VertexShader->AddRef();
+    //
+	//		PixelShader = nmr->PixelShader;
+	//		if (PixelShader)
+	//			PixelShader->AddRef();
+    //
+	//		outMaterialTypeNr = driver->addMaterialRenderer(this);
+	//	}
+	//	else
+	//	{
+	//		// compile shaders on our own
+	//		if (driver->queryFeature(video::EVDF_PIXEL_SHADER_2_0))
+	//		{
+	//			init(outMaterialTypeNr, D3D9_NORMAL_MAP_VSH, D3D9_NORMAL_MAP_PSH_2_0);
+	//		}
+	//		else
+	//		{
+	//			init(outMaterialTypeNr, D3D9_NORMAL_MAP_VSH, D3D9_NORMAL_MAP_PSH_1_1);
+	//		}
+	//	}
+	//	// something failed, use base material
+	//	if (-1==outMaterialTypeNr)
+	//		driver->addMaterialRenderer(this);
+	//}
+    //
+    //
+	//CD3D9NormalMapRenderer::~CD3D9NormalMapRenderer()
+	//{
+	//	if (CallBack == this)
+	//		CallBack = 0;
+	//}
+    //
+    //
+	//bool CD3D9NormalMapRenderer::OnRender(IMaterialRendererServices* service, E_VERTEX_TYPE vtxtype)
+	//{
+	//	if (vtxtype != video::EVT_TANGENTS)
+	//	{
+	//		os::Printer::log("Error: Normal map renderer only supports vertices of type EVT_TANGENTS", ELL_ERROR);
+	//		return false;
+	//	}
+    //
+	//	return CD3D9ShaderMaterialRenderer::OnRender(service, vtxtype);
+	//}
+    //
+    //
+	////! Returns the render capability of the material. 
+	//s32 CD3D9NormalMapRenderer::getRenderCapability() const
+	//{
+	//	if (Driver->queryFeature(video::EVDF_PIXEL_SHADER_1_1) &&
+	//		Driver->queryFeature(video::EVDF_VERTEX_SHADER_1_1))
+	//		return 0;
+    //
+	//	return 1;
+	//}
+    //
+    //
+	////! Called by the engine when the vertex and/or pixel shader constants
+	////! for an material renderer should be set.
+	//void CD3D9NormalMapRenderer::OnSetConstants(IMaterialRendererServices* services, s32 userData)
+	//{
+	//	video::IVideoDriver* driver = services->getVideoDriver();
+    //
+	//	// set transposed world matrix
+	//	services->setVertexShaderConstant(driver->getTransform(video::ETS_WORLD).getTransposed().pointer(), 0, 4);
+    //
+	//	// set transposed worldViewProj matrix
+	//	core::matrix4 worldViewProj(driver->getTransform(video::ETS_PROJECTION));
+	//	worldViewProj *= driver->getTransform(video::ETS_VIEW);
+	//	worldViewProj *= driver->getTransform(video::ETS_WORLD);
+	//	services->setVertexShaderConstant(worldViewProj.getTransposed().pointer(), 8, 4);
+    //
+	//	// here we've got to fetch the fixed function lights from the
+	//	// driver and set them as constants
+    //
+	//	u32 cnt = driver->getDynamicLightCount();
+    //
+	//	for (u32 i=0; i<2; ++i)
+	//	{
+	//		SLight light; 
+    //
+	//		if (i<cnt)
+	//			light = driver->getDynamicLight(i);
+	//		else
+	//		{
+	//			light.DiffuseColor.set(0,0,0); // make light dark
+	//			light.Radius = 1.0f;
+	//		}
+    //
+	//		light.DiffuseColor.a = 1.0f/(light.Radius*light.Radius); // set attenuation
+    //
+	//		services->setVertexShaderConstant(reinterpret_cast<const f32*>(&light.Position), 12+(i*2), 1);
+	//		services->setVertexShaderConstant(reinterpret_cast<const f32*>(&light.DiffuseColor), 13+(i*2), 1);
+	//	}
+    //
+	//	// this is not really necessary in d3d9 (used a def instruction), but to be sure:
+	//	f32 c95[] = {0.5f, 0.5f, 0.5f, 0.5f};
+	//	services->setVertexShaderConstant(c95, 95, 1);
+	//}
 
 
 } // end namespace video

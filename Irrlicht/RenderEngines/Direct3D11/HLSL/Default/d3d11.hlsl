@@ -463,7 +463,7 @@ PixelOutput ps_main(PS_INPUT input)
 
         if (g_material.Fogged)
         {
-            float distance = length(input.position.xyz - g_eyePositionVert.xyz);
+            float distance = length(input.UPPos.xyz - g_eyePositionVert.xyz);
             float fogDepth = distance - g_fogParams.x;
             fogDepth /= (g_fogParams.y - g_fogParams.x);
             float fog = 1.0f - pow(saturate(fogDepth), 1.5);

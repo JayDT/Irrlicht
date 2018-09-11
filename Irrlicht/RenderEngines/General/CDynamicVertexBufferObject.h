@@ -12,7 +12,7 @@ namespace irr
 {
     namespace video
     {
-        struct CShaderBuffer;
+        struct IConstantBuffer;
     }
 
     namespace scene
@@ -115,6 +115,102 @@ namespace irr
             virtual void* getData() { return Vertices.pointer(); }
         };
 
+        template <class T>
+        class CDynamicStreamBuffer : public irr::scene::IStreamBuffer
+        {
+        public:
+            irr::core::array<T> Elements;
+            irr::scene::E_HARDWARE_MAPPING MappingHint : 8;
+            uint8 ChangedID;
+
+            explicit CDynamicStreamBuffer() : ChangedID(1), MappingHint(irr::scene::EHM_NEVER)
+            {
+            }
+
+            virtual ~CDynamicStreamBuffer()
+            {
+            }
+
+            virtual u32 stride() const { return sizeof(T); }
+            virtual u32 size() const { return Elements.size(); }
+
+            virtual irr::video::I3DStreamElement* getBaseVertexPointer()
+            {
+                return Elements.pointer();
+            }
+
+            virtual void push_back(const irr::video::I3DStreamElement &element)
+            {
+                Elements.push_back((T&)element);
+            }
+
+            virtual void operator ()(const u32 index, irr::video::I3DStreamElement const& element) const
+            {
+                (T&)Elements[index] = (T&)element;
+            }
+
+            virtual irr::video::I3DStreamElement& operator [](const u32 index) const
+            {
+                return (T&)Elements[index];
+            }
+
+            virtual irr::video::I3DStreamElement& getLast()
+            {
+                return (irr::video::I3DStreamElement&)Elements.getLast();
+            }
+
+            virtual void set_used(u32 usedNow)
+            {
+                Elements.set_used(usedNow);
+            }
+
+            virtual void reallocate(u32 new_size)
+            {
+                Elements.reallocate(new_size);
+            }
+
+            virtual u32 allocated_size() const
+            {
+                return Elements.allocated_size();
+            }
+
+            virtual irr::video::I3DStreamElement* pointer() { return Elements.pointer(); }
+            virtual irr::video::E_VERTEX_TYPE getType() const
+            {
+                static T empty;
+                return empty.getType();
+            }
+
+            //! get the current hardware mapping hint
+            virtual irr::scene::E_HARDWARE_MAPPING getHardwareMappingHint() const
+            {
+                return MappingHint;
+            }
+
+            //! set the hardware mapping hint, for driver
+            virtual void setHardwareMappingHint(irr::scene::E_HARDWARE_MAPPING NewMappingHint)
+            {
+                MappingHint = NewMappingHint;
+            }
+
+            //! flags the mesh as changed, reloads hardware buffers
+            virtual void setDirty()
+            {
+                ++ChangedID;
+            }
+
+            //! Get the currently used ID for identification of changes.
+            /** This shouldn't be used for anything outside the VideoDriver. */
+            virtual u32 getChangedID() const { return ChangedID; }
+
+            virtual void setType(irr::video::E_VERTEX_TYPE vertexType)
+            {
+                throw std::runtime_error("not implement yet!");
+            }
+
+            virtual void* getData() { return Elements.pointer(); }
+        };
+
         struct CDynamicVertexSubBuffer
         {
             CDynamicVertexSubBuffer()
@@ -158,20 +254,28 @@ namespace irr
 
         struct IRRLICHT_API CDynamicVertexBufferObject : public irr::scene::IDynamicMeshBuffer
         {
-            CDynamicVertexBufferObject() : m_isEnabled(true), VertexBuffer(nullptr), IndexBuffer(nullptr), m_gpuProgram(nullptr), m_gpuProgramId(-1), InstanceBuffer(nullptr), Material(new irr::video::SMaterial), ActiveSubBuffer(0), m_needBoundRecalulate(true)
+            CDynamicVertexBufferObject() 
+                : m_isEnabled(true), VertexBuffer(nullptr), IndexBuffer(nullptr), StreamBuffer(nullptr), m_gpuProgram(nullptr)
+                , m_gpuProgramId(-1), Material(new irr::video::SMaterial), ActiveSubBuffer(0)
+                , m_needBoundRecalulate(true)
             {
             }
 
             virtual ~CDynamicVertexBufferObject();
 
-            virtual irr::scene::IVertexBuffer& getVertexBuffer() const
+            virtual irr::scene::IVertexBuffer& getVertexBuffer() const override
             {
                 return *VertexBuffer;
             }
 
-            virtual irr::scene::IIndexBuffer& getIndexBuffer() const
+            virtual irr::scene::IIndexBuffer& getIndexBuffer() const override
             {
                 return *IndexBuffer;
+            }
+
+            virtual irr::scene::IStreamBuffer* getStreamBuffer() const override
+            {
+                return StreamBuffer;
             }
 
             virtual void setVertexBuffer(irr::scene::IVertexBuffer *newVertexBuffer)
@@ -192,6 +296,16 @@ namespace irr
                     IndexBuffer->drop();
 
                 IndexBuffer = newIndexBuffer;
+            }
+
+            virtual void setStreamBuffer(irr::scene::IStreamBuffer *newStreamBuffer)
+            {
+                if (newStreamBuffer)
+                    newStreamBuffer->grab();
+                if (StreamBuffer)
+                    StreamBuffer->drop();
+
+                StreamBuffer = newStreamBuffer;
             }
 
             CDynamicVertexSubBuffer const* GetSubBufferDesc(int sid)
@@ -294,22 +408,14 @@ namespace irr
                 m_gpuProgramId = gpuProgramId;
             }
 
-            virtual irr::video::IShaderDataBuffer* GetHWInstanceBuffer() { return InstanceBuffer; }
-            virtual void SetHWInstanceBuffer(irr::video::IShaderDataBuffer* instanceBuffer);
-
             virtual void boundingBoxNeedsRecalculated(void)
             {
                 m_needBoundRecalulate = true;
             }
 
-            virtual void AddConstantBuffer(video::CShaderBuffer* buffer);
+            virtual void AddConstantBuffer(video::IConstantBuffer* buffer);
 
-            irr::video::SMaterial* Material;
-            irr::video::IShaderDataBuffer* InstanceBuffer;
-            std::vector<video::IShaderDataBuffer*> mShaderConstantBuffers;
-            irr::core::aabbox3d<float> BoundingBox;
-
-            const std::vector<video::IShaderDataBuffer*>* GetShaderConstantBuffers() const override final { return &mShaderConstantBuffers; }
+            const std::vector<video::IConstantBuffer*>* GetShaderConstantBuffers() const override final { return &mShaderConstantBuffers; }
 
             virtual void EnableSubBuffer(bool on, u16 sid)
             {
@@ -329,9 +435,14 @@ namespace irr
                 return SubBuffer[sid]->m_isEnabled;
             }
 
+            irr::video::SMaterial* Material;
+            std::vector<video::IConstantBuffer*> mShaderConstantBuffers;
+            irr::core::aabbox3d<float> BoundingBox;
+
         private:
             irr::core::array<CDynamicVertexSubBuffer*> SubBuffer;
             irr::scene::IVertexBuffer* VertexBuffer;
+            irr::scene::IStreamBuffer* StreamBuffer; // ToDo: Can be multiple (now support only instance stream)
             irr::scene::IIndexBuffer * IndexBuffer;
             union
             {

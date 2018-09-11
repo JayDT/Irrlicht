@@ -12,19 +12,50 @@
 using namespace irr;
 using namespace irr::video;
 
+video::E_SHADER_VARIABLE_TYPE getShaderVariableTypeId(D3D_SHADER_VARIABLE_TYPE hlslangType, D3D_SHADER_VARIABLE_CLASS hlslclass)
+{
+    if (hlslclass == D3D_SHADER_VARIABLE_CLASS::D3D_SVC_STRUCT)
+        return video::E_SHADER_VARIABLE_TYPE::ESVT_STRUCT;
+
+    switch (hlslangType)
+    {
+        case D3D_SHADER_VARIABLE_TYPE::D3D_SVT_VOID:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_VOID;
+        case D3D_SHADER_VARIABLE_TYPE::D3D_SVT_BOOL:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_BOOL;
+        case D3D_SHADER_VARIABLE_TYPE::D3D_SVT_DOUBLE:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_DOUBLE;
+        case D3D_SHADER_VARIABLE_TYPE::D3D_SVT_FLOAT:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_FLOAT;
+        case D3D_SHADER_VARIABLE_TYPE::D3D_SVT_MIN16FLOAT:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_FLOAT16;
+        case D3D_SHADER_VARIABLE_TYPE::D3D_SVT_INT:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_INT;
+        case D3D_SHADER_VARIABLE_TYPE::D3D_SVT_UINT8:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_UINT8;
+        case D3D_SHADER_VARIABLE_TYPE::D3D_SVT_UINT:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_UINT;
+        case D3D_SHADER_VARIABLE_TYPE::D3D_SVT_SAMPLER:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_SAMPLER;
+        case D3D_SHADER_VARIABLE_TYPE::D3D_SVT_STRUCTURED_BUFFER:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_BUFFER;
+    }
+    return video::E_SHADER_VARIABLE_TYPE::ESVT_MAX;
+}
+
 ID3DBlob* D3D11CompileShader(System::IO::IFileReader* file, const char* entryPoint, const char* shaderModel, ID3DBlob*& errorMessage)
 {
     UINT compileFlags = 0;
     //flags |= D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY;
 #if	Dx11ShaderDebug
     // These values allow use of PIX and shader debuggers
-    compileFlags |= D3D10_SHADER_DEBUG;
-    compileFlags |= D3D10_SHADER_SKIP_OPTIMIZATION;
+    compileFlags |= D3DCOMPILE_DEBUG;
+    compileFlags |= D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_PREFER_FLOW_CONTROL;
     //flags |= D3D10_SHADER_WARNINGS_ARE_ERRORS;
 #else
     // These flags allow maximum performance
-    compileFlags |= D3D10_SHADER_ENABLE_STRICTNESS;
-    compileFlags |= D3D10_SHADER_OPTIMIZATION_LEVEL3;
+    compileFlags |= D3DCOMPILE_ENABLE_STRICTNESS;
+    compileFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL3 | D3DCOMPILE_PARTIAL_PRECISION;
 #endif
 
     std::string source;
@@ -75,8 +106,8 @@ void irr::video::D3D11HLSLProgram::OnDeviceRestored(CD3D11Driver * device)
 {
 }
 
-irr::video::D3D11HLSLProgram::D3D11HLSLProgram(video::IVideoDriver * context, E_ShaderTypes type)
-    : IShader(context, type)
+irr::video::D3D11HLSLProgram::D3D11HLSLProgram(video::IVideoDriver * context)
+    : CNullShader(context, E_SHADER_LANG::ESV_HLSL_HIGH_LEVEL)
     , D3D11DeviceResource(static_cast<CD3D11Driver*>(context))
     , m_vertexShader(nullptr)
     , m_pixelShader(nullptr)
@@ -250,163 +281,227 @@ void irr::video::D3D11HLSLProgram::OutputShaderErrorMessage(ID3D10Blob* errorMes
     MessageBox(hwnd, "Error compiling shader.  Check shader-error.txt for message.", shaderFilename, MB_OK);
 }
 
-void irr::video::D3D11HLSLProgram::bind()
-{
-    //_IRR_DEBUG_BREAK_IF(mBindedProgram && mBindedProgram != programId);
-    //if (!mBinded)
-    {
-        mBinded = true;
-        getVideoDriver()->useShader(this);
-    }
-}
-
-void irr::video::D3D11HLSLProgram::unbind()
-{
-    //if (mBinded)
-    {
-        //_IRR_DEBUG_BREAK_IF(mBindedProgram && mBindedProgram != programId);
-        getVideoDriver()->useShader(nullptr);
-    }
-}
-
 void irr::video::D3D11HLSLProgram::Init()
 {
 }
 
-HRESULT irr::video::D3D11HLSLProgram::initializeConstantBuffers(CD3D11Driver * d3dDevice, ID3D11ShaderReflection* pReflector, E_ShaderTypes shaderType)
+void irr::video::D3D11HLSLProgram::ReflParseStruct(SConstantBuffer* buffdesc, irr::video::IShaderVariable* parent, ID3D11ShaderReflectionConstantBuffer * pConstBuffer,
+    ID3D11ShaderReflectionType * pParentVariableType, std::vector<irr::video::IShaderVariable*>& Variables, std::string namePrefix, u32 pParentSize)
 {
     HRESULT hr = S_OK;
 
-    D3D11_SHADER_DESC desc;
-    pReflector->GetDesc(&desc);
+    D3D11_SHADER_BUFFER_DESC pConstBufferDesc;
+    D3D11_SHADER_TYPE_DESC pParentTypeDesc;
 
-    // get description of each constant buffer in the shader
-    for (u32 i = 0; i < desc.ConstantBuffers; i++)
+    pConstBuffer->GetDesc(&pConstBufferDesc);
+    if (pParentVariableType)
+        pParentVariableType->GetDesc(&pParentTypeDesc);
+
+    Variables.resize(pParentVariableType ? pParentTypeDesc.Members : pConstBufferDesc.Variables);
+    for (int m = 0; m < Variables.size(); ++m)
     {
-        ShaderBuffers.push_back(CbufferDesc());
-        CbufferDesc& buffdesc = ShaderBuffers.getLast();
+        D3D11_SHADER_VARIABLE_DESC pVariableDesc;
+        D3D11_SHADER_TYPE_DESC pTypeDesc;
+        ID3D11ShaderReflectionVariable * pVariable = nullptr;
 
-        buffdesc.shaderType = shaderType;
+        u32 Offset;
+        const char* Name;
+        ID3D11ShaderReflectionType * pType;
 
-        // get description of constant buffer
-        ID3D11ShaderReflectionConstantBuffer * pConstBuffer =
-            pReflector->GetConstantBufferByIndex(i);
-        pConstBuffer->GetDesc(&buffdesc.shaderBuffer);
-
-        // Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-        //D3D11_BUFFER_DESC BufferDesc;
-        //BufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-        //BufferDesc.ByteWidth = buffdesc.shaderBuffer.Size;
-        //BufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-        //BufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-        //BufferDesc.MiscFlags = 0;
-        //BufferDesc.StructureByteStride = 0;
-
-        // Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-        buffdesc.m_constantBuffer = static_cast<CD3D11HardwareBuffer*>(d3dDevice->createHardwareBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS, E_HARDWARE_BUFFER_ACCESS::EHBA_DEFAULT, buffdesc.shaderBuffer.Size)); //d3dDevice->GetDxDevice()->CreateBuffer(&BufferDesc, NULL, &buffdesc.m_constantBuffer);
-        if (FAILED(hr))
-            throw std::runtime_error("invalid buffer");
-
-        // init cpu cache
-        buffdesc.DataBuffer.set_used(buffdesc.shaderBuffer.Size);
-        ::ZeroMemory(buffdesc.DataBuffer.pointer(), buffdesc.DataBuffer.size());
-        buffdesc.ChangeId = 0;
-
-        // get description of each variable in constant buffer
-        for (u32 j = 0; j < buffdesc.shaderBuffer.Variables; ++j)
+        if (pParentVariableType)
         {
-            ShaderConstantDesc constant;
-            constant.BufferDesc = &buffdesc;
-
+            Name = pParentVariableType->GetMemberTypeName(m);
+            pType = pParentVariableType->GetMemberTypeByIndex(m);
+            pType->GetDesc(&pTypeDesc);
+            Offset = parent->_getOffset() + pTypeDesc.Offset;
+        }
+        else
+        {
             // description of variable
-            ID3D11ShaderReflectionVariable * pVariable =
-                pConstBuffer->GetVariableByIndex(j);
-            pVariable->GetDesc(&constant.VariableDesc);
-
-            // type of variable
-            ID3D11ShaderReflectionType * pType = pVariable->GetType();
-            pType->GetDesc(&constant.varType);
-
-            constant.elementSize = constant.VariableDesc.Size;
-            if (constant.varType.Elements > 1)
-            {
-                _IRR_DEBUG_BREAK_IF(constant.elementSize % constant.varType.Elements);
-                constant.elementSize /= constant.varType.Elements;
-            }
-
-            if (constant.varType.Members)
-            {
-                for (unsigned mj = 0; mj < constant.varType.Members; ++mj)
-                {
-                    ShaderStructMember structDecl;
-                    structDecl.name = pType->GetMemberTypeName(mj);
-
-                    ID3D11ShaderReflectionType* memberType = pType->GetMemberTypeByIndex(mj);
-                    memberType->GetDesc(&structDecl.varType);
-
-                    std::string name = constant.VariableDesc.Name;
-                    name += '.';
-                    name += structDecl.name;
-                    structDecl.name = name;
-                    constant.members.push_back(structDecl);
-
-                    _IRR_DEBUG_BREAK_IF(structDecl.varType.Class == D3D_SVC_STRUCT); // Implement multiple depth struct buffer
-
-                                                                                     // Generic Descriptor
-                    ShaderVariableDescriptor ui;
-
-                    //constant.VariableDesc.Size
-
-                    ui.m_location = (j & 0xFF) | (mj << 8);                          // Buffer Variable Index
-                    ui.m_length = structDecl.varType.Elements;
-                    ui.m_variableType = structDecl.varType.Type;
-                    ui.m_class = structDecl.varType.Class;
-                    ui.m_name = name;
-                    ui.m_size = 0;
-                    ui.m_type = ESVT_CONSTANT;
-                    ui.m_shaderIndex = ShaderBuffers.size() - 1; // Buffer Desc Index
-
-                    AddShaderVariable(&ui);
-                }
-            }
-
-            {
-                // Generic Descriptor
-                ShaderVariableDescriptor ui;
-
-                ui.m_location = j & 0xFF;                          // Buffer Variable Index
-                ui.m_length = constant.varType.Elements;
-                ui.m_variableType = constant.varType.Type;
-                ui.m_class = constant.varType.Class;
-                ui.m_name = constant.VariableDesc.Name;
-                ui.m_size = constant.VariableDesc.Size;
-                ui.m_type = ESVT_CONSTANT;
-                ui.m_shaderIndex = ShaderBuffers.size() - 1; // Buffer Desc Index
-
-                AddShaderVariable(&ui);
-            }
-
-            buffdesc.Variables.push_back(constant);
+            ID3D11ShaderReflectionVariable * pVariable = pConstBuffer->GetVariableByIndex(m);
+            pVariable->GetDesc(&pVariableDesc);
+            Offset = pVariableDesc.StartOffset;
+            Name = pVariableDesc.Name;
+            pType = pVariable->GetType();
+            pType->GetDesc(&pTypeDesc);
         }
 
-        //S_GPU_SHADER_VARIABLE_DEFAULT_LINK const* mLinkPtr = sDefaultShaderVariableLink;
-        //do
-        //{
-        //    LinkShaderVariable(mLinkPtr->name, mLinkPtr->id);
-        //} while ((++mLinkPtr)->id != EGVAT_MAX_VALUE);
+        video::E_SHADER_VARIABLE_TYPE eShaderType = getShaderVariableTypeId(pTypeDesc.Type, pTypeDesc.Class);
+
+        SShaderType * _shaderType = CNullShader::GetShaderType(
+            eShaderType,
+            std::max(1u, pTypeDesc.Elements),
+            pTypeDesc.Members,
+            pTypeDesc.Rows,
+            pTypeDesc.Columns,
+            0,
+            0,
+            0,
+            0);
+
+        irr::video::IShaderVariable*& structDecl = Variables[m];
+
+        if (pTypeDesc.Class == D3D_SHADER_VARIABLE_CLASS::D3D_SVC_STRUCT)
+        {
+            SShaderVariableStruct* structVar = new SShaderVariableStruct();
+            structVar->mName = Name; // (namePrefix + Name).c_str();
+            structVar->mParent = parent;
+            structVar->mBuffer = buffdesc;
+            structVar->mOffset = Offset;
+            structVar->mLayoutIndex = -1;
+            structVar->mType = _shaderType;
+            structVar->mIsValid = true;
+            structVar->mIsDirty = true;
+            structVar->mLoaderData = pType;
+
+            structDecl = structVar;
+        }
+        else if (pTypeDesc.Class == D3D_SHADER_VARIABLE_CLASS::D3D_SVC_MATRIX_COLUMNS || pTypeDesc.Class == D3D_SHADER_VARIABLE_CLASS::D3D_SVC_MATRIX_ROWS)
+        {
+            SShaderVariableMatrix* matVar = new SShaderVariableMatrix();
+            matVar->mName = Name; //(namePrefix + Name).c_str();
+            matVar->mParent = parent;
+            matVar->mBuffer = buffdesc;
+            matVar->mOffset = Offset;
+            matVar->mLayoutIndex = -1;
+            matVar->mType = _shaderType;
+            matVar->mIsRowMajor = pTypeDesc.Class == D3D_SHADER_VARIABLE_CLASS::D3D_SVC_MATRIX_ROWS;
+            matVar->mIsValid = true;
+            matVar->mIsDirty = true;
+
+            structDecl = matVar;
+        }
+        else
+        {
+            SShaderVariableScalar* var = new SShaderVariableScalar();
+            var->mName = Name; //(namePrefix + Name).c_str();
+            var->mParent = parent;
+            var->mBuffer = buffdesc;
+            var->mOffset = Offset;
+            var->mLayoutIndex = -1;
+            var->mType = _shaderType;
+            var->mIsValid = true;
+            var->mIsDirty = true;
+
+            structDecl = var;
+        }
+    }
+
+    std::sort(Variables.begin(), Variables.end(), [](irr::video::IShaderVariable* lhs, irr::video::IShaderVariable* rhs)
+    {
+        return lhs->_getOffset() < rhs->_getOffset();
+    });
+
+    for (int m = 0; m < Variables.size() - 1; ++m)
+    {
+        auto pVariable = Variables[m];
+        auto pVariableNext = Variables[m + 1];
+
+        uint32 stride = pVariableNext->_getOffset() - pVariable->_getOffset();
+        uint32 elementSize = stride / pVariable->getType()->Elements;
+
+        pVariable->getType()->ArrayStride = elementSize;
+        pVariable->getType()->Stride = stride;
+    }
+
+    auto& pVariable = Variables.back();
+    uint32 stride = (parent ? (parent->_getOffset() + pParentSize) : pParentSize) - pVariable->_getOffset(); // ToDo
+    uint32 elementSize = stride / pVariable->getType()->Elements;
+
+    pVariable->getType()->ArrayStride = elementSize;
+    pVariable->getType()->Stride = stride;
+
+    for (int m = 0; m < Variables.size(); ++m)
+    {
+        auto pVariable = Variables[m];
+
+        if (pVariable->_asStruct() && pVariable->getType()->Members > 0)
+        {
+            std::string _namePrefix = (namePrefix + pVariable->GetName().c_str()).c_str();
+            _namePrefix += '.';
+
+            ReflParseStruct(buffdesc, pVariable, pConstBuffer, static_cast<ID3D11ShaderReflectionType *>(pVariable->_asStruct()->mLoaderData), pVariable->_asStruct()->mVariables, _namePrefix, pVariable->getType()->Stride);
+            pVariable->_asStruct()->mLoaderData = nullptr;
+        }
+    }
+}
+
+HRESULT irr::video::D3D11HLSLProgram::initializeConstantBuffers(CD3D11Driver * d3dDevice, ID3D11ShaderReflection* pReflector, E_SHADER_TYPES shaderType)
+{
+    HRESULT hr = S_OK;
+
+    D3D11_SHADER_DESC ShaderDescriptor;
+    pReflector->GetDesc(&ShaderDescriptor);
+
+    // get description of each constant buffer in the shader
+    for (u32 i = 0; i < ShaderDescriptor.ConstantBuffers; i++)
+    {
+        SConstantBuffer* irrCB = new SConstantBuffer(this, shaderType);
+        AddConstantBuffer(irrCB);
+
+        // get description of constant buffer
+        ID3D11ShaderReflectionConstantBuffer * pConstBuffer = pReflector->GetConstantBufferByIndex(i);
+        D3D11_SHADER_BUFFER_DESC pVariable;
+        pConstBuffer->GetDesc(&pVariable);
 
         // get binding description for constant buffer
-        hr = pReflector->GetResourceBindingDescByName(buffdesc.shaderBuffer.Name, &buffdesc.bindingDesc);
+        D3D11_SHADER_INPUT_BIND_DESC pVariableBind;
+        hr = pReflector->GetResourceBindingDescByName(pVariable.Name, &pVariableBind);
+
+        // Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+        irrCB->mHwObject = static_cast<CD3D11HardwareBuffer*>(Driver->createHardwareBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS, E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC, pVariable.Size));
+        irrCB->mHostMemory.resize(pVariable.Size);
+
+
+        irrCB->mOffset = pVariableBind.BindCount;
+        irrCB->mBindPoint = pVariableBind.BindPoint;
+        irrCB->mName = pVariable.Name;
+        irrCB->mBufferType = ESVT_CONSTANT;
+
+        irrCB->mType = CNullShader::GetShaderType(
+            E_SHADER_VARIABLE_TYPE::ESVT_BUFFER,
+            1,
+            pVariable.Variables,
+            0,
+            1,
+            0,
+            0,
+            0,
+            pVariable.Size);
+
+        ReflParseStruct(irrCB, nullptr, pConstBuffer, nullptr, irrCB->mVariables, "", pVariable.Size);
     }
 
     ///////////////////////////////////////////////////
     // Save description of textures and samplers
-    for (u32 i = 0; i != desc.BoundResources; ++i)
+    for (u32 i = 0; i != ShaderDescriptor.BoundResources; ++i)
     {
         D3D11_SHADER_INPUT_BIND_DESC inputBindDesc;
         pReflector->GetResourceBindingDesc(i, &inputBindDesc);
         if (inputBindDesc.Type == D3D_SIT_TEXTURE || inputBindDesc.Type == D3D_SIT_SAMPLER)
-            BoundResources.push_back(inputBindDesc);
+        {
+            SShaderVariableScalar* var = new SShaderVariableScalar();
+            var->mName = inputBindDesc.Name;
+            var->mParent = nullptr;
+            var->mBuffer = nullptr;
+            var->mOffset = inputBindDesc.BindPoint;
+            var->mLayoutIndex = -1;
+            var->mShaderStage = shaderType;
+            var->mType = CNullShader::GetShaderType(
+                video::E_SHADER_VARIABLE_TYPE::ESVT_SAMPLER,
+                1,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0
+            );
+            var->mIsValid = true;
+            var->mIsDirty = false;
+            mTextures.push_back(var);
+        }
     }
 
     return S_OK;
@@ -414,6 +509,9 @@ HRESULT irr::video::D3D11HLSLProgram::initializeConstantBuffers(CD3D11Driver * d
 
 HRESULT irr::video::D3D11HLSLProgram::enumInputLayout(CD3D11Driver * d3dDevice, ID3D11ShaderReflection* vertReflect)
 {
+    inputLayoutArray.clear();
+    mVertexInput.clear();
+
     // http://www.sunandblackcat.com/tipFullView.php?l=eng&topicid=26
     HRESULT hr = S_OK;
 
@@ -427,7 +525,7 @@ HRESULT irr::video::D3D11HLSLProgram::enumInputLayout(CD3D11Driver * d3dDevice, 
     {
         // get description of input parameter
         vertReflect->GetInputParameterDesc(i, &input_desc);
-
+        
         // fill element description to create input layout later
         D3D11_INPUT_ELEMENT_DESC ie;
         ie.SemanticName = input_desc.SemanticName;
@@ -440,6 +538,14 @@ HRESULT irr::video::D3D11HLSLProgram::enumInputLayout(CD3D11Driver * d3dDevice, 
 
         u32 componentCount = core::math::NumberOfSetBits(input_desc.Mask);
         byteOffset += (4 * componentCount);
+
+        video::E_SHADER_VARIABLE_TYPE eShaderType;
+        if (input_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)
+            eShaderType = video::E_SHADER_VARIABLE_TYPE::ESVT_UINT;
+        else if (input_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
+            eShaderType = video::E_SHADER_VARIABLE_TYPE::ESVT_INT;
+        else
+            eShaderType = video::E_SHADER_VARIABLE_TYPE::ESVT_FLOAT;
 
         // determine correct format of input parameter and offset
         if (componentCount == 1)
@@ -502,6 +608,31 @@ HRESULT irr::video::D3D11HLSLProgram::enumInputLayout(CD3D11Driver * d3dDevice, 
                 ie.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
             }
         }
+
+        SShaderVariableScalar* var = new SShaderVariableScalar();
+        var->mName = "";
+        var->mParent = nullptr;
+        var->mBuffer = nullptr;
+        var->mOffset = byteOffset;
+        var->mLayoutIndex = i;
+        var->mSemantic = input_desc.SemanticName;
+        var->mSemanticIndex = input_desc.SemanticIndex;
+
+        var->mType = CNullShader::GetShaderType(
+            eShaderType,
+            1,
+            0,
+            0,
+            componentCount,
+            0,
+            0,
+            0,
+            (4 * componentCount)
+        );
+
+        var->mIsValid = true;
+        var->mIsDirty = false;
+        mVertexInput.push_back(var);
 
         inputLayoutArray.push_back(ie);
     }

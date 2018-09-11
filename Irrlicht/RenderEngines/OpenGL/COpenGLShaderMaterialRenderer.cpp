@@ -108,8 +108,8 @@ void COpenGLShaderMaterialRenderer::init(s32& outMaterialTypeNr,
 bool COpenGLShaderMaterialRenderer::OnRender(IMaterialRendererServices* service, E_VERTEX_TYPE vtxtype)
 {
 	// call callback to set shader constants
-	if (CallBack && (VertexShader || PixelShader[0]))
-		CallBack->OnSetConstants(service, UserData);
+	//if (CallBack && (VertexShader || PixelShader[0]))
+	//	CallBack->OnSetConstants(service, UserData);
 
 	return true;
 }
@@ -163,8 +163,8 @@ void COpenGLShaderMaterialRenderer::OnSetMaterial(const video::SMaterial& materi
 	}
 
 	//let callback know used material
-	if (CallBack)
-		CallBack->OnSetMaterial(material);
+	//if (CallBack)
+	//	CallBack->OnSetMaterial(material);
 
 	for (u32 i=0; i<MATERIAL_MAX_TEXTURES; ++i)
 		Driver->setActiveTexture(i, material.getTexture(i));

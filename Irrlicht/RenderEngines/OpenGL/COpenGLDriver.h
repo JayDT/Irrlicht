@@ -419,9 +419,6 @@ namespace video
         void SetResetRenderStates() { ResetRenderStates = true; }
 
         IShader * createShader(ShaderInitializerEntry * shaderCreateInfo) override;
-        virtual s32 getShaderVariableID(IShader*, const c8* name);
-        virtual bool setShaderConstant(ShaderVariableDescriptor const* desc, const void* values, int count, IHardwareBuffer* buffer = nullptr);
-        core::array<u8> GetShaderVariableMemoryBlock(ShaderVariableDescriptor const* desc, video::IShader* shader) override final;
         bool SyncShaderConstant();
         virtual void useShader(IShader*);
         virtual void deleteShader(IShader*);
@@ -431,20 +428,6 @@ namespace video
         video::VertexDeclaration* createVertexDeclaration() override final;
         COpenGLStateCacheManager* GetStateCache() { return &m_stateCache; }
         GLSLGpuShader* GetDefaultGPU(E_VERTEX_TYPE vtype) { return m_defaultShader[vtype]; }
-
-        // enumeration for rendering modes such as 2d and 3d for minizing the switching of renderStates.
-        enum E_RENDER_MODE
-        {
-            ERM_NONE = 0,
-            ERM_2D,		                // 2d drawing rendermode
-            ERM_3D,			            // 3d rendering mode
-            ERM_STENCIL_FILL,           // stencil fill mode
-            ERM_SHADOW_VOLUME_ZFAIL,    // stencil volume draw mode
-            ERM_SHADOW_VOLUME_ZPASS     // stencil volume draw mode
-        };
-
-        E_RENDER_MODE GetCurrentRenderMode() const { return CurrentRenderMode; }
-        SColorf const& GetAmbientLight() const { return AmbientLight; }
 
     private:
 
@@ -498,7 +481,6 @@ namespace video
 		core::matrix4 Matrices[ETS_COUNT];
 		core::array<u8> ColorBuffer;
 
-		E_RENDER_MODE CurrentRenderMode;
 		//! bool to make all renderstates reset if set to true.
 		bool ResetRenderStates;
 		bool Transformation3DChanged;
@@ -549,7 +531,6 @@ namespace video
 			bool	DesireToBeOn;
 		};
 		core::array<RequestedLight> RequestedLights;
-        SColorf AmbientLight;
 
         //! Built-in 2D quad for 2D rendering.
         S3DVertex Quad2DVertices[4];

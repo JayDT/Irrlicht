@@ -109,15 +109,15 @@ void irr::video::VulkanBuffer::OnDeviceRestored(CVulkanDriver * device)
 {
 }
 
-CVulkanHardwareBuffer::CVulkanHardwareBuffer(CVulkanDriver* driver, scene::IMeshBuffer *meshBuffer, video::IShaderDataBuffer* instanceBuffer, u32 flags, E_VERTEX_TYPE vtype)
-    : IHardwareBuffer(meshBuffer, instanceBuffer)
+CVulkanHardwareBuffer::CVulkanHardwareBuffer(CVulkanDriver* driver, scene::IMeshBuffer *meshBuffer, u32 flags, E_VERTEX_TYPE vtype)
+    : IHardwareBuffer(meshBuffer)
     , CVulkanDeviceResource(driver)
     , Flags(flags)
 {
 }
 
 irr::video::CVulkanHardwareBuffer::CVulkanHardwareBuffer(CVulkanDriver * driver, E_HARDWARE_BUFFER_TYPE type, E_HARDWARE_BUFFER_ACCESS accessType, u32 size, u32 flags, const void * initialData)
-    : IHardwareBuffer(nullptr, nullptr)
+    : IHardwareBuffer(nullptr)
     , CVulkanDeviceResource(driver)
     , Flags(flags)
 {

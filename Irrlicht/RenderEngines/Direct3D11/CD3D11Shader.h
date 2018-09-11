@@ -15,54 +15,9 @@ namespace irr
         class CD3D11HardwareBuffer;
 
         class D3D11HLSLProgram
-            : public IShader
+            : public CNullShader
             , protected D3D11DeviceResource
         {
-        public:
-
-            struct CbufferDesc;
-
-            struct ShaderStructMember
-            {
-                std::string name;
-                D3D11_SHADER_TYPE_DESC varType;
-            };
-
-            struct ShaderConstantDesc
-            {
-                CbufferDesc* BufferDesc;
-                D3D11_SHADER_VARIABLE_DESC VariableDesc;
-                D3D11_SHADER_TYPE_DESC varType;
-                UINT elementSize;
-                std::vector<ShaderStructMember> members;
-            };
-
-            struct CbufferDesc
-            {
-                CbufferDesc() : ChangeId(0), constantMapping(scene::E_HARDWARE_MAPPING::EHM_STATIC), ChangeStartOffset(0xFFFFFFFF), ChangeEndOffset(0)
-                {
-
-                }
-
-                D3D11_SHADER_BUFFER_DESC shaderBuffer;
-                D3D11_SHADER_INPUT_BIND_DESC bindingDesc;
-                std::vector<ShaderConstantDesc> Variables;
-                core::array<char> DataBuffer;
-                CD3D11HardwareBuffer* m_constantBuffer;
-                u32 ChangeId;
-                u32 ChangeStartOffset;
-                u32 ChangeEndOffset;
-                E_ShaderTypes shaderType : 8;
-                scene::E_HARDWARE_MAPPING constantMapping : 8;
-
-                CD3D11HardwareBuffer* getHardwareBuffer() const { return m_constantBuffer; }
-                scene::E_HARDWARE_MAPPING getHardwareMappingHint() const { return constantMapping; }
-                void setHardwareMappingHint(scene::E_HARDWARE_MAPPING value) { constantMapping = value; }
-                u32 getChangeId() const { return ChangeId; }
-            };
-
-            core::array<D3D11_SHADER_INPUT_BIND_DESC> BoundResources;
-
         private:
             friend class CD3D11FixedFunctionMaterialRenderer;
             friend class CD3D11MaterialRenderer_ONETEXTURE_BLEND;
@@ -85,17 +40,13 @@ namespace irr
             ID3D11ShaderReflection* pReflectPixelShader;
 
             core::array<D3D11_INPUT_ELEMENT_DESC> inputLayoutArray;
-            core::array<CbufferDesc> ShaderBuffers;
 
         public:
-            explicit D3D11HLSLProgram(video::IVideoDriver* context, E_ShaderTypes type);
+            explicit D3D11HLSLProgram(video::IVideoDriver* context);
 
             virtual ~D3D11HLSLProgram();
 
-            virtual E_ShaderVersion getShaderVersion() const { return ESV_HLSL_HIGH_LEVEL; }
-            virtual void bind();
-            virtual void unbind();
-            virtual void destroy() {}
+            virtual E_SHADER_LANG getShaderVersion() const { return ESV_HLSL_HIGH_LEVEL; }
             virtual void Init();
 
             void OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, const char* shaderFilename);
@@ -103,7 +54,7 @@ namespace irr
             virtual bool createGeometryShader(ID3D11Device* device, System::IO::IFileReader* file, const char* main, const char* shaderModel);
             virtual bool createPixelShader(ID3D11Device* device, System::IO::IFileReader* file, const char* main, const char* shaderModel);
             HRESULT enumInputLayout(CD3D11Driver * d3dDevice, ID3D11ShaderReflection*);
-            HRESULT initializeConstantBuffers(CD3D11Driver * d3dDevice, ID3D11ShaderReflection*, E_ShaderTypes shaderType);
+            HRESULT initializeConstantBuffers(CD3D11Driver * d3dDevice, ID3D11ShaderReflection*, E_SHADER_TYPES shaderType);
 
             ID3D11InputLayout*       GetInputLayout() { return m_inputLayout; }
 
@@ -113,30 +64,8 @@ namespace irr
 
             ID3DBlob* GetVertexShaderByteCode() const { return m_vertexShaderBytecode; }
 
-            virtual u32 getBufferBinding(ShaderVariableDescriptor const* desc) const override
-            {
-                //const CbufferDesc& cbuffer = ShaderBuffers[desc->m_shaderIndex];
-                //return cbuffer.bindingDesc.BindPoint;
-                return desc->m_shaderIndex;
-            }
-
-            virtual size_t getBufferSize(ShaderVariableDescriptor const* desc) const override
-            {
-                const CbufferDesc& cbuffer = ShaderBuffers[desc->m_shaderIndex];
-                return cbuffer.DataBuffer.size();
-            }
-
-            virtual BufferVariableMemoryInfo getBufferVariableMemoryInfo(ShaderVariableDescriptor const* desc) const override
-            {
-                const CbufferDesc& cbuffer = ShaderBuffers[desc->m_shaderIndex];
-                const ShaderConstantDesc& constantDecl = cbuffer.Variables[desc->m_location & 0xFF];
-
-                BufferVariableMemoryInfo info;
-                info.ElementSize = constantDecl.elementSize;
-                info.MemorySize = constantDecl.VariableDesc.Size;
-                info.Offset = constantDecl.VariableDesc.StartOffset;
-                return info;
-            }
+        private:
+            void ReflParseStruct(SConstantBuffer* buffdesc, irr::video::IShaderVariable* parent, ID3D11ShaderReflectionConstantBuffer * pConstBuffer, ID3D11ShaderReflectionType * pParentVariableType, std::vector<irr::video::IShaderVariable*>& Variables, std::string namePrefix, u32 pParentSize);
         };
     }
 }

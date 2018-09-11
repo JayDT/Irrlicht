@@ -221,186 +221,186 @@ namespace video
 		"mov oC0, r0; \n"\
 		"\n";
 
-	CD3D9ParallaxMapRenderer::CD3D9ParallaxMapRenderer(
-		IDirect3DDevice9* d3ddev, video::IVideoDriver* driver,
-		s32& outMaterialTypeNr, IMaterialRenderer* baseMaterial)
-		: CD3D9ShaderMaterialRenderer(d3ddev, driver, 0, baseMaterial),
-		CurrentScale(0.0f)
-	{
-	
-		#ifdef _DEBUG
-		setDebugName("CD3D9ParallaxMapRenderer");
-		#endif
-	
-		// set this as callback. We could have done this in
-		// the initialization list, but some compilers don't like it.
-
-		CallBack = this;
-
-		// basicly, this thing simply compiles these hardcoded shaders if the
-		// hardware is able to do them, otherwise it maps to the base material
-
-		if (!driver->queryFeature(video::EVDF_PIXEL_SHADER_1_4) ||
-			!driver->queryFeature(video::EVDF_VERTEX_SHADER_1_1))
-		{
-			// this hardware is not able to do shaders. Fall back to
-			// base material.
-			outMaterialTypeNr = driver->addMaterialRenderer(this);
-			return;
-		}
-
-		// check if already compiled parallax map shaders are there.
-
-		video::IMaterialRenderer* renderer = driver->getMaterialRenderer(EMT_PARALLAX_MAP_SOLID);
-		if (renderer)
-		{
-			// use the already compiled shaders
-			video::CD3D9ParallaxMapRenderer* nmr = (video::CD3D9ParallaxMapRenderer*)renderer;
-			VertexShader = nmr->VertexShader;
-			if (VertexShader)
-				VertexShader->AddRef();
-
-			PixelShader = nmr->PixelShader;
-			if (PixelShader)
-				PixelShader->AddRef();
-
-			outMaterialTypeNr = driver->addMaterialRenderer(this);
-		}
-		else
-		{
-			#ifdef SHADER_EXTERNAL_DEBUG
-
-				// quickly load shader from external file
-				io::CReadFile* file = new io::CReadFile("parallax.psh");
-				s32 sz = file->getSize();
-				char* s = new char[sz+1];
-				file->read(s, sz);
-				s[sz] = 0;
-
-				init(outMaterialTypeNr, D3D9_PARALLAX_MAP_VSH, s);
-
-				delete [] s;
-				file->drop();
-
-			#else
-
-				// compile shaders on our own
-				init(outMaterialTypeNr, D3D9_PARALLAX_MAP_VSH, D3D9_PARALLAX_MAP_PSH);
-
-			#endif // SHADER_EXTERNAL_DEBUG
-		}
-		// something failed, use base material
-		if (-1==outMaterialTypeNr)
-			driver->addMaterialRenderer(this);
-	}
-
-
-	CD3D9ParallaxMapRenderer::~CD3D9ParallaxMapRenderer()
-	{
-		if (CallBack == this)
-			CallBack = 0;
-	}
-
-	bool CD3D9ParallaxMapRenderer::OnRender(IMaterialRendererServices* service, E_VERTEX_TYPE vtxtype)
-	{
-		if (vtxtype != video::EVT_TANGENTS)
-		{
-			os::Printer::log("Error: Parallax map renderer only supports vertices of type EVT_TANGENTS", ELL_ERROR);
-			return false;
-		}
-
-		return CD3D9ShaderMaterialRenderer::OnRender(service, vtxtype);
-	}
-
-
-	void CD3D9ParallaxMapRenderer::OnSetMaterial(const video::SMaterial& material,
-		const video::SMaterial& lastMaterial,
-		bool resetAllRenderstates, video::IMaterialRendererServices* services)
-	{
-		CD3D9ShaderMaterialRenderer::OnSetMaterial(material, lastMaterial,
-			resetAllRenderstates, services);
-
-		CurrentScale = material.MaterialTypeParam;
-	}
-
-
-	//! Returns the render capability of the material.
-	s32 CD3D9ParallaxMapRenderer::getRenderCapability() const
-	{
-		if (Driver->queryFeature(video::EVDF_PIXEL_SHADER_1_4) &&
-			Driver->queryFeature(video::EVDF_VERTEX_SHADER_1_1))
-			return 0;
-
-		return 1;
-	}
-
-
-	//! Called by the engine when the vertex and/or pixel shader constants
-	//! for an material renderer should be set.
-	void CD3D9ParallaxMapRenderer::OnSetConstants(IMaterialRendererServices* services, s32 userData)
-	{
-		video::IVideoDriver* driver = services->getVideoDriver();
-
-		// set transposed world matrix
-		services->setVertexShaderConstant(driver->getTransform(video::ETS_WORLD).getTransposed().pointer(), 0, 4);
-
-		// set eye position
-
-		// The  viewpoint is at (0., 0., 0.) in eye space.
-		// Turning this into a vector [0 0 0 1] and multiply it by
-		// the inverse of the view matrix, the resulting vector is the
-		// object space location of the camera.
-
-		f32 floats[4] = {0,0,0,1};
-		core::matrix4 minv = driver->getTransform(video::ETS_VIEW);
-		minv.makeInverse();
-		minv.multiplyWith1x4Matrix(floats);
-		services->setVertexShaderConstant(floats, 4, 1);
-
-		// set transposed worldViewProj matrix
-		core::matrix4 worldViewProj;
-		worldViewProj = driver->getTransform(video::ETS_PROJECTION);
-		worldViewProj *= driver->getTransform(video::ETS_VIEW);
-		worldViewProj *= driver->getTransform(video::ETS_WORLD);
-		services->setVertexShaderConstant(worldViewProj.getTransposed().pointer(), 8, 4);
-
-		// here we've got to fetch the fixed function lights from the
-		// driver and set them as constants
-
-		const u32 cnt = driver->getDynamicLightCount();
-
-		for (u32 i=0; i<2; ++i)
-		{
-			SLight light;
-
-			if (i<cnt)
-				light = driver->getDynamicLight(i);
-			else
-			{
-				light.DiffuseColor.set(0,0,0); // make light dark
-				light.Radius = 1.0f;
-			}
-
-			light.DiffuseColor.a = 1.0f/(light.Radius*light.Radius); // set attenuation
-
-			services->setVertexShaderConstant(reinterpret_cast<const f32*>(&light.Position), 12+(i*2), 1);
-			services->setVertexShaderConstant(reinterpret_cast<const f32*>(&light.DiffuseColor), 13+(i*2), 1);
-		}
-
-		// this is not really necessary in d3d9 (used a def instruction), but to be sure:
-		f32 c95[] = {0.5f, 0.5f, 0.5f, 0.5f};
-		services->setVertexShaderConstant(c95, 95, 1);
-		f32 c96[] = {-1, 1, 1, 1};
-		services->setVertexShaderConstant(c96, 96, 1);
-
-		// set scale factor
-		f32 factor = 0.02f; // default value
-		if (CurrentScale != 0)
-			factor = CurrentScale;
-
-		f32 c6[] = {factor, factor, factor, 0};
-		services->setPixelShaderConstant(c6, 6, 1);
-	}
+	//CD3D9ParallaxMapRenderer::CD3D9ParallaxMapRenderer(
+	//	IDirect3DDevice9* d3ddev, video::IVideoDriver* driver,
+	//	s32& outMaterialTypeNr, IMaterialRenderer* baseMaterial)
+	//	: CD3D9ShaderMaterialRenderer(d3ddev, driver, 0, baseMaterial),
+	//	CurrentScale(0.0f)
+	//{
+	//
+	//	#ifdef _DEBUG
+	//	setDebugName("CD3D9ParallaxMapRenderer");
+	//	#endif
+	//
+	//	// set this as callback. We could have done this in
+	//	// the initialization list, but some compilers don't like it.
+    //
+	//	CallBack = this;
+    //
+	//	// basicly, this thing simply compiles these hardcoded shaders if the
+	//	// hardware is able to do them, otherwise it maps to the base material
+    //
+	//	if (!driver->queryFeature(video::EVDF_PIXEL_SHADER_1_4) ||
+	//		!driver->queryFeature(video::EVDF_VERTEX_SHADER_1_1))
+	//	{
+	//		// this hardware is not able to do shaders. Fall back to
+	//		// base material.
+	//		outMaterialTypeNr = driver->addMaterialRenderer(this);
+	//		return;
+	//	}
+    //
+	//	// check if already compiled parallax map shaders are there.
+    //
+	//	video::IMaterialRenderer* renderer = driver->getMaterialRenderer(EMT_PARALLAX_MAP_SOLID);
+	//	if (renderer)
+	//	{
+	//		// use the already compiled shaders
+	//		video::CD3D9ParallaxMapRenderer* nmr = (video::CD3D9ParallaxMapRenderer*)renderer;
+	//		VertexShader = nmr->VertexShader;
+	//		if (VertexShader)
+	//			VertexShader->AddRef();
+    //
+	//		PixelShader = nmr->PixelShader;
+	//		if (PixelShader)
+	//			PixelShader->AddRef();
+    //
+	//		outMaterialTypeNr = driver->addMaterialRenderer(this);
+	//	}
+	//	else
+	//	{
+	//		#ifdef SHADER_EXTERNAL_DEBUG
+    //
+	//			// quickly load shader from external file
+	//			io::CReadFile* file = new io::CReadFile("parallax.psh");
+	//			s32 sz = file->getSize();
+	//			char* s = new char[sz+1];
+	//			file->read(s, sz);
+	//			s[sz] = 0;
+    //
+	//			init(outMaterialTypeNr, D3D9_PARALLAX_MAP_VSH, s);
+    //
+	//			delete [] s;
+	//			file->drop();
+    //
+	//		#else
+    //
+	//			// compile shaders on our own
+	//			init(outMaterialTypeNr, D3D9_PARALLAX_MAP_VSH, D3D9_PARALLAX_MAP_PSH);
+    //
+	//		#endif // SHADER_EXTERNAL_DEBUG
+	//	}
+	//	// something failed, use base material
+	//	if (-1==outMaterialTypeNr)
+	//		driver->addMaterialRenderer(this);
+	//}
+    //
+    //
+	//CD3D9ParallaxMapRenderer::~CD3D9ParallaxMapRenderer()
+	//{
+	//	if (CallBack == this)
+	//		CallBack = 0;
+	//}
+    //
+	//bool CD3D9ParallaxMapRenderer::OnRender(IMaterialRendererServices* service, E_VERTEX_TYPE vtxtype)
+	//{
+	//	if (vtxtype != video::EVT_TANGENTS)
+	//	{
+	//		os::Printer::log("Error: Parallax map renderer only supports vertices of type EVT_TANGENTS", ELL_ERROR);
+	//		return false;
+	//	}
+    //
+	//	return CD3D9ShaderMaterialRenderer::OnRender(service, vtxtype);
+	//}
+    //
+    //
+	//void CD3D9ParallaxMapRenderer::OnSetMaterial(const video::SMaterial& material,
+	//	const video::SMaterial& lastMaterial,
+	//	bool resetAllRenderstates, video::IMaterialRendererServices* services)
+	//{
+	//	CD3D9ShaderMaterialRenderer::OnSetMaterial(material, lastMaterial,
+	//		resetAllRenderstates, services);
+    //
+	//	CurrentScale = material.MaterialTypeParam;
+	//}
+    //
+    //
+	////! Returns the render capability of the material.
+	//s32 CD3D9ParallaxMapRenderer::getRenderCapability() const
+	//{
+	//	if (Driver->queryFeature(video::EVDF_PIXEL_SHADER_1_4) &&
+	//		Driver->queryFeature(video::EVDF_VERTEX_SHADER_1_1))
+	//		return 0;
+    //
+	//	return 1;
+	//}
+    //
+    //
+	////! Called by the engine when the vertex and/or pixel shader constants
+	////! for an material renderer should be set.
+	//void CD3D9ParallaxMapRenderer::OnSetConstants(IMaterialRendererServices* services, s32 userData)
+	//{
+	//	video::IVideoDriver* driver = services->getVideoDriver();
+    //
+	//	// set transposed world matrix
+	//	services->setVertexShaderConstant(driver->getTransform(video::ETS_WORLD).getTransposed().pointer(), 0, 4);
+    //
+	//	// set eye position
+    //
+	//	// The  viewpoint is at (0., 0., 0.) in eye space.
+	//	// Turning this into a vector [0 0 0 1] and multiply it by
+	//	// the inverse of the view matrix, the resulting vector is the
+	//	// object space location of the camera.
+    //
+	//	f32 floats[4] = {0,0,0,1};
+	//	core::matrix4 minv = driver->getTransform(video::ETS_VIEW);
+	//	minv.makeInverse();
+	//	minv.multiplyWith1x4Matrix(floats);
+	//	services->setVertexShaderConstant(floats, 4, 1);
+    //
+	//	// set transposed worldViewProj matrix
+	//	core::matrix4 worldViewProj;
+	//	worldViewProj = driver->getTransform(video::ETS_PROJECTION);
+	//	worldViewProj *= driver->getTransform(video::ETS_VIEW);
+	//	worldViewProj *= driver->getTransform(video::ETS_WORLD);
+	//	services->setVertexShaderConstant(worldViewProj.getTransposed().pointer(), 8, 4);
+    //
+	//	// here we've got to fetch the fixed function lights from the
+	//	// driver and set them as constants
+    //
+	//	const u32 cnt = driver->getDynamicLightCount();
+    //
+	//	for (u32 i=0; i<2; ++i)
+	//	{
+	//		SLight light;
+    //
+	//		if (i<cnt)
+	//			light = driver->getDynamicLight(i);
+	//		else
+	//		{
+	//			light.DiffuseColor.set(0,0,0); // make light dark
+	//			light.Radius = 1.0f;
+	//		}
+    //
+	//		light.DiffuseColor.a = 1.0f/(light.Radius*light.Radius); // set attenuation
+    //
+	//		services->setVertexShaderConstant(reinterpret_cast<const f32*>(&light.Position), 12+(i*2), 1);
+	//		services->setVertexShaderConstant(reinterpret_cast<const f32*>(&light.DiffuseColor), 13+(i*2), 1);
+	//	}
+    //
+	//	// this is not really necessary in d3d9 (used a def instruction), but to be sure:
+	//	f32 c95[] = {0.5f, 0.5f, 0.5f, 0.5f};
+	//	services->setVertexShaderConstant(c95, 95, 1);
+	//	f32 c96[] = {-1, 1, 1, 1};
+	//	services->setVertexShaderConstant(c96, 96, 1);
+    //
+	//	// set scale factor
+	//	f32 factor = 0.02f; // default value
+	//	if (CurrentScale != 0)
+	//		factor = CurrentScale;
+    //
+	//	f32 c6[] = {factor, factor, factor, 0};
+	//	services->setPixelShaderConstant(c6, 6, 1);
+	//}
 
 
 } // end namespace video

@@ -3,6 +3,7 @@
 #include "CVulkanDevice.h"
 #include <sstream>
 
+#include "glslang/Include/BaseTypes.h"
 #include "os.h"
 
 using namespace irr;
@@ -763,4 +764,44 @@ bool VulkanUtility::rangeOverlaps(const VkImageSubresourceRange& a, const VkImag
         return true;
 
     return false;
+}
+
+video::E_SHADER_VARIABLE_TYPE irr::video::VulkanUtility::getShaderVariableTypeId(u32 glslangType)
+{
+    switch (glslangType)
+    {
+        case glslang::TBasicType::EbtVoid:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_VOID;
+        case glslang::TBasicType::EbtBool:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_BOOL;
+        case glslang::TBasicType::EbtDouble:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_DOUBLE;
+        case glslang::TBasicType::EbtFloat:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_FLOAT;
+        case glslang::TBasicType::EbtFloat16:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_FLOAT16;
+        case glslang::TBasicType::EbtInt:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_INT;
+        case glslang::TBasicType::EbtInt8:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_INT8;
+        case glslang::TBasicType::EbtInt16:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_INT16;
+        case glslang::TBasicType::EbtInt64:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_INT64;
+        case glslang::TBasicType::EbtUint8:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_UINT8;
+        case glslang::TBasicType::EbtUint:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_UINT;
+        case glslang::TBasicType::EbtUint16:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_UINT16;
+        case glslang::TBasicType::EbtUint64:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_UINT64;
+        case glslang::TBasicType::EbtSampler:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_SAMPLER;
+        case glslang::TBasicType::EbtStruct:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_STRUCT;
+        case glslang::TBasicType::EbtBlock:
+            return video::E_SHADER_VARIABLE_TYPE::ESVT_BUFFER;
+    }
+    return video::E_SHADER_VARIABLE_TYPE::ESVT_MAX;
 }

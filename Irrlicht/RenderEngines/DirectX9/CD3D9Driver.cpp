@@ -155,31 +155,31 @@ void CD3D9Driver::createMaterialRenderers()
 	s32 tmp = 0;
 	video::IMaterialRenderer* renderer = 0;
 
-	renderer = new CD3D9NormalMapRenderer(pID3DDevice, this, tmp,
-		MaterialRenderers[EMT_SOLID].Renderer);
-	renderer->drop();
-
-	renderer = new CD3D9NormalMapRenderer(pID3DDevice, this, tmp,
-		MaterialRenderers[EMT_TRANSPARENT_ADD_COLOR].Renderer);
-	renderer->drop();
-
-	renderer = new CD3D9NormalMapRenderer(pID3DDevice, this, tmp,
-		MaterialRenderers[EMT_TRANSPARENT_VERTEX_ALPHA].Renderer);
-	renderer->drop();
-
-	// add parallax map renderers
-
-	renderer = new CD3D9ParallaxMapRenderer(pID3DDevice, this, tmp,
-		MaterialRenderers[EMT_SOLID].Renderer);
-	renderer->drop();
-
-	renderer = new CD3D9ParallaxMapRenderer(pID3DDevice, this, tmp,
-		MaterialRenderers[EMT_TRANSPARENT_ADD_COLOR].Renderer);
-	renderer->drop();
-
-	renderer = new CD3D9ParallaxMapRenderer(pID3DDevice, this, tmp,
-		MaterialRenderers[EMT_TRANSPARENT_VERTEX_ALPHA].Renderer);
-	renderer->drop();
+	//renderer = new CD3D9NormalMapRenderer(pID3DDevice, this, tmp,
+	//	MaterialRenderers[EMT_SOLID].Renderer);
+	//renderer->drop();
+    //
+	//renderer = new CD3D9NormalMapRenderer(pID3DDevice, this, tmp,
+	//	MaterialRenderers[EMT_TRANSPARENT_ADD_COLOR].Renderer);
+	//renderer->drop();
+    //
+	//renderer = new CD3D9NormalMapRenderer(pID3DDevice, this, tmp,
+	//	MaterialRenderers[EMT_TRANSPARENT_VERTEX_ALPHA].Renderer);
+	//renderer->drop();
+    //
+	//// add parallax map renderers
+    //
+	//renderer = new CD3D9ParallaxMapRenderer(pID3DDevice, this, tmp,
+	//	MaterialRenderers[EMT_SOLID].Renderer);
+	//renderer->drop();
+    //
+	//renderer = new CD3D9ParallaxMapRenderer(pID3DDevice, this, tmp,
+	//	MaterialRenderers[EMT_TRANSPARENT_ADD_COLOR].Renderer);
+	//renderer->drop();
+    //
+	//renderer = new CD3D9ParallaxMapRenderer(pID3DDevice, this, tmp,
+	//	MaterialRenderers[EMT_TRANSPARENT_VERTEX_ALPHA].Renderer);
+	//renderer->drop();
 
 	// add basic 1 texture blending
 	addAndDropMaterialRenderer(new CD3D9MaterialRenderer_ONETEXTURE_BLEND(pID3DDevice, this));
@@ -1242,111 +1242,111 @@ const core::rect<s32>& CD3D9Driver::getViewPort() const
 //    gpuProgram->Init();
 //    return gpuProgram;
 //}
-
-bool CD3D9Driver::setShaderConstant(ShaderVariableDescriptor const* desc, const void* values, int count, IHardwareBuffer* buffer /*= nullptr*/)
-{
-    ShaderHLSL* hlsl = (ShaderHLSL*)GetActiveShader();
-
-    if (desc->m_type == ESVT_INPUT_STREAM)
-        return false;
-    //{
-    //    SHWBufferLink_d3d9* hwBuffer = (SHWBufferLink_d3d9*)buffer;
-    //    //u32 bufferCount = hwBuffer->vertexInstanceBufferSize / hwBuffer->stride[desc->m_location];
-    //    u32 LockSize = hwBuffer->stride[desc->m_location] * count;
-    //
-    //    if (LockSize > hwBuffer->vertexInstanceBufferSize)
-    //    {
-    //        hwBuffer->vertexInstanceBufferSize = hwBuffer->stride[desc->m_location] * count;
-    //        long refCount = hwBuffer->vertexInstanceBuffer->Release();
-    //        hwBuffer->vertexInstanceBuffer = nullptr;
-    //
-    //        if (FAILED(pID3DDevice->CreateVertexBuffer(hwBuffer->vertexInstanceBufferSize, D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC, 0, D3DPOOL_DEFAULT, &hwBuffer->vertexInstanceBuffer, NULL)))
-    //            return false;
-    //    }
-    //    
-    //    hwBuffer->vertexInstanceBufferSize = LockSize;
-    //    DWORD dwLockFlags = D3DLOCK_DISCARD; // if append data D3DLOCK_NOOVERWRITE;
-    //    
-    //    void* lockedBuffer = 0;
-    //    HRESULT hr = hwBuffer->vertexInstanceBuffer->Lock(0, LockSize, (void**)&lockedBuffer, dwLockFlags);
-    //    if (FAILED(hr))
-    //    {
-    //        printf("[HLSL SHADER] Error: %s error description: %s\n",
-    //            DXGetErrorString(hr), DXGetErrorDescription(hr));
-    //        //_IRR_DEBUG_BREAK_IF(true);
-    //        return false;
-    //    }
-    //    memcpy(lockedBuffer, values, LockSize);
-    //    hwBuffer->vertexInstanceBuffer->Unlock();
-    //    return true;
-    //}
-
-    static const int MaxShaderType = 5;
-    LPD3DXCONSTANTTABLE constantTables[MaxShaderType] = { hlsl->m_pConstantTableVS,  hlsl->m_pConstantTablePS,  hlsl->m_pConstantTableGS, nullptr, nullptr };
-    D3DXHANDLE hndl = constantTables[desc->m_shaderIndex]->GetConstant(NULL, desc->m_location);
-
-    //
-    //D3DXCONSTANT_DESC Description;
-    //UINT ucount = 1;
-    //constantTables[desc->m_shaderIndex]->GetConstantDesc(hndl, &Description, &ucount);
-
-    switch (desc->m_variableType)
-    {
-        case D3DXPT_BOOL:
-        {
-            _IRR_DEBUG_BREAK_IF(count > desc->m_length || count > 1);
-            constantTables[desc->m_shaderIndex]->SetBool(pID3DDevice, hndl, *(bool*)values);
-            break;
-        }
-        case D3DXPT_INT:
-        {
-            _IRR_DEBUG_BREAK_IF(count > desc->m_length || count > 1);
-            constantTables[desc->m_shaderIndex]->SetInt(pID3DDevice, hndl, *(int*)values);
-            break;
-        }
-        case D3DXPT_TEXTURE:
-        case D3DXPT_TEXTURE1D:
-        case D3DXPT_TEXTURE2D:
-        case D3DXPT_TEXTURE3D:
-        {
-            break;
-        }
-        case D3DXPT_SAMPLER:
-        case D3DXPT_SAMPLER1D:
-        case D3DXPT_SAMPLER2D:
-        case D3DXPT_SAMPLER3D:
-        {
-            break;
-        }
-        case D3DXPT_FLOAT:
-        {
-            _IRR_DEBUG_BREAK_IF(count > desc->m_length);
-
-            HRESULT hr = 0;
-            if (desc->m_class == D3DXPC_MATRIX_ROWS || desc->m_class == D3DXPC_MATRIX_COLUMNS)
-            {
-                hr = constantTables[desc->m_shaderIndex]->SetMatrixArray(pID3DDevice, hndl, (D3DXMATRIX const*)values, count * ((desc->m_size / desc->m_length) / sizeof(D3DXMATRIX)));
-            }
-            else
-            {
-                hr = constantTables[desc->m_shaderIndex]->SetFloatArray(pID3DDevice, hndl, (float*)values, count * ((desc->m_size / desc->m_length) / sizeof(float)));
-            }
-
-            if (FAILED(hr))
-            {
-                os::Printer::log("Error setting float array for HLSL variable", ELL_WARNING);
-                return false;
-            }
-            break;
-        }
-        default:
-        {
-            return false;
-            break;
-        }
-    };
-    return true;
-}
+//
+//bool CD3D9Driver::setShaderConstant(ShaderVariableDescriptor const* desc, const void* values, int count, IHardwareBuffer* buffer /*= nullptr*/)
+//{
+//    ShaderHLSL* hlsl = (ShaderHLSL*)GetActiveShader();
+//
+//    if (desc->m_type == ESVT_INPUT_STREAM)
+//        return false;
+//    //{
+//    //    SHWBufferLink_d3d9* hwBuffer = (SHWBufferLink_d3d9*)buffer;
+//    //    //u32 bufferCount = hwBuffer->vertexInstanceBufferSize / hwBuffer->stride[desc->m_location];
+//    //    u32 LockSize = hwBuffer->stride[desc->m_location] * count;
+//    //
+//    //    if (LockSize > hwBuffer->vertexInstanceBufferSize)
+//    //    {
+//    //        hwBuffer->vertexInstanceBufferSize = hwBuffer->stride[desc->m_location] * count;
+//    //        long refCount = hwBuffer->vertexInstanceBuffer->Release();
+//    //        hwBuffer->vertexInstanceBuffer = nullptr;
+//    //
+//    //        if (FAILED(pID3DDevice->CreateVertexBuffer(hwBuffer->vertexInstanceBufferSize, D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC, 0, D3DPOOL_DEFAULT, &hwBuffer->vertexInstanceBuffer, NULL)))
+//    //            return false;
+//    //    }
+//    //    
+//    //    hwBuffer->vertexInstanceBufferSize = LockSize;
+//    //    DWORD dwLockFlags = D3DLOCK_DISCARD; // if append data D3DLOCK_NOOVERWRITE;
+//    //    
+//    //    void* lockedBuffer = 0;
+//    //    HRESULT hr = hwBuffer->vertexInstanceBuffer->Lock(0, LockSize, (void**)&lockedBuffer, dwLockFlags);
+//    //    if (FAILED(hr))
+//    //    {
+//    //        printf("[HLSL SHADER] Error: %s error description: %s\n",
+//    //            DXGetErrorString(hr), DXGetErrorDescription(hr));
+//    //        //_IRR_DEBUG_BREAK_IF(true);
+//    //        return false;
+//    //    }
+//    //    memcpy(lockedBuffer, values, LockSize);
+//    //    hwBuffer->vertexInstanceBuffer->Unlock();
+//    //    return true;
+//    //}
+//
+//    static const int MaxShaderType = 5;
+//    LPD3DXCONSTANTTABLE constantTables[MaxShaderType] = { hlsl->m_pConstantTableVS,  hlsl->m_pConstantTablePS,  hlsl->m_pConstantTableGS, nullptr, nullptr };
+//    D3DXHANDLE hndl = constantTables[desc->m_shaderIndex]->GetConstant(NULL, desc->m_location);
+//
+//    //
+//    //D3DXCONSTANT_DESC Description;
+//    //UINT ucount = 1;
+//    //constantTables[desc->m_shaderIndex]->GetConstantDesc(hndl, &Description, &ucount);
+//
+//    switch (desc->m_variableType)
+//    {
+//        case D3DXPT_BOOL:
+//        {
+//            _IRR_DEBUG_BREAK_IF(count > desc->m_length || count > 1);
+//            constantTables[desc->m_shaderIndex]->SetBool(pID3DDevice, hndl, *(bool*)values);
+//            break;
+//        }
+//        case D3DXPT_INT:
+//        {
+//            _IRR_DEBUG_BREAK_IF(count > desc->m_length || count > 1);
+//            constantTables[desc->m_shaderIndex]->SetInt(pID3DDevice, hndl, *(int*)values);
+//            break;
+//        }
+//        case D3DXPT_TEXTURE:
+//        case D3DXPT_TEXTURE1D:
+//        case D3DXPT_TEXTURE2D:
+//        case D3DXPT_TEXTURE3D:
+//        {
+//            break;
+//        }
+//        case D3DXPT_SAMPLER:
+//        case D3DXPT_SAMPLER1D:
+//        case D3DXPT_SAMPLER2D:
+//        case D3DXPT_SAMPLER3D:
+//        {
+//            break;
+//        }
+//        case D3DXPT_FLOAT:
+//        {
+//            _IRR_DEBUG_BREAK_IF(count > desc->m_length);
+//
+//            HRESULT hr = 0;
+//            if (desc->m_class == D3DXPC_MATRIX_ROWS || desc->m_class == D3DXPC_MATRIX_COLUMNS)
+//            {
+//                hr = constantTables[desc->m_shaderIndex]->SetMatrixArray(pID3DDevice, hndl, (D3DXMATRIX const*)values, count * ((desc->m_size / desc->m_length) / sizeof(D3DXMATRIX)));
+//            }
+//            else
+//            {
+//                hr = constantTables[desc->m_shaderIndex]->SetFloatArray(pID3DDevice, hndl, (float*)values, count * ((desc->m_size / desc->m_length) / sizeof(float)));
+//            }
+//
+//            if (FAILED(hr))
+//            {
+//                os::Printer::log("Error setting float array for HLSL variable", ELL_WARNING);
+//                return false;
+//            }
+//            break;
+//        }
+//        default:
+//        {
+//            return false;
+//            break;
+//        }
+//    };
+//    return true;
+//}
 
 void ShaderHLSL::bind()
 {
@@ -1371,7 +1371,7 @@ void CD3D9Driver::useShader(IShader* gpuProgram)
 {
     if (gpuProgram)
     {
-        if (gpuProgram->getShaderVersion() == ESV_HLSL_HIGH_LEVEL)
+        if (gpuProgram->getShaderType() == ESV_HLSL_HIGH_LEVEL)
         {
             ShaderHLSL* hlsl = (ShaderHLSL*)gpuProgram;
             pID3DDevice->SetVertexShader(hlsl->m_pVertexShader);
@@ -1410,47 +1410,47 @@ void CD3D9Driver::buildShaderVariableDescriptor(IShader* _gpuProgram)
 
     // currently we only support top level parameters.
     // Should be enough for the beginning. (TODO)
-    static const int MaxShaderType = 5;
-    LPD3DXCONSTANTTABLE constantTables[MaxShaderType] = { gpuProgram->m_pConstantTableVS,  gpuProgram->m_pConstantTablePS,  gpuProgram->m_pConstantTableGS, nullptr, nullptr };
-
-    for (u32 i = 0; i != MaxShaderType; ++i)
-    {
-        if (!constantTables[i])
-            continue;
-
-        // print out constant names
-        D3DXCONSTANTTABLE_DESC tblDesc;
-        HRESULT hr = constantTables[i]->GetDesc(&tblDesc);
-        if (!FAILED(hr))
-        {
-            for (int iv = 0; iv < (int)tblDesc.Constants; ++iv)
-            {
-                D3DXCONSTANT_DESC d;
-                UINT n = 1;
-                //gpuProgram->m_pVertexShader->
-                D3DXHANDLE cHndl = constantTables[i]->GetConstant(NULL, iv);
-                hr = constantTables[i]->GetConstantDesc(cHndl, &d, &n);
-                if (FAILED(hr))
-                {
-                    //printf("[HLSL SHADER] Error: %s error description: %s\n",
-                    //    DXGetErrorString(hr), DXGetErrorDescription(hr));
-                    continue;
-                }
-                ShaderVariableDescriptor ui;
-                
-                ui.m_location       = iv; //d.RegisterIndex;
-                ui.m_length         = d.Elements; //d.RegisterCount
-                ui.m_variableType   = d.Type;
-                ui.m_class          = d.Class;
-                ui.m_name           = d.Name;
-                ui.m_size           = d.Bytes;
-                ui.m_type           = ESVT_CONSTANT;
-                ui.m_shaderIndex    = i;
-
-                gpuProgram->AddShaderVariable(&ui);
-            }
-        }
-    }
+    //static const int MaxShaderType = 5;
+    //LPD3DXCONSTANTTABLE constantTables[MaxShaderType] = { gpuProgram->m_pConstantTableVS,  gpuProgram->m_pConstantTablePS,  gpuProgram->m_pConstantTableGS, nullptr, nullptr };
+    //
+    //for (u32 i = 0; i != MaxShaderType; ++i)
+    //{
+    //    if (!constantTables[i])
+    //        continue;
+    //
+    //    // print out constant names
+    //    D3DXCONSTANTTABLE_DESC tblDesc;
+    //    HRESULT hr = constantTables[i]->GetDesc(&tblDesc);
+    //    if (!FAILED(hr))
+    //    {
+    //        for (int iv = 0; iv < (int)tblDesc.Constants; ++iv)
+    //        {
+    //            D3DXCONSTANT_DESC d;
+    //            UINT n = 1;
+    //            //gpuProgram->m_pVertexShader->
+    //            D3DXHANDLE cHndl = constantTables[i]->GetConstant(NULL, iv);
+    //            hr = constantTables[i]->GetConstantDesc(cHndl, &d, &n);
+    //            if (FAILED(hr))
+    //            {
+    //                //printf("[HLSL SHADER] Error: %s error description: %s\n",
+    //                //    DXGetErrorString(hr), DXGetErrorDescription(hr));
+    //                continue;
+    //            }
+    //            ShaderVariableDescriptor ui;
+    //            
+    //            ui.m_location       = iv; //d.RegisterIndex;
+    //            ui.m_length         = d.Elements; //d.RegisterCount
+    //            ui.m_variableType   = d.Type;
+    //            ui.m_class          = d.Class;
+    //            ui.m_name           = d.Name;
+    //            ui.m_size           = d.Bytes;
+    //            ui.m_type           = ESVT_CONSTANT;
+    //            ui.m_shaderIndex    = i;
+    //
+    //            gpuProgram->AddShaderVariable(&ui);
+    //        }
+    //    }
+    //}
 
     //S_GPU_SHADER_VARIABLE_DEFAULT_LINK const* mLinkPtr = sDefaultShaderVariableLink;
     //do
@@ -1461,33 +1461,33 @@ void CD3D9Driver::buildShaderVariableDescriptor(IShader* _gpuProgram)
 
 bool CD3D9Driver::updateVertexHardwareBuffer(CD3D9HardwareBuffer *hwBuffer, E_HARDWARE_BUFFER_TYPE Type)
 {
-	if (!hwBuffer)
-		return false;
-
-    E_HARDWARE_BUFFER_ACCESS MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_DEFAULT;
-    if (hwBuffer->GetBuffer()->getHardwareMappingHint_Vertex() != scene::EHM_STATIC)
-        MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC;
-
-    const scene::IMeshBuffer* mb = hwBuffer->GetBuffer();
-    const E_VERTEX_TYPE vType = mb->getVertexType();
-
-    if (Type == E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX)
-    {
-        const void* vertices = mb->getVertices();
-        const u32 vertexCount = mb->getVertexCount();
-        const u32 vertexSize = hwBuffer->GetBuffer()->GetVertexStride() ? hwBuffer->GetBuffer()->GetVertexStride() : getVertexPitchFromType(vType);
-        const u32 bufSize = vertexSize * vertexCount;
-
-        hwBuffer->UpdateBuffer(Type, MemoryAccess, vertices, bufSize);
-    }
-    else if (Type == E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM)
-    {
-        IShaderDataBufferElement* variable = hwBuffer->GetInstanceBuffer()->m_bufferDataArray[0];
-        //TODO: Optimalization workaround Terrain or Liquid (need correct way)
-        //if (vType != EVT_TERRAIN && vType != EVT_STANDARD)
-        //    MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC;
-        hwBuffer->UpdateBuffer(Type, MemoryAccess, variable->getShaderValues(), variable->getValueSizeOf() * variable->getShaderValueCount());
-    }
+	//if (!hwBuffer)
+	//	return false;
+    //
+    //E_HARDWARE_BUFFER_ACCESS MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_DEFAULT;
+    //if (hwBuffer->GetBuffer()->getHardwareMappingHint_Vertex() != scene::EHM_STATIC)
+    //    MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC;
+    //
+    //const scene::IMeshBuffer* mb = hwBuffer->GetBuffer();
+    //const E_VERTEX_TYPE vType = mb->getVertexType();
+    //
+    //if (Type == E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX)
+    //{
+    //    const void* vertices = mb->getVertices();
+    //    const u32 vertexCount = mb->getVertexCount();
+    //    const u32 vertexSize = hwBuffer->GetBuffer()->GetVertexStride() ? hwBuffer->GetBuffer()->GetVertexStride() : getVertexPitchFromType(vType);
+    //    const u32 bufSize = vertexSize * vertexCount;
+    //
+    //    hwBuffer->UpdateBuffer(Type, MemoryAccess, vertices, bufSize);
+    //}
+    //else if (Type == E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM)
+    //{
+    //    IShaderDataBufferElement* variable = hwBuffer->GetInstanceBuffer()->m_bufferDataArray[0];
+    //    //TODO: Optimalization workaround Terrain or Liquid (need correct way)
+    //    //if (vType != EVT_TERRAIN && vType != EVT_STANDARD)
+    //    //    MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC;
+    //    hwBuffer->UpdateBuffer(Type, MemoryAccess, variable->getShaderValues(), variable->getValueSizeOf() * variable->getShaderValueCount());
+    //}
 	return true;
 }
 
@@ -1515,38 +1515,38 @@ bool CD3D9Driver::updateIndexHardwareBuffer(CD3D9HardwareBuffer *hwBuffer)
 //! updates hardware buffer if needed
 bool CD3D9Driver::updateHardwareBuffer(IHardwareBuffer *hwBuffer)
 {
-	if (!hwBuffer)
-		return false;
-
-	if (hwBuffer->GetBuffer()->getHardwareMappingHint_Vertex() !=scene::EHM_NEVER)
-	{
-		if (hwBuffer->getChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX) != hwBuffer->GetBuffer()->getChangedID_Vertex())
-		{
-			if (!updateVertexHardwareBuffer((CD3D9HardwareBuffer*)hwBuffer, E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX))
-				return false;
-
-            hwBuffer->setChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, hwBuffer->GetBuffer()->getChangedID_Vertex());
-        }
-
-        if (hwBuffer->getChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM) != hwBuffer->GetInstanceBuffer()->getChangedID())
-        {
-            if (!updateVertexHardwareBuffer((CD3D9HardwareBuffer*)hwBuffer, E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM))
-                return false;
-
-            hwBuffer->setChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM, hwBuffer->GetInstanceBuffer()->getChangedID());
-        }
-    }
-
-	if (hwBuffer->GetBuffer()->getHardwareMappingHint_Index()!=scene::EHM_NEVER)
-	{
-        if (hwBuffer->getChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_INDEX) != hwBuffer->GetBuffer()->getChangedID_Index())
-        {
-			if (!updateIndexHardwareBuffer((CD3D9HardwareBuffer*)hwBuffer))
-				return false;
-
-            hwBuffer->setChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_INDEX, hwBuffer->GetBuffer()->getChangedID_Vertex());
-        }
-	}
+	//if (!hwBuffer)
+	//	return false;
+    //
+	//if (hwBuffer->GetBuffer()->getHardwareMappingHint_Vertex() !=scene::EHM_NEVER)
+	//{
+	//	if (hwBuffer->getChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX) != hwBuffer->GetBuffer()->getChangedID_Vertex())
+	//	{
+	//		if (!updateVertexHardwareBuffer((CD3D9HardwareBuffer*)hwBuffer, E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX))
+	//			return false;
+    //
+    //        hwBuffer->setChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, hwBuffer->GetBuffer()->getChangedID_Vertex());
+    //    }
+    //
+    //    if (hwBuffer->getChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM) != hwBuffer->GetInstanceBuffer()->getChangedID())
+    //    {
+    //        if (!updateVertexHardwareBuffer((CD3D9HardwareBuffer*)hwBuffer, E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM))
+    //            return false;
+    //
+    //        hwBuffer->setChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM, hwBuffer->GetInstanceBuffer()->getChangedID());
+    //    }
+    //}
+    //
+	//if (hwBuffer->GetBuffer()->getHardwareMappingHint_Index()!=scene::EHM_NEVER)
+	//{
+    //    if (hwBuffer->getChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_INDEX) != hwBuffer->GetBuffer()->getChangedID_Index())
+    //    {
+	//		if (!updateIndexHardwareBuffer((CD3D9HardwareBuffer*)hwBuffer))
+	//			return false;
+    //
+    //        hwBuffer->setChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_INDEX, hwBuffer->GetBuffer()->getChangedID_Vertex());
+    //    }
+	//}
 
 	return true;
 }
@@ -1557,22 +1557,22 @@ IHardwareBuffer *CD3D9Driver::createHardwareBuffer(const scene::IMeshBuffer* mb)
 {
 	// Looks like d3d does not support only partial buffering, so refuse
 	// in any case of NEVER
-	if (!mb || (mb->getHardwareMappingHint_Index()==scene::EHM_NEVER || mb->getHardwareMappingHint_Vertex()==scene::EHM_NEVER))
+	//if (!mb || (mb->getHardwareMappingHint_Index()==scene::EHM_NEVER || mb->getHardwareMappingHint_Vertex()==scene::EHM_NEVER))
 		return 0;
 
-    CD3D9HardwareBuffer *hwBuffer=new CD3D9HardwareBuffer(this, (scene::IMeshBuffer*)mb, ((scene::IMeshBuffer*)mb)->GetHWInstanceBuffer(), (u32)E_HARDWARE_BUFFER_FLAGS::EHBF_INDEX_16_BITS, VertexDeclaration[mb->getVertexType()]);
-
-	//add to map
-	//HWBufferMap.insert(hwBuffer->MeshBuffer, hwBuffer);
-
-	if (!updateHardwareBuffer(hwBuffer))
-	{
-		deleteHardwareBuffer(hwBuffer);
-		return 0;
-	}
-
-    hwBuffer->Initialize();
-	return hwBuffer;
+    //CD3D9HardwareBuffer *hwBuffer=new CD3D9HardwareBuffer(this, (scene::IMeshBuffer*)mb, ((scene::IMeshBuffer*)mb)->GetHWInstanceBuffer(), (u32)E_HARDWARE_BUFFER_FLAGS::EHBF_INDEX_16_BITS, VertexDeclaration[mb->getVertexType()]);
+    //
+	////add to map
+	////HWBufferMap.insert(hwBuffer->MeshBuffer, hwBuffer);
+    //
+	//if (!updateHardwareBuffer(hwBuffer))
+	//{
+	//	deleteHardwareBuffer(hwBuffer);
+	//	return 0;
+	//}
+    //
+    //hwBuffer->Initialize();
+	//return hwBuffer;
 }
 
 
@@ -1588,57 +1588,57 @@ void CD3D9Driver::deleteHardwareBuffer(IHardwareBuffer *_HWBuffer)
 //! Draw hardware buffer
 void CD3D9Driver::drawHardwareBuffer(IHardwareBuffer *_HWBuffer, scene::IMesh* mesh/* = nullptr*/, scene::ISceneNode* node/* = nullptr*/)
 {
-	if (!_HWBuffer)
-		return;
-
-    const scene::IMeshBuffer* mb = _HWBuffer->GetBuffer();
-
-    if ( GetActiveShader() )
-        GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MATERIAL, (scene::IMeshBuffer*)mb, mesh, node, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
-
-    if ( _HWBuffer->GetInstanceBuffer() )
-        _HWBuffer->GetInstanceBuffer()->UpdateBuffer(GetActiveShader(), _HWBuffer->GetBuffer(), mesh, node, 0);
-    updateHardwareBuffer(_HWBuffer); //check if update is needed
-
-    if ( !_HWBuffer->IsBinded() || !_HWBuffer->IsManualBind() )
-    {
-        if ( GetActiveShader() )
-            GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH, (scene::IMeshBuffer*)mb, mesh, node, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
-        _HWBuffer->Bind();
-    }
-
-    if (!checkPrimitiveCount(mb->getVertexCount()))
-    {
-        if (!_HWBuffer->IsManualBind())
-            _HWBuffer->Unbind();
-        return;
-    }
-
-    //TODO: WorkAround 2D 3D switch (crash driver)
-    //setVertexShader(EVT_TERRAIN); // mb->getVertexType());
-    setRenderStates3DMode();
-
-    _IRR_DEBUG_BREAK_IF(mb->getRenderPrimitive() != scene::EPT_TRIANGLES);
-
-    HRESULT hr = 0;
-    if (mb->GetSubBufferCount())
-        hr = pID3DDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, mb->GetVertexRangeStart(), mb->GetVertexRangeEnd() - mb->GetVertexRangeStart(), mb->GetIndexRangeStart(), mb->GetIndexRangeCount() / 3);
-    else
-        hr = pID3DDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, mb->getVertexCount(), 0, mb->getIndexCount() / 3);
-
-    if (FAILED(hr))
-    {
-        //printf("[HLSL SHADER] Error: %s error description: %s\n",
-        //    DXGetErrorString(hr), DXGetErrorDescription(hr));
-        os::Printer::log("CD3D9Driver DrawIndexedPrimitive failed.", ELL_ERROR);
-        throw std::runtime_error("CD3D9Driver DrawIndexedPrimitive failed.");
-    }
-
-    // Old Method
-    //drawVertexPrimitiveList(vPtr, mb->getVertexCount(), iPtr, mb->getIndexCount() / 3, mb->getVertexType(), scene::EPT_TRIANGLES, mb->getIndexType());
-
-    if (!_HWBuffer->IsManualBind())
-        _HWBuffer->Unbind();
+	//if (!_HWBuffer)
+	//	return;
+    //
+    //const scene::IMeshBuffer* mb = _HWBuffer->GetBuffer();
+    //
+    //if ( GetActiveShader() )
+    //    GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MATERIAL, (scene::IMeshBuffer*)mb, mesh, node, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
+    //
+    //if ( _HWBuffer->GetInstanceBuffer() )
+    //    _HWBuffer->GetInstanceBuffer()->UpdateBuffer(GetActiveShader(), _HWBuffer->GetBuffer(), mesh, node, 0);
+    //updateHardwareBuffer(_HWBuffer); //check if update is needed
+    //
+    //if ( !_HWBuffer->IsBinded() || !_HWBuffer->IsManualBind() )
+    //{
+    //    if ( GetActiveShader() )
+    //        GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH, (scene::IMeshBuffer*)mb, mesh, node, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
+    //    _HWBuffer->Bind();
+    //}
+    //
+    //if (!checkPrimitiveCount(mb->getVertexCount()))
+    //{
+    //    if (!_HWBuffer->IsManualBind())
+    //        _HWBuffer->Unbind();
+    //    return;
+    //}
+    //
+    ////TODO: WorkAround 2D 3D switch (crash driver)
+    ////setVertexShader(EVT_TERRAIN); // mb->getVertexType());
+    //setRenderStates3DMode();
+    //
+    //_IRR_DEBUG_BREAK_IF(mb->getRenderPrimitive() != scene::EPT_TRIANGLES);
+    //
+    //HRESULT hr = 0;
+    //if (mb->GetSubBufferCount())
+    //    hr = pID3DDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, mb->GetVertexRangeStart(), mb->GetVertexRangeEnd() - mb->GetVertexRangeStart(), mb->GetIndexRangeStart(), mb->GetIndexRangeCount() / 3);
+    //else
+    //    hr = pID3DDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, mb->getVertexCount(), 0, mb->getIndexCount() / 3);
+    //
+    //if (FAILED(hr))
+    //{
+    //    //printf("[HLSL SHADER] Error: %s error description: %s\n",
+    //    //    DXGetErrorString(hr), DXGetErrorDescription(hr));
+    //    os::Printer::log("CD3D9Driver DrawIndexedPrimitive failed.", ELL_ERROR);
+    //    throw std::runtime_error("CD3D9Driver DrawIndexedPrimitive failed.");
+    //}
+    //
+    //// Old Method
+    ////drawVertexPrimitiveList(vPtr, mb->getVertexCount(), iPtr, mb->getIndexCount() / 3, mb->getVertexType(), scene::EPT_TRIANGLES, mb->getIndexType());
+    //
+    //if (!_HWBuffer->IsManualBind())
+    //    _HWBuffer->Unbind();
 }
 
 

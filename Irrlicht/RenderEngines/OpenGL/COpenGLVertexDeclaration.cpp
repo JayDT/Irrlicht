@@ -2,6 +2,7 @@
 #include "COpenGLDriver.h"
 #include "COpenGLShader.h"
 #include "COpenGLSupport.h"
+#include "IShader.h"
 
 using namespace irr;
 using namespace irr::video;
@@ -21,6 +22,12 @@ GLint getFormat(E_VERTEX_ELEMENT_TYPE type)
         case EVET_UINT3:
         case EVET_UINT4:
             return GL_UNSIGNED_INT;
+
+        case EVET_INT1:
+        case EVET_INT2:
+        case EVET_INT3:
+        case EVET_INT4:
+            return GL_INT;
 
         case EVET_SHORT2:
         case EVET_SHORT4:
@@ -51,12 +58,16 @@ GLint getFormatBitSize(E_VERTEX_ELEMENT_TYPE type)
             return 32 * 4;
 
         case EVET_UINT1:
+        case EVET_INT1:
             return 32;
         case EVET_UINT2:
+        case EVET_INT2:
             return 32 * 2;
         case EVET_UINT3:
+        case EVET_INT3:
             return 32 * 3;
         case EVET_UINT4:
+        case EVET_INT4:
             return 32 * 4;
 
         case EVET_SHORT2:
@@ -197,10 +208,10 @@ void irr::video::COpenGLVertexDeclaration::createInputLayout(const COpenGLHardwa
         
             if (glsl)
             {
-                const CGlslBufferDesc* attributeDesc = glsl->getGPUProgramAttributeDesc(i);
+                IShaderVariable* attributeDesc = glsl->getVariableByIndex(i);
                 if (attributeDesc)
                 {
-                    int attribloc = (int)attributeDesc->varDesc.m_location;
+                    u32 attribloc = attributeDesc->_getIndex();
                     {
                         glEnableVertexAttribArray(attribloc);
                         switch (decl.Type)

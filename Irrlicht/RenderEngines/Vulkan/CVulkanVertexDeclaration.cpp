@@ -33,6 +33,15 @@ VkFormat getVkFormat(E_VERTEX_ELEMENT_TYPE type)
         case EVET_UINT4:
             return VkFormat::VK_FORMAT_R32G32B32A32_UINT;
 
+        case EVET_INT1:
+            return VkFormat::VK_FORMAT_R32_SINT;
+        case EVET_INT2:
+            return VkFormat::VK_FORMAT_R32G32_SINT;
+        case EVET_INT3:
+            return VkFormat::VK_FORMAT_R32G32B32_SINT;
+        case EVET_INT4:
+            return VkFormat::VK_FORMAT_R32G32B32A32_SINT;
+
         case EVET_SHORT2:
             return VkFormat::VK_FORMAT_R16G16_UINT;
         case EVET_SHORT4:
@@ -62,12 +71,16 @@ size_t getVkFormatBitSize(E_VERTEX_ELEMENT_TYPE type)
             return 32 * 4;
 
         case EVET_UINT1:
+        case EVET_INT1:
             return 32;
         case EVET_UINT2:
+        case EVET_INT2:
             return 32 * 2;
         case EVET_UINT3:
+        case EVET_INT3:
             return 32 * 3;
         case EVET_UINT4:
+        case EVET_INT4:
             return 32 * 4;
 
         case EVET_SHORT2:

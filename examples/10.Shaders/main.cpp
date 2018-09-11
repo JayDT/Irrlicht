@@ -52,10 +52,9 @@ public:
 	{
 	}
 
-	virtual void OnSetConstants(video::IMaterialRendererServices* services,
-			s32 userData)
+	virtual void OnSetConstants(irr::video::IConstantBuffer* buffer, irr::scene::IMeshBuffer* meshBuffer)
 	{
-		video::IVideoDriver* driver = services->getVideoDriver();
+		video::IVideoDriver* driver = buffer->->getVideoDriver();
 
 		// get shader constants id.
 

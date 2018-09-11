@@ -13,8 +13,6 @@ namespace irr
 {
     namespace video
     {
-
-        struct IShaderDataBuffer;
         class CD3D11Driver;
 
         class CD3D11HardwareBuffer : public IHardwareBuffer, protected D3D11DeviceResource
@@ -58,7 +56,7 @@ namespace irr
 
         public:
             // Implementation of public methods
-            CD3D11HardwareBuffer(CD3D11Driver* driver, scene::IMeshBuffer *meshBuffer, video::IShaderDataBuffer* instanceBuffer, u32 flags, E_VERTEX_TYPE vType = EVT_STANDARD);
+            CD3D11HardwareBuffer(CD3D11Driver* driver, scene::IMeshBuffer *meshBuffer, u32 flags, E_VERTEX_TYPE vType = EVT_STANDARD);
             CD3D11HardwareBuffer(CD3D11Driver* driver, E_HARDWARE_BUFFER_TYPE type, E_HARDWARE_BUFFER_ACCESS accessType, u32 size, u32 flags = 0, const void* initialData = 0);
 
             virtual ~CD3D11HardwareBuffer();

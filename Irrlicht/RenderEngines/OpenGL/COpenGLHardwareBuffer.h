@@ -18,16 +18,15 @@ namespace irr
 {
     namespace video
     {
-        struct CGlslBufferDesc;
-        struct IShaderDataBuffer;
+        struct SConstantBuffer;
         class COpenGLDriver;
         class COpenGLVertexDeclaration;
 
         class COpenGLHardwareBuffer : public IHardwareBuffer
         {
         public:
-            COpenGLHardwareBuffer(COpenGLDriver* driver, scene::IMeshBuffer *meshBuffer, video::IShaderDataBuffer* instanceBuffer, E_HARDWARE_BUFFER_TYPE type, E_HARDWARE_BUFFER_ACCESS accessType, u32 flags, COpenGLVertexDeclaration* Desc);
-            COpenGLHardwareBuffer(COpenGLDriver* driver, E_HARDWARE_BUFFER_TYPE type, E_HARDWARE_BUFFER_ACCESS accessType, u32 flags, CGlslBufferDesc& Desc);
+            COpenGLHardwareBuffer(COpenGLDriver* driver, scene::IMeshBuffer *meshBuffer, E_HARDWARE_BUFFER_TYPE type, E_HARDWARE_BUFFER_ACCESS accessType, u32 flags, COpenGLVertexDeclaration* Desc);
+            COpenGLHardwareBuffer(COpenGLDriver* driver, E_HARDWARE_BUFFER_TYPE type, E_HARDWARE_BUFFER_ACCESS accessType, u32 flags, SConstantBuffer& Desc);
 
             virtual ~COpenGLHardwareBuffer();
 
@@ -126,7 +125,7 @@ namespace irr
             std::vector<BufferDesc> VertexBufferStreams;
             GLuint vba_verticesID;
             COpenGLVertexDeclaration* VertexDeclaration;
-            CGlslBufferDesc*       UniformDeclaration;
+            SConstantBuffer*       UniformDeclaration;
 
             COpenGLDriver* Driver;
             u32 Flags;

@@ -47,7 +47,37 @@ namespace scene
 		virtual u32 getChangedID() const = 0;
 	};
 
+    class IRRLICHT_API IStreamBuffer : public virtual IReferenceCounted
+    {
+    public:
+        virtual void* getData() = 0;
+        virtual u8 getType() const = 0;
+        virtual void setType(u8 vertexType) = 0;
+        virtual u32 stride() const = 0;
+        virtual u32 size() const = 0;
+        virtual void push_back(const video::I3DStreamElement &element) = 0;
+        virtual void operator ()(const u32 index, video::I3DStreamElement const& element) const {}
+        virtual video::I3DStreamElement& operator [](const u32 index) const = 0;
+        virtual video::I3DStreamElement& getLast() = 0;
+        virtual void set_used(u32 usedNow) = 0;
+        virtual void reallocate(u32 new_size) = 0;
+        virtual u32 allocated_size() const = 0;
+        virtual video::I3DStreamElement* pointer() = 0;
+        virtual video::I3DStreamElement* getBaseVertexPointer() { return nullptr; }
 
+        //! get the current hardware mapping hint
+        virtual E_HARDWARE_MAPPING getHardwareMappingHint() const = 0;
+
+        //! set the hardware mapping hint, for driver
+        virtual void setHardwareMappingHint(E_HARDWARE_MAPPING NewMappingHint) = 0;
+
+        //! flags the meshbuffer as changed, reloads hardware buffers
+        virtual void setDirty() = 0;
+
+        //! Get the currently used ID for identification of changes.
+        /** This shouldn't be used for anything outside the VideoDriver. */
+        virtual u32 getChangedID() const = 0;
+    };
 } // end namespace scene
 } // end namespace irr
 

@@ -42,7 +42,6 @@ namespace scene
 namespace video
 {
     struct IShader;
-    struct ShaderVariableDescriptor;
 	struct S3DVertex;
 	struct S3DVertex2TCoords;
 	struct S3DVertexTangents;
@@ -164,7 +163,17 @@ namespace video
 		0
 	};
 
-	struct SOverrideMaterial
+    // enumeration for rendering modes such as 2d and 3d for minizing the switching of renderStates.
+    enum E_RENDER_MODE
+    {
+        ERM_2D = 0,		// 2d drawing rendermode
+        ERM_3D,			// 3d rendering mode
+        ERM_STENCIL_FILL, // stencil fill mode
+        ERM_SHADOW_VOLUME_ZFAIL, // stencil volume draw mode
+        ERM_SHADOW_VOLUME_ZPASS // stencil volume draw mode
+    };
+
+    struct SOverrideMaterial
 	{
 		//! The Material values
 		SMaterial Material;
@@ -1510,8 +1519,6 @@ namespace video
         virtual IShader* GetActiveShader() = 0;
 
         virtual s32 getShaderVariableID(IShader*, const c8* name) = 0;
-        virtual bool setShaderConstant(ShaderVariableDescriptor const* desc, const void* values, int count, IHardwareBuffer* buffer = nullptr) = 0;
-        virtual bool setShaderMapping(ShaderVariableDescriptor const* desc, IShader* shader, scene::E_HARDWARE_MAPPING constantMapping) = 0;
         virtual void useShader(IShader*) = 0;
         virtual void deleteShader(IShader*) = 0;
         virtual bool setActiveTexture(u32 stage, const video::ITexture* texture) = 0;
@@ -1519,7 +1526,9 @@ namespace video
         virtual video::VertexDeclaration* GetVertexDeclaration(irr::u32 id) = 0;
         virtual IShader* GetShaderModul(s32 id) const = 0;
         virtual s32 AddShaderModul(IShader* shader, s32 id = -1) = 0;
-        virtual core::array<u8> GetShaderVariableMemoryBlock(ShaderVariableDescriptor const* desc, video::IShader* shader) = 0;
+
+        virtual E_RENDER_MODE GetCurrentRenderMode() const = 0;
+        virtual SColorf const& GetAmbientLight() const = 0;
 	};
 
 } // end namespace video

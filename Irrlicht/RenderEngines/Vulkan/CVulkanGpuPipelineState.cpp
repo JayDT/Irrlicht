@@ -115,20 +115,20 @@ void VulkanGraphicsPipelineState::initialize()
     mIsDirty = true;
 
     uint32_t stageOutputIdx = 0;
-    bool tesselationEnabled = mShader->HasShaderModule(E_ShaderTypes::EST_HULL_SHADER) && mShader->HasShaderModule(E_ShaderTypes::EST_DOMAIN_SHADER);
+    bool tesselationEnabled = mShader->HasShaderModule(E_SHADER_TYPES::EST_HULL_SHADER) && mShader->HasShaderModule(E_SHADER_TYPES::EST_DOMAIN_SHADER);
 
-    for (uint32_t i = 0; i < E_ShaderTypes::EST_HIGH_LEVEL_SHADER; i++)
+    for (uint32_t i = 0; i < E_SHADER_TYPES::EST_HIGH_LEVEL_SHADER; i++)
     {
-        if (!mShader->HasShaderModule(E_ShaderTypes(i)))
+        if (!mShader->HasShaderModule(E_SHADER_TYPES(i)))
             continue;
 
         VkPipelineShaderStageCreateInfo& stageCI = mShaderStageInfos[stageOutputIdx];
         stageCI.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         stageCI.pNext = nullptr;
         stageCI.flags = 0;
-        stageCI.stage = mShader->GetShaderStageBit(E_ShaderTypes(i));
-        stageCI.module = *mShader->GetShaderModule(E_ShaderTypes(i));
-        stageCI.pName = mShader->GetShaderEntryPoint(E_ShaderTypes(i));
+        stageCI.stage = mShader->GetShaderStageBit(E_SHADER_TYPES(i));
+        stageCI.module = *mShader->GetShaderModule(E_SHADER_TYPES(i));
+        stageCI.pName = mShader->GetShaderEntryPoint(E_SHADER_TYPES(i));
         stageCI.pSpecializationInfo = nullptr;
 
         stageOutputIdx++;
@@ -628,10 +628,11 @@ void irr::video::VulkanGraphicsPipelineState::update(u8 deviceIdx, const irr::vi
         }
     }
 
-    mMaterial = material;
-
     if (mIsDirty)
+    {
+        mMaterial = material;
         mRequestPipelineGuid = CreatePipelineGuid();
+    }
 }
 
 VkSampler VulkanGraphicsPipelineState::CreateSampler(u8 deviceId, u8 st, VkSamplerCreateInfo& samplerCI)
@@ -769,13 +770,13 @@ VulkanPipeline* VulkanGraphicsPipelineState::createPipeline(uint32_t deviceIdx, 
     
     uint32_t stageOutputIdx = 0;
 
-    for (uint32_t i = 0; i < E_ShaderTypes::EST_HIGH_LEVEL_SHADER; i++)
+    for (uint32_t i = 0; i < E_SHADER_TYPES::EST_HIGH_LEVEL_SHADER; i++)
     {
-        if (!mShader->HasShaderModule(E_ShaderTypes(i)))
+        if (!mShader->HasShaderModule(E_SHADER_TYPES(i)))
             continue;
 
         //VkPipelineShaderStageCreateInfo& stageCI = mShaderStageInfos[stageOutputIdx];
-        //stageCI.module = *mShader->GetShaderModule(E_ShaderTypes(i));
+        //stageCI.module = *mShader->GetShaderModule(E_SHADER_TYPES(i));
 
         stageOutputIdx++;
     }

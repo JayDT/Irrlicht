@@ -7,6 +7,7 @@
 
 #include <map>
 #include <mutex>
+#include <unordered_map>
 
 namespace irr
 {

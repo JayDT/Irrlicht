@@ -9,10 +9,17 @@
 
 namespace irr
 {
+
+namespace scene
+{
+    class IMeshBuffer;
+}
+
 namespace video
 {
 	class IMaterialRendererServices;
 	class SMaterial;
+    struct IConstantBuffer;
 
 //! Interface making it possible to set constants for gpu programs every frame.
 /** Implement this interface in an own class and pass a pointer to it to one of
@@ -22,7 +29,11 @@ class IShaderConstantSetCallBack : public virtual IReferenceCounted
 {
 public:
 
-	//! Called to let the callBack know the used material (optional method)
+    virtual ~IShaderConstantSetCallBack() {}
+
+    virtual void OnPrepare(video::IConstantBuffer* buffer) {}
+
+    //! Called to let the callBack know the used material (optional method)
 	/**
 	 \code
 	class MyCallBack : public IShaderConstantSetCallBack
@@ -41,7 +52,7 @@ public:
 	}
 	\endcode
 	*/
-	virtual void OnSetMaterial(const SMaterial& material) { }
+	virtual void OnSetMaterial(video::IConstantBuffer* buffer, const SMaterial& material) { }
 
 	//! Called by the engine when the vertex and/or pixel shader constants for an material renderer should be set.
 	/**
@@ -74,7 +85,7 @@ public:
 	\param services: Pointer to an interface providing methods to set the constants for the shader.
 	\param userData: Userdata int which can be specified when creating the shader.
 	*/
-	virtual void OnSetConstants(IMaterialRendererServices* services, s32 userData) = 0;
+	virtual void OnSetConstants(video::IConstantBuffer* buffer, scene::IMeshBuffer* meshBuffer) = 0;
 };
 
 

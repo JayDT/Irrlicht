@@ -54,7 +54,7 @@ namespace video
 		core::dimension2du Size;
 	};
 
-    class ShaderHLSL : public IShader
+    class ShaderHLSL : public CNullShader
     {
         friend class CD3D9Driver;
 
@@ -66,14 +66,14 @@ namespace video
         LPD3DXCONSTANTTABLE          m_pConstantTableGS;
 
     public:
-        explicit ShaderHLSL(video::IVideoDriver* context, E_ShaderTypes type) : IShader(context, type), 
+        explicit ShaderHLSL(video::IVideoDriver* context) : CNullShader(context, E_SHADER_LANG::ESV_HLSL_HIGH_LEVEL),
             m_pVertexShader(nullptr), m_pPixelShader(nullptr),
             m_pConstantTableVS(nullptr), m_pConstantTablePS(nullptr), m_pConstantTableGS(nullptr)
         {
         }
         virtual ~ShaderHLSL() {}
 
-        virtual E_ShaderVersion getShaderVersion() const { return ESV_HLSL_HIGH_LEVEL; }
+        virtual E_SHADER_LANG getShaderVersion() const { return ESV_HLSL_HIGH_LEVEL; }
         virtual void bind();
         virtual void unbind();
         virtual void destroy() {}
@@ -130,7 +130,7 @@ namespace video
 
         //virtual IShader* createShader(System::IO::IFileReader* vertexShader, System::IO::IFileReader* fragmentShader, System::IO::IFileReader* geometryShader, System::IO::IFileReader* tesselationShader);
         virtual void useShader(IShader* gpuProgram);
-        virtual bool setShaderConstant(ShaderVariableDescriptor const* desc, const void* values, int count, IHardwareBuffer* buffer /*= nullptr*/);
+        //virtual bool setShaderConstant(ShaderVariableDescriptor const* desc, const void* values, int count, IHardwareBuffer* buffer /*= nullptr*/);
         void buildShaderVariableDescriptor(IShader* gpuProgram);
 
 		bool updateVertexHardwareBuffer(CD3D9HardwareBuffer *HWBuffer, E_HARDWARE_BUFFER_TYPE Type);

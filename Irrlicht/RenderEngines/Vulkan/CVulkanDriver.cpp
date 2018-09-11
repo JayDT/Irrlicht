@@ -76,8 +76,6 @@ irr::video::CVulkanDriver::CVulkanDriver(const SIrrlichtCreationParameters & par
     , mFrameID(0)
     , VendorID(0)
     , ColorFormat(ECF_A8R8G8B8)
-    , CurrentRenderMode(ERM_3D)
-    , AmbientLight(1.f, 1.f, 1.f, 1.f)
     , MaxActiveLights(8)
     , MaxTextureUnits(MATERIAL_MAX_TEXTURES)
 {
@@ -326,7 +324,7 @@ void irr::video::CVulkanDriver::initialize()
 
     // Set up debugging
 #if VULKAN_DEBUG_MODE
-    VkDebugReportFlagsEXT debugFlags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT; // | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT /*| VK_DEBUG_REPORT_INFORMATION_BIT_EXT | VK_DEBUG_REPORT_DEBUG_BIT_EXT*/;
+    VkDebugReportFlagsEXT debugFlags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT; // | VK_DEBUG_REPORT_INFORMATION_BIT_EXT | VK_DEBUG_REPORT_DEBUG_BIT_EXT;
 
     VkDebugReportCallbackCreateInfoEXT debugInfo;
     debugInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
@@ -457,8 +455,6 @@ bool irr::video::CVulkanDriver::initDriver(HWND hwnd, bool pureSoftware)
     System::IO::StandardDataSource fileMgr;
 
     {
-        video::IShaderDataBuffer* bufferHandler = new irr::video::VulkanShaderGenericValuesBuffer(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH);
-    
         ShaderInitializerEntry shaderCI;
 
 #ifndef HAVE_CSYSTEM_EXTENSION
@@ -469,8 +465,10 @@ bool irr::video::CVulkanDriver::initDriver(HWND hwnd, bool pureSoftware)
         auto fragShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/CVulkan;/GLSL/VkDefault.frag", true))->ToMemoryStreamReader();
 #endif
 
-        shaderCI.AddShaderStage(vertShader, E_ShaderTypes::EST_VERTEX_SHADER, "main", nullptr)->Buffers.push_back(bufferHandler);
-        shaderCI.AddShaderStage(fragShader, E_ShaderTypes::EST_FRAGMENT_SHADER, "main", nullptr);
+        shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
+        shaderCI.AddShaderStage(fragShader, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "main", nullptr);
+        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
+        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
         m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD] = static_cast<CVulkanGLSLProgram*>(createShader(&shaderCI));
     
         delete vertShader;
@@ -484,16 +482,14 @@ bool irr::video::CVulkanDriver::initDriver(HWND hwnd, bool pureSoftware)
     //    ShaderInitializerEntry shaderCI;
     //
     //    auto resource = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Direct3D11/HLSL/Default/d3d11.hlsl");
-    //    shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_VERTEX_SHADER, "vs_main", "vs_4_0")->Buffers.push_back(bufferHandler);
-    //    shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_FRAGMENT_SHADER, "ps_main", "ps_4_0");
+    //    shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_VERTEX_SHADER, "vs_main", "vs_4_0")->Buffers.push_back(bufferHandler);
+    //    shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "ps_main", "ps_4_0");
     //    m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD] = static_cast<CVulkanGLSLProgram*>(createShader(&shaderCI));
     //
     //    delete resource;
     //}
 
     {
-        video::IShaderDataBuffer* bufferHandler = new irr::video::VulkanShaderGenericValuesBuffer(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH);
-
         ShaderInitializerEntry shaderCI;
 
 #ifndef HAVE_CSYSTEM_EXTENSION
@@ -502,8 +498,8 @@ bool irr::video::CVulkanDriver::initDriver(HWND hwnd, bool pureSoftware)
         auto vertShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/CVulkan;/GLSL/VkDefaultSH.vert", true))->ToMemoryStreamReader();
 #endif
 
-        shaderCI.AddShaderStage(vertShader, E_ShaderTypes::EST_VERTEX_SHADER, "main", nullptr)->Buffers.push_back(bufferHandler);
-        //shaderCI.AddShaderStage(fragShader, E_ShaderTypes::EST_FRAGMENT_SHADER, "main", nullptr);
+        shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
+        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
         m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW] = static_cast<CVulkanGLSLProgram*>(createShader(&shaderCI));
 
         delete vertShader;
@@ -511,8 +507,6 @@ bool irr::video::CVulkanDriver::initDriver(HWND hwnd, bool pureSoftware)
     }
 
     {
-        video::IShaderDataBuffer* bufferHandler = new irr::video::VulkanShaderGenericValuesBuffer(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH);
-    
         ShaderInitializerEntry shaderCI;
     
 #ifndef HAVE_CSYSTEM_EXTENSION
@@ -523,8 +517,10 @@ bool irr::video::CVulkanDriver::initDriver(HWND hwnd, bool pureSoftware)
         auto fragShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/CVulkan;/GLSL/VkDefault.frag", true))->ToMemoryStreamReader();
 #endif
 
-        shaderCI.AddShaderStage(vertShader, E_ShaderTypes::EST_VERTEX_SHADER, "main", nullptr)->Buffers.push_back(bufferHandler);
-        shaderCI.AddShaderStage(fragShader, E_ShaderTypes::EST_FRAGMENT_SHADER, "main", nullptr);
+        shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
+        shaderCI.AddShaderStage(fragShader, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "main", nullptr);
+        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
+        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
         m_defaultShader[E_VERTEX_TYPE::EVT_2TCOORDS] = static_cast<CVulkanGLSLProgram*>(createShader(&shaderCI));
     
         delete vertShader;
@@ -532,8 +528,6 @@ bool irr::video::CVulkanDriver::initDriver(HWND hwnd, bool pureSoftware)
     }
 
     {
-        video::IShaderDataBuffer* bufferHandler = new irr::video::VulkanShaderGenericValuesBuffer(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH);
-    
         ShaderInitializerEntry shaderCI;
     
 #ifndef HAVE_CSYSTEM_EXTENSION
@@ -544,8 +538,10 @@ bool irr::video::CVulkanDriver::initDriver(HWND hwnd, bool pureSoftware)
         auto fragShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/CVulkan;/GLSL/VkDefault.frag", true))->ToMemoryStreamReader();
 #endif
 
-        shaderCI.AddShaderStage(vertShader, E_ShaderTypes::EST_VERTEX_SHADER, "main", nullptr)->Buffers.push_back(bufferHandler);
-        shaderCI.AddShaderStage(fragShader, E_ShaderTypes::EST_FRAGMENT_SHADER, "main", nullptr);
+        shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
+        shaderCI.AddShaderStage(fragShader, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "main", nullptr);
+        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
+        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
         m_defaultShader[E_VERTEX_TYPE::EVT_SKINNING] = static_cast<CVulkanGLSLProgram*>(createShader(&shaderCI));
 
         delete vertShader;
@@ -570,7 +566,7 @@ bool irr::video::CVulkanDriver::beginScene(bool backBuffer, bool zBuffer, SColor
 
     mPlatform->acquireBackBuffer();
 
-    //mMainCommandBuffer->getInternal()->setSwapChain(_getSwapChain());
+    mMainCommandBuffer->getInternal()->setSwapChain(_getSwapChain());
     mMainCommandBuffer->getInternal()->setRenderTarget(nullptr, 0, RenderSurfaceMaskBits::RT_ALL, true);
     mMainCommandBuffer->getInternal()->clearViewport(FrameBufferType::FBT_COLOR | FrameBufferType::FBT_DEPTH | FrameBufferType::FBT_STENCIL, color, 1.0f, 0, 0xFF);
 
@@ -767,15 +763,17 @@ bool irr::video::CVulkanDriver::updateVertexHardwareBuffer(CVulkanHardwareBuffer
     }
     else if (Type == E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM)
     {
-        IShaderDataBufferElement* variable = HWBuffer->GetInstanceBuffer()->m_bufferDataArray[0];
-
-        const u32 instanceBufSize = variable->getValueSizeOf() * variable->getShaderValueCount();
+        irr::scene::IStreamBuffer * streamBuffer = mb->getStreamBuffer();
+        const void* vertices = streamBuffer->getData();
+        const u32 vertexCount = streamBuffer->size();
+        const u32 vertexSize = streamBuffer->stride();
+        const u32 vertexBufSize = vertexSize * vertexCount;
 
         //if (mb->getHardwareMappingHint_Instance() == scene::EHM_STATIC)
         //{
         //    MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_IMMUTABLE;
         //
-        //    HWBuffer->UpdateBuffer(Type, MemoryAccess, variable->getShaderValues(), bufSize, offset, instanceBufSize, typeMask);
+        //    HWBuffer->UpdateBuffer(Type, MemoryAccess, vertices, bufSize, offset, vertexBufSize, typeMask);
         //}
         //else
         {
@@ -784,10 +782,10 @@ bool irr::video::CVulkanDriver::updateVertexHardwareBuffer(CVulkanHardwareBuffer
             else if (mb->getHardwareMappingHint_Instance() == scene::EHM_STREAM)
                 MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM;
 
-            HWBuffer->UpdateBuffer(Type, MemoryAccess, variable->getShaderValues(), instanceBufSize, 0, instanceBufSize);
+            HWBuffer->UpdateBuffer(Type, MemoryAccess, vertices, vertexBufSize, 0, vertexBufSize);
         }
     
-        HWBuffer->setChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM, HWBuffer->GetInstanceBuffer()->getChangedID());
+        HWBuffer->setChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM, streamBuffer->getChangedID());
     }
     else if (Type == E_HARDWARE_BUFFER_TYPE::EHBT_INDEX)
     {
@@ -853,7 +851,7 @@ bool irr::video::CVulkanDriver::updateHardwareBuffer(IHardwareBuffer * HWBuffer)
             //HWBuffer->setChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, HWBuffer->GetBuffer()->getChangedID_Vertex());
         }
 
-        if (HWBuffer->GetInstanceBuffer() && HWBuffer->getChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM) != HWBuffer->GetInstanceBuffer()->getChangedID())
+        if (HWBuffer->GetBuffer()->getStreamBuffer() && HWBuffer->getChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM) != HWBuffer->GetBuffer()->getStreamBuffer()->getChangedID())
         {
             if (!updateVertexHardwareBuffer(static_cast<CVulkanHardwareBuffer*>(HWBuffer), E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM))
                 return false;
@@ -880,7 +878,7 @@ IHardwareBuffer * irr::video::CVulkanDriver::createHardwareBuffer(const scene::I
     if (!mb)
         return 0;
 
-    CVulkanHardwareBuffer *hwBuffer = new CVulkanHardwareBuffer(this, const_cast<scene::IMeshBuffer*>(mb), const_cast<scene::IMeshBuffer*>(mb)->GetHWInstanceBuffer(),
+    CVulkanHardwareBuffer *hwBuffer = new CVulkanHardwareBuffer(this, const_cast<scene::IMeshBuffer*>(mb),
         mb->getIndexType() == video::EIT_16BIT ? (u32)E_HARDWARE_BUFFER_FLAGS::EHBF_INDEX_16_BITS : (u32)E_HARDWARE_BUFFER_FLAGS::EHBF_INDEX_32_BITS, mb->getVertexType());
 
     CVulkanGLSLProgram* vkShader = mb->GetGPUProgram() ? static_cast<CVulkanGLSLProgram*>(mb->GetGPUProgram()) : m_defaultShader[mb->getVertexType()];
@@ -891,22 +889,22 @@ IHardwareBuffer * irr::video::CVulkanDriver::createHardwareBuffer(const scene::I
         mb->SetVertexDeclaration(this->GetVertexDeclaration(E_VERTEX_TYPE::EVT_STANDARD));
     assert(mb->GetVertexDeclaration());
 
-    if (mb->GetShaderConstantBuffers())
-    {
-        for (u32 ib = 0; ib != mb->GetShaderConstantBuffers()->size(); ++ib)
-        {
-            const auto& cbuffer = (*mb->GetShaderConstantBuffers())[ib];
-            if (!cbuffer)
-                continue;
-
-            CShaderBuffer* shaderBuffer = static_cast<CShaderBuffer*>(cbuffer);
-
-            for (u32 i = 0; i < shaderBuffer->ConstantBuffers.size(); ++i)
-            {
-                shaderBuffer->ConstantBuffers[i] = createHardwareBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS, E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC, shaderBuffer->mBufferSize);
-            }
-        }
-    }
+    //if (mb->GetShaderConstantBuffers())
+    //{
+    //    for (u32 ib = 0; ib != mb->GetShaderConstantBuffers()->size(); ++ib)
+    //    {
+    //        const auto& cbuffer = (*mb->GetShaderConstantBuffers())[ib];
+    //        if (!cbuffer)
+    //            continue;
+    //
+    //        CShaderBuffer* shaderBuffer = static_cast<CShaderBuffer*>(cbuffer);
+    //
+    //        for (u32 i = 0; i < shaderBuffer->ConstantBuffers.size(); ++i)
+    //        {
+    //            shaderBuffer->ConstantBuffers[i] = createHardwareBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS, E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC, shaderBuffer->mBufferSize);
+    //        }
+    //    }
+    //}
 
     VulkanGraphicsPipelineState*& pipeline = mPipelines[vkShader][static_cast<CVulkanVertexDeclaration*>(mb->GetVertexDeclaration())];
     if (!pipeline)
@@ -1046,28 +1044,12 @@ void irr::video::CVulkanDriver::drawMeshBuffer(const scene::IMeshBuffer * mb, sc
             setRenderStates2DMode(Material.MaterialType == EMT_TRANSPARENT_VERTEX_ALPHA, (Material.getTexture(0) != 0), Material.MaterialType == EMT_TRANSPARENT_ALPHA_CHANNEL);
     }
 
-    if (hasConstantBuffer)
-    {
-        for (auto& buffer : *mb->GetShaderConstantBuffers())
-        {
-            if (buffer)
-                buffer->UpdateBuffer(GetActiveShader(), (scene::IMeshBuffer*)mb, mesh, node, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
-        }
-    }
-
-    if (!hasConstantBuffer && GetActiveShader())
-        GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MATERIAL, (scene::IMeshBuffer*)mb, mesh, node, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
-
     if (HWBuffer)
     {
-        if (HWBuffer->GetInstanceBuffer())
-            HWBuffer->GetInstanceBuffer()->UpdateBuffer(GetActiveShader(), HWBuffer->GetBuffer(), mesh, node, 0);
         updateHardwareBuffer(HWBuffer); //check if update is needed
 
         if (!HWBuffer->IsBinded() || !HWBuffer->IsManualBind())
         {
-            if (!hasConstantBuffer && GetActiveShader())
-                GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH, (scene::IMeshBuffer*)mb, mesh, node, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
             HWBuffer->Bind();
         }
     }
@@ -1081,8 +1063,6 @@ void irr::video::CVulkanDriver::drawMeshBuffer(const scene::IMeshBuffer * mb, sc
         HWBuffer = DynamicHardwareBuffer[mb->getVertexType()];
         if (!HWBuffer->IsBinded() || !HWBuffer->IsManualBind())
         {
-            if (!hasConstantBuffer && GetActiveShader())
-                GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH, (scene::IMeshBuffer*)mb, mesh, node, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
             HWBuffer->Bind();
         }
     }
@@ -1097,7 +1077,7 @@ void irr::video::CVulkanDriver::drawMeshBuffer(const scene::IMeshBuffer * mb, sc
     InitDrawStates(HWBuffer, pType);
     SyncShaderConstant(HWBuffer);
 
-    u32 instanceCount = (!mesh || mesh->IsInstanceModeAvailable()) && HWBuffer && HWBuffer->GetInstanceBuffer() ? HWBuffer->GetInstanceBuffer()->getInstanceCount() : 1;
+    u32 instanceCount = (!mesh || mesh->IsInstanceModeAvailable()) && mb->getStreamBuffer() ? mb->getStreamBuffer()->size() : 1;
 
     HWBuffer->GetCommandBuffer()->getInternal()->drawIndexed(mb->GetIndexRangeStart(), mb->GetIndexRangeCount(), 0, instanceCount);
 
@@ -1528,51 +1508,33 @@ u32 irr::video::CVulkanDriver::queryMultisampleLevels(ECOLOR_FORMAT format, u32 
     return u32();
 }
 
-bool irr::video::CVulkanDriver::setShaderConstant(ShaderVariableDescriptor const * desc, const void * values, int count, IHardwareBuffer * buffer)
-{
-    irr::video::CVulkanGLSLProgram* hlsl = static_cast<irr::video::CVulkanGLSLProgram*>(GetActiveShader());
-
-    if (desc->m_type == ESVT_INPUT_STREAM)
-        return false;
-
-    irr::video::CVulkanGLSLProgram::CbufferDesc& cbuffer = *hlsl->GetBlockBufferInfos()[desc->m_shaderIndex];
-    irr::video::CVulkanGLSLProgram::ShaderConstantDesc const& constantDecl = cbuffer.Variables[desc->m_location & 0xFF];
-
-    UINT elementSize = constantDecl.elementSize * count;
-
-    _IRR_DEBUG_BREAK_IF(elementSize > constantDecl.BufferDesc->DataBuffer.size() || (cbuffer.DataBuffer.size() < (constantDecl.offset + elementSize)));
-
-    if (memcmp(&cbuffer.DataBuffer[constantDecl.offset], values, elementSize))
-    {
-        if (cbuffer.ChangeStartOffset > constantDecl.offset)
-            cbuffer.ChangeStartOffset = constantDecl.offset;
-
-        if (cbuffer.ChangeEndOffset < (constantDecl.offset + elementSize))
-            cbuffer.ChangeEndOffset = (constantDecl.offset + elementSize);
-
-        memcpy(&cbuffer.DataBuffer[constantDecl.offset], values, elementSize);
-        ++cbuffer.ChangeId;
-    }
-    return true;
-}
-
-core::array<u8> irr::video::CVulkanDriver::GetShaderVariableMemoryBlock(ShaderVariableDescriptor const * desc, video::IShader * shader)
-{
-    return core::array<u8>();
-}
-
-bool irr::video::CVulkanDriver::setShaderMapping(ShaderVariableDescriptor const * desc, IShader * shader, scene::E_HARDWARE_MAPPING constantMapping)
-{
-    irr::video::CVulkanGLSLProgram* _vkShader = static_cast<irr::video::CVulkanGLSLProgram*>(shader);
-
-    if (!desc || desc->m_type == ESVT_INPUT_STREAM)
-        return false;
-
-    const auto& cbuffer = _vkShader->ShaderBuffers[desc->m_shaderIndex];
-    cbuffer->setHardwareMappingHint(constantMapping);
-
-    return true;
-}
+//bool irr::video::CVulkanDriver::setShaderConstant(ShaderVariableDescriptor const * desc, const void * values, int count, IHardwareBuffer * buffer)
+//{
+//    irr::video::CVulkanGLSLProgram* hlsl = static_cast<irr::video::CVulkanGLSLProgram*>(GetActiveShader());
+//
+//    if (desc->m_type == ESVT_INPUT_STREAM)
+//        return false;
+//
+//    irr::video::CVulkanGLSLProgram::CbufferDesc& cbuffer = *hlsl->GetBlockBufferInfos()[desc->m_shaderIndex];
+//    irr::video::CVulkanGLSLProgram::ShaderConstantDesc const& constantDecl = cbuffer.Variables[desc->m_location & 0xFF];
+//
+//    UINT elementSize = constantDecl.elementSize * count;
+//
+//    _IRR_DEBUG_BREAK_IF(elementSize > constantDecl.BufferDesc->DataBuffer.size() || (cbuffer.DataBuffer.size() < (constantDecl.offset + elementSize)));
+//
+//    if (memcmp(&cbuffer.DataBuffer[constantDecl.offset], values, elementSize))
+//    {
+//        if (cbuffer.ChangeStartOffset > constantDecl.offset)
+//            cbuffer.ChangeStartOffset = constantDecl.offset;
+//
+//        if (cbuffer.ChangeEndOffset < (constantDecl.offset + elementSize))
+//            cbuffer.ChangeEndOffset = (constantDecl.offset + elementSize);
+//
+//        memcpy(&cbuffer.DataBuffer[constantDecl.offset], values, elementSize);
+//        ++cbuffer.ChangeId;
+//    }
+//    return true;
+//}
 
 bool irr::video::CVulkanDriver::SyncShaderConstant(CVulkanHardwareBuffer* HWBuffer)
 {
@@ -1586,21 +1548,26 @@ bool irr::video::CVulkanDriver::SyncShaderConstant(CVulkanHardwareBuffer* HWBuff
 
     VulkanGpuParams* gpuParams = cb->getInternal()->getGpuParams();
 
-    for (irr::video::CVulkanGLSLProgram::CbufferDesc* cbuffer : _vkShader->GetBlockBufferInfos())
+    for (int i = 0; i < _vkShader->mBuffers.size(); ++i)
     {
+        irr::video::SConstantBuffer* cbuffer = _vkShader->mBuffers[i];
+
+        if (cbuffer->mCallBack)
+            cbuffer->mCallBack->OnSetConstants(cbuffer, cbuffer->mHwObject->GetBuffer());
+
         E_HARDWARE_BUFFER_ACCESS MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_DEFAULT;
         s8* dataBuffer;
         u32 dataBufferSize;
-        u32 changeId = cbuffer->getChangeId();
+        u32 changeId = cbuffer->getChangedID();
 
         CVulkanHardwareBuffer * constantBuffer;
         if (HWBuffer->GetBuffer() && HWBuffer->GetBuffer()->GetShaderConstantBuffers() && !HWBuffer->GetBuffer()->GetShaderConstantBuffers()->empty())
         {
-            CShaderBuffer* bufferCache = static_cast<CShaderBuffer*>((*HWBuffer->GetBuffer()->GetShaderConstantBuffers())[cbuffer->binding]);
-            constantBuffer = static_cast<CVulkanHardwareBuffer*>(bufferCache->getHardwareBuffer());
+            SConstantBuffer* bufferCache = static_cast<SConstantBuffer*>((*HWBuffer->GetBuffer()->GetShaderConstantBuffers())[cbuffer->getBindingIndex()]);
+            constantBuffer = static_cast<CVulkanHardwareBuffer*>(bufferCache->mHwObject);
             changeId = bufferCache->getChangedID();
-            dataBuffer = (s8*)bufferCache->DataBuffer;
-            dataBufferSize = bufferCache->mBufferSize;
+            dataBuffer = (s8*)bufferCache->mHostMemory.data();
+            dataBufferSize = bufferCache->mHostMemory.size();
 
             if (bufferCache->getHardwareMappingHint() == scene::E_HARDWARE_MAPPING::EHM_DYNAMIC)
                 MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC;
@@ -1612,11 +1579,11 @@ bool irr::video::CVulkanDriver::SyncShaderConstant(CVulkanHardwareBuffer* HWBuff
         }
         else
         {
-            constantBuffer = cbuffer->getHardwareBuffer();
+            constantBuffer = static_cast<CVulkanHardwareBuffer*>(cbuffer->mHwObject);
 
-            changeId = cbuffer->getChangeId();
-            dataBuffer = (s8*)cbuffer->DataBuffer.pointer();
-            dataBufferSize = cbuffer->DataBuffer.size();;
+            changeId = cbuffer->getChangedID();
+            dataBuffer = (s8*)cbuffer->mHostMemory.data();
+            dataBufferSize = cbuffer->mHostMemory.size();
 
             if (cbuffer->getHardwareMappingHint() == scene::E_HARDWARE_MAPPING::EHM_DYNAMIC)
                 MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC;
@@ -1633,7 +1600,7 @@ bool irr::video::CVulkanDriver::SyncShaderConstant(CVulkanHardwareBuffer* HWBuff
         {
             if (constantBuffer->getChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS) != changeId)
             {
-                s32 preferBuffer = gpuParams->getBufferId(0, cbuffer->varDesc.m_shaderIndex);
+                s32 preferBuffer = gpuParams->getBufferId(0, i);
                 if (constantBuffer->UpdateBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS, MemoryAccess, dataBuffer,
                     dataBufferSize, 0, dataBufferSize, 0, preferBuffer))
                 {
@@ -1644,7 +1611,7 @@ bool irr::video::CVulkanDriver::SyncShaderConstant(CVulkanHardwareBuffer* HWBuff
             }
         }
 
-        gpuParams->setBuffer(0, cbuffer->varDesc.m_shaderIndex, constantBuffer);
+        gpuParams->setBuffer(0, i, constantBuffer);
         constantBuffer->GetBufferDesc(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS)->Buffer->NotifySoftBound(VulkanUseFlag::Read);
         //cb->getInternal()->registerResource(constantBuffer->GetBufferDesc(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS)->Buffer, VulkanUseFlag::Read);
     }
@@ -1654,7 +1621,7 @@ bool irr::video::CVulkanDriver::SyncShaderConstant(CVulkanHardwareBuffer* HWBuff
 
 IShader * irr::video::CVulkanDriver::createShader(ShaderInitializerEntry * shaderCreateInfo)
 {
-    irr::video::CVulkanGLSLProgram* gpuProgram = new irr::video::CVulkanGLSLProgram(this, EST_HIGH_LEVEL_SHADER);
+    irr::video::CVulkanGLSLProgram* gpuProgram = new irr::video::CVulkanGLSLProgram(this);
 
     for (auto stage : shaderCreateInfo->mStages)
     {
@@ -1668,10 +1635,12 @@ IShader * irr::video::CVulkanDriver::createShader(ShaderInitializerEntry * shade
         gpuProgram->CreateShaderModul(stage->ShaderStageType, this, stage->DataStream, ShaderEntryPoint, ShaderModel);
     }
 
-    for (auto stage : shaderCreateInfo->mStages)
+    for (auto cbEntry : shaderCreateInfo->Callback)
     {
-        for (auto buffer : stage->Buffers)
-            gpuProgram->addDataBuffer(buffer, nullptr);
+        auto buffer = gpuProgram->getConstantBufferByName(cbEntry.first.c_str());
+        if (buffer)
+            buffer->setShaderDataCallback(cbEntry.second);
+        cbEntry.second->OnPrepare(buffer);
     }
 
     gpuProgram->Init();
@@ -1707,11 +1676,6 @@ void irr::video::CVulkanDriver::draw2D3DVertexPrimitiveList(const void * vertice
 
     uploadVertexData(vertices, vertexCount, indexList, indexCount, vType, iType);
 
-    if (GetActiveShader())
-        GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MATERIAL, nullptr, nullptr, nullptr, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
-    if (GetActiveShader())
-        GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH, nullptr, nullptr, nullptr, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
-
 #ifdef _DEBUG
     if (!checkPrimitiveCount(vertexCount))
         return;
@@ -1734,9 +1698,23 @@ void irr::video::CVulkanDriver::draw2D3DVertexPrimitiveList(const void * vertice
 
 bool irr::video::CVulkanDriver::setRenderStates3DMode()
 {
-    LastMaterial = Material;
+    if (ResetRenderStates || LastMaterial != Material)
+    {
+        irr::video::CVulkanGLSLProgram* _vkShader = static_cast<irr::video::CVulkanGLSLProgram*>(GetActiveShader());
 
-    ResetRenderStates = false;
+        if (_vkShader)
+        {
+            for (int i = 0; i < _vkShader->mBuffers.size(); ++i)
+            {
+                irr::video::SConstantBuffer* cbuffer = _vkShader->mBuffers[i];
+                if (cbuffer->mCallBack)
+                    cbuffer->mCallBack->OnSetMaterial(cbuffer, Material);
+            }
+        }
+
+        LastMaterial = Material;
+        ResetRenderStates = false;
+    }
 
     CurrentRenderMode = ERM_3D;
 

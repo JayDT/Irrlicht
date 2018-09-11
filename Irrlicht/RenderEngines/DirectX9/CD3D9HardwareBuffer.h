@@ -16,12 +16,11 @@ namespace irr
 {
     namespace video
     {
-        struct IShaderDataBuffer;
         class CD3D9Driver;
 
         class CD3D9HardwareBuffer : public IHardwareBuffer
         {
-            CD3D9HardwareBuffer(CD3D9Driver* driver, scene::IMeshBuffer *meshBuffer, video::IShaderDataBuffer* instanceBuffer, u32 flags, LPDIRECT3DVERTEXDECLARATION9 declaration);
+            CD3D9HardwareBuffer(CD3D9Driver* driver, scene::IMeshBuffer *meshBuffer, u32 flags, LPDIRECT3DVERTEXDECLARATION9 declaration);
 
             virtual ~CD3D9HardwareBuffer();
 

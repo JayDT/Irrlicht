@@ -22,6 +22,8 @@
 #include "CD3D11Shader.h"
 #include "CD3D11Texture.h"
 #include "CD3D11RenderTarget.h"
+#include "IVertexBuffer.h"
+#include "IShaderConstantSetCallBack.h"
 #include "standard/client/DataSource_Standard.h"
 #include "buildin_data.h"
 
@@ -63,8 +65,6 @@ extern DirectX::XMMATRIX SphereMapMatrixD3D11;
         rest = x->Release();      \
     x = 0;
 
-extern irr::video::IShaderDataBuffer* CreateDefaultShaderBuffer();
-
 namespace irr
 {
 
@@ -79,6 +79,45 @@ namespace video
         }
     }
 
+    static D3D11_BLEND getD3DBlend(E_BLEND_FACTOR factor)
+    {
+        D3D11_BLEND r = D3D11_BLEND_ZERO;
+        switch (factor)
+        {
+            case EBF_ZERO:					r = D3D11_BLEND_ZERO; break;
+            case EBF_ONE:					r = D3D11_BLEND_ONE; break;
+            case EBF_DST_COLOR:				r = D3D11_BLEND_DEST_COLOR; break;
+            case EBF_ONE_MINUS_DST_COLOR:	r = D3D11_BLEND_INV_DEST_COLOR; break;
+            case EBF_SRC_COLOR:				r = D3D11_BLEND_SRC_COLOR; break;
+            case EBF_ONE_MINUS_SRC_COLOR:	r = D3D11_BLEND_INV_SRC_COLOR; break;
+            case EBF_SRC_ALPHA:				r = D3D11_BLEND_SRC_ALPHA; break;
+            case EBF_ONE_MINUS_SRC_ALPHA:	r = D3D11_BLEND_INV_SRC_ALPHA; break;
+            case EBF_DST_ALPHA:				r = D3D11_BLEND_DEST_ALPHA; break;
+            case EBF_ONE_MINUS_DST_ALPHA:	r = D3D11_BLEND_INV_DEST_ALPHA; break;
+            case EBF_SRC_ALPHA_SATURATE:	r = D3D11_BLEND_SRC_ALPHA_SAT; break;
+        }
+        return r;
+    }
+
+    static D3D11_BLEND_OP getD3DBlendOp(E_BLEND_OPERATION operation)
+    {
+        switch (operation)
+        {
+            case EBO_NONE:			return D3D11_BLEND_OP_ADD;
+            case EBO_ADD:			return D3D11_BLEND_OP_ADD;
+            case EBO_SUBTRACT:		return D3D11_BLEND_OP_SUBTRACT;
+            case EBO_REVSUBTRACT:	return D3D11_BLEND_OP_REV_SUBTRACT;
+            case EBO_MIN:			return D3D11_BLEND_OP_MIN;
+            case EBO_MAX:			return D3D11_BLEND_OP_MAX;
+            case EBO_MIN_FACTOR:	return D3D11_BLEND_OP_MIN;
+            case EBO_MAX_FACTOR:	return D3D11_BLEND_OP_MAX;
+            case EBO_MIN_ALPHA:		return D3D11_BLEND_OP_MIN;
+            case EBO_MAX_ALPHA:		return D3D11_BLEND_OP_MAX;
+        }
+
+        return D3D11_BLEND_OP_ADD;
+    }
+
 //! constructor
 CD3D11Driver::CD3D11Driver(const SIrrlichtCreationParameters& params, io::IFileSystem* io, const bool pureSoftware /*= false*/)
     : CNullDriver(io, params.WindowSize),
@@ -89,9 +128,8 @@ CD3D11Driver::CD3D11Driver(const SIrrlichtCreationParameters& params, io::IFileS
     Output(0), CurrentInputLayout(0), DefaultBackBuffer(0), DefaultDepthBuffer(0),
     DynVertexBuffer(0), DynIndexBuffer(0), DynVertexBufferSize(0), DynIndexBufferSize(0),
     SceneSourceRect(0), LastVertexType((video::E_VERTEX_TYPE)-1), VendorID(0), ColorFormat(ECF_A8R8G8B8),
-    CurrentRenderMode(ERM_3D), AmbientLight(1.f, 1.f, 1.f, 1.f), MaxActiveLights(8), AlphaToCoverageSupport(true),
-    DepthStencilFormat(DXGI_FORMAT_UNKNOWN), D3DColorFormat(DXGI_FORMAT_R8G8B8A8_UNORM),
-    Params(params), CurrentDepthBuffer(nullptr), CurrentBackBuffer(nullptr),
+    MaxActiveLights(8), AlphaToCoverageSupport(true), DepthStencilFormat(DXGI_FORMAT_UNKNOWN),
+    D3DColorFormat(DXGI_FORMAT_R8G8B8A8_UNORM), Params(params), CurrentDepthBuffer(nullptr), CurrentBackBuffer(nullptr),
     // DirectX 11 can handle much more than this value, but keep compatibility
     MaxTextureUnits(MATERIAL_MAX_TEXTURES) 
 
@@ -159,7 +197,6 @@ CD3D11Driver::~CD3D11Driver()
         if (!m_defaultShader[i])
             continue;
 
-        m_defaultShader[i]->destroy();
         delete m_defaultShader[i];
     }
 
@@ -811,12 +848,12 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
 #endif
 
     {
-        video::IShaderDataBuffer* bufferHandler = CreateDefaultShaderBuffer();
-
         ShaderInitializerEntry shaderCI;
 
-        shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_VERTEX_SHADER, "vs_main", "vs_4_0")->Buffers.push_back(bufferHandler);
-        shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_FRAGMENT_SHADER, "ps_main", "ps_4_0");
+        shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_VERTEX_SHADER, "vs_main", "vs_4_0");
+        shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "ps_main", "ps_4_0");
+        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
+        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
         m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD] = static_cast<D3D11HLSLProgram*>(createShader(&shaderCI));
 
         irr::video::VertexDeclaration* vertDecl = GetVertexDeclaration(E_VERTEX_TYPE::EVT_STANDARD);
@@ -825,12 +862,12 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
     }
 
     {
-        video::IShaderDataBuffer* bufferHandler = CreateDefaultShaderBuffer();
-
         ShaderInitializerEntry shaderCI;
 
-        shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_VERTEX_SHADER, "vs_main_t2", "vs_4_0")->Buffers.push_back(bufferHandler);
-        shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_FRAGMENT_SHADER, "ps_main", "ps_4_0");
+        shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_VERTEX_SHADER, "vs_main_t2", "vs_4_0");
+        shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "ps_main", "ps_4_0");
+        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
+        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
         m_defaultShader[E_VERTEX_TYPE::EVT_2TCOORDS] = static_cast<D3D11HLSLProgram*>(createShader(&shaderCI));
 
         irr::video::VertexDeclaration* vertDecl = GetVertexDeclaration(E_VERTEX_TYPE::EVT_2TCOORDS);
@@ -839,12 +876,12 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
     }
 
     {
-        video::IShaderDataBuffer* bufferHandler = CreateDefaultShaderBuffer();
-
         ShaderInitializerEntry shaderCI;
 
-        shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_VERTEX_SHADER, "vs_main_sk", "vs_4_0")->Buffers.push_back(bufferHandler);
-        shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_FRAGMENT_SHADER, "ps_main", "ps_4_0");
+        shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_VERTEX_SHADER, "vs_main_sk", "vs_4_0");
+        shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "ps_main", "ps_4_0");
+        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
+        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
         m_defaultShader[E_VERTEX_TYPE::EVT_SKINNING] = static_cast<D3D11HLSLProgram*>(createShader(&shaderCI));
 
         irr::video::VertexDeclaration* vertDecl = GetVertexDeclaration(E_VERTEX_TYPE::EVT_SKINNING);
@@ -853,12 +890,12 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
     }
 
     {
-        video::IShaderDataBuffer* bufferHandler = CreateDefaultShaderBuffer();
-
         ShaderInitializerEntry shaderCI;
 
-        shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_VERTEX_SHADER, "vs_main_bt", "vs_4_0")->Buffers.push_back(bufferHandler);
-        shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_FRAGMENT_SHADER, "ps_main", "ps_4_0");
+        shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_VERTEX_SHADER, "vs_main_bt", "vs_4_0");
+        shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "ps_main", "ps_4_0");
+        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
+        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
         m_defaultShader[E_VERTEX_TYPE::EVT_TANGENTS] = static_cast<D3D11HLSLProgram*>(createShader(&shaderCI));
 
         irr::video::VertexDeclaration* vertDecl = GetVertexDeclaration(E_VERTEX_TYPE::EVT_TANGENTS);
@@ -867,11 +904,10 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
     }
 
     {
-        video::IShaderDataBuffer* bufferHandler = CreateDefaultShaderBuffer();
-
         ShaderInitializerEntry shaderCI;
 
-        shaderCI.AddShaderStage(resource, E_ShaderTypes::EST_VERTEX_SHADER, "vs_main_sh", "vs_4_0")->Buffers.push_back(bufferHandler);
+        shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_VERTEX_SHADER, "vs_main_sh", "vs_4_0");
+        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
         m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW] = static_cast<D3D11HLSLProgram*>(createShader(&shaderCI));
 
         irr::video::VertexDeclaration* vertDecl = GetVertexDeclaration(E_VERTEX_TYPE::EVT_SHADOW);
@@ -944,7 +980,7 @@ void CD3D11Driver::CreateDeviceIndependentResources()
 
 IShader * CD3D11Driver::createShader(ShaderInitializerEntry * shaderCreateInfo)
 {
-    irr::video::D3D11HLSLProgram* gpuProgram = new irr::video::D3D11HLSLProgram(this, EST_HIGH_LEVEL_SHADER);
+    irr::video::D3D11HLSLProgram* gpuProgram = new irr::video::D3D11HLSLProgram(this);
 
     for (auto stage : shaderCreateInfo->mStages)
     {
@@ -958,80 +994,29 @@ IShader * CD3D11Driver::createShader(ShaderInitializerEntry * shaderCreateInfo)
 
         switch (stage->ShaderStageType)
         {
-            case E_ShaderTypes::EST_VERTEX_SHADER:
+            case E_SHADER_TYPES::EST_VERTEX_SHADER:
                 gpuProgram->createVertexShader(Device, stage->DataStream, ShaderEntryPoint, ShaderModel);
                 break;
-            case E_ShaderTypes::EST_GEOMETRY_SHADER:
+            case E_SHADER_TYPES::EST_GEOMETRY_SHADER:
                 gpuProgram->createGeometryShader(Device, stage->DataStream, ShaderEntryPoint, ShaderModel);
                 break;
-            case E_ShaderTypes::EST_FRAGMENT_SHADER:
+            case E_SHADER_TYPES::EST_FRAGMENT_SHADER:
                 gpuProgram->createPixelShader(Device, stage->DataStream, ShaderEntryPoint, ShaderModel);
                 break;
         }
     }
 
-    for (auto stage : shaderCreateInfo->mStages)
+    for (auto cbEntry : shaderCreateInfo->Callback)
     {
-        for (auto buffer : stage->Buffers)
-            gpuProgram->addDataBuffer(buffer, nullptr);
+        auto buffer = gpuProgram->getConstantBufferByName(cbEntry.first.c_str());
+        if (buffer)
+            buffer->setShaderDataCallback(cbEntry.second);
+        cbEntry.second->OnPrepare(buffer);
     }
 
     gpuProgram->Init();
     shaderCreateInfo->mShaderId = AddShaderModul(gpuProgram, shaderCreateInfo->mShaderId);
     return gpuProgram;
-}
-
-core::array<u8> CD3D11Driver::GetShaderVariableMemoryBlock(ShaderVariableDescriptor const* desc, video::IShader* shader)
-{
-    irr::video::D3D11HLSLProgram* hlsl = static_cast<irr::video::D3D11HLSLProgram*>(shader);
-
-    irr::video::D3D11HLSLProgram::CbufferDesc& cbuffer = hlsl->ShaderBuffers[desc->m_shaderIndex];
-    irr::video::D3D11HLSLProgram::ShaderConstantDesc const& constantDecl = cbuffer.Variables[desc->m_location & 0xFF];
-
-    core::array<u8> result;
-    result.set_pointer((u8*)&cbuffer.DataBuffer[constantDecl.VariableDesc.StartOffset], constantDecl.VariableDesc.Size, false, false);
-    return result;
-}
-
-bool CD3D11Driver::setShaderConstant(ShaderVariableDescriptor const* desc, const void* values, int count, IHardwareBuffer* buffer /*= nullptr*/)
-{
-    irr::video::D3D11HLSLProgram* hlsl = static_cast<irr::video::D3D11HLSLProgram*>(GetActiveShader());
-
-    if (desc->m_type == ESVT_INPUT_STREAM)
-        return false;
-
-    irr::video::D3D11HLSLProgram::CbufferDesc& cbuffer = hlsl->ShaderBuffers[desc->m_shaderIndex];
-    irr::video::D3D11HLSLProgram::ShaderConstantDesc const& constantDecl = cbuffer.Variables[desc->m_location & 0xFF];
-
-    UINT elementSize = constantDecl.elementSize * count;
-
-    _IRR_DEBUG_BREAK_IF(elementSize > constantDecl.VariableDesc.Size || (cbuffer.DataBuffer.size() < (constantDecl.VariableDesc.StartOffset + elementSize)));
-
-    if ( memcmp(&cbuffer.DataBuffer[constantDecl.VariableDesc.StartOffset], values, elementSize) )
-    {
-        if (cbuffer.ChangeStartOffset > constantDecl.VariableDesc.StartOffset)
-            cbuffer.ChangeStartOffset = constantDecl.VariableDesc.StartOffset;
-
-        if (cbuffer.ChangeEndOffset < (constantDecl.VariableDesc.StartOffset + elementSize))
-            cbuffer.ChangeEndOffset = (constantDecl.VariableDesc.StartOffset + elementSize);
-
-        ::CopyMemory(&cbuffer.DataBuffer[constantDecl.VariableDesc.StartOffset], values, elementSize);
-        ++cbuffer.ChangeId;
-    }
-    return true;
-}
-
-bool CD3D11Driver::setShaderMapping(ShaderVariableDescriptor const * desc, IShader* shader, scene::E_HARDWARE_MAPPING constantMapping)
-{
-    irr::video::D3D11HLSLProgram* hlsl = static_cast<irr::video::D3D11HLSLProgram*>(shader);
-
-    if (desc->m_type == ESVT_INPUT_STREAM)
-        return false;
-
-    irr::video::D3D11HLSLProgram::CbufferDesc& cbuffer = hlsl->ShaderBuffers[desc->m_shaderIndex];
-    cbuffer.setHardwareMappingHint(constantMapping);
-
-    return true;
 }
 
 bool CD3D11Driver::SyncShaderConstant(CD3D11HardwareBuffer * HWBuffer)
@@ -1045,23 +1030,26 @@ bool CD3D11Driver::SyncShaderConstant(CD3D11HardwareBuffer * HWBuffer)
     irr::video::D3D11HLSLProgram* hlsl = static_cast<irr::video::D3D11HLSLProgram*>(GetActiveShader());
     _IRR_DEBUG_BREAK_IF(!hlsl);
 
-    for (u32 ib = 0; ib != hlsl->ShaderBuffers.size(); ++ib)
+    for (u32 ib = 0; ib != hlsl->mBuffers.size(); ++ib)
     {
-        irr::video::D3D11HLSLProgram::CbufferDesc& cbuffer = hlsl->ShaderBuffers[ib];
+        irr::video::SConstantBuffer* cbuffer = hlsl->mBuffers[ib];
+
+        if (cbuffer->mCallBack)
+            cbuffer->mCallBack->OnSetConstants(cbuffer, cbuffer->mHwObject->GetBuffer());
 
         E_HARDWARE_BUFFER_ACCESS MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_DEFAULT;
         s8* dataBuffer;
         u32 dataBufferSize;
-        u32 changeId = cbuffer.getChangeId();
+        u32 changeId = cbuffer->getChangedID();
 
         CD3D11HardwareBuffer * constantBuffer;
         if (HWBuffer && HWBuffer->GetBuffer() && HWBuffer->GetBuffer()->GetShaderConstantBuffers() && HWBuffer->GetBuffer()->GetShaderConstantBuffers()->size() > ib)
         {
-            CShaderBuffer* bufferCache = static_cast<CShaderBuffer*>((*HWBuffer->GetBuffer()->GetShaderConstantBuffers())[ib]);
-            constantBuffer = static_cast<CD3D11HardwareBuffer*>(bufferCache->getHardwareBuffer());
+            SConstantBuffer* bufferCache = static_cast<SConstantBuffer*>((*HWBuffer->GetBuffer()->GetShaderConstantBuffers())[cbuffer->getBindingIndex()]);
+            constantBuffer = static_cast<CD3D11HardwareBuffer*>(bufferCache->mHwObject);
             changeId = bufferCache->getChangedID();
-            dataBuffer = bufferCache->DataBuffer;
-            dataBufferSize = bufferCache->mBufferSize;
+            dataBuffer = (s8*)bufferCache->mHostMemory.data();
+            dataBufferSize = bufferCache->mHostMemory.size();
 
             if (bufferCache->getHardwareMappingHint() == scene::E_HARDWARE_MAPPING::EHM_DYNAMIC)
                 MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC;
@@ -1073,23 +1061,23 @@ bool CD3D11Driver::SyncShaderConstant(CD3D11HardwareBuffer * HWBuffer)
         }
         else
         {
-            constantBuffer = cbuffer.getHardwareBuffer();
+            constantBuffer = static_cast<CD3D11HardwareBuffer*>(cbuffer->mHwObject);
 
-            changeId = cbuffer.getChangeId();
-            dataBuffer = cbuffer.DataBuffer.pointer();
-            dataBufferSize = cbuffer.DataBuffer.size();;
+            changeId = cbuffer->getChangedID();
+            dataBuffer = (s8*)cbuffer->mHostMemory.data();
+            dataBufferSize = cbuffer->mHostMemory.size();
 
-            if (cbuffer.getHardwareMappingHint() == scene::E_HARDWARE_MAPPING::EHM_DYNAMIC)
+            if (cbuffer->getHardwareMappingHint() == scene::E_HARDWARE_MAPPING::EHM_DYNAMIC)
                 MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC;
-            else if (cbuffer.getHardwareMappingHint() == scene::E_HARDWARE_MAPPING::EHM_STATIC)
+            else if (cbuffer->getHardwareMappingHint() == scene::E_HARDWARE_MAPPING::EHM_STATIC)
                 MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_DEFAULT;
-            else if (cbuffer.getHardwareMappingHint() == scene::E_HARDWARE_MAPPING::EHM_STREAM)
+            else if (cbuffer->getHardwareMappingHint() == scene::E_HARDWARE_MAPPING::EHM_STREAM)
                 MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_SYSTEM_MEMORY;
 
         }
 
-        if (cbuffer.getHardwareMappingHint() == scene::EHM_NEVER)
-            cbuffer.setHardwareMappingHint(scene::EHM_STATIC);
+        if (cbuffer->getHardwareMappingHint() == scene::EHM_NEVER)
+            cbuffer->setHardwareMappingHint(scene::EHM_STATIC);
 
         {
             if (constantBuffer->getChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS) != changeId)
@@ -1097,44 +1085,25 @@ bool CD3D11Driver::SyncShaderConstant(CD3D11HardwareBuffer * HWBuffer)
                 if (constantBuffer->UpdateBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS, MemoryAccess, dataBuffer,
                     dataBufferSize, 0, dataBufferSize))
                 {
-                    //cbuffer.ChangeStartOffset = cbuffer.DataBuffer.size();
-                    //cbuffer.ChangeEndOffset = 0;
+                    //cbuffer->ChangeStartOffset = cbuffer->DataBuffer.size();
+                    //cbuffer->ChangeEndOffset = 0;
                     constantBuffer->setChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS, changeId);
                 }
             }
         }
 
-        //{
-        //    if (cbuffer.getHardwareBuffer()->getChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS) != cbuffer.getChangeId())
-        //    {
-        //        E_HARDWARE_BUFFER_ACCESS MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_DEFAULT;
-        //        if (cbuffer.getHardwareMappingHint() == scene::E_HARDWARE_MAPPING::EHM_DYNAMIC)
-        //            MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC;
-        //        else if (cbuffer.getHardwareMappingHint() == scene::E_HARDWARE_MAPPING::EHM_STREAM)
-        //            MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_SYSTEM_MEMORY;
-        //
-        //        if (cbuffer.getHardwareBuffer()->UpdateBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS, MemoryAccess, cbuffer.DataBuffer.pointer(),
-        //                                                        cbuffer.DataBuffer.size(), cbuffer.ChangeStartOffset, cbuffer.ChangeEndOffset))
-        //        {
-        //            cbuffer.ChangeStartOffset = cbuffer.DataBuffer.size();
-        //            cbuffer.ChangeEndOffset = 0;
-        //            cbuffer.getHardwareBuffer()->setChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS, cbuffer.ChangeId);
-        //        }
-        //    }
-        //}
-
-        u32 minSize = std::max(cbuffer.bindingDesc.BindPoint, (u32)0);
-        if ( BindedBuffers[cbuffer.shaderType].size() <= (int)minSize )
+        u32 minSize = std::max(cbuffer->getBindingIndex(), (u32)0);
+        if ( BindedBuffers[cbuffer->mShaderStage].size() <= (int)minSize )
         {
-            for ( s32 i = 0; i <= (((s32)minSize - (s32)BindedBuffers[cbuffer.shaderType].size()) + 1); ++i )
-                BindedBuffers[cbuffer.shaderType].push_back(nullptr);
+            for ( s32 i = 0; i <= (((s32)minSize - (s32)BindedBuffers[cbuffer->mShaderStage].size()) + 1); ++i )
+                BindedBuffers[cbuffer->mShaderStage].push_back(nullptr);
         }
 
-        haveResource[cbuffer.shaderType] = true;
-        if ( BindedBuffers[cbuffer.shaderType][cbuffer.bindingDesc.BindPoint] != constantBuffer->getBufferResource(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS))
+        haveResource[cbuffer->mShaderStage] = true;
+        if ( BindedBuffers[cbuffer->mShaderStage][cbuffer->getBindingIndex()] != constantBuffer->getBufferResource(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS))
         {
-            needUpdateResource[cbuffer.shaderType] = true;
-            BindedBuffers[cbuffer.shaderType][cbuffer.bindingDesc.BindPoint] = constantBuffer->getBufferResource(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS);
+            needUpdateResource[cbuffer->mShaderStage] = true;
+            BindedBuffers[cbuffer->mShaderStage][cbuffer->getBindingIndex()] = constantBuffer->getBufferResource(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS);
         }
     }
 
@@ -1169,7 +1138,7 @@ void CD3D11Driver::useShader(IShader* gpuProgram)
 {
     if (gpuProgram)
     {
-        if ( gpuProgram->getShaderVersion() == ESV_HLSL_HIGH_LEVEL )
+        if ( gpuProgram->getShaderType() == ESV_HLSL_HIGH_LEVEL )
         {
             irr::video::D3D11HLSLProgram* hlsl = static_cast<irr::video::D3D11HLSLProgram*>(GetActiveShader());
             // Set the vertex input layout.
@@ -1876,12 +1845,16 @@ bool CD3D11Driver::updateVertexHardwareBuffer(CD3D11HardwareBuffer *hwBuffer, E_
     }
     else if ( Type == E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM )
     {
-        IShaderDataBufferElement* variable = hwBuffer->GetInstanceBuffer()->m_bufferDataArray[0];
+        irr::scene::IStreamBuffer * streamBuffer = mb->getStreamBuffer();
+        const void* vertices = streamBuffer->getData();
+        const u32 vertexCount = streamBuffer->size();
+        const u32 vertexSize = streamBuffer->stride();
+        const u32 vertexBufSize = vertexSize * vertexCount;
 
         if (hwBuffer->GetBuffer()->getHardwareMappingHint_Instance() == scene::EHM_DYNAMIC)
             MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC;
 
-        hwBuffer->UpdateBuffer(Type, MemoryAccess, variable->getShaderValues(), variable->getValueSizeOf() * variable->getShaderValueCount());
+        hwBuffer->UpdateBuffer(Type, MemoryAccess, vertices, vertexBufSize);
     }
     return true;
 }
@@ -1928,12 +1901,12 @@ bool CD3D11Driver::updateHardwareBuffer(IHardwareBuffer *hwBuffer)
             hwBuffer->setChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, hwBuffer->GetBuffer()->getChangedID_Vertex());
         }
 
-        if ( hwBuffer->GetInstanceBuffer() && hwBuffer->getChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM) != hwBuffer->GetInstanceBuffer()->getChangedID() )
+        if ( hwBuffer->GetBuffer()->getStreamBuffer() && hwBuffer->getChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM) != hwBuffer->GetBuffer()->getStreamBuffer()->getChangedID() )
         {
             if ( !updateVertexHardwareBuffer((CD3D11HardwareBuffer*)hwBuffer, E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM) )
                 return false;
 
-            hwBuffer->setChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM, hwBuffer->GetInstanceBuffer()->getChangedID());
+            hwBuffer->setChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM, hwBuffer->GetBuffer()->getStreamBuffer()->getChangedID());
         }
     }
 
@@ -1962,7 +1935,7 @@ IHardwareBuffer* CD3D11Driver::createHardwareBuffer(const scene::IMeshBuffer* mb
     if ( !mb /*|| (mb->getHardwareMappingHint_Index() == scene::EHM_NEVER || mb->getHardwareMappingHint_Vertex() == scene::EHM_NEVER)*/ )
         return 0;
 
-    CD3D11HardwareBuffer *hwBuffer = new CD3D11HardwareBuffer(this, (scene::IMeshBuffer*)mb, ((scene::IMeshBuffer*)mb)->GetHWInstanceBuffer(),
+    CD3D11HardwareBuffer *hwBuffer = new CD3D11HardwareBuffer(this, (scene::IMeshBuffer*)mb,
         mb->getIndexType() == video::EIT_16BIT ?
         (u32)E_HARDWARE_BUFFER_FLAGS::EHBF_INDEX_16_BITS : (u32)E_HARDWARE_BUFFER_FLAGS::EHBF_INDEX_32_BITS, mb->getVertexType());
 
@@ -1971,22 +1944,22 @@ IHardwareBuffer* CD3D11Driver::createHardwareBuffer(const scene::IMeshBuffer* mb
 
     assert(mb->GetVertexDeclaration());
 
-    if (mb->GetShaderConstantBuffers())
-    {
-        for (u32 ib = 0; ib != mb->GetShaderConstantBuffers()->size(); ++ib)
-        {
-            const auto& cbuffer = (*mb->GetShaderConstantBuffers())[ib];
-            if (!cbuffer)
-                continue;
-
-            CShaderBuffer* shaderBuffer = static_cast<CShaderBuffer*>(cbuffer);
-
-            for (u32 i = 0; i < shaderBuffer->ConstantBuffers.size(); ++i)
-            {
-                shaderBuffer->ConstantBuffers[i] = createHardwareBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS, E_HARDWARE_BUFFER_ACCESS::EHBA_DEFAULT, shaderBuffer->mBufferSize);
-            }
-        }
-    }
+    //if (mb->GetShaderConstantBuffers())
+    //{
+    //    for (u32 ib = 0; ib != mb->GetShaderConstantBuffers()->size(); ++ib)
+    //    {
+    //        const auto& cbuffer = (*mb->GetShaderConstantBuffers())[ib];
+    //        if (!cbuffer)
+    //            continue;
+    //
+    //        CShaderBuffer* shaderBuffer = static_cast<CShaderBuffer*>(cbuffer);
+    //
+    //        for (u32 i = 0; i < shaderBuffer->ConstantBuffers.size(); ++i)
+    //        {
+    //            shaderBuffer->ConstantBuffers[i] = createHardwareBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS, E_HARDWARE_BUFFER_ACCESS::EHBA_DEFAULT, shaderBuffer->mBufferSize);
+    //        }
+    //    }
+    //}
 
     //add to map
     //HWBufferMap.insert(hwBuffer->MeshBuffer, hwBuffer);
@@ -2176,28 +2149,12 @@ void CD3D11Driver::drawMeshBuffer(const scene::IMeshBuffer * mb, scene::IMesh * 
 
     blockgpuprogramchange = true;
 
-    if (hasConstantBuffer)
-    {
-        for (auto& buffer : *mb->GetShaderConstantBuffers())
-        {
-            if (buffer)
-                buffer->UpdateBuffer(GetActiveShader(), (scene::IMeshBuffer*)mb, mesh, node, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
-        }
-    }
-
-    if (!hasConstantBuffer && GetActiveShader())
-        GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MATERIAL, (scene::IMeshBuffer*)mb, mesh, node, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
-
     if (HWBuffer)
     {
-        if (HWBuffer->GetInstanceBuffer())
-            HWBuffer->GetInstanceBuffer()->UpdateBuffer(GetActiveShader(), HWBuffer->GetBuffer(), mesh, node, 0);
         updateHardwareBuffer(HWBuffer); //check if update is needed
 
         if (!HWBuffer->IsBinded() || !HWBuffer->IsManualBind())
         {
-            if (!hasConstantBuffer && GetActiveShader())
-                GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH, (scene::IMeshBuffer*)mb, mesh, node, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
             HWBuffer->Bind();
         }
     }
@@ -2208,8 +2165,6 @@ void CD3D11Driver::drawMeshBuffer(const scene::IMeshBuffer * mb, scene::IMesh * 
 
         // copy vertices to dynamic buffers, if needed
         uploadVertexData(mb->getVertices(), mb->getVertexCount(), mb->getIndices(), mb->getIndexCount(), mb->getVertexType(), mb->getIndexType());
-
-        GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH, (scene::IMeshBuffer*)mb, mesh, node, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
     }
 
     blockgpuprogramchange = false;
@@ -2226,7 +2181,7 @@ void CD3D11Driver::drawMeshBuffer(const scene::IMeshBuffer * mb, scene::IMesh * 
     SyncShaderConstant(static_cast<CD3D11HardwareBuffer*>(HWBuffer));
     InitDrawStates(mb);
 
-    u32 instanceCount = (!mesh || mesh->IsInstanceModeAvailable()) && HWBuffer && HWBuffer->GetInstanceBuffer() ? HWBuffer->GetInstanceBuffer()->getInstanceCount() : 0;
+    u32 instanceCount = (!mesh || mesh->IsInstanceModeAvailable()) && mb->getStreamBuffer() ? mb->getStreamBuffer()->size() : 1;
 
     if (instanceCount > 1)
     {
@@ -2309,11 +2264,6 @@ void CD3D11Driver::draw2D3DVertexPrimitiveList(const void* vertices,
     SetShader(m_defaultShader[vType]);
     _IRR_DEBUG_BREAK_IF(!GetActiveShader());
 
-    if (GetActiveShader())
-        GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MATERIAL, nullptr, nullptr, nullptr, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
-    if (GetActiveShader())
-        GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH, nullptr, nullptr, nullptr, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
-
     SyncShaderConstant(nullptr);
     InitDrawStates(nullptr, pType);
 
@@ -2386,6 +2336,18 @@ void CD3D11Driver::drawStencilShadowVolume(const core::array<core::vector3df>& t
     ImmediateContext->OMSetRenderTargets(1, &nullBuffer, CurrentDepthBuffer);
 
     SetShader(m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW]);
+
+    setActiveTexture(0, nullptr);
+    setActiveTexture(1, nullptr);
+    setActiveTexture(2, nullptr);
+    setActiveTexture(3, nullptr);
+    setActiveTexture(4, nullptr);
+
+    Material.setTexture(0, nullptr);
+    Material.setTexture(1, nullptr);
+    Material.setTexture(2, nullptr);
+    Material.setTexture(3, nullptr);
+    Material.setTexture(4, nullptr);
 
     Material.FrontfaceCulling = !zfail;
     Material.BackfaceCulling = zfail;
@@ -2561,23 +2523,36 @@ bool CD3D11Driver::setRenderStates3DMode()
     if (ResetRenderStates || LastMaterial != Material)
     {
         // unset old material
-        if (CurrentRenderMode == ERM_3D &&
-            LastMaterial.MaterialType != Material.MaterialType &&
-            LastMaterial.MaterialType >= 0 && LastMaterial.MaterialType < (s32)MaterialRenderers.size())
-            MaterialRenderers[LastMaterial.MaterialType].Renderer->OnUnsetMaterial();
+        //if (CurrentRenderMode == ERM_3D &&
+        //    LastMaterial.MaterialType != Material.MaterialType &&
+        //    LastMaterial.MaterialType >= 0 && LastMaterial.MaterialType < (s32)MaterialRenderers.size())
+        //    MaterialRenderers[LastMaterial.MaterialType].Renderer->OnUnsetMaterial();
+        //
+        //// set new material.
+        //if (Material.MaterialType >= 0 && Material.MaterialType < (s32)MaterialRenderers.size())
+        //    MaterialRenderers[Material.MaterialType].Renderer->OnSetMaterial(Material, LastMaterial, ResetRenderStates, this);
 
-        // set new material.
-        if (Material.MaterialType >= 0 && Material.MaterialType < (s32)MaterialRenderers.size())
-            MaterialRenderers[Material.MaterialType].Renderer->OnSetMaterial(Material, LastMaterial, ResetRenderStates, this);
+        irr::video::D3D11HLSLProgram* hlsl = static_cast<irr::video::D3D11HLSLProgram*>(GetActiveShader());
+
+        if (hlsl)
+        {
+            for (int i = 0; i < hlsl->mBuffers.size(); ++i)
+            {
+                irr::video::SConstantBuffer* cbuffer = hlsl->mBuffers[i];
+                if (cbuffer->mCallBack)
+                    cbuffer->mCallBack->OnSetMaterial(cbuffer, Material);
+            }
+        }
+
+        setBasicRenderStates(Material, LastMaterial, ResetRenderStates);
+
+        LastMaterial = Material;
+        ResetRenderStates = false;
     }
 
     //bool shaderOK = true;
     //if (Material.MaterialType >= 0 && Material.MaterialType < (s32)MaterialRenderers.size())
     //    shaderOK = MaterialRenderers[Material.MaterialType].Renderer->OnRender(this, LastVertexType);
-
-    LastMaterial = Material;
-
-    ResetRenderStates = false;
 
     CurrentRenderMode = ERM_3D;
 
@@ -2813,51 +2788,78 @@ void CD3D11Driver::setBasicRenderStates(const SMaterial& material, const SMateri
             BlendDesc.AlphaToCoverageEnable = FALSE;
     }
 
-    if ( queryFeature(EVDF_BLEND_OPERATIONS) &&
-        (resetAllRenderstates || ResetBlending || lastMaterial.BlendOperation != material.BlendOperation || lastMaterial.uMaterialTypeParam != material.uMaterialTypeParam ))
+    if (resetAllRenderstates || lastMaterial.MaterialType != material.MaterialType || lastMaterial.BlendOperation != material.BlendOperation || lastMaterial.uMaterialTypeParam != material.uMaterialTypeParam)
     {
         if (!BlendStateChanged)
             BlendStateChanged = true;
 
-        ResetBlending = false;
 
-        if (material.BlendOperation == EBO_NONE)
-        {
-            BlendDesc.RenderTarget[0].BlendEnable = FALSE;
-            BlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-            BlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
-            BlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
-            BlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-            BlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-            BlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-        }
-        else
-        {
-            BlendDesc.RenderTarget[0].BlendEnable = TRUE;
+        bool blendEnabled = material.BlendOperation != E_BLEND_OPERATION::EBO_NONE;
+        E_BLEND_FACTOR srcFact = E_BLEND_FACTOR::EBF_ONE, dstFact = E_BLEND_FACTOR::EBF_ZERO, srcFactAlpha = E_BLEND_FACTOR::EBF_ONE, dstFactAlpha = E_BLEND_FACTOR::EBF_ZERO;
+        E_BLEND_OPERATION blendOp = E_BLEND_OPERATION::EBO_ADD, blendOpAlpha = E_BLEND_OPERATION::EBO_ADD;
+        E_MODULATE_FUNC modulate = E_MODULATE_FUNC::EMFN_MODULATE_1X;
+        u32 alphaSource = EAS_TEXTURE;
 
-            switch (material.BlendOperation)
+        D3D11_BLEND_DESC& blendDesc = getBlendDesc();
+
+        switch (material.MaterialType)
+        {
+            case E_MATERIAL_TYPE::EMT_SOLID:
+            case E_MATERIAL_TYPE::EMT_TRANSPARENT_ALPHA_CHANNEL_REF:
             {
-                case EBO_SUBTRACT:
-                    BlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_SUBTRACT;
-                    break;
-                case EBO_REVSUBTRACT:
-                    BlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_REV_SUBTRACT;
-                    break;
-                case EBO_MIN:
-                case EBO_MIN_FACTOR:
-                case EBO_MIN_ALPHA:
-                    BlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_MIN;
-                    break;
-                case EBO_MAX:
-                case EBO_MAX_FACTOR:
-                case EBO_MAX_ALPHA:
-                    BlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_MAX;
-                    break;
-                default:
-                    BlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-                    break;
+                blendEnabled = false;
+                break;
+            }
+            //case E_MATERIAL_TYPE::EMT_TRANSPARENT_ALPHA_CHANNEL_REF:
+            //    pack_textureBlendFunc(srcFact, dstFact, modulate, alphaSource, srcFactAlpha, dstFactAlpha, blendOp, blendOpAlpha);
+            //    break;
+            case E_MATERIAL_TYPE::EMT_REFLECTION_2_LAYER:
+            case E_MATERIAL_TYPE::EMT_TRANSPARENT_ALPHA_CHANNEL:
+            {
+                blendEnabled = true;
+                blendOp = E_BLEND_OPERATION::EBO_ADD;
+                srcFact = E_BLEND_FACTOR::EBF_SRC_ALPHA;
+                dstFact = E_BLEND_FACTOR::EBF_ONE_MINUS_SRC_ALPHA;
+                pack_textureBlendFunc(srcFact, dstFact, modulate, alphaSource, srcFactAlpha, dstFactAlpha, blendOp, blendOpAlpha);
+                break;
+            }
+            case E_MATERIAL_TYPE::EMT_TRANSPARENT_ADD_COLOR:
+            case E_MATERIAL_TYPE::EMT_TRANSPARENT_VERTEX_ALPHA:
+            {
+                blendEnabled = true;
+                blendOp = E_BLEND_OPERATION::EBO_ADD;
+                srcFact = E_BLEND_FACTOR::EBF_ONE;
+                dstFact = E_BLEND_FACTOR::EBF_ONE_MINUS_SRC_COLOR;
+                srcFactAlpha = E_BLEND_FACTOR::EBF_ZERO;
+                dstFactAlpha = E_BLEND_FACTOR::EBF_ZERO;
+                pack_textureBlendFunc(srcFact, dstFact, modulate, alphaSource, srcFactAlpha, dstFactAlpha, blendOp, blendOpAlpha);
+                break;
+            }
+            default:
+            {
+                unpack_textureBlendFunc(srcFact, dstFact, modulate, alphaSource, material.uMaterialTypeParam, &srcFactAlpha, &dstFactAlpha, &blendOp, &blendOpAlpha);
+                blendEnabled = blendOp != E_BLEND_OPERATION::EBO_NONE || blendOpAlpha != E_BLEND_OPERATION::EBO_NONE;
+                break;
             }
         }
+
+        auto& renderTarget0 = blendDesc.RenderTarget[0];
+        auto SrcBlend = getD3DBlend(srcFact); //SrcBlendAlpha
+        auto DestBlend = getD3DBlend(dstFact);
+        auto BlendOp = getD3DBlendOp(blendOp);
+        auto SrcBlendAlpha = getD3DBlend(srcFactAlpha); //SrcBlendAlpha
+        auto DestBlendAlpha = getD3DBlend(dstFactAlpha);
+        auto BlendOpAlpha = getD3DBlendOp(blendOpAlpha);
+
+        blendDesc.RenderTarget[0].BlendEnable = blendEnabled;
+        //renderTarget0.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+        renderTarget0.SrcBlend = SrcBlend;
+        renderTarget0.DestBlend = DestBlend;
+        renderTarget0.BlendOp = BlendOp;
+        renderTarget0.SrcBlendAlpha = SrcBlendAlpha;
+        renderTarget0.DestBlendAlpha = DestBlendAlpha;
+        renderTarget0.BlendOpAlpha = BlendOpAlpha;
     }
 
     // Polygon offset
@@ -3589,13 +3591,13 @@ D3D11_STENCIL_OP CD3D11Driver::getStencilOp(E_STENCIL_OPERATION func) const
         case E_STENCIL_OPERATION::ESO_ZERO:
             return D3D11_STENCIL_OP::D3D11_STENCIL_OP_ZERO;
         case E_STENCIL_OPERATION::ESO_DECREMENT:
-            return D3D11_STENCIL_OP::D3D11_STENCIL_OP_DECR_SAT;
-        case E_STENCIL_OPERATION::ESO_DECREMENT_WRAP:
             return D3D11_STENCIL_OP::D3D11_STENCIL_OP_DECR;
+        case E_STENCIL_OPERATION::ESO_DECREMENT_WRAP:
+            return D3D11_STENCIL_OP::D3D11_STENCIL_OP_DECR_SAT;
         case E_STENCIL_OPERATION::ESO_INCREMENT:
-            return D3D11_STENCIL_OP::D3D11_STENCIL_OP_INCR_SAT;
-        case E_STENCIL_OPERATION::ESO_INCREMENT_WRAP:
             return D3D11_STENCIL_OP::D3D11_STENCIL_OP_INCR;
+        case E_STENCIL_OPERATION::ESO_INCREMENT_WRAP:
+            return D3D11_STENCIL_OP::D3D11_STENCIL_OP_INCR_SAT;
         case E_STENCIL_OPERATION::ESO_INVERT:
             return D3D11_STENCIL_OP::D3D11_STENCIL_OP_INVERT;
         case E_STENCIL_OPERATION::ESO_REPLACE:

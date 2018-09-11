@@ -13,8 +13,8 @@
 using namespace irr;
 using namespace video;
 
-CD3D9HardwareBuffer::CD3D9HardwareBuffer(CD3D9Driver* driver, scene::IMeshBuffer *meshBuffer, video::IShaderDataBuffer* instanceBuffer, u32 flags, LPDIRECT3DVERTEXDECLARATION9 declaration)
-: IHardwareBuffer(meshBuffer, instanceBuffer)
+CD3D9HardwareBuffer::CD3D9HardwareBuffer(CD3D9Driver* driver, scene::IMeshBuffer *meshBuffer, u32 flags, LPDIRECT3DVERTEXDECLARATION9 declaration)
+: IHardwareBuffer(meshBuffer)
 , Driver(driver)
 , Device(0)
 , Flags(flags)
@@ -372,7 +372,7 @@ void CD3D9HardwareBuffer::Bind()
             //_IRR_DEBUG_BREAK_IF(GetInstanceBuffer()->isChanged());
             //_IRR_DEBUG_BREAK_IF(!instanceCount);
 
-            Device->SetStreamSourceFreq(0, (u32)(D3DSTREAMSOURCE_INDEXEDDATA | (u32)GetInstanceBuffer()->getInstanceCount()));
+            //Device->SetStreamSourceFreq(0, (u32)(D3DSTREAMSOURCE_INDEXEDDATA | (u32)GetInstanceBuffer()->getInstanceCount()));
             Device->SetStreamSourceFreq(1, (u32)(D3DSTREAMSOURCE_INSTANCEDATA | 1ul));
             Device->SetStreamSource(1, getVertexBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM), 0, VertexBufferStreams[(u32)E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM].Stride);
         }

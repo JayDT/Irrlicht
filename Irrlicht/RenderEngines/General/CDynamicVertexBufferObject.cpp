@@ -26,20 +26,6 @@ CDynamicVertexBufferObject::~CDynamicVertexBufferObject()
     setIndexBuffer(nullptr);
 }
 
-void CDynamicVertexBufferObject::SetHWInstanceBuffer(video::IShaderDataBuffer* instanceBuffer)
-{
-    //if (InstanceBuffer)
-    //    sShaderMgr->RemoveToReloadSet(InstanceBuffer);
-
-    InstanceBuffer = instanceBuffer; 
-
-    if (InstanceBuffer)
-    {
-        //sShaderMgr->AddToReloadSet(instanceBuffer, GetGPUProgram());
-        InstanceBuffer->InitializeFormShader(GetGPUProgram(), nullptr);
-    }
-}
-
 void CDynamicVertexSubBuffer::recalculateBoundingBox(CDynamicVertexBufferObject* buffer)
 {
     //! Recalculate bounding box
@@ -74,12 +60,12 @@ irr::video::IShader * irr::scene::CDynamicVertexBufferObject::GetGPUProgram() co
     return Driver->GetShaderModul(m_gpuProgramId);
 }
 
-void irr::scene::CDynamicVertexBufferObject::AddConstantBuffer(video::CShaderBuffer* buffer)
+void irr::scene::CDynamicVertexBufferObject::AddConstantBuffer(video::IConstantBuffer* buffer)
 {
-    if (mShaderConstantBuffers.size() <= buffer->mBinding)
-        mShaderConstantBuffers.resize(buffer->mBinding + 1);
+    if (mShaderConstantBuffers.size() <= buffer->getBindingIndex())
+        mShaderConstantBuffers.resize(buffer->getBindingIndex() + 1);
 
-    mShaderConstantBuffers[buffer->mBinding] = buffer;
+    mShaderConstantBuffers[buffer->getBindingIndex()] = buffer;
 }
 
 void irr::scene::CDynamicVertexBufferObject::AddSubBuffer(u16 istart, u16 icount, u16 vstart, u16 vcount)
@@ -87,9 +73,9 @@ void irr::scene::CDynamicVertexBufferObject::AddSubBuffer(u16 istart, u16 icount
     SubBuffer.push_back(new CDynamicVertexSubBuffer(istart, icount, vstart, vcount));
     Material = &SubBuffer[ActiveSubBuffer]->Material;
 
-    for (u32 i = 0; i != mShaderConstantBuffers.size(); ++i)
-        if (mShaderConstantBuffers[i])
-            mShaderConstantBuffers[i]->addSubBuffer();
+    //for (u32 i = 0; i != mShaderConstantBuffers.size(); ++i)
+    //    if (mShaderConstantBuffers[i])
+    //        mShaderConstantBuffers[i]->addSubBuffer();
 }
 
 void irr::scene::CDynamicVertexBufferObject::SetActiveSubBuffer(u16 sid)
@@ -101,7 +87,7 @@ void irr::scene::CDynamicVertexBufferObject::SetActiveSubBuffer(u16 sid)
     ActiveSubBuffer = sid;
     Material = &SubBuffer[sid]->Material;
 
-    for (u32 i = 0; i != mShaderConstantBuffers.size(); ++i)
-        if (mShaderConstantBuffers[i])
-            mShaderConstantBuffers[i]->setActiveSubBuffer(ActiveSubBuffer);
+    //for (u32 i = 0; i != mShaderConstantBuffers.size(); ++i)
+    //    if (mShaderConstantBuffers[i])
+    //        mShaderConstantBuffers[i]->setActiveSubBuffer(ActiveSubBuffer);
 }

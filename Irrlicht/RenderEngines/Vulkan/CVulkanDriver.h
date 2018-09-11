@@ -293,9 +293,6 @@ namespace irr
 
             //! Check multisample quality levels
             virtual u32 queryMultisampleLevels(ECOLOR_FORMAT format, u32 numSamples) const;
-            virtual bool setShaderConstant(ShaderVariableDescriptor const* desc, const void* values, int count, IHardwareBuffer* buffer /*= nullptr*/);
-            core::array<u8> GetShaderVariableMemoryBlock(ShaderVariableDescriptor const* desc, video::IShader* shader) override final;
-            virtual bool setShaderMapping(ShaderVariableDescriptor const* desc, IShader* shader, scene::E_HARDWARE_MAPPING constantMapping);
             bool SyncShaderConstant(CVulkanHardwareBuffer* HWBuffer);
             IShader * createShader(ShaderInitializerEntry * shaderCreateInfo) override;
             virtual void useShader(IShader* gpuProgram);
@@ -348,24 +345,9 @@ namespace irr
 
             u32 GetFrameID() const { return mFrameID; }
 
-            // enumeration for rendering modes such as 2d and 3d for minizing the switching of renderStates.
-            enum E_RENDER_MODE
-            {
-                ERM_2D = 0,		// 2d drawing rendermode
-                ERM_3D,			// 3d rendering mode
-                ERM_STENCIL_FILL, // stencil fill mode
-                ERM_SHADOW_VOLUME_ZFAIL, // stencil volume draw mode
-                ERM_SHADOW_VOLUME_ZPASS // stencil volume draw mode
-            };
-
-            E_RENDER_MODE GetCurrentRenderMode() const { return CurrentRenderMode; }
-            SColorf const& GetAmbientLight() const { return AmbientLight; }
-
         private:
 
             void initialize();
-
-            E_RENDER_MODE CurrentRenderMode;
 
             SMaterial Material, LastMaterial;
             IImage* blankImage = nullptr;
@@ -416,7 +398,6 @@ namespace irr
                 bool	DesireToBeOn;
             };
             core::array<RequestedLight> RequestedLights;
-            SColorf AmbientLight;
             u32 MaxActiveLights;
 
             core::stringc VendorName;

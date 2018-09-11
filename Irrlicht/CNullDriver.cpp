@@ -87,7 +87,7 @@ IImageWriter* createImageWriterPPM();
 //! constructor
 CNullDriver::CNullDriver(io::IFileSystem* io, const core::dimension2d<u32>& screenSize)
     : FileSystem(io), ActiveGPUProgram(0), MeshManipulator(0), ViewPort(0, 0, 0, 0), ScreenSize(screenSize),
-    PrimitivesDrawn(0), MinVertexCountForVBO(500), TextureCreationFlags(0),
+    PrimitivesDrawn(0), MinVertexCountForVBO(500), TextureCreationFlags(0), CurrentRenderMode(ERM_3D), AmbientLight(1.f, 1.f, 1.f, 1.f),
     OverrideMaterial2DEnabled(false), AllowZWriteOnTransparent(true)
 {
 #ifdef _DEBUG
@@ -2040,9 +2040,6 @@ void CNullDriver::drawMeshBuffer(const scene::IMeshBuffer* mb, scene::IMesh* mes
         drawHardwareBuffer(HWBuffer, mesh, node);
     else
     {
-        if (GetActiveShader())
-            GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MATERIAL, (scene::IMeshBuffer*)mb, mesh, node, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
-
         drawVertexPrimitiveList(mb->getVertices(), mb->getVertexCount(), mb->getIndices(), mb->getRenderPrimitive() == scene::EPT_QUADS ? mb->getIndexCount() / 4 : mb->getIndexCount() / 3, mb->getVertexType(), /*scene::EPT_TRIANGLES*/ mb->getRenderPrimitive(), mb->getIndexType());
     }
 }

@@ -64,18 +64,18 @@ void VulkanGpuParams::initialize()
     }
     
     u32 numParamBlocks = 0;
-    u32 numTextures = mShader->GetTextureInfos().size();
+    u32 numTextures = mShader->mTextures.size();
     u32 numStorageTextures = 0;
-    u32 numBuffers = mShader->GetBlockBufferInfos().size();
+    u32 numBuffers = mShader->mBuffers.size();
     u32 numSamplers = numTextures;
     u32 numSets = mShader->getLayout() ? 1 : 0;
-    u32 numBindings = mShader->GetTextureInfos().size() + mShader->GetBlockBufferInfos().size();
+    u32 numBindings = mShader->mTextures.size() + mShader->mBuffers.size();
     
     if (numSets == 0)
         return;
     
-    bufferBindingSlot.set_used(mShader->GetBlockBufferInfos().size());
-    TextureBindingSlot.set_used(mShader->GetTextureInfos().size());
+    bufferBindingSlot.set_used(numBuffers);
+    TextureBindingSlot.set_used(numTextures);
 
     //Lock lock(mMutex); // Set write operations need to be thread safe
     

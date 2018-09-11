@@ -19,6 +19,7 @@
 #include "COpenGLVertexDeclaration.h"
 #include "COpenGLCoreRenderTarget.h"
 #include "os.h"
+#include "IVertexBuffer.h"
 #include "buildin_data.h"
 
 #ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
@@ -127,7 +128,7 @@ void APIENTRY openglCallbackFunction(GLenum source,
 #if defined(_IRR_COMPILE_WITH_WINDOWS_DEVICE_) || defined(_IRR_COMPILE_WITH_X11_DEVICE_) || defined(_IRR_COMPILE_WITH_OSX_DEVICE_)
 COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params, io::IFileSystem* io, IContextManager* contextManager)
 : CNullDriver(io, params.WindowSize), COpenGLExtensionHandler(),
-    CurrentRenderMode(ERM_NONE), ResetRenderStates(true), Transformation3DChanged(true),
+    ResetRenderStates(true), Transformation3DChanged(true),
     AntiAlias(params.AntiAlias), RenderTargetTexture(0),
     CurrentRendertargetSize(0,0), ColorFormat(ECF_R8G8B8),
     CurrentTarget(ERT_FRAME_BUFFER), Params(params),
@@ -265,8 +266,6 @@ bool COpenGLDriver::initDriver()
 
     System::IO::StandardDataSource fileMgr;
     {
-        video::IShaderDataBuffer* bufferHandler = new irr::video::ShaderGenericValuesBuffer(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH);
-
         ShaderInitializerEntry shaderCI;
 
 #ifndef HAVE_CSYSTEM_EXTENSION
@@ -277,8 +276,10 @@ bool COpenGLDriver::initDriver()
         auto fragShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/Default.frag", true))->ToMemoryStreamReader();
 #endif
 
-        shaderCI.AddShaderStage(vertShader, E_ShaderTypes::EST_VERTEX_SHADER, "main", nullptr)->Buffers.push_back(bufferHandler);
-        shaderCI.AddShaderStage(fragShader, E_ShaderTypes::EST_FRAGMENT_SHADER, "main", nullptr);
+        shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
+        shaderCI.AddShaderStage(fragShader, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "main", nullptr);
+        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
+        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
         if (m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD])
             delete m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD];
         m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD] = static_cast<GLSLGpuShader*>(createShader(&shaderCI));
@@ -288,7 +289,7 @@ bool COpenGLDriver::initDriver()
     }
 
     {
-        video::IShaderDataBuffer* bufferHandler = new irr::video::ShaderGenericValuesBuffer(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH);
+        
 
         ShaderInitializerEntry shaderCI;
 
@@ -298,15 +299,17 @@ bool COpenGLDriver::initDriver()
         auto vertShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/DefaultSH.vert", true))->ToMemoryStreamReader();
 #endif
 
-        shaderCI.AddShaderStage(vertShader, E_ShaderTypes::EST_VERTEX_SHADER, "main", nullptr)->Buffers.push_back(bufferHandler);
-        //shaderCI.AddShaderStage(fragShader, E_ShaderTypes::EST_FRAGMENT_SHADER, "main", nullptr);
+        shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
+        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
+        if (m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW])
+            delete m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW];
         m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW] = static_cast<GLSLGpuShader*>(createShader(&shaderCI));
 
         delete vertShader;
     }
 
     {
-        video::IShaderDataBuffer* bufferHandler = new irr::video::ShaderGenericValuesBuffer(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH);
+        
 
         ShaderInitializerEntry shaderCI;
 
@@ -318,8 +321,10 @@ bool COpenGLDriver::initDriver()
         auto fragShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/Default.frag", true))->ToMemoryStreamReader();
 #endif
 
-        shaderCI.AddShaderStage(vertShader, E_ShaderTypes::EST_VERTEX_SHADER, "main", nullptr)->Buffers.push_back(bufferHandler);
-        shaderCI.AddShaderStage(fragShader, E_ShaderTypes::EST_FRAGMENT_SHADER, "main", nullptr);
+        shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
+        shaderCI.AddShaderStage(fragShader, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "main", nullptr);
+        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
+        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
         if (m_defaultShader[E_VERTEX_TYPE::EVT_2TCOORDS])
             delete m_defaultShader[E_VERTEX_TYPE::EVT_2TCOORDS];
         m_defaultShader[E_VERTEX_TYPE::EVT_2TCOORDS] = static_cast<GLSLGpuShader*>(createShader(&shaderCI));
@@ -329,7 +334,7 @@ bool COpenGLDriver::initDriver()
     }
 
     {
-        video::IShaderDataBuffer* bufferHandler = new irr::video::ShaderGenericValuesBuffer(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH);
+        
 
         ShaderInitializerEntry shaderCI;
 
@@ -341,8 +346,10 @@ bool COpenGLDriver::initDriver()
         auto fragShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/Default.frag", true))->ToMemoryStreamReader();
 #endif
 
-        shaderCI.AddShaderStage(vertShader, E_ShaderTypes::EST_VERTEX_SHADER, "main", nullptr)->Buffers.push_back(bufferHandler);
-        shaderCI.AddShaderStage(fragShader, E_ShaderTypes::EST_FRAGMENT_SHADER, "main", nullptr);
+        shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
+        shaderCI.AddShaderStage(fragShader, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "main", nullptr);
+        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
+        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
         if (m_defaultShader[E_VERTEX_TYPE::EVT_SKINNING])
             delete m_defaultShader[E_VERTEX_TYPE::EVT_SKINNING];
         m_defaultShader[E_VERTEX_TYPE::EVT_SKINNING] = static_cast<GLSLGpuShader*>(createShader(&shaderCI));
@@ -423,7 +430,7 @@ bool COpenGLDriver::genericDriverInit()
     for (i = 0; i<ETS_COUNT; ++i)
         setTransform(static_cast<E_TRANSFORMATION_STATE>(i), core::IdentityMatrix);
 
-    setAmbientLight(SColorf(0.0f, 0.0f, 0.0f, 0.0f));
+    //setAmbientLight(SColorf(0.0f, 0.0f, 0.0f, 0.0f));
 
     Params.HandleSRGB &= ((FeatureAvailable[IRR_ARB_framebuffer_sRGB] || FeatureAvailable[IRR_EXT_framebuffer_sRGB]) &&
         FeatureAvailable[IRR_EXT_texture_sRGB]);
@@ -515,20 +522,20 @@ void COpenGLDriver::createMaterialRenderers()
     // add normal map renderers
     s32 tmp = 0;
     video::IMaterialRenderer* renderer = 0;
-    renderer = new COpenGLNormalMapRenderer(this, tmp, MaterialRenderers[EMT_SOLID].Renderer);
-    renderer->drop();
-    renderer = new COpenGLNormalMapRenderer(this, tmp, MaterialRenderers[EMT_TRANSPARENT_ADD_COLOR].Renderer);
-    renderer->drop();
-    renderer = new COpenGLNormalMapRenderer(this, tmp, MaterialRenderers[EMT_TRANSPARENT_VERTEX_ALPHA].Renderer);
-    renderer->drop();
+    renderer = nullptr; // new COpenGLNormalMapRenderer(this, tmp, MaterialRenderers[EMT_SOLID].Renderer);
+    //renderer->drop();
+    renderer = nullptr; //new COpenGLNormalMapRenderer(this, tmp, MaterialRenderers[EMT_TRANSPARENT_ADD_COLOR].Renderer);
+    //renderer->drop();
+    renderer = nullptr; //new COpenGLNormalMapRenderer(this, tmp, MaterialRenderers[EMT_TRANSPARENT_VERTEX_ALPHA].Renderer);
+    //renderer->drop();
 
     // add parallax map renderers
-    renderer = new COpenGLParallaxMapRenderer(this, tmp, MaterialRenderers[EMT_SOLID].Renderer);
-    renderer->drop();
-    renderer = new COpenGLParallaxMapRenderer(this, tmp, MaterialRenderers[EMT_TRANSPARENT_ADD_COLOR].Renderer);
-    renderer->drop();
-    renderer = new COpenGLParallaxMapRenderer(this, tmp, MaterialRenderers[EMT_TRANSPARENT_VERTEX_ALPHA].Renderer);
-    renderer->drop();
+    renderer = nullptr; //new COpenGLParallaxMapRenderer(this, tmp, MaterialRenderers[EMT_SOLID].Renderer);
+    //renderer->drop();
+    renderer = nullptr; //new COpenGLParallaxMapRenderer(this, tmp, MaterialRenderers[EMT_TRANSPARENT_ADD_COLOR].Renderer);
+    //renderer->drop();
+    renderer = nullptr; //new COpenGLParallaxMapRenderer(this, tmp, MaterialRenderers[EMT_TRANSPARENT_VERTEX_ALPHA].Renderer);
+    //renderer->drop();
 
     // add basic 1 texture blending
     addAndDropMaterialRenderer(new COpenGLMaterialRenderer_ONETEXTURE_BLEND(this));
@@ -667,12 +674,16 @@ bool COpenGLDriver::updateVertexHardwareBuffer(COpenGLHardwareBuffer *HWBuffer, 
     }
     else if (Type == E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM)
     {
-        IShaderDataBufferElement* variable = HWBuffer->GetInstanceBuffer()->m_bufferDataArray[0];
+        irr::scene::IStreamBuffer * streamBuffer = mb->getStreamBuffer();
+        const void* vertices = streamBuffer->getData();
+        const u32 vertexCount = streamBuffer->size();
+        const u32 vertexSize = streamBuffer->stride();
+        const u32 vertexBufSize = vertexSize * vertexCount;
 
         if (HWBuffer->GetBuffer()->getHardwareMappingHint_Instance() == scene::EHM_DYNAMIC)
             MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC;
 
-        HWBuffer->UpdateBuffer(Type, MemoryAccess, variable->getShaderValues(), variable->getValueSizeOf() * variable->getShaderValueCount());
+        HWBuffer->UpdateBuffer(Type, MemoryAccess, vertices, vertexBufSize);
     }
     return true;
 }
@@ -741,12 +752,12 @@ bool COpenGLDriver::updateHardwareBuffer(IHardwareBuffer *hwBuffer)
             hwBuffer->setChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, hwBuffer->GetBuffer()->getChangedID_Vertex());
         }
 
-        if (hwBuffer->GetInstanceBuffer() && hwBuffer->getChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM) != hwBuffer->GetInstanceBuffer()->getChangedID())
+        if (hwBuffer->GetBuffer()->getStreamBuffer() && hwBuffer->getChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM) != hwBuffer->GetBuffer()->getStreamBuffer()->getChangedID())
         {
             if (!updateVertexHardwareBuffer((COpenGLHardwareBuffer*)hwBuffer, E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM))
                 return false;
 
-            hwBuffer->setChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM, hwBuffer->GetInstanceBuffer()->getChangedID());
+            hwBuffer->setChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM, hwBuffer->GetBuffer()->getStreamBuffer()->getChangedID());
         }
     }
 
@@ -774,7 +785,7 @@ IHardwareBuffer *COpenGLDriver::createHardwareBuffer(const scene::IMeshBuffer* m
     if (!mb->GetVertexDeclaration())
         mb->SetVertexDeclaration(this->GetVertexDeclaration(mb->getVertexType()));
 
-    COpenGLHardwareBuffer *HWBuffer=new COpenGLHardwareBuffer(this, (scene::IMeshBuffer*)mb, ((scene::IMeshBuffer*)mb)->GetHWInstanceBuffer(), 
+    COpenGLHardwareBuffer *HWBuffer=new COpenGLHardwareBuffer(this, (scene::IMeshBuffer*)mb, 
         E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, E_HARDWARE_BUFFER_ACCESS::EHBA_DEFAULT,
         mb->getIndexType() == video::EIT_16BIT ? (u32)E_HARDWARE_BUFFER_FLAGS::EHBF_INDEX_16_BITS : (u32)E_HARDWARE_BUFFER_FLAGS::EHBF_INDEX_32_BITS,
         static_cast<COpenGLVertexDeclaration*>(mb->GetVertexDeclaration()));
@@ -851,20 +862,12 @@ void irr::video::COpenGLDriver::drawMeshBuffer(const scene::IMeshBuffer * mb, sc
             setRenderStates2DMode(Material.MaterialType == EMT_TRANSPARENT_VERTEX_ALPHA, (Material.getTexture(0) != 0), Material.MaterialType == EMT_TRANSPARENT_ALPHA_CHANNEL);
     }
 
-    if (GetActiveShader())
-        GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MATERIAL, (scene::IMeshBuffer*)mb, mesh, node, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
-
     if (HWBuffer)
     {
-        if (HWBuffer->GetInstanceBuffer())
-            HWBuffer->GetInstanceBuffer()->UpdateBuffer(GetActiveShader(), HWBuffer->GetBuffer(), mesh, node, 0);
-
         updateHardwareBuffer(HWBuffer); //check if update is needed
 
         if (!HWBuffer->IsBinded() || !HWBuffer->IsManualBind())
         {
-            if (GetActiveShader())
-                GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH, (scene::IMeshBuffer*)mb, mesh, node, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
             HWBuffer->Bind();
         }
     }
@@ -878,8 +881,6 @@ void irr::video::COpenGLDriver::drawMeshBuffer(const scene::IMeshBuffer * mb, sc
         HWBuffer = DynamicHardwareBuffer[mb->getVertexType()];
         if (!HWBuffer->IsBinded() || !HWBuffer->IsManualBind())
         {
-            if (GetActiveShader())
-                GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH, (scene::IMeshBuffer*)mb, mesh, node, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
             HWBuffer->Bind();
         }
     }
@@ -898,7 +899,7 @@ void irr::video::COpenGLDriver::drawMeshBuffer(const scene::IMeshBuffer * mb, sc
 
     GLenum renderPrimitive = primitiveTypeToGL(mb->getRenderPrimitive());
 
-    u32 instanceCount = (!mesh || mesh->IsInstanceModeAvailable()) && HWBuffer && HWBuffer->GetInstanceBuffer() ? HWBuffer->GetInstanceBuffer()->getInstanceCount() : 0;
+    u32 instanceCount = (!mesh || mesh->IsInstanceModeAvailable()) && mb->getStreamBuffer() ? mb->getStreamBuffer()->size() : 1;
 
     if (instanceCount > 1)
         glDrawElementsInstanced(renderPrimitive, mb->GetIndexRangeCount(), mb->getIndexType() == E_INDEX_TYPE::EIT_32BIT ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT, (void*)(sizeof(u16) * mb->GetIndexRangeStart()), instanceCount);
@@ -1099,11 +1100,6 @@ void COpenGLDriver::draw2D3DVertexPrimitiveList(const void* vertices, u32 vertex
 
     uploadVertexData(vertices, vertexCount, indexList, indexCount, vType, iType);
 
-    if (GetActiveShader())
-        GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MATERIAL, nullptr, nullptr, nullptr, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
-    if (GetActiveShader())
-        GetActiveShader()->UpdateValues(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH, nullptr, nullptr, nullptr, video::IShaderDataBuffer::EUF_COMMIT_VALUES);
-
 #ifdef _DEBUG
     if (!checkPrimitiveCount(vertexCount))
         return;
@@ -1144,7 +1140,7 @@ bool irr::video::COpenGLDriver::uploadVertexData(const void * vertices, u32 vert
 
     if (!DynamicHardwareBuffer[vType])
     {
-        DynamicHardwareBuffer[vType] = new COpenGLHardwareBuffer(this, nullptr, nullptr, E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, 0, static_cast<COpenGLVertexDeclaration*>(GetVertexDeclaration(vType)));
+        DynamicHardwareBuffer[vType] = new COpenGLHardwareBuffer(this, nullptr, E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, 0, static_cast<COpenGLVertexDeclaration*>(GetVertexDeclaration(vType)));
 
         static_cast<COpenGLVertexDeclaration*>(GetVertexDeclaration(vType))->SetVertexType(vType);
 
@@ -1321,14 +1317,28 @@ bool COpenGLDriver::setRenderStates3DMode()
     {
         // unset old material
 
-        if (LastMaterial.MaterialType != Material.MaterialType &&
-                static_cast<u32>(LastMaterial.MaterialType) < MaterialRenderers.size())
-            MaterialRenderers[LastMaterial.MaterialType].Renderer->OnUnsetMaterial();
+        //if (LastMaterial.MaterialType != Material.MaterialType &&
+        //        static_cast<u32>(LastMaterial.MaterialType) < MaterialRenderers.size())
+        //    MaterialRenderers[LastMaterial.MaterialType].Renderer->OnUnsetMaterial();
+        //
+        //// set new material.
+        //if (static_cast<u32>(Material.MaterialType) < MaterialRenderers.size())
+        //    MaterialRenderers[Material.MaterialType].Renderer->OnSetMaterial(
+        //        Material, LastMaterial, ResetRenderStates, this);
 
-        // set new material.
-        if (static_cast<u32>(Material.MaterialType) < MaterialRenderers.size())
-            MaterialRenderers[Material.MaterialType].Renderer->OnSetMaterial(
-                Material, LastMaterial, ResetRenderStates, this);
+        irr::video::GLSLGpuShader* _vkShader = static_cast<irr::video::GLSLGpuShader*>(GetActiveShader());
+
+        if (_vkShader)
+        {
+            for (int i = 0; i < _vkShader->mBuffers.size(); ++i)
+            {
+                irr::video::SConstantBuffer* cbuffer = _vkShader->mBuffers[i];
+                if (cbuffer->mCallBack)
+                    cbuffer->mCallBack->OnSetMaterial(cbuffer, Material);
+            }
+        }
+
+        setBasicRenderStates(Material, LastMaterial, ResetRenderStates);
 
         LastMaterial = Material;
         ResetRenderStates = false;
@@ -1808,7 +1818,7 @@ void COpenGLDriver::setBasicRenderStates(const SMaterial& material, const SMater
 void COpenGLDriver::enableMaterial2D(bool enable)
 {
     if (!enable)
-        CurrentRenderMode = ERM_NONE;
+        CurrentRenderMode = E_RENDER_MODE::ERM_2D;
     CNullDriver::enableMaterial2D(enable);
 }
 
@@ -1821,8 +1831,8 @@ void COpenGLDriver::setRenderStates2DMode(bool alpha, bool texture, bool alphaCh
         // unset last 3d material
         if (CurrentRenderMode == ERM_3D)
         {
-            if (static_cast<u32>(LastMaterial.MaterialType) < MaterialRenderers.size())
-                MaterialRenderers[LastMaterial.MaterialType].Renderer->OnUnsetMaterial();
+            //if (static_cast<u32>(LastMaterial.MaterialType) < MaterialRenderers.size())
+            //    MaterialRenderers[LastMaterial.MaterialType].Renderer->OnUnsetMaterial();
         }
         if (Transformation3DChanged)
         {
@@ -1873,13 +1883,6 @@ void COpenGLDriver::setRenderStates2DMode(bool alpha, bool texture, bool alphaCh
 
     if (texture)
     {
-        //if (!OverrideMaterial2DEnabled)
-        //{
-        //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        //    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        //    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        //}
         Material.setTexture(0, const_cast<video::ITexture*>(CurrentTexture[0]));
         setTransform(ETS_TEXTURE_0, core::IdentityMatrix);
         // Due to the transformation change, the previous line would call a reset each frame
@@ -2118,7 +2121,19 @@ void COpenGLDriver::drawStencilShadowVolume(const core::array<core::vector3df>& 
         return;
     
     SetShader(m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW]);
-    
+
+    setActiveTexture(0, nullptr);
+    setActiveTexture(1, nullptr);
+    setActiveTexture(2, nullptr);
+    setActiveTexture(3, nullptr);
+    setActiveTexture(4, nullptr);
+
+    Material.setTexture(0, nullptr);
+    Material.setTexture(1, nullptr);
+    Material.setTexture(2, nullptr);
+    Material.setTexture(3, nullptr);
+    Material.setTexture(4, nullptr);
+
     Material.ColorMask = 0;
     Material.FrontfaceCulling = !zfail;
     Material.BackfaceCulling = zfail;
@@ -2195,8 +2210,7 @@ void COpenGLDriver::drawStencilShadow(bool clearStencilBuffer, video::SColor lef
     
     setTransform(E_TRANSFORMATION_STATE::ETS_PROJECTION, core::IdentityMatrix);
     setTransform(E_TRANSFORMATION_STATE::ETS_VIEW, core::IdentityMatrix);
-    setTransform(E_TRANSFORMATION_STATE::ETS_WORLD, core::IdentityMatrix);
-    
+    setTransform(E_TRANSFORMATION_STATE::ETS_WORLD, core::IdentityMatrix);   
     
     Material.FrontfaceCulling = false;
     Material.BackfaceCulling = false;

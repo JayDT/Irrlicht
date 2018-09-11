@@ -151,136 +151,136 @@ const char OPENGL_NORMAL_MAP_PSH[] =
 	"\n"\
 	"END\n";
 
-//! Constructor
-COpenGLNormalMapRenderer::COpenGLNormalMapRenderer(video::COpenGLDriver* driver,
-	s32& outMaterialTypeNr, IMaterialRenderer* baseMaterial)
-	: COpenGLShaderMaterialRenderer(driver, 0, baseMaterial), CompiledShaders(true)
-{
-
-	#ifdef _DEBUG
-	setDebugName("COpenGLNormalMapRenderer");
-	#endif
-
-	// set this as callback. We could have done this in
-	// the initialization list, but some compilers don't like it.
-
-	CallBack = this;
-
-	// basically, this thing simply compiles the hardcoded shaders if the
-	// hardware is able to do them, otherwise it maps to the base material
-
-	if (!driver->queryFeature(video::EVDF_ARB_FRAGMENT_PROGRAM_1) ||
-		!driver->queryFeature(video::EVDF_ARB_VERTEX_PROGRAM_1))
-	{
-		// this hardware is not able to do shaders. Fall back to
-		// base material.
-		outMaterialTypeNr = driver->addMaterialRenderer(this);
-		return;
-	}
-
-	// check if already compiled normal map shaders are there.
-
-	video::IMaterialRenderer* renderer = driver->getMaterialRenderer(EMT_NORMAL_MAP_SOLID);
-
-	if (renderer)
-	{
-		// use the already compiled shaders
-		video::COpenGLNormalMapRenderer* nmr = reinterpret_cast<video::COpenGLNormalMapRenderer*>(renderer);
-		CompiledShaders = false;
-
-		VertexShader = nmr->VertexShader;
-		PixelShader = nmr->PixelShader;
-
-		outMaterialTypeNr = driver->addMaterialRenderer(this);
-	}
-	else
-	{
-		// compile shaders on our own
-		init(outMaterialTypeNr, OPENGL_NORMAL_MAP_VSH, OPENGL_NORMAL_MAP_PSH, EVT_TANGENTS);
-	}
-
-	// fallback if compilation has failed
-	if (-1==outMaterialTypeNr)
-		outMaterialTypeNr = driver->addMaterialRenderer(this);
-}
-
-
-//! Destructor
-COpenGLNormalMapRenderer::~COpenGLNormalMapRenderer()
-{
-	if (CallBack == this)
-		CallBack = 0;
-
-	if (!CompiledShaders)
-	{
-		// prevent this from deleting shaders we did not create
-		VertexShader = 0;
-		PixelShader.clear();
-	}
-}
-
-
-//! Returns the render capability of the material.
-s32 COpenGLNormalMapRenderer::getRenderCapability() const
-{
-	if (Driver->queryFeature(video::EVDF_ARB_FRAGMENT_PROGRAM_1) &&
-		Driver->queryFeature(video::EVDF_ARB_VERTEX_PROGRAM_1))
-		return 0;
-
-	return 1;
-}
-
-
-//! Called by the engine when the vertex and/or pixel shader constants for an
-//! material renderer should be set.
-void COpenGLNormalMapRenderer::OnSetConstants(IMaterialRendererServices* services, s32 userData)
-{
-	video::IVideoDriver* driver = services->getVideoDriver();
-
-	// set transposed world matrix
-	const core::matrix4& tWorld = driver->getTransform(video::ETS_WORLD).getTransposed();
-	services->setVertexShaderConstant(tWorld.pointer(), 0, 4);
-
-	// set transposed worldViewProj matrix
-	core::matrix4 worldViewProj(driver->getTransform(video::ETS_PROJECTION));
-	worldViewProj *= driver->getTransform(video::ETS_VIEW);
-	worldViewProj *= driver->getTransform(video::ETS_WORLD);
-	core::matrix4 tr(worldViewProj.getTransposed());
-	services->setVertexShaderConstant(tr.pointer(), 8, 4);
-
-	// here we fetch the fixed function lights from the driver
-	// and set them as constants
-
-	u32 cnt = driver->getDynamicLightCount();
-
-	// Load the inverse world matrix.
-	core::matrix4 invWorldMat;
-	driver->getTransform(video::ETS_WORLD).getInverse(invWorldMat);
-
-	for (u32 i=0; i<2; ++i)
-	{
-		video::SLight light;
-
-		if (i<cnt)
-			light = driver->getDynamicLight(i);
-		else
-		{
-			light.DiffuseColor.set(0,0,0); // make light dark
-			light.Radius = 1.0f;
-		}
-
-		light.DiffuseColor.a = 1.0f/(light.Radius*light.Radius); // set attenuation
-
-		// Transform the light by the inverse world matrix to get it into object space.
-		invWorldMat.transformVect(light.Position);
-
-		services->setVertexShaderConstant(
-			reinterpret_cast<const f32*>(&light.Position), 12+(i*2), 1);
-
-		services->setVertexShaderConstant(
-			reinterpret_cast<const f32*>(&light.DiffuseColor), 13+(i*2), 1);
-	}
-}
+////! Constructor
+//COpenGLNormalMapRenderer::COpenGLNormalMapRenderer(video::COpenGLDriver* driver,
+//	s32& outMaterialTypeNr, IMaterialRenderer* baseMaterial)
+//	: COpenGLShaderMaterialRenderer(driver, 0, baseMaterial), CompiledShaders(true)
+//{
+//
+//	#ifdef _DEBUG
+//	setDebugName("COpenGLNormalMapRenderer");
+//	#endif
+//
+//	// set this as callback. We could have done this in
+//	// the initialization list, but some compilers don't like it.
+//
+//	CallBack = this;
+//
+//	// basically, this thing simply compiles the hardcoded shaders if the
+//	// hardware is able to do them, otherwise it maps to the base material
+//
+//	if (!driver->queryFeature(video::EVDF_ARB_FRAGMENT_PROGRAM_1) ||
+//		!driver->queryFeature(video::EVDF_ARB_VERTEX_PROGRAM_1))
+//	{
+//		// this hardware is not able to do shaders. Fall back to
+//		// base material.
+//		outMaterialTypeNr = driver->addMaterialRenderer(this);
+//		return;
+//	}
+//
+//	// check if already compiled normal map shaders are there.
+//
+//	video::IMaterialRenderer* renderer = driver->getMaterialRenderer(EMT_NORMAL_MAP_SOLID);
+//
+//	if (renderer)
+//	{
+//		// use the already compiled shaders
+//		video::COpenGLNormalMapRenderer* nmr = reinterpret_cast<video::COpenGLNormalMapRenderer*>(renderer);
+//		CompiledShaders = false;
+//
+//		VertexShader = nmr->VertexShader;
+//		PixelShader = nmr->PixelShader;
+//
+//		outMaterialTypeNr = driver->addMaterialRenderer(this);
+//	}
+//	else
+//	{
+//		// compile shaders on our own
+//		init(outMaterialTypeNr, OPENGL_NORMAL_MAP_VSH, OPENGL_NORMAL_MAP_PSH, EVT_TANGENTS);
+//	}
+//
+//	// fallback if compilation has failed
+//	if (-1==outMaterialTypeNr)
+//		outMaterialTypeNr = driver->addMaterialRenderer(this);
+//}
+//
+//
+////! Destructor
+//COpenGLNormalMapRenderer::~COpenGLNormalMapRenderer()
+//{
+//	if (CallBack == this)
+//		CallBack = 0;
+//
+//	if (!CompiledShaders)
+//	{
+//		// prevent this from deleting shaders we did not create
+//		VertexShader = 0;
+//		PixelShader.clear();
+//	}
+//}
+//
+//
+////! Returns the render capability of the material.
+//s32 COpenGLNormalMapRenderer::getRenderCapability() const
+//{
+//	if (Driver->queryFeature(video::EVDF_ARB_FRAGMENT_PROGRAM_1) &&
+//		Driver->queryFeature(video::EVDF_ARB_VERTEX_PROGRAM_1))
+//		return 0;
+//
+//	return 1;
+//}
+//
+//
+////! Called by the engine when the vertex and/or pixel shader constants for an
+////! material renderer should be set.
+//void COpenGLNormalMapRenderer::OnSetConstants(IMaterialRendererServices* services, s32 userData)
+//{
+//	video::IVideoDriver* driver = services->getVideoDriver();
+//
+//	// set transposed world matrix
+//	const core::matrix4& tWorld = driver->getTransform(video::ETS_WORLD).getTransposed();
+//	services->setVertexShaderConstant(tWorld.pointer(), 0, 4);
+//
+//	// set transposed worldViewProj matrix
+//	core::matrix4 worldViewProj(driver->getTransform(video::ETS_PROJECTION));
+//	worldViewProj *= driver->getTransform(video::ETS_VIEW);
+//	worldViewProj *= driver->getTransform(video::ETS_WORLD);
+//	core::matrix4 tr(worldViewProj.getTransposed());
+//	services->setVertexShaderConstant(tr.pointer(), 8, 4);
+//
+//	// here we fetch the fixed function lights from the driver
+//	// and set them as constants
+//
+//	u32 cnt = driver->getDynamicLightCount();
+//
+//	// Load the inverse world matrix.
+//	core::matrix4 invWorldMat;
+//	driver->getTransform(video::ETS_WORLD).getInverse(invWorldMat);
+//
+//	for (u32 i=0; i<2; ++i)
+//	{
+//		video::SLight light;
+//
+//		if (i<cnt)
+//			light = driver->getDynamicLight(i);
+//		else
+//		{
+//			light.DiffuseColor.set(0,0,0); // make light dark
+//			light.Radius = 1.0f;
+//		}
+//
+//		light.DiffuseColor.a = 1.0f/(light.Radius*light.Radius); // set attenuation
+//
+//		// Transform the light by the inverse world matrix to get it into object space.
+//		invWorldMat.transformVect(light.Position);
+//
+//		services->setVertexShaderConstant(
+//			reinterpret_cast<const f32*>(&light.Position), 12+(i*2), 1);
+//
+//		services->setVertexShaderConstant(
+//			reinterpret_cast<const f32*>(&light.DiffuseColor), 13+(i*2), 1);
+//	}
+//}
 
 
 } // end namespace video

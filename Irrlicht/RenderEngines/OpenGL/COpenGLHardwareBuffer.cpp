@@ -14,8 +14,8 @@
 using namespace irr;
 using namespace video;
 
-COpenGLHardwareBuffer::COpenGLHardwareBuffer(COpenGLDriver* driver, scene::IMeshBuffer *meshBuffer, video::IShaderDataBuffer* instanceBuffer, E_HARDWARE_BUFFER_TYPE type, E_HARDWARE_BUFFER_ACCESS accessType, u32 flags, COpenGLVertexDeclaration* Desc)
-    : IHardwareBuffer(meshBuffer, instanceBuffer)
+COpenGLHardwareBuffer::COpenGLHardwareBuffer(COpenGLDriver* driver, scene::IMeshBuffer *meshBuffer, E_HARDWARE_BUFFER_TYPE type, E_HARDWARE_BUFFER_ACCESS accessType, u32 flags, COpenGLVertexDeclaration* Desc)
+    : IHardwareBuffer(meshBuffer)
     , Driver(driver)
     , Device(0)
     , Flags(flags)
@@ -37,8 +37,8 @@ COpenGLHardwareBuffer::COpenGLHardwareBuffer(COpenGLDriver* driver, scene::IMesh
     glCreateVertexArrays(1, &vba_verticesID);
 }
 
-irr::video::COpenGLHardwareBuffer::COpenGLHardwareBuffer(COpenGLDriver * driver, E_HARDWARE_BUFFER_TYPE type, E_HARDWARE_BUFFER_ACCESS accessType, u32 flags, CGlslBufferDesc & Desc)
-    : IHardwareBuffer(nullptr, nullptr)
+irr::video::COpenGLHardwareBuffer::COpenGLHardwareBuffer(COpenGLDriver * driver, E_HARDWARE_BUFFER_TYPE type, E_HARDWARE_BUFFER_ACCESS accessType, u32 flags, SConstantBuffer & Desc)
+    : IHardwareBuffer(nullptr)
     , Driver(driver)
     , Device(0)
     , Flags(flags)
@@ -266,7 +266,7 @@ bool COpenGLHardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type, E_HARDWARE
     {
         if (!desc.initialize)
         {
-            desc.Stride = UniformDeclaration->dataSize;
+            desc.Stride = UniformDeclaration->getType()->Stride;
             glCreateBuffers(1, &desc.buffer);
             //Driver->extGlGenBuffers(1, &desc.buffer);
 
@@ -334,7 +334,7 @@ void COpenGLHardwareBuffer::Bind()
     if (GLuint buffer = getBufferResource(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS))
     {
         //glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, UniformDeclaration->binding, buffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, UniformDeclaration->getBindingIndex(), buffer);
     }
 
     IHardwareBuffer::Bind();
@@ -358,7 +358,7 @@ void COpenGLHardwareBuffer::Unbind()
     if (GLuint buffer = getBufferResource(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS))
     {
         //glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, UniformDeclaration->binding, 0);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, UniformDeclaration->getBindingIndex(), 0);
     }
 
     IHardwareBuffer::Unbind();

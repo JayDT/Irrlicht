@@ -85,7 +85,7 @@ void VulkanSwapChain::rebuild(VulkanDevice* device, VkSurfaceKHR surface, uint32
 
     delete[](presentModes);
 
-    uint32_t numImages = std::max(3u, surfaceCaps.minImageCount);
+    uint32_t numImages = surfaceCaps.minImageCount;
 
     VkSurfaceTransformFlagsKHR transform = {};
     if (surfaceCaps.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
@@ -110,7 +110,7 @@ void VulkanSwapChain::rebuild(VulkanDevice* device, VkSurfaceKHR surface, uint32
     swapChainCI.pQueueFamilyIndices = NULL;
     swapChainCI.presentMode = presentMode;
     swapChainCI.oldSwapchain = mSwapChain;
-    swapChainCI.clipped = VK_FALSE;
+    swapChainCI.clipped = VK_TRUE;                                          // indicates whether the Vulkan implementation is allowed to discard rendering operations that affect regions of the surface which are not visible
     swapChainCI.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 
     VkSwapchainKHR oldSwapChain = mSwapChain;

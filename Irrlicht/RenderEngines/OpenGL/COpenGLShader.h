@@ -40,61 +40,61 @@ namespace irr
         class COpenGLTexture;
         class COpenGLHardwareBuffer;
 
-        struct CGlslBufferDesc;
-        
-        struct CGlslVariableDesc
-        {
-            CGlslBufferDesc* BufferDesc;
-            ShaderVariableDescriptor varDesc;
-            std::string name;                   // Not qualified name
-            std::vector<CGlslVariableDesc> members;
-            //u32 type;
-            u32 offset;
-            u32 blockIndex;
-            u32 arrayStride;
-            u32 matrixStride;
-            u32 elementSize;
-            u32 dataSize;
-            //SSBO
-            u32 toplevel_arraysize;
-            u32 toplevel_arraystride;
-            bool isRowMajor;
-        };
+        //struct CGlslBufferDesc;
+        //
+        //struct CGlslVariableDesc
+        //{
+        //    CGlslBufferDesc* BufferDesc;
+        //    ShaderVariableDescriptor varDesc;
+        //    std::string name;                   // Not qualified name
+        //    std::vector<CGlslVariableDesc> members;
+        //    //u32 type;
+        //    u32 offset;
+        //    u32 blockIndex;
+        //    u32 arrayStride;
+        //    u32 matrixStride;
+        //    u32 elementSize;
+        //    u32 dataSize;
+        //    //SSBO
+        //    u32 toplevel_arraysize;
+        //    u32 toplevel_arraystride;
+        //    bool isRowMajor;
+        //};
+        //
+        //struct CGlslBufferDesc
+        //{
+        //    ~CGlslBufferDesc()
+        //    {
+        //
+        //    }
+        //
+        //    u32 binding;
+        //    u32 dataSize;
+        //    ShaderVariableDescriptor varDesc;
+        //    COpenGLHardwareBuffer* m_constantBuffer = nullptr;
+        //    u32 ChangeId;
+        //    u32 ChangeStartOffset;
+        //    u32 ChangeEndOffset;
+        //    E_SHADER_TYPES shaderType : 8;
+        //    scene::E_HARDWARE_MAPPING constantMapping : 8;
+        //    std::vector<CGlslVariableDesc> members;
+        //    core::array<char> DataBuffer;
+        //
+        //    COpenGLHardwareBuffer* getHardwareBuffer() const { return m_constantBuffer; }
+        //    scene::E_HARDWARE_MAPPING getHardwareMappingHint() const { return constantMapping; }
+        //    void setHardwareMappingHint(scene::E_HARDWARE_MAPPING value) { constantMapping = value; }
+        //    u32 getChangeId() const { return ChangeId; }
+        //};
 
-        struct CGlslBufferDesc
-        {
-            ~CGlslBufferDesc()
-            {
-
-            }
-
-            u32 binding;
-            u32 dataSize;
-            ShaderVariableDescriptor varDesc;
-            COpenGLHardwareBuffer* m_constantBuffer = nullptr;
-            u32 ChangeId;
-            u32 ChangeStartOffset;
-            u32 ChangeEndOffset;
-            E_ShaderTypes shaderType : 8;
-            scene::E_HARDWARE_MAPPING constantMapping : 8;
-            std::vector<CGlslVariableDesc> members;
-            core::array<char> DataBuffer;
-
-            COpenGLHardwareBuffer* getHardwareBuffer() const { return m_constantBuffer; }
-            scene::E_HARDWARE_MAPPING getHardwareMappingHint() const { return constantMapping; }
-            void setHardwareMappingHint(scene::E_HARDWARE_MAPPING value) { constantMapping = value; }
-            u32 getChangeId() const { return ChangeId; }
-        };
-
-        class GLShader : public IShader
+        class GLShader : public CNullShader
         {
         protected:
             u32 programId;
             GLenum glShaderType;
 
         public:
-            GLShader(video::IVideoDriver* context, E_ShaderTypes type, u32 _programId)
-                : IShader(context, type)
+            GLShader(video::IVideoDriver* context, E_SHADER_LANG type, u32 _programId)
+                : CNullShader(context, type)
                 , programId(_programId)
             {
             }
@@ -115,183 +115,123 @@ namespace irr
         {
             GLenum glShaderType;
         public:
-            explicit GLArbShader(video::IVideoDriver* context, E_ShaderTypes type, u32 _programId);
-            virtual ~GLArbShader()
-            {
-                destroy();
-            }
+            explicit GLArbShader(video::IVideoDriver* context, u32 _programId);
+            virtual ~GLArbShader();
 
             void addShaderFile(u32 _glShaderType, const char* pFilename);
 
-            virtual E_ShaderVersion getShaderVersion() const override { return ESV_GLSL_ASM; }
-            //virtual void compile() {}
-            virtual void bind();
-            virtual void unbind();
-            virtual void destroy();
             virtual void Init() {}
 
-             GLArbShader* ToASM() override { return this; }
+             GLArbShader* ToASM() _IRR_OVERRIDE_ { return this; }
         };
 
         class GLSLGpuShader : public GLShader
         {
-        private:
-
         public:
-            std::vector<CGlslBufferDesc> ShaderAttributes;
-            std::vector<CGlslBufferDesc> ShaderBuffers;
-            std::vector<CGlslBufferDesc> TextureUnits;
-
-            explicit GLSLGpuShader(video::IVideoDriver* context, E_ShaderTypes type, u32 _programId);
+            explicit GLSLGpuShader(video::IVideoDriver* context, u32 _programId);
             virtual ~GLSLGpuShader();
 
-            virtual E_ShaderVersion getShaderVersion() const override { return ESV_GLSL_HIGH_LEVEL; }
             //virtual void compile() override;
-            virtual void bind();
-            virtual void unbind();
-            virtual void destroy();
-            virtual void Init() {}
+            virtual void Init() _IRR_OVERRIDE_ {}
 
             void addShaderFile(GLSLGpuShader*, u32 shaderType, System::IO::IFileReader* pFilename, std::list<u32>& ShaderObjList);
             void compile(GLSLGpuShader*, std::list<u32>& ShaderObjList);
             void buildShaderVariableDescriptor();
+            void ReflParseStruct(irr::video::SConstantBuffer* buffdesc, irr::video::IShaderVariable* parent, const u32* memberParams, std::vector<irr::video::IShaderVariable*>& Variables, std::string namePrefix);
 
-            GLSLGpuShader* ToGLSL() override final { return this; }
-
-            const std::vector<CGlslBufferDesc>& GetBlockBufferInfos() const { return ShaderBuffers; }
-
-            const CGlslBufferDesc* getGPUProgramAttributeDesc(u32 index) const
-            {
-                for (u32 i = 0; i != ShaderAttributes.size(); ++i)
-                {
-                    if (ShaderAttributes[i].varDesc.m_location == index)
-                    {
-                        return &ShaderAttributes[i];
-                    }
-                }
-                return nullptr;
-            }
-
-            virtual u32 getBufferBinding(ShaderVariableDescriptor const* desc) const override
-            {
-                const CGlslBufferDesc& cbuffer = GetBlockBufferInfos()[desc->m_shaderIndex];
-                return cbuffer.binding;
-            }
-
-            virtual size_t getBufferSize(ShaderVariableDescriptor const* desc) const override
-            {
-                const CGlslBufferDesc& cbuffer = GetBlockBufferInfos()[desc->m_shaderIndex];
-                return cbuffer.DataBuffer.size();
-            }
-
-            virtual BufferVariableMemoryInfo getBufferVariableMemoryInfo(ShaderVariableDescriptor const* desc) const override
-            {
-                const CGlslBufferDesc& cbuffer = GetBlockBufferInfos()[desc->m_shaderIndex];
-                const auto& constantDecl = cbuffer.members[desc->m_location & 0xFF];
-
-                BufferVariableMemoryInfo info;
-                info.ElementSize = constantDecl.elementSize;
-                info.MemorySize = constantDecl.dataSize;
-                info.Offset = constantDecl.offset;
-                return info;
-            }
-
-            //svirtual void CommitValues(IShaderDataBuffer::E_UPDATE_TYPE updateType);
-            //int getProgramParam(int param);
-
-            //virtual void setUniformMatrix4fv(int loc, int count, bool transpose, float const* data);
+            GLSLGpuShader* ToGLSL() _IRR_OVERRIDE_ { return this; }
         };
 
-        struct ShaderGenericValuesBuffer : public video::IShaderDataBuffer
-        {
-            struct ATTR_ALIGNED(16) MatrixBufferType
-            {
-                core::matrix4 world;
-                core::matrix4 view;
-                core::matrix4 projection;
-            };
-
-            struct ATTR_ALIGNED(16) Light
-            {
-                float Position[4];
-                float Atten[4];
-                irr::video::SColorf Diffuse;
-                irr::video::SColorf Specular;
-                irr::video::SColorf Ambient;
-                float Range;
-                float Falloff;
-                float Theta;
-                float Phi;
-                int   Type;
-
-                bool operator==(const Light& other) const
-                {
-                    return memcmp(this, &other, sizeof(Light)) == 0;
-                }
-
-                bool operator!=(const Light& other) const
-                {
-                    return memcmp(this, &other, sizeof(Light)) != 0;
-                }
-            };
-
-            struct ATTR_ALIGNED(16) Material
-            {
-                irr::video::SColorf    Ambient;
-                irr::video::SColorf    Diffuse;
-                irr::video::SColorf    Specular;
-                irr::video::SColorf    Emissive;
-                float     Shininess;
-                int       Type;
-                int       Flags;
-
-                bool operator==(const Material& other) const
-                {
-                    return memcmp(this, &other, sizeof(Material)) == 0;
-                }
-
-                bool operator!=(const Material& other) const
-                {
-                    return memcmp(this, &other, sizeof(Material)) != 0;
-                }
-            };
-
-            struct ATTR_ALIGNED(16) PixelConstantBufferType
-            {
-                int         nTexture;
-                int         AlphaTest;
-                int         LightCount; // Number of lights enabled
-                float       AlphaRef;
-                Material    material;
-                Light       lights[4];
-            };
-
-            video::ShaderDataBufferElementObject<core::matrix4>* world;
-            video::ShaderDataBufferElementObject<core::matrix4>* view;
-            video::ShaderDataBufferElementObject<core::matrix4>* projection;
-            video::ShaderDataBufferElementObject<core::matrix4>* textureMatrix1;
-            video::ShaderDataBufferElementObject<core::matrix4>* textureMatrix2;
-
-            video::ShaderDataBufferElementObject<int>* nTexture;
-            video::ShaderDataBufferElementObject<int>* AlphaTest;
-            video::ShaderDataBufferElementObject<int>* LightCount;
-            video::ShaderDataBufferElementObject<float>* AlphaRef;
-            video::ShaderDataBufferElementObject<video::SColorf>* fogParams;
-            video::ShaderDataBufferElementObject<video::SColorf>* fogColor;
-            video::ShaderDataBufferElementObject<core::vector3df>* eyePositionVert;
-            video::ShaderDataBufferElementObject<ShaderGenericValuesBuffer::Material>* ShaderMaterial;
-            video::ShaderDataBufferElementArray<ShaderGenericValuesBuffer::Light>* ShaderLight;
-
-            core::vector3df viewMatrixTranslationCache;
-
-            ShaderGenericValuesBuffer(video::IShaderDataBuffer::E_UPDATE_TYPE updateType);
-
-            virtual ~ShaderGenericValuesBuffer();
-
-            virtual void InitializeFormShader(video::IShader* gpuProgram, void* Descriptor);
-
-            virtual void UpdateBuffer(video::IShader* gpuProgram, scene::IMeshBuffer* meshBuffer, scene::IMesh* mesh, scene::ISceneNode* node, u32 updateFlags);
-        };
+        //struct ShaderGenericValuesBuffer : public video::IShaderDataBuffer
+        //{
+        //    struct ATTR_ALIGNED(16) MatrixBufferType
+        //    {
+        //        core::matrix4 world;
+        //        core::matrix4 view;
+        //        core::matrix4 projection;
+        //    };
+        //
+        //    struct ATTR_ALIGNED(16) Light
+        //    {
+        //        float Position[4];
+        //        float Atten[4];
+        //        irr::video::SColorf Diffuse;
+        //        irr::video::SColorf Specular;
+        //        irr::video::SColorf Ambient;
+        //        float Range;
+        //        float Falloff;
+        //        float Theta;
+        //        float Phi;
+        //        int   Type;
+        //
+        //        bool operator==(const Light& other) const
+        //        {
+        //            return memcmp(this, &other, sizeof(Light)) == 0;
+        //        }
+        //
+        //        bool operator!=(const Light& other) const
+        //        {
+        //            return memcmp(this, &other, sizeof(Light)) != 0;
+        //        }
+        //    };
+        //
+        //    struct ATTR_ALIGNED(16) Material
+        //    {
+        //        irr::video::SColorf    Ambient;
+        //        irr::video::SColorf    Diffuse;
+        //        irr::video::SColorf    Specular;
+        //        irr::video::SColorf    Emissive;
+        //        float     Shininess;
+        //        int       Type;
+        //        int       Flags;
+        //
+        //        bool operator==(const Material& other) const
+        //        {
+        //            return memcmp(this, &other, sizeof(Material)) == 0;
+        //        }
+        //
+        //        bool operator!=(const Material& other) const
+        //        {
+        //            return memcmp(this, &other, sizeof(Material)) != 0;
+        //        }
+        //    };
+        //
+        //    struct ATTR_ALIGNED(16) PixelConstantBufferType
+        //    {
+        //        int         nTexture;
+        //        int         AlphaTest;
+        //        int         LightCount; // Number of lights enabled
+        //        float       AlphaRef;
+        //        Material    material;
+        //        Light       lights[4];
+        //    };
+        //
+        //    video::ShaderDataBufferElementObject<core::matrix4>* world;
+        //    video::ShaderDataBufferElementObject<core::matrix4>* view;
+        //    video::ShaderDataBufferElementObject<core::matrix4>* projection;
+        //    video::ShaderDataBufferElementObject<core::matrix4>* textureMatrix1;
+        //    video::ShaderDataBufferElementObject<core::matrix4>* textureMatrix2;
+        //
+        //    video::ShaderDataBufferElementObject<int>* nTexture;
+        //    video::ShaderDataBufferElementObject<int>* AlphaTest;
+        //    video::ShaderDataBufferElementObject<int>* LightCount;
+        //    video::ShaderDataBufferElementObject<float>* AlphaRef;
+        //    video::ShaderDataBufferElementObject<video::SColorf>* fogParams;
+        //    video::ShaderDataBufferElementObject<video::SColorf>* fogColor;
+        //    video::ShaderDataBufferElementObject<core::vector3df>* eyePositionVert;
+        //    video::ShaderDataBufferElementObject<ShaderGenericValuesBuffer::Material>* ShaderMaterial;
+        //    video::ShaderDataBufferElementArray<ShaderGenericValuesBuffer::Light>* ShaderLight;
+        //
+        //    core::vector3df viewMatrixTranslationCache;
+        //
+        //    ShaderGenericValuesBuffer(video::IShaderDataBuffer::E_UPDATE_TYPE updateType);
+        //
+        //    virtual ~ShaderGenericValuesBuffer();
+        //
+        //    virtual void InitializeFormShader(video::IShader* gpuProgram, void* Descriptor);
+        //
+        //    virtual void UpdateBuffer(video::IShader* gpuProgram, scene::IMeshBuffer* meshBuffer, scene::IMesh* mesh, scene::ISceneNode* node, u32 updateFlags);
+        //};
     }
 }
 

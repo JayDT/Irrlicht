@@ -41,6 +41,7 @@ namespace video
     class CD3D11VertexDeclaration;
     class CD3D11HardwareBuffer;
     class D3D11HLSLProgram;
+    struct IShader;
 
     struct SDepthSurface11 : public IReferenceCounted
     {
@@ -221,8 +222,6 @@ namespace video
         //! \param color: New color of the ambient light.
         virtual void setAmbientLight(const SColorf& color);
 
-        SColorf const& GetAmbientLight() const { return AmbientLight; }
-
         //! Draws a shadow volume into the stencil buffer.
         virtual void drawStencilShadowVolume(const core::array<core::vector3df>& triangles, bool zfail = true, u32 debugDataVisible = 0);
 
@@ -400,12 +399,9 @@ namespace video
 
         //! Check multisample quality levels
         virtual u32 queryMultisampleLevels(ECOLOR_FORMAT format, u32 numSamples) const;
-        virtual bool setShaderConstant(ShaderVariableDescriptor const* desc, const void* values, int count, IHardwareBuffer* buffer /*= nullptr*/);
-        core::array<u8> GetShaderVariableMemoryBlock(ShaderVariableDescriptor const* desc, video::IShader* shader) override final;
-        virtual bool setShaderMapping(ShaderVariableDescriptor const* desc, IShader* shader, scene::E_HARDWARE_MAPPING constantMapping);
         bool SyncShaderConstant(CD3D11HardwareBuffer * HWBuffer);
-        virtual IShader* createShader(ShaderInitializerEntry*) override;
-        virtual void useShader(IShader* gpuProgram);
+        virtual video::IShader* createShader(ShaderInitializerEntry*) override;
+        virtual void useShader(video::IShader* gpuProgram);
 
         ID3D11Device* GetDxDevice() { return Device; }
 
@@ -424,22 +420,8 @@ namespace video
 
         void HandleDeviceLost();
 
-        // enumeration for rendering modes such as 2d and 3d for minizing the switching of renderStates.
-        enum E_RENDER_MODE
-        {
-            ERM_2D = 0,		// 2d drawing rendermode
-            ERM_3D,			// 3d rendering mode
-            ERM_STENCIL_FILL, // stencil fill mode
-            ERM_SHADOW_VOLUME_ZFAIL, // stencil volume draw mode
-            ERM_SHADOW_VOLUME_ZPASS // stencil volume draw mode
-        };
-
-        E_RENDER_MODE GetCurrentRenderMode() const { return CurrentRenderMode; }
-
     private:
 
-
-        E_RENDER_MODE CurrentRenderMode;
 
         SMaterial Material, LastMaterial;
         IImage* blankImage;
@@ -749,7 +731,6 @@ namespace video
             bool	DesireToBeOn;
         };
         core::array<RequestedLight> RequestedLights;
-        SColorf AmbientLight;
         u32 MaxActiveLights;
 
         core::stringc VendorName;

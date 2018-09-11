@@ -11,8 +11,8 @@
 using namespace irr;
 using namespace video;
 
-CD3D11HardwareBuffer::CD3D11HardwareBuffer(CD3D11Driver* driver, scene::IMeshBuffer *meshBuffer, video::IShaderDataBuffer* instanceBuffer, u32 flags, E_VERTEX_TYPE vtype)
-    : IHardwareBuffer(meshBuffer, instanceBuffer)
+CD3D11HardwareBuffer::CD3D11HardwareBuffer(CD3D11Driver* driver, scene::IMeshBuffer *meshBuffer, u32 flags, E_VERTEX_TYPE vtype)
+    : IHardwareBuffer(meshBuffer)
     , D3D11DeviceResource(driver)
     , Device(nullptr)
     , ImmediateContext(nullptr)
@@ -39,7 +39,7 @@ CD3D11HardwareBuffer::CD3D11HardwareBuffer(CD3D11Driver* driver, scene::IMeshBuf
 }
 
 irr::video::CD3D11HardwareBuffer::CD3D11HardwareBuffer(CD3D11Driver * driver, E_HARDWARE_BUFFER_TYPE type, E_HARDWARE_BUFFER_ACCESS accessType, u32 size, u32 flags, const void * initialData)
-    : IHardwareBuffer(nullptr, nullptr)
+    : IHardwareBuffer(nullptr)
     , D3D11DeviceResource(driver)
     , Device(nullptr)
     , ImmediateContext(nullptr)
@@ -140,7 +140,7 @@ void* CD3D11HardwareBuffer::lock(E_HARDWARE_BUFFER_TYPE type, u32 size, bool rea
     if(desc.UseTempStagingBuffer)
     {
     	if( !desc.TempStagingBuffer )
-            desc.TempStagingBuffer = new CD3D11HardwareBuffer(Driver, GetBuffer(), GetInstanceBuffer(), desc.Size, vType);
+            desc.TempStagingBuffer = new CD3D11HardwareBuffer(Driver, GetBuffer(), desc.Size, vType);
     
     	// Copy to staging if needs to read data
     	if (desc.LastMapDirection && D3D11_MAP_READ)

@@ -413,8 +413,6 @@ namespace video
 
     protected:
 
-        virtual core::array<u8> GetShaderVariableMemoryBlock(ShaderVariableDescriptor const* desc, video::IShader* shader) { return core::array<u8>(); }
-
         //! sets the needed renderstates
         virtual void setRenderStates2DMode(bool alpha, bool texture, bool alphaChannel) {}
 
@@ -700,20 +698,8 @@ namespace video
             if (ActiveGPUProgram == gpuProrgam)
                 return ActiveGPUProgram != nullptr;
 
-            if (ActiveGPUProgram)
-                ActiveGPUProgram->unbind();
-
             ActiveGPUProgram = gpuProrgam;
-
-            if (ActiveGPUProgram)
-            {
-                // Hack fix for mulitple context
-                ActiveGPUProgram->mContext = this;
-                ActiveGPUProgram->bind();
-                ActiveGPUProgram->setDirty();
-                ActiveGPUProgram->UpdateValues(IShaderDataBuffer::EUT_PER_FRAME, nullptr, nullptr, nullptr, 0);
-                ActiveGPUProgram->CommitValues(IShaderDataBuffer::EUT_PER_FRAME);
-            }
+            useShader(ActiveGPUProgram);
 
             return ActiveGPUProgram != nullptr;
         }
@@ -744,8 +730,6 @@ namespace video
 
         // temporary
         virtual s32 getShaderVariableID(IShader*, const c8* name) { return -1; }
-        virtual bool setShaderConstant(ShaderVariableDescriptor const* desc, const void* values, int count, IHardwareBuffer* buffer = nullptr) { return false; }
-        virtual bool setShaderMapping(ShaderVariableDescriptor const* desc, IShader* shader, scene::E_HARDWARE_MAPPING constantMapping) { return false; }
         virtual void useShader(IShader*) {}
         virtual void deleteShader(IShader*) {}
 
@@ -761,6 +745,9 @@ namespace video
         // Inherited via CNullDriver
         virtual ITexture * addTextureCubemap(const io::path & name, IImage * imagePosX, IImage * imageNegX, IImage * imagePosY, IImage * imageNegY, IImage * imagePosZ, IImage * imageNegZ) override;
         virtual ITexture * addTextureArray(const io::path & name, irr::core::array<IImage*> images) override;
+
+        E_RENDER_MODE GetCurrentRenderMode() const { return CurrentRenderMode; }
+        SColorf const& GetAmbientLight() const { return AmbientLight; }
 
     protected:
 
@@ -866,6 +853,9 @@ namespace video
         f32 FogEnd;
         f32 FogDensity;
         SColor FogColor;
+        E_RENDER_MODE CurrentRenderMode;
+        SColorf AmbientLight;
+
         SExposedVideoData ExposedData;
 
         io::IAttributes* DriverAttributes;

@@ -102,8 +102,8 @@ CD3D9ShaderMaterialRenderer::~CD3D9ShaderMaterialRenderer()
 bool CD3D9ShaderMaterialRenderer::OnRender(IMaterialRendererServices* service, E_VERTEX_TYPE vtxtype)
 {
 	// call callback to set shader constants
-	if (CallBack && (VertexShader || PixelShader))
-		CallBack->OnSetConstants(service, UserData);
+	//if (CallBack && (VertexShader || PixelShader))
+	//	CallBack->OnSetConstants(service, UserData);
 
 	return true;
 }
@@ -136,8 +136,8 @@ void CD3D9ShaderMaterialRenderer::OnSetMaterial(const video::SMaterial& material
 	}
 
 	//let callback know used material
-	if (CallBack)
-		CallBack->OnSetMaterial(material);
+	//if (CallBack)
+	//	CallBack->OnSetMaterial(material);
 
 	services->setBasicRenderStates(material, lastMaterial, resetAllRenderstates);
 }

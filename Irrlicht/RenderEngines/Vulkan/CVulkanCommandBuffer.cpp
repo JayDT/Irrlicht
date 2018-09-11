@@ -381,20 +381,8 @@ void VulkanCmdBuffer::endRenderPass()
 
     mQueuedEvents.clear();
 
-    // Update any layout transitions that were performed by subpass dependencies, reset flags that signal image usage
-    // and reset read-only state.
-    //for (auto& entry : mPassTouchedSubresourceInfos)
-    //{
-    //    ImageSubresourceInfo& subresourceInfo = mSubresourceInfoStorage[entry];
-    //    subresourceInfo.isShaderInput = false;
-    //    subresourceInfo.isReadOnly = true;
-    //    subresourceInfo.needsBarrier = false;
-    //}
-
     for (auto& entry : mBuffers)
         entry->mBufferInfo.needsBarrier = false;
-
-    //mPassTouchedSubresourceInfos.clear();
 
     updateFinalLayouts();
 

@@ -116,7 +116,7 @@ void VulkanQueue::submitQueued()
         mLastCommandBuffer = entry.cmdBuffer; // Needs to be set because getSubmitInfo depends on it
         mLastCBSemaphoreUsed = false;
 
-        mActiveBuffers.push(entry.cmdBuffer);
+        mActiveBuffers.emplace(entry.cmdBuffer);
 
         readSemaphoreIdx += entry.numSemaphores;
         writeSemaphoreIdx += semaphoresCount;

@@ -52,6 +52,11 @@ namespace irr
             EVET_UINT3,
             EVET_UINT4,
 
+            EVET_INT1,
+            EVET_INT2,
+            EVET_INT3,
+            EVET_INT4,
+
             EVET_SHORT2,
             EVET_SHORT4,
 

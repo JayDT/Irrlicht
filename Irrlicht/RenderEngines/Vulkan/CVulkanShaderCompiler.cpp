@@ -143,16 +143,16 @@ class GlslangFileIncluder : public glslang::TShader::Includer
     }
 };
 
-EShLanguage GetCompileLang(E_ShaderTypes type)
+EShLanguage GetCompileLang(E_SHADER_TYPES type)
 {
     switch (type)
     {
-        case E_ShaderTypes::EST_VERTEX_SHADER:      return EShLanguage::EShLangVertex;
-        case E_ShaderTypes::EST_DOMAIN_SHADER:      return EShLanguage::EShLangTessEvaluation;
-        case E_ShaderTypes::EST_HULL_SHADER:        return EShLanguage::EShLangTessControl;
-        case E_ShaderTypes::EST_GEOMETRY_SHADER:    return EShLanguage::EShLangGeometry;
-        case E_ShaderTypes::EST_FRAGMENT_SHADER:    return EShLanguage::EShLangFragment;
-        case E_ShaderTypes::EST_COMPUTE_SHADER:     return EShLanguage::EShLangCompute;
+        case E_SHADER_TYPES::EST_VERTEX_SHADER:      return EShLanguage::EShLangVertex;
+        case E_SHADER_TYPES::EST_DOMAIN_SHADER:      return EShLanguage::EShLangTessEvaluation;
+        case E_SHADER_TYPES::EST_HULL_SHADER:        return EShLanguage::EShLangTessControl;
+        case E_SHADER_TYPES::EST_GEOMETRY_SHADER:    return EShLanguage::EShLangGeometry;
+        case E_SHADER_TYPES::EST_FRAGMENT_SHADER:    return EShLanguage::EShLangFragment;
+        case E_SHADER_TYPES::EST_COMPUTE_SHADER:     return EShLanguage::EShLangCompute;
     }
 
     return EShLanguage::EShLangCount;
@@ -202,13 +202,15 @@ irr::video::CVulkanGLSLang::CVulkanGLSLang(CVulkanDriver* driver)
 
 irr::video::CVulkanGLSLang::~CVulkanGLSLang()
 {
-    if (Program)
-        delete Program;
     if (Reflection)
         delete Reflection;
+    for (auto shader : shaders)
+        delete shader;
+    if (Program)
+        delete Program;
 }
 
-bool irr::video::CVulkanGLSLang::CompileShader(VkShaderModule * modul, E_ShaderTypes type, System::IO::IFileReader * file, const char * entryPoint, const char* shaderModel)
+bool irr::video::CVulkanGLSLang::CompileShader(VkShaderModule * modul, E_SHADER_TYPES type, System::IO::IFileReader * file, const char * entryPoint, const char* shaderModel)
 {
     glslang::EShTargetLanguageVersion _targetVersion = TargetVersion;
     isHlsl = shaderModel != nullptr && strlen(shaderModel) > 5;
@@ -227,7 +229,9 @@ bool irr::video::CVulkanGLSLang::CompileShader(VkShaderModule * modul, E_ShaderT
     source.resize(file->Size());
     file->Read((byte*)source.data(), file->Size());
 
-    glslang::TProgram* program = new glslang::TProgram;
+    if (!Program)
+        Program = new glslang::TProgram;
+
     {
         glslang::TShader* shader = new glslang::TShader(stage);
         const char* names = file->FileName.data();
@@ -312,11 +316,13 @@ bool irr::video::CVulkanGLSLang::CompileShader(VkShaderModule * modul, E_ShaderT
         if (!shader->parse(&Resources, defaultVersion, false, messages, includer))
             CompileFailed = true;
 
-        program->addShader(shader);
+        Program->addShader(shader);
 
         {
-            os::Printer::log(shader->getInfoLog());
-            os::Printer::log(shader->getInfoDebugLog());
+            if (strlen(Program->getInfoLog()) > 1)
+                os::Printer::log(Program->getInfoLog());
+            if (strlen(Program->getInfoDebugLog()) > 1)
+                os::Printer::log(Program->getInfoDebugLog());
         }
 
     }
@@ -329,16 +335,18 @@ bool irr::video::CVulkanGLSLang::CompileShader(VkShaderModule * modul, E_ShaderT
     //
 
     // Link
-    if (!program->link(messages))
+    if (!Program->link(messages))
         LinkFailed = true;
 
-    if (!program->mapIO())
+    if (!Program->mapIO())
     {
         LinkFailed = true;
     }
 
-    os::Printer::log(program->getInfoLog());
-    os::Printer::log(program->getInfoDebugLog());
+    if (strlen(Program->getInfoLog()) > 1)
+        os::Printer::log(Program->getInfoLog());
+    if (strlen(Program->getInfoDebugLog()) > 1)
+        os::Printer::log(Program->getInfoDebugLog());
 
     if (LinkFailed)
         return false;
@@ -349,8 +357,8 @@ bool irr::video::CVulkanGLSLang::CompileShader(VkShaderModule * modul, E_ShaderT
 
         for (int s = 0; s < EShLangCount; ++s)
         {
-            if (program->getIntermediate(EShLanguage(s)))
-                if (!Reflection->addStage(EShLanguage(s), *program->getIntermediate(EShLanguage(s))))
+            if (Program->getIntermediate(EShLanguage(s)))
+                if (!Reflection->addStage(EShLanguage(s), *Program->getIntermediate(EShLanguage(s))))
                 {
                     ReflectionFailed = true;
                     break;
@@ -366,7 +374,7 @@ bool irr::video::CVulkanGLSLang::CompileShader(VkShaderModule * modul, E_ShaderT
     spvOptions.disableOptimizer = false;
     spvOptions.optimizeSize = false;
 
-    glslang::GlslangToSpv(*program->getIntermediate(stage), spirv, &logger, &spvOptions);
+    glslang::GlslangToSpv(*Program->getIntermediate(stage), spirv, &logger, &spvOptions);
     //glslang::OutputSpvBin(spirv, "test.sprv");
 
     if (!isHlsl)
@@ -384,7 +392,7 @@ bool irr::video::CVulkanGLSLang::CompileShader(VkShaderModule * modul, E_ShaderT
         });
     
         optimizer.RegisterPerformancePasses();
-        //optimizer.RegisterSizePasses();
+        optimizer.RegisterSizePasses();
     
         if (!optimizer.Run(spirv.data(), spirv.size(), &spirv))
             return false;
