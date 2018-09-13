@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6 FATAL_ERROR)
-
+set(CMAKE_CXX_STANDARD 14)
 project(IrrlichtDV VERSION 0.0.1 LANGUAGES CXX C)
 
 message("")
@@ -15,6 +15,11 @@ set(CMAKE_MODULE_PATH
   ${CMAKE_SOURCE_DIR}/cmake/macros
   ${CMAKE_SOURCE_DIR}/cmake/extensions
 )
+if (UNIX)
+  # CMake will try to find -lpthreads and fail, these two lines fix it
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+endif(UNIX)
 
 # set default buildoptions and print them
 include(cmake/defines.cmake)
