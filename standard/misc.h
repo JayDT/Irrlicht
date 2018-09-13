@@ -9,6 +9,8 @@
 #       include <minwindef.h>
 #       include <libloaderapi.h>
 #  endif
+#else
+    #include <dlfcn.h>
 #endif
 
 //#define foreach(v, a, t) for (t v=(a).begin(); v!=(a).end(); ++v)
