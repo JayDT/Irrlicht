@@ -72,7 +72,7 @@ namespace irr
             * Returns a pointer to internal buffer memory. Must be followed by unmap(). Caller must ensure the buffer was
             * created in CPU readable memory, and that buffer isn't currently being written to by the GPU.
             */
-            UINT8* map(VulkanDevice * device, VkDeviceSize offset, VkDeviceSize length) const;
+            std::uint8_t* map(VulkanDevice * device, VkDeviceSize offset, VkDeviceSize length) const;
 
             /** Unmaps a buffer previously mapped with map(). */
             void unmap(VulkanDevice * device);
@@ -97,7 +97,7 @@ namespace irr
             * the destination buffer. Caller must ensure the provided offset and length are within valid bounds of
             * both buffers. Caller must ensure the offset and size is a multiple of 4, and size is equal to or less then 65536.
             */
-            void update(VulkanCmdBuffer* cb, UINT8* data, VkDeviceSize offset, VkDeviceSize length);
+            void update(VulkanCmdBuffer* cb, std::uint8_t* data, VkDeviceSize offset, VkDeviceSize length);
 
             const VmaAllocation GetAllocationInfo() const { return mAllocation; }
 
@@ -114,7 +114,7 @@ namespace irr
             VkDeviceMemory memory;
             VkDeviceSize memoryOffset;
 
-            mutable UINT8* pMappedData;
+            mutable std::uint8_t* pMappedData;
 
             // Inherited via CVulkanDeviceResource
             virtual void OnDeviceLost(CVulkanDriver * device) override;

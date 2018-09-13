@@ -227,7 +227,7 @@ VulkanCmdBuffer::~VulkanCmdBuffer()
     if (mState == State::Submitted)
     {
         // Wait 1s
-        UINT64 waitTime = 1000 * 1000 * 1000;
+        std::uint64_t waitTime = 1000 * 1000 * 1000;
         VkResult result = vkWaitForFences(device, 1, &mFence, true, waitTime);
         assert(result == VK_SUCCESS || result == VK_TIMEOUT);
 
@@ -747,7 +747,7 @@ void VulkanCmdBuffer::submit(VulkanQueue* queue, uint32_t queueIdx, uint32_t syn
 
 bool VulkanCmdBuffer::checkFenceStatus(bool block) const
 {
-    VkResult result = vkWaitForFences(mDevice.getLogical(), 1, &mFence, true, block ? 1'000'000'000 : 0);
+    VkResult result = vkWaitForFences(mDevice.getLogical(), 1, &mFence, true, block ? 1000000000 : 0);
     assert(result == VK_SUCCESS || result == VK_TIMEOUT);
 
     return result == VK_SUCCESS;
@@ -926,7 +926,7 @@ void VulkanCmdBuffer::setRenderTarget(const video::IRenderTarget* rt, uint32_t r
 
 }
 
-void VulkanCmdBuffer::clearViewport(const core::recti& area, uint32_t buffers, const irr::video::SColor& color, float depth, UINT16 stencil, UINT8 targetMask)
+void VulkanCmdBuffer::clearViewport(const core::recti& area, uint32_t buffers, const irr::video::SColor& color, float depth, std::uint16_t stencil, std::uint8_t targetMask)
 {
     if (buffers == 0 /*|| mFramebuffer == nullptr*/)
         return;
@@ -1088,13 +1088,13 @@ void VulkanCmdBuffer::clearViewport(const core::recti& area, uint32_t buffers, c
     }
 }
 
-void VulkanCmdBuffer::clearRenderTarget(uint32_t buffers, const irr::video::SColor& color, float depth, UINT16 stencil, UINT8 targetMask)
+void VulkanCmdBuffer::clearRenderTarget(uint32_t buffers, const irr::video::SColor& color, float depth, std::uint16_t stencil, std::uint8_t targetMask)
 {
     core::recti area(0, 0, mRenderTargetWidth, mRenderTargetHeight);
     clearViewport(area, buffers, color, depth, stencil, targetMask);
 }
 
-void VulkanCmdBuffer::clearViewport(uint32_t buffers, const irr::video::SColor& color, float depth, UINT16 stencil, UINT8 targetMask)
+void VulkanCmdBuffer::clearViewport(uint32_t buffers, const irr::video::SColor& color, float depth, std::uint16_t stencil, std::uint8_t targetMask)
 {
     core::recti area(
         (uint32_t)(mViewport.UpperLeftCorner.X),
@@ -1827,7 +1827,7 @@ void VulkanCmdBuffer::registerResource(CVulkanDeviceResource* res, VulkanUseFlag
         useHandle.mPoolMask |= 1;
         useHandle.used = false;
         useHandle.flags = flags;
-        assert(useHandle.flags != VulkanUseFlag::None);
+        assert(useHandle.flags != VulkanUseFlag::Null);
 
         res->notifyBound();
     }
@@ -2536,8 +2536,8 @@ void VulkanTransferBuffer::setLayout(VulkanImage* image, const VkImageSubresourc
     if (mBarriersTemp.size() == 0)
         return;
 
-    INT32 count = (INT32)mBarriersTemp.size();
-    for (INT32 i = 0; i < count; i++)
+    std::int32_t count = (std::int32_t)mBarriersTemp.size();
+    for (std::int32_t i = 0; i < count; i++)
     {
         VkImageMemoryBarrier& barrier = mBarriersTemp[i];
 
@@ -2583,10 +2583,10 @@ void VulkanTransferBuffer::flush(bool wait)
     {
         mQueue->waitIdle();
 
-        for (UINT32 i = 0; i < GQT_COUNT; i++)
+        for (std::uint32_t i = 0; i < GQT_COUNT; i++)
         {
-            UINT32 numQueues = mDevice->getNumQueues((GpuQueueType)i);
-            for (UINT32 j = 0; j < numQueues; j++)
+            std::uint32_t numQueues = mDevice->getNumQueues((GpuQueueType)i);
+            for (std::uint32_t j = 0; j < numQueues; j++)
             {
                 VulkanQueue* queue = mDevice->getQueue((GpuQueueType)i, j);
                 queue->refreshStates(true, false);

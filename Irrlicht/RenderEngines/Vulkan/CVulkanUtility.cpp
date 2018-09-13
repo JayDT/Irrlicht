@@ -624,10 +624,10 @@ void cutHorizontal(const VkImageSubresourceRange& toCut, const VkImageSubresourc
 {
     numAreas = 0;
 
-    INT32 leftCut = cutWith.baseArrayLayer - toCut.baseArrayLayer;
-    INT32 rightCut = (cutWith.baseArrayLayer + cutWith.layerCount) - toCut.baseArrayLayer;
+    std::int32_t leftCut = cutWith.baseArrayLayer - toCut.baseArrayLayer;
+    std::int32_t rightCut = (cutWith.baseArrayLayer + cutWith.layerCount) - toCut.baseArrayLayer;
 
-    if (leftCut > 0 && leftCut < (INT32)(toCut.baseArrayLayer + toCut.layerCount))
+    if (leftCut > 0 && leftCut < (std::int32_t)(toCut.baseArrayLayer + toCut.layerCount))
     {
         output[numAreas] = toCut;
         VkImageSubresourceRange& range = output[numAreas];
@@ -638,7 +638,7 @@ void cutHorizontal(const VkImageSubresourceRange& toCut, const VkImageSubresourc
         numAreas++;
     }
 
-    if (rightCut > 0 && rightCut < (INT32)toCut.layerCount)
+    if (rightCut > 0 && rightCut < (std::int32_t)toCut.layerCount)
     {
         output[numAreas] = toCut;
         VkImageSubresourceRange& range = output[numAreas];
@@ -674,10 +674,10 @@ void cutVertical(const VkImageSubresourceRange& toCut, const VkImageSubresourceR
 {
     numAreas = 0;
 
-    INT32 topCut = cutWith.baseMipLevel - toCut.baseMipLevel;
-    INT32 bottomCut = (cutWith.baseMipLevel + cutWith.levelCount) - toCut.baseMipLevel;
+    std::int32_t topCut = cutWith.baseMipLevel - toCut.baseMipLevel;
+    std::int32_t bottomCut = (cutWith.baseMipLevel + cutWith.levelCount) - toCut.baseMipLevel;
 
-    if (topCut > 0 && topCut < (INT32)(toCut.baseMipLevel + toCut.levelCount))
+    if (topCut > 0 && topCut < (std::int32_t)(toCut.baseMipLevel + toCut.levelCount))
     {
         output[numAreas] = toCut;
         VkImageSubresourceRange& range = output[numAreas];
@@ -688,7 +688,7 @@ void cutVertical(const VkImageSubresourceRange& toCut, const VkImageSubresourceR
         numAreas++;
     }
 
-    if (bottomCut > 0 && bottomCut < (INT32)toCut.levelCount)
+    if (bottomCut > 0 && bottomCut < (std::int32_t)toCut.levelCount)
     {
         output[numAreas] = toCut;
         VkImageSubresourceRange& range = output[numAreas];
@@ -753,14 +753,14 @@ void VulkanUtility::cutRange(const VkImageSubresourceRange& toCut, const VkImage
 
 bool VulkanUtility::rangeOverlaps(const VkImageSubresourceRange& a, const VkImageSubresourceRange& b)
 {
-    INT32 aRight = a.baseArrayLayer + (INT32)a.layerCount;
-    INT32 bRight = b.baseArrayLayer + (INT32)b.layerCount;
+    std::int32_t aRight = a.baseArrayLayer + (std::int32_t)a.layerCount;
+    std::int32_t bRight = b.baseArrayLayer + (std::int32_t)b.layerCount;
 
-    INT32 aBottom = a.baseMipLevel + (INT32)a.levelCount;
-    INT32 bBottom = b.baseMipLevel + (INT32)b.levelCount;
+    std::int32_t aBottom = a.baseMipLevel + (std::int32_t)a.levelCount;
+    std::int32_t bBottom = b.baseMipLevel + (std::int32_t)b.levelCount;
 
-    if ((INT32)a.baseArrayLayer < bRight && aRight >(INT32)b.baseArrayLayer &&
-        (INT32)a.baseMipLevel < bBottom && aBottom >(INT32)b.baseMipLevel)
+    if ((std::int32_t)a.baseArrayLayer < bRight && aRight >(std::int32_t)b.baseArrayLayer &&
+        (std::int32_t)a.baseMipLevel < bBottom && aBottom >(std::int32_t)b.baseMipLevel)
         return true;
 
     return false;

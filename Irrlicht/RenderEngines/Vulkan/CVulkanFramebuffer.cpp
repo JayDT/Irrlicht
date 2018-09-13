@@ -355,7 +355,7 @@ uint32_t VulkanFramebuffer::getNumClearEntries(u32 clearMask) const
         return getNumAttachments();
 
     uint32_t numAttachments = 0;
-    for (INT32 i = _MAX_MULTIPLE_RENDER_TARGETS - 1; i >= 0; i--)
+    for (std::int32_t i = _MAX_MULTIPLE_RENDER_TARGETS - 1; i >= 0; i--)
     {
         if (((1 << i) & (uint32_t)clearMask) != 0)
         {

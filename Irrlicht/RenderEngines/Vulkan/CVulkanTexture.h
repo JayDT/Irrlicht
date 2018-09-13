@@ -144,7 +144,7 @@ namespace irr
             * must ensure the image was created in CPU readable memory, and that image isn't currently being written to by the
             * GPU.
             */
-            UINT8* map(uint32_t offset, uint32_t size) const;
+            std::uint8_t* map(uint32_t offset, uint32_t size) const;
 
             /** Unmaps a buffer previously mapped with map(). */
             void unmap();
