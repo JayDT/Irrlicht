@@ -38,7 +38,7 @@ void irr::video::CVulkanDeviceResource::notifyBound()
 void irr::video::CVulkanDeviceResource::notifyUsed(u32 globalQueueIdx, u32 queueFamily, VulkanUseFlag useFlags)
 {
     //std::unique_lock<std::mutex> lock(mMutex);
-    assert(useFlags != VulkanUseFlag::None);
+    assert(useFlags != VulkanUseFlag::Null);
 
     bool isUsed = mNumUsedHandles > 0;
     if (isUsed && mState == State::Normal) // Used without support for concurrency
@@ -169,7 +169,7 @@ void irr::video::CVulkanDeviceResource::NotifySoftBound(VulkanUseFlag flags)
     {
         mUseHandle.used = false;
         mUseHandle.flags = flags;
-        assert(mUseHandle.flags != VulkanUseFlag::None);
+        assert(mUseHandle.flags != VulkanUseFlag::Null);
     }
     else
     {
