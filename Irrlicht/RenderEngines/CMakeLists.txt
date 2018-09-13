@@ -1,5 +1,8 @@
 # Configure Render System
-add_subdirectory(OpenGL)
+if (IRR_BUILD_RENDERSYSTEM_GL EQUAL 1)
+    add_subdirectory(OpenGL)
+endif(IRR_BUILD_RENDERSYSTEM_GL EQUAL 1)
+
 set(IRR_BUILD_RENDERSYSTEM_GL 1 CACHE STRING "1" FORCE)
 
 IF (NOT ${CMAKE_CXX_PLATFORM_ID} MATCHES MinGW AND WIN32)
