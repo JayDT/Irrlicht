@@ -1086,10 +1086,13 @@ core::stringw CGUIFileSelector::translateDOS(core::stringw input)
 
 #ifndef WIN32
 	//Ubutu should store the filenames in UTF8, Windows in UTF16
+	// FIXME(manh): Need testing utf to wchar
 	wchar_t out[255];
-	stringc in = stringc(input);
-	core::utf8ToWchar(in.c_str(),out,255);
-	return stringw(out);
+	core::stringc in = core::stringc(input);
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+	auto wide = converter.to_bytes(input.c_str());
+	// core::utf8ToWchar(in.c_str(),out,255);
+	return core::stringw(wide.c_str());
 #endif
 
 	core::stringw result=L"";
