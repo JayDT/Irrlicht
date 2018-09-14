@@ -46,11 +46,11 @@
 
 #include "BuiltInFont.h"
 #include "os.h"
+#include "irrString.h"
 
 #ifdef WIN32
 #include <Windows.h>
 #endif
-#include <direct.h>
 #include <include/IForm.h>
 
 namespace irr
