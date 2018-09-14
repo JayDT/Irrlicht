@@ -444,7 +444,7 @@ void irr::video::VulkanGraphicsPipelineState::update(u8 deviceIdx, const irr::vi
         mRasterizationInfo.depthBiasEnable = material.PolygonOffsetFactor != 0;
         mRasterizationInfo.depthBiasConstantFactor = (float)material.PolygonOffsetFactor;
         mRasterizationInfo.depthBiasSlopeFactor = material.PolygonOffsetDirection == EPO_BACK ? 1.f : -1.f;
-        mRasterizationInfo.depthBiasClamp = (FLOAT)material.PolygonOffsetFactor;
+        mRasterizationInfo.depthBiasClamp = (float)material.PolygonOffsetFactor;
     }
 
     //mRasterizationInfo.depthClampEnable = !material.DepthClipEnable;
