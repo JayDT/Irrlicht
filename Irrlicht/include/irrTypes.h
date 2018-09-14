@@ -6,7 +6,7 @@
 #define __IRR_TYPES_H_INCLUDED__
 
 #include "IrrCompileConfig.h"
-#include "standard/Platform/common.h"
+#include "standard/Platform/Common.h"
 
 namespace irr
 {
