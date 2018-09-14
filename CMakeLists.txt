@@ -17,8 +17,8 @@ set(CMAKE_MODULE_PATH
 )
 if (UNIX)
   # CMake will try to find -lpthreads and fail, these two lines fix it
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-narrowing -pthread")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing -pthread")
 endif(UNIX)
 
 # set default buildoptions and print them
