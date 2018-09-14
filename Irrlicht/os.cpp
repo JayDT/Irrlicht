@@ -9,7 +9,7 @@
 #include <time.h>
 
 #if defined(_IRR_COMPILE_WITH_SDL_DEVICE_)
-	#include <SDL/SDL_endian.h>
+	#include <SDL2/SDL_endian.h>
 	#define bswap_16(X) SDL_Swap16(X)
 	#define bswap_32(X) SDL_Swap32(X)
 #elif defined(_IRR_WINDOWS_API_) && defined(_MSC_VER) && (_MSC_VER > 1298)
@@ -302,6 +302,12 @@ namespace os
 			return LastVirtualTime;
 
 		return LastVirtualTime + (u32)((StaticTime - StartRealTime) * VirtualTimerSpeed);
+	}
+
+  u64 Timer::getRealUTime()
+	{
+		auto now = std::chrono::high_resolution_clock::now();
+		return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
 	}
 
 	//! ticks, advances the virtual timer
