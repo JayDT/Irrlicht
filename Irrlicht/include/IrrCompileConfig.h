@@ -51,7 +51,7 @@
 
 
 //! Uncomment this line to compile with the SDL device
-//#define _IRR_COMPILE_WITH_SDL_DEVICE_
+// #define _IRR_COMPILE_WITH_SDL_DEVICE_
 #ifdef NO_IRR_COMPILE_WITH_SDL_DEVICE_
 #undef _IRR_COMPILE_WITH_SDL_DEVICE_
 #endif
@@ -194,8 +194,6 @@ comment this define out */
 //! Define _IRR_COMPILE_WITH_X11_ to compile the Irrlicht engine with X11 support.
 /** If you do not wish the engine to be compiled with X11, comment this
 define out. */
-// Only used in LinuxDevice.
-#define _IRR_COMPILE_WITH_X11_
 #ifdef NO_IRR_COMPILE_WITH_X11_
 #undef _IRR_COMPILE_WITH_X11_
 #endif

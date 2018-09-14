@@ -55,6 +55,9 @@ list(APPEND IrrLicht_source
 	${IrrLicht_render}
 )
 
+# TODO: allow to choose between SDL2 or platform-specific device
+add_definitions(-D_IRR_COMPILE_WITH_SDL_DEVICE_)
+
 add_subdirectory(RenderEngines)
 
 #! Only define _IRR_COMPILE_WITH_DIRECT3D_8_ if you have an appropriate DXSDK, e.g. Summer 2004
