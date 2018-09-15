@@ -7,6 +7,8 @@ message("Configuration:")
 message("")
 
 configure_file(buildin_data.h.in.cmake buildin_data.h)
+# Correct your Windows SDK version for DirectX 11
+set(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION 10.0.17134.0)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake")
