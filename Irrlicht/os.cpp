@@ -189,6 +189,12 @@ namespace os
 		gettimeofday(&tv, 0);
 		return (u32)(tv.tv_sec * 1000) + (tv.tv_usec / 1000);
 	}
+
+	u64 Timer::getRealUTime()
+	{
+		auto now = std::chrono::high_resolution_clock::now();
+		return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+	}
 } // end namespace os
 
 #endif // end linux / windows
@@ -302,12 +308,6 @@ namespace os
 			return LastVirtualTime;
 
 		return LastVirtualTime + (u32)((StaticTime - StartRealTime) * VirtualTimerSpeed);
-	}
-
-  u64 Timer::getRealUTime()
-	{
-		auto now = std::chrono::high_resolution_clock::now();
-		return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
 	}
 
 	//! ticks, advances the virtual timer
