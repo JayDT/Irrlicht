@@ -4,3 +4,4 @@
 /.vscode
 /.vs
 /build
+/CMakeLists.txt.user
