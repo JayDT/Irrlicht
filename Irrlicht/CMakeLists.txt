@@ -56,7 +56,7 @@ list(APPEND IrrLicht_source
 )
 
 # TODO: allow to choose between SDL2 or platform-specific device
-add_definitions(-D_IRR_COMPILE_WITH_SDL_DEVICE_)
+#add_definitions(-D_IRR_COMPILE_WITH_SDL_DEVICE_)
 
 add_subdirectory(RenderEngines)
 
