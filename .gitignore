@@ -1,5 +1,6 @@
 /win
 /win2
 /winMG
-.vscode
+/.vscode
+/.vs
 /build
