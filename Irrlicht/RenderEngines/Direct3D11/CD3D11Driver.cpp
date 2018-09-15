@@ -4224,15 +4224,11 @@ IVideoDriver* CD3D11Driver::getVideoDriver()
 } // end namespace video
 } // end namespace irr
 
-#endif
-
-
 namespace irr
 {
 namespace video
 {
 
-#ifdef _IRR_COMPILE_WITH_DIRECT3D_11_
 //! creates a video driver
 IVideoDriver* createDirectX11Driver(const SIrrlichtCreationParameters& params,
     io::IFileSystem* io, HWND hwnd)
@@ -4247,7 +4243,8 @@ IVideoDriver* createDirectX11Driver(const SIrrlichtCreationParameters& params,
 
     return dx11;
 }
-#endif // _IRR_COMPILE_WITH_DIRECT3D_11_
 
 } // end namespace video
 } // end namespace irr
+
+#endif // _IRR_COMPILE_WITH_DIRECT3D_11_
