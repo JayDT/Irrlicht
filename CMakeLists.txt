@@ -6,6 +6,8 @@ message("")
 message("Configuration:")
 message("")
 
+configure_file(buildin_data.h.in.cmake buildin_data.h)
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake")
 set( CMAKE_VERBOSE_MAKEFILE on )
