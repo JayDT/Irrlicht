@@ -4,10 +4,10 @@
 #ifndef __C_VIDEO_NULL_VERTEX_DECL_H_INCLUDED__
 #define __C_VIDEO_NULL_VERTEX_DECL_H_INCLUDED__
 
-#include "IGPUProgrammingServices.h"
+//#include "IGPUProgrammingServices.h"
+#include "IReferenceCounted.h"
 #include "SVertexElement.h"
 #include "irrArray.h"
-#include "IReferenceCounted.h"
 
 namespace irr
 {

@@ -19,11 +19,8 @@
 
 #ifdef _IRR_COMPILE_WITH_OPENGL_
 #include <GL/gl.h>
-#define GLX_GLXEXT_LEGACY 1
+#include <GL/glext.h>
 #include <GL/glx.h>
-#ifdef _IRR_OPENGL_USE_EXTPOINTER_
-#include "glxext.h"
-#endif
 #endif
 
 #include <X11/Xlib.h>
@@ -55,60 +52,66 @@ namespace irr
 		virtual ~CIrrDeviceLinux();
 
 		//! runs the device. Returns false if device wants to be deleted
-		virtual bool run();
+		virtual bool run() _IRR_OVERRIDE_;
 
 		//! Cause the device to temporarily pause execution and let other processes to run
 		// This should bring down processor usage without major performance loss for Irrlicht
-		virtual void yield();
+		virtual void yield() _IRR_OVERRIDE_;
 
 		//! Pause execution and let other processes to run for a specified amount of time.
-		virtual void sleep(u32 timeMs, bool pauseTimer);
+		virtual void sleep(u32 timeMs, bool pauseTimer) _IRR_OVERRIDE_;
 
 		//! sets the caption of the window
-		virtual void setWindowCaption(const wchar_t* text);
+		virtual void setWindowCaption(const wchar_t* text) _IRR_OVERRIDE_;
 
 		//! returns if window is active. if not, nothing need to be drawn
-		virtual bool isWindowActive() const;
+		virtual bool isWindowActive() const _IRR_OVERRIDE_;
 
 		//! returns if window has focus.
-		virtual bool isWindowFocused() const;
+		virtual bool isWindowFocused() const _IRR_OVERRIDE_;
 
 		//! returns if window is minimized.
-		virtual bool isWindowMinimized() const;
+		virtual bool isWindowMinimized() const _IRR_OVERRIDE_;
 
 		//! returns color format of the window.
-		virtual video::ECOLOR_FORMAT getColorFormat() const;
+		virtual video::ECOLOR_FORMAT getColorFormat() const _IRR_OVERRIDE_;
 
 		//! presents a surface in the client area
-		virtual bool present(video::IImage* surface, void* windowId=0, core::rect<s32>* src=0 );
+		virtual bool present(video::IImage* surface, void* windowId=0, core::rect<s32>* src=0 ) _IRR_OVERRIDE_;
 
 		//! notifies the device that it should close itself
-		virtual void closeDevice();
+		virtual void closeDevice() _IRR_OVERRIDE_;
 
 		//! \return Returns a pointer to a list with all video modes
 		//! supported by the gfx adapter.
-		video::IVideoModeList* getVideoModeList();
+		virtual video::IVideoModeList* getVideoModeList() _IRR_OVERRIDE_;
 
 		//! Sets if the window should be resizable in windowed mode.
-		virtual void setResizable(bool resize=false);
+		virtual void setResizable(bool resize=false) _IRR_OVERRIDE_;
+
+		//! Resize the render window.
+		virtual void setWindowSize(const irr::core::dimension2d<u32>& size) _IRR_OVERRIDE_;
 
 		//! Minimizes the window.
-		virtual void minimizeWindow();
+		virtual void minimizeWindow() _IRR_OVERRIDE_;
 
 		//! Maximizes the window.
-		virtual void maximizeWindow();
+		virtual void maximizeWindow() _IRR_OVERRIDE_;
 
 		//! Restores the window size.
-		virtual void restoreWindow();
+		virtual void restoreWindow() _IRR_OVERRIDE_;
+
+		//! Get the position of this window on screen
+		virtual core::position2di getWindowPosition() _IRR_OVERRIDE_;
 
 		//! Activate any joysticks, and generate events for them.
-		virtual bool activateJoysticks(core::array<SJoystickInfo> & joystickInfo);
+		virtual bool activateJoysticks(core::array<SJoystickInfo> & joystickInfo) _IRR_OVERRIDE_;
 
 		//! Set the current Gamma Value for the Display
-		virtual bool setGammaRamp( f32 red, f32 green, f32 blue, f32 brightness, f32 contrast );
+		virtual bool setGammaRamp( f32 red, f32 green, f32 blue, f32 brightness, f32 contrast ) _IRR_OVERRIDE_;
 
 		//! Get the current Gamma Value for the Display
-		virtual bool getGammaRamp( f32 &red, f32 &green, f32 &blue, f32 &brightness, f32 &contrast );
+		virtual bool getGammaRamp( f32 &red, f32 &green, f32 &blue, f32 &brightness, f32 &contrast ) _IRR_OVERRIDE_;
 
 		//! gets text from the clipboard
 		//! \return Returns 0 if no string is in there.
@@ -119,10 +122,10 @@ namespace irr
 		virtual void copyToClipboard(const c8* text) const;
 
 		//! Remove all messages pending in the system message loop
-		virtual void clearSystemMessages();
+		virtual void clearSystemMessages() _IRR_OVERRIDE_;
 
 		//! Get the device type
-		virtual E_DEVICE_TYPE getType() const
+		virtual E_DEVICE_TYPE getType() const _IRR_OVERRIDE_
 		{
 				return EIDT_X11;
 		}
@@ -151,6 +154,12 @@ namespace irr
 
 		bool switchToFullscreen(bool reset=false);
 
+#ifdef _IRR_COMPILE_WITH_X11_
+		bool createInputContext();
+		void destroyInputContext();
+		EKEY_CODE getKeyCode(XEvent &event);
+#endif
+
 		//! Implementation of the linux cursor control
 		class CCursorControl : public gui::ICursorControl
 		{
@@ -161,7 +170,7 @@ namespace irr
 			~CCursorControl();
 
 			//! Changes the visible state of the mouse cursor.
-			virtual void setVisible(bool visible)
+			virtual void setVisible(bool visible) _IRR_OVERRIDE_
 			{
 				if (visible==IsVisible)
 					return;
@@ -170,39 +179,39 @@ namespace irr
 				if (!Null)
 				{
 					if ( !IsVisible )
-						XDefineCursor( Device->display, Device->window, invisCursor );
+						XDefineCursor( Device->XDisplay, Device->XWindow, InvisCursor );
 					else
-						XUndefineCursor( Device->display, Device->window );
+						XUndefineCursor( Device->XDisplay, Device->XWindow );
 				}
 #endif
 			}
 
 			//! Returns if the cursor is currently visible.
-			virtual bool isVisible() const
+			virtual bool isVisible() const _IRR_OVERRIDE_
 			{
 				return IsVisible;
 			}
 
 			//! Sets the new position of the cursor.
-			virtual void setPosition(const core::position2d<f32> &pos)
+			virtual void setPosition(const core::position2d<f32> &pos) _IRR_OVERRIDE_
 			{
 				setPosition(pos.X, pos.Y);
 			}
 
 			//! Sets the new position of the cursor.
-			virtual void setPosition(f32 x, f32 y)
+			virtual void setPosition(f32 x, f32 y) _IRR_OVERRIDE_
 			{
 				setPosition((s32)(x*Device->Width), (s32)(y*Device->Height));
 			}
 
 			//! Sets the new position of the cursor.
-			virtual void setPosition(const core::position2d<s32> &pos)
+			virtual void setPosition(const core::position2d<s32> &pos) _IRR_OVERRIDE_
 			{
 				setPosition(pos.X, pos.Y);
 			}
 
 			//! Sets the new position of the cursor.
-			virtual void setPosition(s32 x, s32 y)
+			virtual void setPosition(s32 x, s32 y) _IRR_OVERRIDE_
 			{
 #ifdef _IRR_COMPILE_WITH_X11_
 
@@ -210,9 +219,9 @@ namespace irr
 				{
 					if (UseReferenceRect)
 					{
-						XWarpPointer(Device->display,
+						XWarpPointer(Device->XDisplay,
 							None,
-							Device->window, 0, 0,
+							Device->XWindow, 0, 0,
 							Device->Width,
 							Device->Height,
 							ReferenceRect.UpperLeftCorner.X + x,
@@ -221,13 +230,13 @@ namespace irr
 					}
 					else
 					{
-						XWarpPointer(Device->display,
+						XWarpPointer(Device->XDisplay,
 							None,
-							Device->window, 0, 0,
+							Device->XWindow, 0, 0,
 							Device->Width,
 							Device->Height, x, y);
 					}
-					XFlush(Device->display);
+					XFlush(Device->XDisplay);
 				}
 #endif
 				CursorPos.X = x;
@@ -235,14 +244,14 @@ namespace irr
 			}
 
 			//! Returns the current position of the mouse cursor.
-			virtual const core::position2d<s32>& getPosition()
+			virtual const core::position2d<s32>& getPosition() _IRR_OVERRIDE_
 			{
 				updateCursorPos();
 				return CursorPos;
 			}
 
 			//! Returns the current position of the mouse cursor.
-			virtual core::position2d<f32> getRelativePosition()
+			virtual core::position2d<f32> getRelativePosition() _IRR_OVERRIDE_
 			{
 				updateCursorPos();
 
@@ -256,7 +265,7 @@ namespace irr
 						CursorPos.Y / (f32)ReferenceRect.getHeight());
 			}
 
-			virtual void setReferenceRect(core::rect<s32>* rect=0)
+			virtual void setReferenceRect(core::rect<s32>* rect=0) _IRR_OVERRIDE_
 			{
 				if (rect)
 				{
@@ -276,29 +285,29 @@ namespace irr
 			}
 
 			//! Sets the active cursor icon
-			virtual void setActiveIcon(gui::ECURSOR_ICON iconId);
+			virtual void setActiveIcon(gui::ECURSOR_ICON iconId) _IRR_OVERRIDE_;
 
 			//! Gets the currently active icon
-			virtual gui::ECURSOR_ICON getActiveIcon() const
+			virtual gui::ECURSOR_ICON getActiveIcon() const _IRR_OVERRIDE_
 			{
 				return ActiveIcon;
 			}
 
 			//! Add a custom sprite as cursor icon.
-			virtual gui::ECURSOR_ICON addIcon(const gui::SCursorSprite& icon);
+			virtual gui::ECURSOR_ICON addIcon(const gui::SCursorSprite& icon) _IRR_OVERRIDE_;
 
 			//! replace the given cursor icon.
-			virtual void changeIcon(gui::ECURSOR_ICON iconId, const gui::SCursorSprite& icon);
+			virtual void changeIcon(gui::ECURSOR_ICON iconId, const gui::SCursorSprite& icon) _IRR_OVERRIDE_;
 
 			//! Return a system-specific size which is supported for cursors. Larger icons will fail, smaller icons might work.
-			virtual core::dimension2di getSupportedIconSize() const;
+			virtual core::dimension2di getSupportedIconSize() const _IRR_OVERRIDE_;
 
 #ifdef _IRR_COMPILE_WITH_X11_
 			//! Set platform specific behavior flags.
-			virtual void setPlatformBehavior(gui::ECURSOR_PLATFORM_BEHAVIOR behavior) {PlatformBehavior = behavior; }
+			virtual void setPlatformBehavior(gui::ECURSOR_PLATFORM_BEHAVIOR behavior) _IRR_OVERRIDE_ {PlatformBehavior = behavior; }
 
 			//! Return platform specific behavior.
-			virtual gui::ECURSOR_PLATFORM_BEHAVIOR getPlatformBehavior() const { return PlatformBehavior; }
+			virtual gui::ECURSOR_PLATFORM_BEHAVIOR getPlatformBehavior() const _IRR_OVERRIDE_ { return PlatformBehavior; }
 
 			void update();
 			void clearCursors();
@@ -314,27 +323,18 @@ namespace irr
 				if ( PlatformBehavior&gui::ECPB_X11_CACHE_UPDATES && !os::Timer::isStopped() )
 				{
 					u32 now = os::Timer::getTime();
-					if (now <= lastQuery)
+					if (now <= LastQuery)
 						return;
-					lastQuery = now;
+					LastQuery = now;
 				}
 
 				Window tmp;
 				int itmp1, itmp2;
 				unsigned  int maskreturn;
-				XQueryPointer(Device->display, Device->window,
+				XQueryPointer(Device->XDisplay, Device->XWindow,
 					&tmp, &tmp,
 					&itmp1, &itmp2,
 					&CursorPos.X, &CursorPos.Y, &maskreturn);
-
-				if (CursorPos.X < 0)
-					CursorPos.X = 0;
-				if (CursorPos.X > (s32) Device->Width)
-					CursorPos.X = Device->Width;
-				if (CursorPos.Y < 0)
-					CursorPos.Y = 0;
-				if (CursorPos.Y > (s32) Device->Height)
-					CursorPos.Y = Device->Height;
 #endif
 			}
 
@@ -343,8 +343,8 @@ namespace irr
 			core::rect<s32> ReferenceRect;
 #ifdef _IRR_COMPILE_WITH_X11_
 			gui::ECURSOR_PLATFORM_BEHAVIOR PlatformBehavior;
-			u32 lastQuery;
-			Cursor invisCursor;
+			u32 LastQuery;
+			Cursor InvisCursor;
 
 			struct CursorFrameX11
 			{
@@ -381,23 +381,26 @@ namespace irr
 #ifdef _IRR_COMPILE_WITH_X11_
 		friend class COpenGLDriver;
 
-		Display *display;
-		XVisualInfo* visual;
-		int screennr;
-		Window window;
-		XSetWindowAttributes attributes;
+		Display *XDisplay;
+		XVisualInfo* VisualInfo;
+		int Screennr;
+		Window XWindow;
+		XSetWindowAttributes WndAttributes;
 		XSizeHints* StdHints;
 		XImage* SoftwareImage;
+		XIM XInputMethod;
+		XIC XInputContext;
+		bool HasNetWM;
 		mutable core::stringc Clipboard;
 		#ifdef _IRR_LINUX_X11_VIDMODE_
-		XF86VidModeModeInfo oldVideoMode;
+		XF86VidModeModeInfo OldVideoMode;
 		#endif
 		#ifdef _IRR_LINUX_X11_RANDR_
-		SizeID oldRandrMode;
-		Rotation oldRandrRotation;
+		SizeID OldRandrMode;
+		Rotation OldRandrRotation;
 		#endif
 		#ifdef _IRR_COMPILE_WITH_OPENGL_
-		GLXWindow glxWin;
+		GLXWindow GlxWin;
 		GLXContext Context;
 		#endif
 #endif
@@ -449,4 +452,3 @@ namespace irr
 
 #endif // _IRR_COMPILE_WITH_X11_DEVICE_
 #endif // __C_IRR_DEVICE_LINUX_H_INCLUDED__
-

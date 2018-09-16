@@ -50,10 +50,10 @@ namespace irr
             * If the query is binary, this will return 0 or 1. 1 meaning one or more samples were rendered, but will not give
             * you the exact count.
             */
-            virtual UINT32 getNumSamples() = 0;
+            virtual uint32_t getNumSamples() = 0;
 
             /** Triggered when the query has completed. Argument provided is the number of samples counted by the query. */
-            std::function<void(UINT32)> onComplete;
+            std::function<void(uint32_t)> onComplete;
 
         protected:
             friend class QueryManager;

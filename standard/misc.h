@@ -9,6 +9,8 @@
 #       include <minwindef.h>
 #       include <libloaderapi.h>
 #  endif
+#elif PLATFORM==PLATFORM_UNIX
+#  include <dlfcn.h>
 #endif
 
 //#define foreach(v, a, t) for (t v=(a).begin(); v!=(a).end(); ++v)
@@ -119,7 +121,7 @@ namespace System
     __forceinline uint64_t GetCurrentModule()
     { // NB: XP+ solution!
         Dl_info dlinf;
-        assert(dladdr(&__GetCurrent_RunTime__ReflectionModule, &dlinf) == 1); // not exported func use
+        assert(dladdr((void*)&GetCurrentModule, &dlinf) == 1); // not exported func use
         return uint64_t(dlinf.dli_fbase);
     }
 #endif

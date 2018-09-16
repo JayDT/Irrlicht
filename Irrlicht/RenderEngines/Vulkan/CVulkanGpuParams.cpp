@@ -469,7 +469,7 @@ bool VulkanGpuParams::UpdateDescriptors(VulkanCmdBuffer& buffer, VkDescriptorSet
         // Note: Currently I write to the entire set at once, but it might be beneficial to remember only the exact
         // entries that were updated, and only write to them individually.
         perSetData.latestSet->write(perSetData.writeSetInfos, perSetData.numElements);
-        perSetData.latestSet->NotifySoftBound(VulkanUseFlag::Write);
+        perSetData.latestSet->NotifySoftBound(VulkanUseFlag::eWrite);
 
         perSetData.mSetsDirty = false;
     }
@@ -483,7 +483,7 @@ bool VulkanGpuParams::UpdateDescriptors(VulkanCmdBuffer& buffer, VkDescriptorSet
             sets[i] = set->getHandle();
             changed = true;
         }
-        set->NotifySoftBound(VulkanUseFlag::Read);
+        set->NotifySoftBound(VulkanUseFlag::eRead);
     }
 
     return changed;

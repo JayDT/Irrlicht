@@ -1,10 +1,13 @@
-# Use -std=c++11 instead of -std=gnu++11
+# Use c++14
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# Use -std=c++14 instead of -std=gnu++14
 set(CXX_EXTENSIONS OFF)
 
 message( STATUS "Selected Generator: ${CMAKE_GENERATOR}")
 
 if ( WIN32 )
-    message( STATUS "64bit compile is present: ${CMAKE_CL_64}") 
+    message( STATUS "64bit compile is present: ${CMAKE_CL_64}")
 endif ()
 
 if(DEBUG)
@@ -14,14 +17,14 @@ if(DEBUG)
 else()
   set(CMAKE_BUILD_TYPE ${BRT_NAME})
   message(STATUS "Build in debug-mode   : No  (default)")
-endif() 
+endif()
 if(MEMCHECK)
   message(STATUS "Build in memory-checker   : Yes")
   add_definitions(-DMEMCHECK=1)
   set(USE_STD_MALLOC 1)
 else()
   message(STATUS "Build in memory-checker   : No  (default)")
-endif() 
+endif()
 message("")
 
 message("Setup Platform Environment:")

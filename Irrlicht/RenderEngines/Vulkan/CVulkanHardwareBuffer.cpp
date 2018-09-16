@@ -35,7 +35,7 @@ VulkanBuffer::VulkanBuffer(CVulkanDriver* owner, VkBuffer buffer, VkBufferView v
     VkDeviceSize bufferSize;
     device->getAllocationInfo(mAllocation, memory, memoryOffset, &bufferSize);
 
-    pMappedData = (UINT8*)MappedData;
+    pMappedData = (uint8_t*)MappedData;
 }
 
 VulkanBuffer::~VulkanBuffer()
@@ -49,12 +49,12 @@ VulkanBuffer::~VulkanBuffer()
     device->freeMemory(mAllocation);
 }
 
-UINT8* VulkanBuffer::map(VulkanDevice * device, VkDeviceSize offset, VkDeviceSize length) const
+uint8_t* VulkanBuffer::map(VulkanDevice * device, VkDeviceSize offset, VkDeviceSize length) const
 {
     if (pMappedData)
         return pMappedData;
 
-    UINT8* data;
+    uint8_t* data;
     VkResult result = vkMapMemory(device->getLogical(), memory, memoryOffset + offset, length, 0, (void**)&data);
     assert(result == VK_SUCCESS);
 
@@ -96,7 +96,7 @@ void VulkanBuffer::copy(VulkanCmdBuffer* cb, VulkanImage* destination, const VkE
     vkCmdCopyBufferToImage(cb->getHandle(), mBuffer, destination->getHandle(), layout, 1, &region);
 }
 
-void VulkanBuffer::update(VulkanCmdBuffer* cb, UINT8* data, VkDeviceSize offset, VkDeviceSize length)
+void VulkanBuffer::update(VulkanCmdBuffer* cb, uint8_t* data, VkDeviceSize offset, VkDeviceSize length)
 {
     vkCmdUpdateBuffer(cb->getHandle(), mBuffer, offset, length, (uint32_t*)data);
 }
@@ -185,7 +185,7 @@ void * irr::video::CVulkanHardwareBuffer::lock(E_HARDWARE_BUFFER_TYPE type, u32 
     VulkanDevice* device = mMappedDeviceIdx == 0 ? Driver->_getPrimaryDevice() : Driver->_getDevice(mMappedDeviceIdx);
 
     GpuQueueType queueType;
-    UINT32 localQueueIdx = CommandSyncMask::getQueueIdxAndType(mMappedGlobalQueueIdx, queueType);
+    uint32_t localQueueIdx = CommandSyncMask::getQueueIdxAndType(mMappedGlobalQueueIdx, queueType);
 
     VkAccessFlags accessFlags;
     if (mMappedReadOnly)
@@ -218,7 +218,7 @@ void * irr::video::CVulkanHardwareBuffer::lock(E_HARDWARE_BUFFER_TYPE type, u32 
         if (accessFlags & (VK_ACCESS_HOST_READ_BIT | VK_ACCESS_HOST_WRITE_BIT))
         {
             // Check is the GPU currently reading or writing from the buffer
-            UINT32 useMask;
+            uint32_t useMask;
 
             // We need to wait until (potential) read/write operations complete
             VulkanTransferBuffer* transferCB = device->getTransferBuffer(queueType, localQueueIdx);
@@ -226,9 +226,9 @@ void * irr::video::CVulkanHardwareBuffer::lock(E_HARDWARE_BUFFER_TYPE type, u32 
             // Ensure flush() will wait for all queues currently using to the buffer (if any) to finish
             // If only reading, wait for all writes to complete, otherwise wait on both writes and reads
             if (readOnly)
-                useMask = buffer->getUseInfo(VulkanUseFlag::Write);
+                useMask = buffer->getUseInfo(VulkanUseFlag::eWrite);
             else
-                useMask = buffer->getUseInfo(VulkanUseFlag::Read | VulkanUseFlag::Write);
+                useMask = buffer->getUseInfo(VulkanUseFlag::eRead | VulkanUseFlag::eWrite);
     
             transferCB->appendMask(useMask);
     
@@ -257,8 +257,8 @@ void * irr::video::CVulkanHardwareBuffer::lock(E_HARDWARE_BUFFER_TYPE type, u32 
                 VulkanBuffer* newBuffer = GetCacheBuffer(*device, desc, desc.bufferCI, desc.AccessType, desc.Stride, true);
     
                 // Copy contents of the current buffer to the new one
-                UINT8* src = buffer->map(device, desc.Offset, length);
-                UINT8* dst = newBuffer->map(device, desc.Offset, length);
+                uint8_t* src = buffer->map(device, desc.Offset, length);
+                uint8_t* dst = newBuffer->map(device, desc.Offset, length);
     
                 memcpy(dst, src, length);
     
@@ -294,7 +294,7 @@ void * irr::video::CVulkanHardwareBuffer::lock(E_HARDWARE_BUFFER_TYPE type, u32 
         {
             if (desc.mStagingMemory)
                 free(desc.mStagingMemory);
-            desc.mStagingMemory = (UINT8*)malloc(length);
+            desc.mStagingMemory = (uint8_t*)malloc(length);
             desc.mStagingMemorySize = length;
         }
         return desc.mStagingMemory;
@@ -310,7 +310,7 @@ void * irr::video::CVulkanHardwareBuffer::lock(E_HARDWARE_BUFFER_TYPE type, u32 
 
         // Similar to above, if buffer supports GPU writes or is currently being written to, we need to wait on any
         // potential writes to complete
-        UINT32 writeUseMask = buffer->getUseInfo(VulkanUseFlag::Write);
+        uint32_t writeUseMask = buffer->getUseInfo(VulkanUseFlag::eWrite);
         if (desc.mSupportsGPUWrites || writeUseMask != 0)
         {
             // Ensure flush() will wait for all queues currently writing to the buffer (if any) to finish
@@ -359,7 +359,7 @@ void irr::video::CVulkanHardwareBuffer::unlock(E_HARDWARE_BUFFER_TYPE type)
     {
         VulkanDevice* device = mMappedDeviceIdx == 0 ? Driver->_getPrimaryDevice() : Driver->_getDevice(mMappedDeviceIdx);
         desc.Buffer->unmap(device);
-        buffer->NotifySoftBound(VulkanUseFlag::Write);
+        buffer->NotifySoftBound(VulkanUseFlag::eWrite);
     }
     else
     {
@@ -380,7 +380,7 @@ void irr::video::CVulkanHardwareBuffer::unlock(E_HARDWARE_BUFFER_TYPE type)
                 device = mMappedDeviceIdx == 0 ? Driver->_getPrimaryDevice() : Driver->_getDevice(mMappedDeviceIdx);
 
             GpuQueueType queueType;
-            UINT32 localQueueIdx = CommandSyncMask::getQueueIdxAndType(mMappedGlobalQueueIdx, queueType);
+            uint32_t localQueueIdx = CommandSyncMask::getQueueIdxAndType(mMappedGlobalQueueIdx, queueType);
 
             VulkanTransferBuffer* transferCB = device->getTransferBuffer(queueType, localQueueIdx);
 
@@ -396,11 +396,11 @@ void irr::video::CVulkanHardwareBuffer::unlock(E_HARDWARE_BUFFER_TYPE type)
                     {
                         buffer->copy(transferCB->getCB(), newBuffer, 0, 0, desc.bufferCI.size);
                 
-                        transferCB->getCB()->registerResource(buffer, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::Read);
+                        transferCB->getCB()->registerResource(buffer, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::eRead);
                     }
 
                     if (buffer->getReferenceCount() == 1 && buffer->isBound())
-                        Driver->GetCommandBuffer()->getInternal()->registerResource(buffer, VulkanUseFlag::Read);
+                        Driver->GetCommandBuffer()->getInternal()->registerResource(buffer, VulkanUseFlag::eRead);
                     else
                         buffer->drop();
                     buffer = newBuffer;
@@ -412,7 +412,7 @@ void irr::video::CVulkanHardwareBuffer::unlock(E_HARDWARE_BUFFER_TYPE type)
             if (desc.mStagingBuffer != nullptr)
             {
                 desc.mStagingBuffer->copy(transferCB->getCB(), buffer, 0, desc.Offset, mMappedSize);
-                transferCB->getCB()->registerResource(desc.mStagingBuffer, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::Read);
+                transferCB->getCB()->registerResource(desc.mStagingBuffer, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::eRead);
             }
             else // Staging memory
             {
@@ -420,8 +420,8 @@ void irr::video::CVulkanHardwareBuffer::unlock(E_HARDWARE_BUFFER_TYPE type)
                 buffer->update(transferCB->getCB(), desc.mStagingMemory, desc.Offset, mMappedSize);
             }
 
-            buffer->NotifySoftBound(VulkanUseFlag::Write);
-            //transferCB->getCB()->registerResource(buffer, VK_ACCESS_TRANSFER_WRITE_BIT, VulkanUseFlag::Write);
+            buffer->NotifySoftBound(VulkanUseFlag::eWrite);
+            //transferCB->getCB()->registerResource(buffer, VK_ACCESS_TRANSFER_WRITE_BIT, VulkanUseFlag::eWrite);
         }
 
         if (desc.mStagingBuffer != nullptr)
@@ -869,7 +869,7 @@ bool irr::video::CVulkanHardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type
                         if (cacheBuffer.Buffer)
                         {
                             if (cacheBuffer.Buffer->isBound())
-                                Driver->GetCommandBuffer()->getInternal()->registerResource(cacheBuffer.Buffer, VulkanUseFlag::Read);
+                                Driver->GetCommandBuffer()->getInternal()->registerResource(cacheBuffer.Buffer, VulkanUseFlag::eRead);
                             cacheBuffer.Buffer->drop();
                         }
                     }
@@ -895,13 +895,13 @@ bool irr::video::CVulkanHardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type
                     u32 _dBufferSize = dataSize - desc.Descriptor.range;
 
                     GpuQueueType queueType;
-                    UINT32 localQueueIdx = CommandSyncMask::getQueueIdxAndType(0, queueType);
+                    uint32_t localQueueIdx = CommandSyncMask::getQueueIdxAndType(0, queueType);
 
                     VulkanTransferBuffer* transferCB = Device->getTransferBuffer(queueType, localQueueIdx);
 
                     // Similar to above, if buffer supports GPU writes or is currently being written to, we need to wait on any
                     // potential writes to complete
-                    UINT32 writeUseMask = oldBuffer->getUseInfo(VulkanUseFlag::Write);
+                    uint32_t writeUseMask = oldBuffer->getUseInfo(VulkanUseFlag::eWrite);
                     if (desc.mSupportsGPUWrites || writeUseMask != 0)
                     {
                         // Ensure flush() will wait for all queues currently writing to the buffer (if any) to finish
@@ -927,8 +927,8 @@ bool irr::video::CVulkanHardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type
                         buffer->bufferCI.size = size;
                     }
 
-                    transferCB->getCB()->registerResource(mBaseBuffer->mStagingBuffer, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::Read);
-                    transferCB->getCB()->registerResource(desc.Buffer, VK_ACCESS_TRANSFER_WRITE_BIT, VulkanUseFlag::Write);
+                    transferCB->getCB()->registerResource(mBaseBuffer->mStagingBuffer, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::eRead);
+                    transferCB->getCB()->registerResource(desc.Buffer, VK_ACCESS_TRANSFER_WRITE_BIT, VulkanUseFlag::eWrite);
 
                     // Submit the command buffer and wait until it finishes
                     transferCB->flush(true);

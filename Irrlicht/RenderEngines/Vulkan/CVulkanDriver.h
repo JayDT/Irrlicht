@@ -22,7 +22,7 @@
 #define DEVEL_LOG(msg,code)	os::Printer::log(msg, code)	
 #endif
 
-#define VULKAN_DEBUG_MODE 0
+#define VULKAN_DEBUG_MODE 1
 
 namespace irr
 {
@@ -140,12 +140,11 @@ namespace irr
                 E_VERTEX_TYPE vType, scene::E_PRIMITIVE_TYPE pType,
                 E_INDEX_TYPE iType);
 
-            //! initialises the Direct3D API
-            bool initDriver(HWND hwnd, bool pureSoftware);
-            bool initOutput(HWND hwnd, bool pureSoftware);
+            //! initialises the Vulkan API
+            bool initDriver();
 
-            //! \return Returns the name of the video driver. Example: In case of the DIRECT3D8
-            //! driver, it would return "Direct3D8.1".
+            //! \return Returns the name of the video driver. Example: In case of the Vulkan
+            //! driver, it would return "Vulkan".
             virtual const wchar_t* getName() const;
 
             //! deletes all dynamic lights there are

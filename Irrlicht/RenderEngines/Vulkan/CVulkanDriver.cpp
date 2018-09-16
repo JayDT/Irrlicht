@@ -12,8 +12,9 @@
 #include "CVulkanGpuParams.h"
 #include "CVulkanSwapChain.h"
 #include "CVulkanRenderTarget.h"
+#include "CVulkanPlatform.h"
 
-#include "standard/client/DataSource_Standard.h"
+#include "standard/client/datasource_standard.h"
 #include "buildin_data.h"
 
 #include "os.h"
@@ -129,7 +130,7 @@ irr::video::CVulkanDriver::~CVulkanDriver()
     {
         if (!DynamicHardwareBuffer[i])
             continue;
-    
+
         DynamicHardwareBuffer[i]->drop();
     }
 
@@ -185,7 +186,7 @@ irr::video::CVulkanDriver::~CVulkanDriver()
     {
         if (!mDevices[i])
             continue;
-    
+
         delete mDevices[i];
     }
 
@@ -375,12 +376,12 @@ void irr::video::CVulkanDriver::initialize()
 
 #if defined(_IRR_COMPILE_WITH_WINDOWS_DEVICE_)
     mPlatform = new CWinVulkanPlatform(this);
-#elif defined(_IRR_COMPILE_WITH_ANDROID_DEVICE_)
-    mPlatform = new CAndroidVulkanPlatform(this);
-#elif defined(_IRR_COMPILE_WITH_OSX_DEVICE_)
-    mPlatform = new CMacVulkanPlatform(this);
-#else
-    mPlatform = new CLinuxVulkanPlatform(this);
+//#elif defined(_IRR_COMPILE_WITH_ANDROID_DEVICE_)
+//    mPlatform = new CAndroidVulkanPlatform(this);
+//#elif defined(_IRR_COMPILE_WITH_OSX_DEVICE_)
+//    mPlatform = new CMacVulkanPlatform(this);
+//#else
+//    mPlatform = new CLinuxVulkanPlatform(this);
 #endif
 
     mPlatform->initialize();
@@ -391,7 +392,7 @@ void irr::video::CVulkanDriver::initialize()
     DriverAndFeatureName += converter.from_bytes(_getPrimaryDevice()->getDeviceProperties().deviceName);
 }
 
-bool irr::video::CVulkanDriver::initDriver(HWND hwnd, bool pureSoftware)
+bool irr::video::CVulkanDriver::initDriver()
 {
     CNullDriver::initDriver();
 
@@ -470,7 +471,7 @@ bool irr::video::CVulkanDriver::initDriver(HWND hwnd, bool pureSoftware)
         shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
         shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
         m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD] = static_cast<CVulkanGLSLProgram*>(createShader(&shaderCI));
-    
+
         delete vertShader;
         delete fragShader;
     }
@@ -508,7 +509,7 @@ bool irr::video::CVulkanDriver::initDriver(HWND hwnd, bool pureSoftware)
 
     {
         ShaderInitializerEntry shaderCI;
-    
+
 #ifndef HAVE_CSYSTEM_EXTENSION
         auto vertShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Vulkan/GLSL/VkDefaultT2.vert");
         auto fragShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Vulkan/GLSL/VkDefault.frag");
@@ -522,14 +523,14 @@ bool irr::video::CVulkanDriver::initDriver(HWND hwnd, bool pureSoftware)
         shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
         shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
         m_defaultShader[E_VERTEX_TYPE::EVT_2TCOORDS] = static_cast<CVulkanGLSLProgram*>(createShader(&shaderCI));
-    
+
         delete vertShader;
         delete fragShader;
     }
 
     {
         ShaderInitializerEntry shaderCI;
-    
+
 #ifndef HAVE_CSYSTEM_EXTENSION
         auto vertShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Vulkan/GLSL/VkDefaultSK.vert");
         auto fragShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Vulkan/GLSL/vkDefault.frag");
@@ -784,7 +785,7 @@ bool irr::video::CVulkanDriver::updateVertexHardwareBuffer(CVulkanHardwareBuffer
 
             HWBuffer->UpdateBuffer(Type, MemoryAccess, vertices, vertexBufSize, 0, vertexBufSize);
         }
-    
+
         HWBuffer->setChangeID(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM, streamBuffer->getChangedID());
     }
     else if (Type == E_HARDWARE_BUFFER_TYPE::EHBT_INDEX)
@@ -944,7 +945,7 @@ IHardwareBuffer * irr::video::CVulkanDriver::createHardwareBuffer(const scene::I
             return 0;
         }
     }
-    
+
     hwBuffer->Initialize();
     return hwBuffer;
 }
@@ -1121,11 +1122,6 @@ void irr::video::CVulkanDriver::draw2DVertexPrimitiveList(const void * vertices,
             vType, pType, iType, false);
 }
 
-bool irr::video::CVulkanDriver::initOutput(HWND hwnd, bool pureSoftware)
-{
-    return false;
-}
-
 const wchar_t * irr::video::CVulkanDriver::getName() const
 {
     return DriverAndFeatureName.c_str();
@@ -1244,26 +1240,26 @@ void irr::video::CVulkanDriver::drawStencilShadow(bool clearStencilBuffer, video
 {
     if (!mCreateParams.Stencilbuffer)
         return;
-    
+
     SetShader(m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD]);
-    
+
     S3DVertex vtx[4];
     vtx[0] = S3DVertex(1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, leftUpEdge, 0.0f, 0.0f);
     vtx[1] = S3DVertex(1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, rightUpEdge, 0.0f, 1.0f);
     vtx[2] = S3DVertex(-1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, leftDownEdge, 1.0f, 0.0f);
     vtx[3] = S3DVertex(-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, rightDownEdge, 1.0f, 1.0f);
-    
+
     s16 indices[6] = { 0,1,2,1,3,2 };
-    
+
     setActiveTexture(0, 0);
-    
+
     auto proj = getTransform(E_TRANSFORMATION_STATE::ETS_PROJECTION);
     auto view = getTransform(E_TRANSFORMATION_STATE::ETS_VIEW);
-    
+
     Matrices[ETS_PROJECTION] = core::IdentityMatrix;
     setTransform(E_TRANSFORMATION_STATE::ETS_VIEW, core::IdentityMatrix);
     setTransform(E_TRANSFORMATION_STATE::ETS_WORLD, core::IdentityMatrix);
-    
+
     setActiveTexture(0, nullptr);
     setActiveTexture(1, nullptr);
     setActiveTexture(2, nullptr);
@@ -1275,20 +1271,20 @@ void irr::video::CVulkanDriver::drawStencilShadow(bool clearStencilBuffer, video
     Material.setTexture(2, nullptr);
     Material.setTexture(3, nullptr);
     Material.setTexture(4, nullptr);
-    
+
     Material.FrontfaceCulling = false;
     Material.BackfaceCulling = false;
-    
+
     Material.MaterialType = E_MATERIAL_TYPE::EMT_ONETEXTURE_BLEND;
     Material.BlendOperation = E_BLEND_OPERATION::EBO_ADD;
     Material.uMaterialTypeParam = pack_textureBlendFunc(video::EBF_SRC_ALPHA, video::EBF_ONE_MINUS_SRC_ALPHA, video::EMFN_MODULATE_1X, video::EAS_TEXTURE | video::EAS_VERTEX_COLOR, video::EBF_SRC_ALPHA, video::EBF_ONE_MINUS_SRC_ALPHA, E_BLEND_OPERATION::EBO_ADD, E_BLEND_OPERATION::EBO_ADD);
     Material.ZBuffer = E_COMPARISON_FUNC::ECFN_NEVER;
-    
+
     Material.StencilTest = true;
     Material.StencilFront.Mask = 0xFF;
     Material.StencilFront.WriteMask = 0xFF;
     Material.StencilFront.Reference = 1;
-    
+
     Material.StencilFront.FailOp = E_STENCIL_OPERATION::ESO_KEEP;
     Material.StencilFront.DepthFailOp = E_STENCIL_OPERATION::ESO_KEEP;
     Material.StencilFront.PassOp = E_STENCIL_OPERATION::ESO_KEEP;
@@ -1302,23 +1298,23 @@ void irr::video::CVulkanDriver::drawStencilShadow(bool clearStencilBuffer, video
     Material.StencilBack.DepthFailOp = E_STENCIL_OPERATION::ESO_KEEP;
     Material.StencilBack.PassOp = E_STENCIL_OPERATION::ESO_KEEP;
     Material.StencilBack.Comparsion = E_COMPARISON_FUNC::ECFN_LESSEQUAL;
-    
+
     draw2D3DVertexPrimitiveList(vtx, 4, indices, 6,
         E_VERTEX_TYPE::EVT_STANDARD, scene::E_PRIMITIVE_TYPE::EPT_TRIANGLES, E_INDEX_TYPE::EIT_16BIT, true);
-    
+
     Matrices[ETS_PROJECTION] = proj;
     setTransform(E_TRANSFORMATION_STATE::ETS_VIEW, view);
-    
+
     Material.StencilTest = false;
     Material.StencilFront.Mask = 0x0;
     Material.StencilFront.WriteMask = 0x0;
     Material.StencilFront.Reference = 0;
-    
+
     if (clearStencilBuffer)
     {
         mMainCommandBuffer->getInternal()->clearViewport(FrameBufferType::FBT_STENCIL, SColor(), 1.0f, 0, 0xFF);
     }
-    
+
     CurrentRenderMode = ERM_3D; // ERM_STENCIL_FILL;
 }
 
@@ -1612,7 +1608,7 @@ bool irr::video::CVulkanDriver::SyncShaderConstant(CVulkanHardwareBuffer* HWBuff
         }
 
         gpuParams->setBuffer(0, i, constantBuffer);
-        constantBuffer->GetBufferDesc(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS)->Buffer->NotifySoftBound(VulkanUseFlag::Read);
+        constantBuffer->GetBufferDesc(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS)->Buffer->NotifySoftBound(VulkanUseFlag::eRead);
         //cb->getInternal()->registerResource(constantBuffer->GetBufferDesc(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS)->Buffer, VulkanUseFlag::Read);
     }
 
@@ -1748,7 +1744,7 @@ void irr::video::CVulkanDriver::setRenderStates2DMode(bool alpha, bool texture, 
         setTransform(ETS_WORLD, m);
 
         // Set view to translate a little forward
-        //m.setTranslation(core::vector3df(-0.5f, -0.5f, 0)ü);
+        //m.setTranslation(core::vector3df(-0.5f, -0.5f, 0)Ã¼);
         setTransform(ETS_VIEW, getTransform(ETS_VIEW_2D));
 
         // Adjust projection
@@ -1883,11 +1879,10 @@ namespace irr
     {
         //! creates a video driver
         IVideoDriver* createVulkanDriver(const SIrrlichtCreationParameters& params,
-            io::IFileSystem* io, HWND hwnd)
+            io::IFileSystem* io, void* hwnd)
         {
-            bool pureSoftware = false;
             CVulkanDriver* driver = new CVulkanDriver(params, io);
-            if (!driver->initDriver(hwnd, pureSoftware))
+            if (!driver->initDriver())
             {
                 driver->drop();
                 driver = 0;

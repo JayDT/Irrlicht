@@ -31,7 +31,7 @@ namespace video
         CGLXManager(const SIrrlichtCreationParameters& params, const SExposedVideoData& videodata, int screennr);
 
         //! Destructor
-        ~CGLXManager();
+        virtual ~CGLXManager();
 
         // Initialize
         bool initialize(const SIrrlichtCreationParameters& params, const SExposedVideoData& data);

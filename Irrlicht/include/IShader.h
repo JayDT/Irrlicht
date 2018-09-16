@@ -13,6 +13,7 @@ namespace irr
     namespace video
     {
         class IHardwareBuffer;
+        class IShaderConstantSetCallBack;
         struct VertexDeclaration;
         struct SShaderType;
         struct IShaderScalarVariable;

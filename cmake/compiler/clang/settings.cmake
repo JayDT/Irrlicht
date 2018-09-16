@@ -17,13 +17,13 @@ set(DISABLED_WARNINGS " -Wno-tautological-compare -Wno-undefined-bool-conversion
 # -Wno-narrowing needed to suppress a warning in g3d
 # -Wno-deprecated-register is needed to suppress 185 gsoap warnings on Unix systems. -gdwarf-3
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DISABLED_WARNINGS} -std=c++1z -march=native -fPIC")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DISABLED_WARNINGS} -std=c++1y -fPIC")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g3 -O0")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -O0")
   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3 -O0")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${DISABLED_WARNINGS} -g3 -O0 -march=native -std=c++1z -DDEBUG=1 -fPIC")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${DISABLED_WARNINGS} -g3 -O0 -march=native -std=c++1y -DDEBUG=1 -fPIC")
   message(STATUS "Clang: Debug node With Debug-flags set (-g3)")
 endif()
 

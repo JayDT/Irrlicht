@@ -49,8 +49,8 @@
 
 #ifdef WIN32
 #include <Windows.h>
-#endif
 #include <direct.h>
+#endif
 #include <include/IForm.h>
 
 namespace irr

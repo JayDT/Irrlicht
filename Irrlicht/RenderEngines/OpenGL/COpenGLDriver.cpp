@@ -3,8 +3,6 @@
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
 #include "COpenGLDriver.h"
-// needed here also because of the create methods' parameters
-#include "CNullDriver.h"
 
 #ifdef _IRR_COMPILE_WITH_OPENGL_
 
@@ -36,7 +34,7 @@
 #include <SDL/SDL.h>
 #endif
 
-#include "standard/client/DataSource_Standard.h"
+#include "standard/client/datasource_standard.h"
 
 #include <stdio.h>
 #include <iostream>
@@ -46,6 +44,7 @@
 #elif defined(_IRR_COMPILE_WITH_X11_DEVICE_)
 #include "ContextManager/CGLXManager.h"
 #else
+#error invalid platform
 #include "ContextManager/CNSOGLManager.h"
 #endif
 
@@ -55,6 +54,8 @@
 
 extern bool InitializeModulResourceOpenGL();
 #endif
+
+//#include <GL/ex
 
 #define _DEBUG_OGL
 
@@ -103,7 +104,7 @@ void APIENTRY openglCallbackFunction(GLenum source,
         break;
     }
     std::cout << std::endl;
- 
+
     std::cout << "id: " << id << std::endl;
     std::cout << "severity: ";
     switch (severity){
@@ -243,7 +244,7 @@ bool COpenGLDriver::initDriver()
 
 #ifdef _DEBUG_OGL
     GetStateCache()->setEnabled(GL_DEBUG_OUTPUT_SYNCHRONOUS, true);
-    glDebugMessageCallback(openglCallbackFunction, nullptr);
+    glDebugMessageCallback((GLDEBUGPROC)openglCallbackFunction, nullptr);
     GLuint unusedIds = 0;
     glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DEBUG_SEVERITY_HIGH, 0, &unusedIds, true);
 #endif
@@ -289,7 +290,7 @@ bool COpenGLDriver::initDriver()
     }
 
     {
-        
+
 
         ShaderInitializerEntry shaderCI;
 
@@ -309,7 +310,7 @@ bool COpenGLDriver::initDriver()
     }
 
     {
-        
+
 
         ShaderInitializerEntry shaderCI;
 
@@ -334,7 +335,7 @@ bool COpenGLDriver::initDriver()
     }
 
     {
-        
+
 
         ShaderInitializerEntry shaderCI;
 
@@ -624,7 +625,7 @@ bool COpenGLDriver::beginScene(bool backBuffer, bool zBuffer, SColor color,
     clearBuffers(backBuffer, zBuffer, true, color);
 
     glViewport(ViewPort.UpperLeftCorner.X, ViewPort.UpperLeftCorner.Y, ViewPort.getWidth(), ViewPort.getHeight());
-    
+
 
     return true;
 }
@@ -785,7 +786,7 @@ IHardwareBuffer *COpenGLDriver::createHardwareBuffer(const scene::IMeshBuffer* m
     if (!mb->GetVertexDeclaration())
         mb->SetVertexDeclaration(this->GetVertexDeclaration(mb->getVertexType()));
 
-    COpenGLHardwareBuffer *HWBuffer=new COpenGLHardwareBuffer(this, (scene::IMeshBuffer*)mb, 
+    COpenGLHardwareBuffer *HWBuffer=new COpenGLHardwareBuffer(this, (scene::IMeshBuffer*)mb,
         E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, E_HARDWARE_BUFFER_ACCESS::EHBA_DEFAULT,
         mb->getIndexType() == video::EIT_16BIT ? (u32)E_HARDWARE_BUFFER_FLAGS::EHBF_INDEX_16_BITS : (u32)E_HARDWARE_BUFFER_FLAGS::EHBF_INDEX_32_BITS,
         static_cast<COpenGLVertexDeclaration*>(mb->GetVertexDeclaration()));
@@ -1148,7 +1149,7 @@ bool irr::video::COpenGLDriver::uploadVertexData(const void * vertices, u32 vert
         DynamicHardwareBuffer[vType]->UpdateBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_INDEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, indexList, indexCount * (iType == E_INDEX_TYPE::EIT_32BIT ? sizeof(u32) : sizeof(u16)));
 
         static_cast<COpenGLVertexDeclaration*>(GetVertexDeclaration(vType))->SetVertexType(E_VERTEX_TYPE::EVT_MAX_VERTEX_TYPE);
-        
+
         testGLError();
     }
     else
@@ -1295,8 +1296,8 @@ bool COpenGLDriver::testGLError()
         os::Printer::log("GL_INVALID_FRAMEBUFFER_OPERATION", ELL_ERROR); break;
 #endif
     };
-    const GLubyte * errorStr = gluErrorString(g);
-    os::Printer::log(irr::core::StrFormat("[GL Error]: %s \n %s \n", errorStr, "").c_str());
+    //const GLubyte * errorStr = gluErrorString(g);
+    //os::Printer::log(irr::core::StrFormat("[GL Error]: %s \n %s \n", errorStr, "").c_str());
     assert(false);
     return true;
 #else
@@ -1654,7 +1655,7 @@ void COpenGLDriver::setBasicRenderStates(const SMaterial& material, const SMater
         (*(u32*)&lastmaterial.StencilBack) != (*(u32*)&material.StencilBack))
     {
         GetStateCache()->setEnabled(OGLStateEntries::OGL_STENCIL_TEST, material.StencilTest);
-        
+
         glStencilOp(getOGLStencilOp((E_STENCIL_OPERATION)material.StencilFront.FailOp), getOGLStencilOp((E_STENCIL_OPERATION)material.StencilFront.DepthFailOp), getOGLStencilOp((E_STENCIL_OPERATION)material.StencilFront.PassOp));
         glStencilFunc(getDepthFunction((E_COMPARISON_FUNC)material.StencilFront.Comparsion), material.StencilFront.Reference, material.StencilFront.Mask);
         GetStateCache()->setStencilMask(material.StencilFront.WriteMask);
@@ -1841,7 +1842,7 @@ void COpenGLDriver::setRenderStates2DMode(bool alpha, bool texture, bool alphaCh
             setTransform(ETS_WORLD, m);
 
             // Set view to translate a little forward
-            //m.setTranslation(core::vector3df(-0.5f, -0.5f, 0)ü);
+            //m.setTranslation(core::vector3df(-0.5f, -0.5f, 0)Ã¼);
             setTransform(ETS_VIEW, getTransform(ETS_VIEW_2D));
 
             // Adjust projection
@@ -2119,7 +2120,7 @@ void COpenGLDriver::drawStencilShadowVolume(const core::array<core::vector3df>& 
 
     if (triangles.empty())
         return;
-    
+
     SetShader(m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW]);
 
     setActiveTexture(0, nullptr);
@@ -2142,22 +2143,22 @@ void COpenGLDriver::drawStencilShadowVolume(const core::array<core::vector3df>& 
     Material.BlendOperation = E_BLEND_OPERATION::EBO_ADD;
     Material.uMaterialTypeParam = pack_textureBlendFunc(video::EBF_ZERO, video::EBF_ONE, video::EMFN_MODULATE_1X, video::EAS_TEXTURE | video::EAS_VERTEX_COLOR, video::EBF_ZERO, video::EBF_ONE, E_BLEND_OPERATION::EBO_ADD, E_BLEND_OPERATION::EBO_ADD);
     Material.ZBuffer = E_COMPARISON_FUNC::ECFN_LESS;
-    
+
     Material.StencilTest = true;
     Material.StencilFront.Mask = 0xFF;
     Material.StencilFront.WriteMask = 0xFF;
     Material.StencilFront.Reference = 0;
-    
+
     Material.StencilFront.FailOp = E_STENCIL_OPERATION::ESO_KEEP;
     Material.StencilFront.DepthFailOp = E_STENCIL_OPERATION::ESO_KEEP;
     Material.StencilFront.PassOp = E_STENCIL_OPERATION::ESO_INCREMENT;
     Material.StencilFront.Comparsion = E_COMPARISON_FUNC::ECFN_ALWAYS;
-    
+
     Material.StencilBack.FailOp = E_STENCIL_OPERATION::ESO_KEEP;
     Material.StencilBack.DepthFailOp = E_STENCIL_OPERATION::ESO_KEEP;
     Material.StencilBack.PassOp = E_STENCIL_OPERATION::ESO_INCREMENT;
     Material.StencilBack.Comparsion = E_COMPARISON_FUNC::ECFN_ALWAYS;
-    
+
     //RasterizerDesc.AntialiasedLineEnable = false;
     //RasterizerDesc.MultisampleEnable = true;
     //RasterizerDesc.ScissorEnable = false;
@@ -2167,10 +2168,10 @@ void COpenGLDriver::drawStencilShadowVolume(const core::array<core::vector3df>& 
 
     draw2D3DVertexPrimitiveList(triangles.const_pointer(), triangles.size(), E_VERTEX_TYPE::EVT_SHADOW, nullptr, 0,
         scene::E_PRIMITIVE_TYPE::EPT_TRIANGLES, E_INDEX_TYPE::EIT_16BIT);
-    
+
     Material.FrontfaceCulling = zfail;
     Material.BackfaceCulling = !zfail;
-    
+
     Material.StencilFront.PassOp = E_STENCIL_OPERATION::ESO_DECREMENT;
     Material.StencilBack.PassOp = E_STENCIL_OPERATION::ESO_DECREMENT;
 
@@ -2179,7 +2180,7 @@ void COpenGLDriver::drawStencilShadowVolume(const core::array<core::vector3df>& 
 
     draw2D3DVertexPrimitiveList(triangles.const_pointer(), triangles.size(), E_VERTEX_TYPE::EVT_SHADOW, nullptr, 0,
         scene::E_PRIMITIVE_TYPE::EPT_TRIANGLES, E_INDEX_TYPE::EIT_16BIT);
-    
+
     CurrentRenderMode = zfail ? ERM_SHADOW_VOLUME_ZFAIL : ERM_SHADOW_VOLUME_ZPASS;
 }
 
@@ -2191,45 +2192,45 @@ void COpenGLDriver::drawStencilShadow(bool clearStencilBuffer, video::SColor lef
 {
     if (!Params.Stencilbuffer)
         return;
-    
+
     Material.ColorMask = 0xF;
     SetShader(m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD]);
-    
+
     S3DVertex vtx[4];
     vtx[0] = S3DVertex(1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, leftUpEdge, 0.0f, 0.0f);
     vtx[1] = S3DVertex(1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, rightUpEdge, 0.0f, 1.0f);
     vtx[2] = S3DVertex(-1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, leftDownEdge, 1.0f, 0.0f);
     vtx[3] = S3DVertex(-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, rightDownEdge, 1.0f, 1.0f);
-    
+
     s16 indices[6] = { 0,1,2,1,3,2 };
-    
+
     setActiveTexture(0, 0);
-    
+
     auto proj = getTransform(E_TRANSFORMATION_STATE::ETS_PROJECTION);
     auto view = getTransform(E_TRANSFORMATION_STATE::ETS_VIEW);
-    
+
     setTransform(E_TRANSFORMATION_STATE::ETS_PROJECTION, core::IdentityMatrix);
     setTransform(E_TRANSFORMATION_STATE::ETS_VIEW, core::IdentityMatrix);
-    setTransform(E_TRANSFORMATION_STATE::ETS_WORLD, core::IdentityMatrix);   
-    
+    setTransform(E_TRANSFORMATION_STATE::ETS_WORLD, core::IdentityMatrix);
+
     Material.FrontfaceCulling = false;
     Material.BackfaceCulling = false;
-    
+
     Material.MaterialType = E_MATERIAL_TYPE::EMT_ONETEXTURE_BLEND;
     Material.BlendOperation = E_BLEND_OPERATION::EBO_ADD;
     Material.uMaterialTypeParam = pack_textureBlendFunc(video::EBF_SRC_ALPHA, video::EBF_ONE_MINUS_SRC_ALPHA, video::EMFN_MODULATE_1X, video::EAS_TEXTURE | video::EAS_VERTEX_COLOR, video::EBF_SRC_ALPHA, video::EBF_ONE_MINUS_SRC_ALPHA, E_BLEND_OPERATION::EBO_ADD, E_BLEND_OPERATION::EBO_ADD);
     Material.ZBuffer = E_COMPARISON_FUNC::ECFN_NEVER;
-    
+
     Material.StencilTest = true;
     Material.StencilFront.Mask = 0xFF;
     Material.StencilFront.WriteMask = 0xFF;
     Material.StencilFront.Reference = 1;
-    
+
     Material.StencilFront.FailOp = E_STENCIL_OPERATION::ESO_KEEP;
     Material.StencilFront.DepthFailOp = E_STENCIL_OPERATION::ESO_KEEP;
     Material.StencilFront.PassOp = E_STENCIL_OPERATION::ESO_KEEP;
     Material.StencilFront.Comparsion = E_COMPARISON_FUNC::ECFN_LESSEQUAL;
-    
+
     Material.StencilBack.FailOp = E_STENCIL_OPERATION::ESO_KEEP;
     Material.StencilBack.DepthFailOp = E_STENCIL_OPERATION::ESO_KEEP;
     Material.StencilBack.PassOp = E_STENCIL_OPERATION::ESO_KEEP;
@@ -2240,20 +2241,20 @@ void COpenGLDriver::drawStencilShadow(bool clearStencilBuffer, video::SColor lef
 
     draw2D3DVertexPrimitiveList(vtx, 4, E_VERTEX_TYPE::EVT_STANDARD, indices, 6,
         scene::E_PRIMITIVE_TYPE::EPT_TRIANGLES, E_INDEX_TYPE::EIT_16BIT);
-    
+
     setTransform(E_TRANSFORMATION_STATE::ETS_PROJECTION, proj);
     setTransform(E_TRANSFORMATION_STATE::ETS_VIEW, view);
-    
+
     Material.StencilTest = false;
     Material.StencilFront.Mask = 0x0;
     Material.StencilFront.WriteMask = 0x0;
     Material.StencilFront.Reference = 0;
-    
+
     if (clearStencilBuffer)
     {
         clearBuffers(false, false, true, SColor());
     }
-    
+
     CurrentRenderMode = ERM_STENCIL_FILL;
 }
 
@@ -2629,7 +2630,7 @@ bool COpenGLDriver::setRenderTarget(ITexture* texture, u16 clearFlag /*= ECBF_CO
         }
 
         testGLError();
- 
+
         CurrentRenderTarget = nullptr;
 
         // we need to update the matrices due to the rendersize change.
@@ -3019,67 +3020,24 @@ namespace irr
 {
     namespace video
     {
-        // -----------------------------------
-        // WINDOWS VERSION
-        // -----------------------------------
-#ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
-        IVideoDriver* createOpenGLDriver(const SIrrlichtCreationParameters& params,
-            io::IFileSystem* io, CIrrDeviceWin32* device)
-        {
+#if defined(_IRR_COMPILE_WITH_WINDOWS_DEVICE_) || defined(_IRR_COMPILE_WITH_X11_DEVICE_) || defined(_IRR_COMPILE_WITH_OSX_DEVICE_)
+	IVideoDriver* createOpenGLDriver(const SIrrlichtCreationParameters& params, io::IFileSystem* io, IContextManager* contextManager)
+	{
 #ifdef _IRR_COMPILE_WITH_OPENGL_
+		COpenGLDriver* ogl = new COpenGLDriver(params, io, contextManager);
 
-            video::CWGLManager* ContextManager = new video::CWGLManager();
-            ContextManager->initialize(params, video::SExposedVideoData(params.WindowId));
+		if (!ogl->initDriver())
+		{
+			ogl->drop();
+			ogl = 0;
+		}
 
-            COpenGLDriver* ogl = new COpenGLDriver(params, io, ContextManager);
-            if (!ogl->initDriver())
-            {
-                ogl->drop();
-                ogl = 0;
-            }
-            return ogl;
+		return ogl;
 #else
-            return 0;
-#endif // _IRR_COMPILE_WITH_OPENGL_
-        }
-#endif // _IRR_COMPILE_WITH_WINDOWS_DEVICE_
-
-        // -----------------------------------
-        // MACOSX VERSION
-        // -----------------------------------
-#if defined(_IRR_COMPILE_WITH_OSX_DEVICE_)
-        IVideoDriver* createOpenGLDriver(const SIrrlichtCreationParameters& params,
-            io::IFileSystem* io, CIrrDeviceMacOSX *device)
-        {
-#ifdef _IRR_COMPILE_WITH_OPENGL_
-            return new COpenGLDriver(params, io, device);
-#else
-            return 0;
-#endif //  _IRR_COMPILE_WITH_OPENGL_
-        }
-#endif // _IRR_COMPILE_WITH_OSX_DEVICE_
-
-        // -----------------------------------
-        // X11 VERSION
-        // -----------------------------------
-#ifdef _IRR_COMPILE_WITH_X11_DEVICE_
-        IVideoDriver* createOpenGLDriver(const SIrrlichtCreationParameters& params,
-            io::IFileSystem* io, CIrrDeviceLinux* device)
-        {
-#ifdef _IRR_COMPILE_WITH_OPENGL_
-            COpenGLDriver* ogl = new COpenGLDriver(params, io, device);
-            if (!ogl->initDriver(device))
-            {
-                ogl->drop();
-                ogl = 0;
-            }
-            return ogl;
-#else
-            return 0;
-#endif //  _IRR_COMPILE_WITH_OPENGL_
-        }
-#endif // _IRR_COMPILE_WITH_X11_DEVICE_
-
+		return 0;
+#endif
+	}
+#endif        
 
         // -----------------------------------
         // SDL VERSION

@@ -11,8 +11,10 @@ ENDMACRO()
 
 FUNCTION(CreateLibrary LibName LibSource Linkage Dependencis LibLinkFlags)
 
+    link_directories(${PROJECTDEPS_PATH}/lib)
+
     add_library(${LibName} ${Linkage} ${LibSource} )
-    
+
     IF(EAC)
         IF (${Linkage} STREQUAL "SHARED")
             SETUP_EDIT_AND_CONTINUE("${LibName}" 1)
@@ -26,48 +28,30 @@ FUNCTION(CreateLibrary LibName LibSource Linkage Dependencis LibLinkFlags)
           ${Dependencis}
         )
 
-        #set_target_properties(${LibName} PROPERTIES LINK_FLAGS
-        #  "${LibLinkFlags}"
-        #)
-        
         # LIBRARY = dyld / so, RUNTIME = dll
         if( UNIX )
           install(TARGETS ${LibName} LIBRARY DESTINATION "${LIBS_DIR}")
         elseif( WIN32 )
           install(TARGETS ${LibName} RUNTIME DESTINATION "${LIBS_DIR}")
         endif(UNIX)
-        
-        message(${DllSTATUS} ${LibName})		
+
+        message(${DllSTATUS} ${LibName})
     ELSE()
         message(${LibSTATUS} ${LibName})
     ENDIF(${Linkage} STREQUAL "SHARED")
-    
+
 ENDFUNCTION()
 
 FUNCTION(CreateHotSwap LibName LibSource Linkage Dependencis LibLinkFlags)
 
+    link_directories(${PROJECTDEPS_PATH}/lib)
+
     add_library(${LibName} ${Linkage} ${LibSource} )
-    
-    # Edit and Continue block pdb
-    #IF(EAC)
-    #    IF (${Linkage} STREQUAL "SHARED")
-    #        SETUP_EDIT_AND_CONTINUE("${LibName}" 1)
-    #    ELSE()
-    #        SETUP_EDIT_AND_CONTINUE("${LibName}" 0)
-    #    ENDIF()
-    #ENDIF(EAC)
-    
-    # Block pdb
-    #if(WFL AND WIN32)
-    #  set(LibLinkFlags "${LibLinkFlags} /DEBUG:FASTLINK")
-    #endif(WFL AND WIN32)
 
     IF (${Linkage} STREQUAL "SHARED")
         target_link_libraries(${LibName} ${Dependencis} )
 
-        #set_target_properties(${LibName} PROPERTIES LINK_FLAGS
-        #  "${LibLinkFlags}"
-        #)
+        link_directories(${PROJECTDEPS_PATH}/lib)
 
         if( WIN32 )
           IF(EAC)
@@ -80,7 +64,7 @@ FUNCTION(CreateHotSwap LibName LibSource Linkage Dependencis LibLinkFlags)
           set_target_properties(${LibName} PROPERTIES PDB_NAME "$(TargetName)-$([System.DateTime]::Now.ToString(\"HH_mm_ss_fff\"))")
           add_custom_command(TARGET ${LibName} PRE_LINK COMMAND del $(OutDir)$(MSBuildProjectName)-*.pdb COMMENT "Delete pdb files")
         endif( WIN32 )
-        
+
         # LIBRARY = dyld / so, RUNTIME = dll
         if( UNIX )
           install(TARGETS ${LibName} LIBRARY DESTINATION "${BIN_DIR}")
@@ -97,8 +81,10 @@ ENDFUNCTION()
 
 FUNCTION(CreateExecutable LibName LibSource Dependencis LibLinkFlags)
 
+    link_directories(${PROJECTDEPS_PATH}/lib)
+
     add_executable(${LibName} ${LibSource} )
-    
+
     IF(EAC)
         SETUP_EDIT_AND_CONTINUE("${LibName}" 1)
     ENDIF(EAC)
@@ -107,16 +93,12 @@ FUNCTION(CreateExecutable LibName LibSource Dependencis LibLinkFlags)
         ${Dependencis}
     )
 
-    #set_target_properties(${LibName} PROPERTIES LINK_FLAGS
-    #	"${LibLinkFlags}"
-    #)
-
     if( UNIX )
         install(TARGETS ${LibName} RUNTIME DESTINATION "${BIN_DIR}")
     elseif( WIN32 )
         install(TARGETS ${LibName} RUNTIME DESTINATION "${BIN_DIR}")
     endif(UNIX)
-    
+
     message(${BinSTATUS} ${LibName})
 ENDFUNCTION()
 
@@ -173,16 +155,16 @@ FUNCTION(AppendDefaultIncludeDir)
       ${PUBLIC_INCLUDES}
       ${CMAKE_SOURCE_DIR}
       ${CMAKE_SOURCE_DIR}/Irrlicht
-      ${CMAKE_SOURCE_DIR}/IrrLicht/include
+      ${CMAKE_SOURCE_DIR}/Irrlicht/include
       ${CMAKE_SOURCE_DIR}/dep
       ${CMAKE_SOURCE_DIR}/dep/zlib
       ${CMAKE_BINARY_DIR}
       ${CMAKE_BINARY_DIR}/Dependencies
       ${CMAKE_BINARY_DIR}/Dependencies/include
     )
-    
+
     IF(UNIX)
-        include_directories( 
+        include_directories(
             ${LIBDL_INCLUDE_DIR}
             ${BFD_INCLUDE_DIR}
           )

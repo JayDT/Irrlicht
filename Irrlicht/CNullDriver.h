@@ -30,7 +30,7 @@
 #include "SVertexManipulator.h"
 #include "RenderEngines/General/CIrrShader.h"
 
-#include "standard/client/DataSource_Standard.h"
+#include "standard/client/datasource_standard.h"
 
 #ifdef _MSC_VER
 #pragma warning( disable: 4996)

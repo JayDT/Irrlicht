@@ -4,6 +4,7 @@
 #include "CHLineTextElement.h"
 
 #include <stdlib.h>
+#include <wchar.h>
 
 namespace irr
 {
@@ -21,7 +22,7 @@ void CHLineTextTag::create( IExtendedText* text, const core::stringw& tag, const
     
     if ( params.size() > 0 )
     {
-        size = _wtoi( params[0].c_str() );
+        size = wcstol ( params[0].c_str(), nullptr, 10 );
         
         if ( size <= 0 )
             size = 1;

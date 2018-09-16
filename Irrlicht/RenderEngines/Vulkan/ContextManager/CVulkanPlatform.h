@@ -29,7 +29,7 @@ namespace irr
             void acquireBackBuffer();
 
             /** swapBuffers */
-            void swapBuffers(UINT32 syncMask = 0xFFFFFFFF);
+            void swapBuffers(uint32_t syncMask = 0xFFFFFFFF);
 
             VulkanSwapChain* GetSwapChain() { return mSwapChain; }
 

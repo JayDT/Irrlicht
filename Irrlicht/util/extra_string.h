@@ -17,7 +17,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#pragma once
+#ifndef __EXTRA_STRING_H__
+#define __EXTRA_STRING_H__
 
 #include "irrlicht.h"
 #include <cstdlib>
@@ -30,7 +31,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <cctype>
 #include <unordered_map>
 
+#ifndef STRINGIFY
 #define STRINGIFY(x) #x
+#endif
 #define TOSTRING(x) STRINGIFY(x)
 
 // Checks whether a value is an ASCII printable character
@@ -74,9 +77,9 @@ wchar_t *utf8_to_wide_c(const char *str);
 
 // You must free the returned string!
 // The returned string is allocated using new
-wchar_t *narrow_to_wide_c(const char *str);
-std::wstring narrow_to_wide(const std::string &mbs);
-std::string wide_to_narrow(const std::wstring &wcs);
+IRRLICHT_API wchar_t *narrow_to_wide_c(const char *str);
+IRRLICHT_API std::wstring narrow_to_wide(const std::string &mbs);
+IRRLICHT_API std::string wide_to_narrow(const std::wstring &wcs);
 
 std::string urlencode(const std::string &str);
 std::string urldecode(const std::string &str);
@@ -703,3 +706,5 @@ inline const std::string duration_to_string(int sec)
 
 	return ss.str();
 }
+
+#endif // __EXTRA_STRING_H__

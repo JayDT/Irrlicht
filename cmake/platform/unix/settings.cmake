@@ -1,12 +1,12 @@
 # set default configuration directory
 if (PREFIX)
-	set(CMAKE_INSTALL_PREFIX "${PREFIX}") 
+	set(CMAKE_INSTALL_PREFIX "${PREFIX}")
 else()
-	set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/XUI_${SERVER_VERSION}") 
+    set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
+	message(STATUS "UNIX: Using default library directory")
 endif()
 
 set(BIN_DIR    ${CMAKE_INSTALL_PREFIX}/bin)
-set(SYSCONFDIR ${CMAKE_INSTALL_PREFIX}/etc/)
 set(LIBS_DIR   ${CMAKE_INSTALL_PREFIX}/lib)
 
 # For Unix systems set the rpath so that libraries are found

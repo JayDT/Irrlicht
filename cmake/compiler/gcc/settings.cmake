@@ -7,11 +7,8 @@ if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS GCC_EXPECTED_VERSION)
   message(FATAL_ERROR "GCC: TCore requires version ${GCC_EXPECTED_VERSION} to build but found ${CMAKE_CXX_COMPILER_VERSION}")
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z") # -ftime-report
-message(STATUS "GCC: Enabled c++17 support")
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
-message(STATUS "GCC: Enabled C99(with gnu99) support")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -Wno-narrowing") # -ftime-report
+message(STATUS "GCC: Enabled c++14 support")
 
 if(PLATFORM EQUAL 32)
   # Required on 32-bit systems to enable SSE2 (standard on x64)
@@ -30,17 +27,17 @@ if( WITH_WARNINGS )
 endif()
 
 if( DEBUG )
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ggdb3 -O0")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb3 -O0")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g3 -O0")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -O0")
 
-  set(CMAKE_C_FLAGS_DEBUG " -ggdb3 -O0")
-  set(CMAKE_CXX_FLAGS_DEBUG " -ggdb3 -O0")
+  set(CMAKE_C_FLAGS_DEBUG " -g3 -O0")
+  set(CMAKE_CXX_FLAGS_DEBUG " -g3 -O0")
   
-  message(STATUS "GCC: Debug-flags set (-ggdb3)")
+  message(STATUS "GCC: Debug-flags set (-g3)")
 else()
  
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ggdb3 -O2 -minline-all-stringops")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb3 -O2 -minline-all-stringops")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g3 -O2 -minline-all-stringops")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -O2 -minline-all-stringops")
 endif()
 
 if ( PCH )

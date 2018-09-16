@@ -167,8 +167,6 @@ u32 COpenGLHardwareBuffer::GetMemoryAccessType(E_HARDWARE_BUFFER_ACCESS access)
 
 bool COpenGLHardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type, E_HARDWARE_BUFFER_ACCESS AccessType, const void* initialData, u32 size)
 {
-    HRESULT hr = S_OK;
-
     if (VertexBufferStreams.size() <= (int)Type)
         VertexBufferStreams.resize(int(Type) + 1);
 

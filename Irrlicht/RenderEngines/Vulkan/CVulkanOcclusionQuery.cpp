@@ -121,7 +121,7 @@ bool VulkanOcclusionQuery::isReady() const
     if (mQueryFinalized)
         return true;
 
-    UINT64 numSamples;
+    uint64_t numSamples;
     bool ready = true;
     for (auto& query : mQueries)
         ready &= !query->isBound() && query->getResult(numSamples);
@@ -129,15 +129,15 @@ bool VulkanOcclusionQuery::isReady() const
     return ready;
 }
 
-UINT32 VulkanOcclusionQuery::getNumSamples()
+uint32_t VulkanOcclusionQuery::getNumSamples()
 {
     if (!mQueryFinalized)
     {
-        UINT64 totalNumSamples = 0;
+        uint64_t totalNumSamples = 0;
         bool ready = true;
         for (auto& query : mQueries)
         {
-            UINT64 numSamples = 0;
+            uint64_t numSamples = 0;
             ready &= !query->isBound() && query->getResult(numSamples);
 
             totalNumSamples += numSamples;
@@ -159,5 +159,5 @@ UINT32 VulkanOcclusionQuery::getNumSamples()
     if (mBinary)
         return mNumSamples == 0 ? 0 : 1;
 
-    return (UINT32)mNumSamples;
+    return (uint32_t)mNumSamples;
 }

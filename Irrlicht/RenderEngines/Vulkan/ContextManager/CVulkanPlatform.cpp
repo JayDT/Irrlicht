@@ -31,7 +31,7 @@ void irr::video::CVulkanPlatform::acquireBackBuffer()
     mRequiresNewBackBuffer = false;
 }
 
-void irr::video::CVulkanPlatform::swapBuffers(UINT32 syncMask)
+void irr::video::CVulkanPlatform::swapBuffers(uint32_t syncMask)
 {
     //if (mShowOnSwap)
     //    setHidden(false);
@@ -44,14 +44,14 @@ void irr::video::CVulkanPlatform::swapBuffers(UINT32 syncMask)
 
     // Find an appropriate queue to execute on
     VulkanQueue* queue = presentDevice->getQueue(GQT_GRAPHICS, 0);
-    UINT32 queueMask = presentDevice->getQueueMask(GQT_GRAPHICS, 0);
+    uint32_t queueMask = presentDevice->getQueueMask(GQT_GRAPHICS, 0);
 
     // Ignore myself
     syncMask &= ~queueMask;
 
-    UINT32 deviceIdx = presentDevice->getIndex();
+    uint32_t deviceIdx = presentDevice->getIndex();
 
-    UINT32 numSemaphores;
+    uint32_t numSemaphores;
     mDriver->getSyncSemaphores(deviceIdx, syncMask, mSemaphoresTemp, numSemaphores);
 
     // Wait on present (i.e. until the back buffer becomes available), if we haven't already done so
@@ -70,10 +70,10 @@ void irr::video::CVulkanPlatform::swapBuffers(UINT32 syncMask)
     VulkanDevice* device = presentDevice;
     if (device)
     {
-        for (UINT32 i = 0; i < GQT_COUNT; i++)
+        for (uint32_t i = 0; i < GQT_COUNT; i++)
         {
-            UINT32 numQueues = device->getNumQueues((GpuQueueType)i);
-            for (UINT32 j = 0; j < numQueues; j++)
+            uint32_t numQueues = device->getNumQueues((GpuQueueType)i);
+            for (uint32_t j = 0; j < numQueues; j++)
             {
                 VulkanQueue* queue = device->getQueue((GpuQueueType)i, j);
                 queue->refreshStates(true, false);

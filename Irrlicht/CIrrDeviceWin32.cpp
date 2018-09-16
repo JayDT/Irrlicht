@@ -32,6 +32,10 @@
 #endif
 #endif
 
+#ifdef _IRR_COMPILE_WITH_OPENGL_
+#include "RenderEngines/OpenGL/ContextManager/CWGLManager.h"
+#endif
+
 namespace irr
 {
     namespace video
@@ -53,12 +57,12 @@ namespace irr
 
         #ifdef _IRR_COMPILE_WITH_OPENGL_
         IVideoDriver* createOpenGLDriver(const irr::SIrrlichtCreationParameters& params,
-            io::IFileSystem* io, CIrrDeviceWin32* device);
+            io::IFileSystem* io, IContextManager* context);
         #endif
 
         #ifdef _IRR_COMPILE_WITH_VULKAN_
         IVideoDriver* createVulkanDriver(const SIrrlichtCreationParameters& params,
-            io::IFileSystem* io, HWND hwnd);
+            io::IFileSystem* io, void* hwnd);
         #endif
     }
 } // end namespace irr
@@ -1413,11 +1417,14 @@ void CIrrDeviceWin32::createDriver()
         break;
 
     case video::EDT_OPENGL:
-
+    {
         #ifdef _IRR_COMPILE_WITH_OPENGL_
         switchToFullScreen();
 
-        VideoDriver = video::createOpenGLDriver(CreationParams, FileSystem, this);
+        video::CWGLManager* ContextManager = new video::CWGLManager();
+        ContextManager->initialize(CreationParams, video::SExposedVideoData(CreationParams.WindowId));
+            
+        VideoDriver = video::createOpenGLDriver(CreationParams, FileSystem, ContextManager);
         if (!VideoDriver)
         {
             os::Printer::log("Could not create OpenGL driver.", ELL_ERROR);
@@ -1426,10 +1433,11 @@ void CIrrDeviceWin32::createDriver()
         os::Printer::log("OpenGL driver was not compiled in.", ELL_ERROR);
         #endif
         break;
+    }
     case video::EDT_VULKAN:
         #ifdef _IRR_COMPILE_WITH_VULKAN_
 
-        VideoDriver = video::createVulkanDriver(CreationParams, FileSystem, HWnd);
+        VideoDriver = video::createVulkanDriver(CreationParams, FileSystem, (void*)HWnd);
 
         if ( !VideoDriver )
         {

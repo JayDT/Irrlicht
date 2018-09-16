@@ -154,20 +154,38 @@ endmacro(findpkg_framework)
 macro(AddInterfaceLibrary _Prefix)
     # Generate precompiled header
     if( ${_Prefix}_FOUND )
-        add_library(${_Prefix} INTERFACE)
-        
+     add_library(${_Prefix} INTERFACE)
      IF (DEFINED ${_Prefix}_INCLUDE_DIR)
+        mark_as_advanced("${${_Prefix}_LIBRARY}" "${${_Prefix}_INCLUDE_DIR}")
         target_link_libraries(${_Prefix} INTERFACE ${${_Prefix}_LIBRARY})
         target_include_directories(${_Prefix} INTERFACE ${${_Prefix}_INCLUDE_DIR})
      ELSE(DEFINED ${_Prefix}_INCLUDE_DIR)
+        mark_as_advanced("${${_Prefix}_LIBRARIES}" "${${_Prefix}_INCLUDE_DIRS}")
         target_link_libraries(${_Prefix} INTERFACE ${${_Prefix}_LIBRARIES})
         target_include_directories(${_Prefix} INTERFACE ${${_Prefix}_INCLUDE_DIRS})
      ENDIF(DEFINED ${_Prefix}_INCLUDE_DIR)
     endif( ${_Prefix}_FOUND )
 endmacro(AddInterfaceLibrary)
 
-macro(AddBuildInLibrary _Prefix)
+macro(AddImportLibrary _Prefix)
     # Generate precompiled header
+    if( ${_Prefix}_FOUND )
+     add_library(${_Prefix} UNKNOWN IMPORTED)
+     IF (DEFINED ${_Prefix}_INCLUDE_DIR)
+        mark_as_advanced("${${_Prefix}_LIBRARY}" "${${_Prefix}_INCLUDE_DIR}")
+        set_target_properties(${_Prefix} PROPERTIES
+            IMPORTED_LOCATION "${${_Prefix}_LIBRARY}"
+            INTERFACE_INCLUDE_DIRECTORIES "${${_Prefix}_INCLUDE_DIR}")
+     ELSE(DEFINED ${_Prefix}_INCLUDE_DIR)
+        mark_as_advanced("${${_Prefix}_LIBRARIES}" "${${_Prefix}_INCLUDE_DIRS}")
+        set_target_properties(${_Prefix} PROPERTIES
+            IMPORTED_LOCATION "${${_Prefix}_LIBRARIES}"
+            INTERFACE_INCLUDE_DIRECTORIES "${${_Prefix}_INCLUDE_DIRS}")
+     ENDIF(DEFINED ${_Prefix}_INCLUDE_DIR)
+    endif( ${_Prefix}_FOUND )
+endmacro(AddImportLibrary)
+
+macro(AddBuildInLibrary _Prefix)
     if( ${_Prefix}_USE_BUILDIN )
         add_subdirectory(${_Prefix})
         MESSAGE (${IntSTATUS} "${_Prefix} build in mode")

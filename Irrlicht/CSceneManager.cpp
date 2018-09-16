@@ -1426,7 +1426,7 @@ void CSceneManager::drawAll()
         camWorldPos = ActiveCamera->getAbsolutePosition();
     }
 
-    u64 start = os::Timer::getRealUTime();
+    //u64 start = os::Timer::getRealUTime();
     if (!mFreezeCulling)
     {
         if (mRegenerateCulling)
@@ -1448,8 +1448,8 @@ void CSceneManager::drawAll()
 
     }
 
-    mTimers[0] = os::Timer::getRealUTime() - start;
-    start = os::Timer::getRealUTime();
+    //mTimers[0] = os::Timer::getRealUTime() - start;
+    //start = os::Timer::getRealUTime();
 
     if (mRequestToggleFreezeCulling != mFreezeCulling)
     {
@@ -1552,8 +1552,8 @@ void CSceneManager::drawAll()
             LightManager->OnRenderPassPostRender(CurrentRendertime);
     }
 
-    mTimers[1] = os::Timer::getRealUTime() - start;
-    start = os::Timer::getRealUTime();
+    //mTimers[1] = os::Timer::getRealUTime() - start;
+    //start = os::Timer::getRealUTime();
 
     if (Terrain)
     {
@@ -1561,8 +1561,8 @@ void CSceneManager::drawAll()
         Terrain->render();
     }
 
-    mTimers[2] = os::Timer::getRealUTime() - start;
-    start = os::Timer::getRealUTime();
+    //mTimers[2] = os::Timer::getRealUTime() - start;
+    //start = os::Timer::getRealUTime();
 
     // render default objects
     {
@@ -1586,7 +1586,7 @@ void CSceneManager::drawAll()
         {
             for (i = 0; i < SolidNodeList.size(); ++i)
             {
-                u64 start = os::Timer::getRealUTime();
+                //u64 start = os::Timer::getRealUTime();
                 SolidNodeList[i].Node->render();
                 //SolidNodeList[i].Node->RenderPerf(os::Timer::getRealUTime() - start);
             }
@@ -1667,8 +1667,8 @@ void CSceneManager::drawAll()
             LightManager->OnRenderPassPostRender(CurrentRendertime);
     }
 
-    mTimers[3] = os::Timer::getRealUTime() - start;
-    start = os::Timer::getRealUTime();
+    //mTimers[3] = os::Timer::getRealUTime() - start;
+    //start = os::Timer::getRealUTime();
 
     // render transparent effect objects.
     {
@@ -1701,8 +1701,8 @@ void CSceneManager::drawAll()
             TransparentEffectNodeList.set_used(0);
     }
 
-    mTimers[4] = os::Timer::getRealUTime() - start;
-    start = os::Timer::getRealUTime();
+    //mTimers[4] = os::Timer::getRealUTime() - start;
+    //start = os::Timer::getRealUTime();
 
     if (LightManager)
         LightManager->OnPostRender();

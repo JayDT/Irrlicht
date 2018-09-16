@@ -4,6 +4,7 @@
 #include "CBlankTextElement.h"
 
 #include <stdlib.h>
+#include <wchar.h>
 
 namespace irr
 {
@@ -33,7 +34,7 @@ void CTabTextTag::create( IExtendedText* text, const core::stringw& tag, const c
     if ( params.size() > 0 )
     {
         // Convert string to int
-        size = _wtoi( params[0].c_str() );
+        size = wcstol ( params[0].c_str(), nullptr, 10 );
         
         if ( size <= 0 )
             size = TabSize;

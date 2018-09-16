@@ -27,8 +27,8 @@ namespace video
         //! Constructor.
         CNSOGLManager();
 
-		//! Destructor
-		~CNSOGLManager();
+        //! Destructor
+        virtual ~CNSOGLManager();
 
         // Initialize
         bool initialize(const SIrrlichtCreationParameters& params, const SExposedVideoData& data);

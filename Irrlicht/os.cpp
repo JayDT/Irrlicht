@@ -100,32 +100,32 @@ namespace os
 		initVirtualTimer();
 	}
 
-    u64 Timer::getRealUTime()
-    {
-        if (HighPerformanceTimerSupport)
-        {
-#if !defined(_WIN32_WCE) && !defined (_IRR_XBOX_PLATFORM_)
-            // Avoid potential timing inaccuracies across multiple cores by
-            // temporarily setting the affinity of this process to one core.
-            DWORD_PTR affinityMask = 0;
-            if (MultiCore)
-                affinityMask = SetThreadAffinityMask(GetCurrentThread(), 1);
-#endif
-            LARGE_INTEGER nTime;
-            BOOL queriedOK = QueryPerformanceCounter(&nTime);
-
-#if !defined(_WIN32_WCE)  && !defined (_IRR_XBOX_PLATFORM_)
-            // Restore the true affinity.
-            if (MultiCore)
-                (void)SetThreadAffinityMask(GetCurrentThread(), affinityMask);
-#endif
-            if (queriedOK)
-                return u64(nTime.QuadPart / HighPerformanceFreq.QuadPart);
-
-        }
-
-        return 0;
-    }
+//    u64 Timer::getRealUTime()
+//    {
+//        if (HighPerformanceTimerSupport)
+//        {
+//#if !defined(_WIN32_WCE) && !defined (_IRR_XBOX_PLATFORM_)
+//            // Avoid potential timing inaccuracies across multiple cores by
+//            // temporarily setting the affinity of this process to one core.
+//            DWORD_PTR affinityMask = 0;
+//            if (MultiCore)
+//                affinityMask = SetThreadAffinityMask(GetCurrentThread(), 1);
+//#endif
+//            LARGE_INTEGER nTime;
+//            BOOL queriedOK = QueryPerformanceCounter(&nTime);
+//
+//#if !defined(_WIN32_WCE)  && !defined (_IRR_XBOX_PLATFORM_)
+//            // Restore the true affinity.
+//            if (MultiCore)
+//                (void)SetThreadAffinityMask(GetCurrentThread(), affinityMask);
+//#endif
+//            if (queriedOK)
+//                return u64(nTime.QuadPart / HighPerformanceFreq.QuadPart);
+//
+//        }
+//
+//        return 0;
+//    }
 
 	u32 Timer::getRealTime()
 	{

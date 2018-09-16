@@ -16,6 +16,9 @@
 
 #include <algorithm>
 
+// Workaround on <X11/X.h> defined Success
+#undef Success
+
 using namespace irr;
 using namespace irr::video;
 

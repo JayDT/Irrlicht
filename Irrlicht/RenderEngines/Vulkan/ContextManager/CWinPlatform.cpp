@@ -3,6 +3,8 @@
 #include "CVulkanDevice.h"
 #include "CVulkanSwapChain.h"
 
+#ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
+
 //! Destructor
 
 irr::video::CWinVulkanPlatform::~CWinVulkanPlatform()
@@ -127,3 +129,5 @@ void irr::video::CWinVulkanPlatform::resizeSwapBuffers()
     mDriver->_getPrimaryDevice()->waitIdle();
     mSwapChain->rebuild(mDriver->_getPrimaryDevice(), mSurface, mDriver->getScreenSize().Width, mDriver->getScreenSize().Height, mDriver->mCreateParams.Vsync, mColorFormat, mColorSpace, true, mDepthFormat);
 }
+
+#endif // _IRR_COMPILE_WITH_WINDOWS_DEVICE_

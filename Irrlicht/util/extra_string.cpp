@@ -93,8 +93,8 @@ std::wstring utf8_to_wide(const std::string &input)
 	memset(outbuf, 0, outbuf_size);
 
 	if (!convert("WCHAR_T", "UTF-8", outbuf, outbuf_size, inbuf, inbuf_size)) {
-		infostream << "Couldn't convert UTF-8 string 0x" << hex_encode(input)
-			<< " into wstring" << std::endl;
+		//infostream << "Couldn't convert UTF-8 string 0x" << hex_encode(input)
+		//	<< " into wstring" << std::endl;
 		delete[] inbuf;
 		delete[] outbuf;
 		return L"<invalid UTF-8 string>";
@@ -126,8 +126,8 @@ std::string wide_to_utf8(const std::wstring &input)
 	memset(outbuf, 0, outbuf_size);
 
 	if (!convert("UTF-8", "WCHAR_T", outbuf, outbuf_size, inbuf, inbuf_size)) {
-		infostream << "Couldn't convert wstring 0x" << hex_encode(inbuf, inbuf_size)
-			<< " into UTF-8 string" << std::endl;
+		//infostream << "Couldn't convert wstring 0x" << hex_encode(inbuf, inbuf_size)
+		//	<< " into UTF-8 string" << std::endl;
 		delete[] inbuf;
 		delete[] outbuf;
 		return "<invalid wstring>";
@@ -262,16 +262,15 @@ std::wstring narrow_to_wide(const std::string &mbs) {
 
 #else // not Android
 
-//std::wstring narrow_to_wide(const std::string &mbs)
-//{
-//	size_t wcl = mbs.size();
-//	Buffer<wchar_t> wcs(wcl + 1);
-//	size_t len = mbstowcs(*wcs, mbs.c_str(), wcl);
-//	if (len == (size_t)(-1))
-//		return L"<invalid multibyte string>";
-//	wcs[len] = 0;
-//	return *wcs;
-//}
+std::wstring narrow_to_wide(const std::string &mbs)
+{
+	size_t wcl = mbs.size();
+    std::wstring wcs(wcl, L'#');
+	size_t len = mbstowcs(&wcs[0], mbs.c_str(), wcl);
+	if (len == (size_t)(-1))
+		return L"<invalid multibyte string>";
+	return wcs;
+}
 
 #endif
 

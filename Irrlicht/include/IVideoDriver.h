@@ -20,7 +20,7 @@
 #include "EDriverFeatures.h"
 #include "SExposedVideoData.h"
 #include "IRenderTarget.h"
-#include "standard/client/IDataSourceClient.h"
+#include "standard/client/idatasourceclient.h"
 
 namespace irr
 {

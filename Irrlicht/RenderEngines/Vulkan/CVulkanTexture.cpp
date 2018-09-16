@@ -252,7 +252,7 @@ void * irr::video::CVulkanTexture::lock(E_TEXTURE_LOCK_MODE mode, u32 mipmapLeve
         assert(!mSupportsGPUWrites);
 
         // Check is the GPU currently reading from the image
-        u32 useMask = subresource->getUseInfo(VulkanUseFlag::Read);
+        u32 useMask = subresource->getUseInfo(VulkanUseFlag::eRead);
         bool isUsedOnGPU = useMask != 0;
 
         // We're safe to map directly since GPU isn't using the subresource
@@ -271,8 +271,8 @@ void * irr::video::CVulkanTexture::lock(E_TEXTURE_LOCK_MODE mode, u32 mipmapLeve
                     VkMemoryRequirements memReqs;
                     vkGetImageMemoryRequirements(device->getLogical(), image->getHandle(), &memReqs);
 
-                    UINT8* src = image->map(0, (u32)memReqs.size);
-                    UINT8* dst = newImage->map(0, (u32)memReqs.size);
+                    uint8_t* src = image->map(0, (u32)memReqs.size);
+                    uint8_t* dst = newImage->map(0, (u32)memReqs.size);
 
                     memcpy(dst, src, memReqs.size);
 
@@ -318,9 +318,9 @@ void * irr::video::CVulkanTexture::lock(E_TEXTURE_LOCK_MODE mode, u32 mipmapLeve
             // Ensure flush() will wait for all queues currently using to the texture (if any) to finish
             // If only reading, wait for all writes to complete, otherwise wait on both writes and reads
             if (mode == ETLM_READ_ONLY)
-                useMask = subresource->getUseInfo(VulkanUseFlag::Write);
+                useMask = subresource->getUseInfo(VulkanUseFlag::eWrite);
             else
-                useMask = subresource->getUseInfo(VulkanUseFlag::Read | VulkanUseFlag::Write);
+                useMask = subresource->getUseInfo(VulkanUseFlag::eRead | VulkanUseFlag::eWrite);
 
             transferCB->appendMask(useMask);
 
@@ -336,8 +336,8 @@ void * irr::video::CVulkanTexture::lock(E_TEXTURE_LOCK_MODE mode, u32 mipmapLeve
                 VkMemoryRequirements memReqs;
                 vkGetImageMemoryRequirements(device->getLogical(), image->getHandle(), &memReqs);
 
-                UINT8* src = image->map(0, (u32)memReqs.size);
-                UINT8* dst = newImage->map(0, (u32)memReqs.size);
+                uint8_t* src = image->map(0, (u32)memReqs.size);
+                uint8_t* dst = newImage->map(0, (u32)memReqs.size);
 
                 memcpy(dst, src, memReqs.size);
 
@@ -376,7 +376,7 @@ void * irr::video::CVulkanTexture::lock(E_TEXTURE_LOCK_MODE mode, u32 mipmapLeve
 
         // Similar to above, if image supports GPU writes or is currently being written to, we need to wait on any
         // potential writes to complete
-        u32 writeUseMask = subresource->getUseInfo(VulkanUseFlag::Write);
+        u32 writeUseMask = subresource->getUseInfo(VulkanUseFlag::eWrite);
 
         if (mSupportsGPUWrites || writeUseMask != 0)
         {
@@ -418,7 +418,7 @@ void * irr::video::CVulkanTexture::lock(E_TEXTURE_LOCK_MODE mode, u32 mipmapLeve
 
         transferCB->setLayout(image->getHandle(), VK_ACCESS_TRANSFER_READ_BIT, currentAccessMask,
             VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dstLayout, range);
-        transferCB->getCB()->registerResource(image, range, VulkanUseFlag::Read, ResourceUsage::Transfer);
+        transferCB->getCB()->registerResource(image, range, VulkanUseFlag::eRead, ResourceUsage::eTransfer);
 
         // Ensure data written to the staging buffer is visible
         VkAccessFlags stagingAccessFlags;
@@ -441,7 +441,7 @@ void * irr::video::CVulkanTexture::lock(E_TEXTURE_LOCK_MODE mode, u32 mipmapLeve
     u32 mipHeight = std::max(1u, TextureSize.Height >> mipmapLevel);
     u32 mipDepth = std::max(1u, 1u >> mipmapLevel);
 
-    UINT8* data = mStagingBuffer->map(device, 0, IImage::getMemorySize(mipWidth, mipHeight, mipDepth, mInternalFormats[mMappedDeviceIdx]));
+    uint8_t* data = mStagingBuffer->map(device, 0, IImage::getMemorySize(mipWidth, mipHeight, mipDepth, mInternalFormats[mMappedDeviceIdx]));
     return data;
 }
 
@@ -501,7 +501,7 @@ void irr::video::CVulkanTexture::unlock()
                 //}
                 else // Otherwise we have no choice but to issue a dependency between the queues
                 {
-                    u32 useMask = subresource->getUseInfo(VulkanUseFlag::Read | VulkanUseFlag::Write);
+                    u32 useMask = subresource->getUseInfo(VulkanUseFlag::eRead | VulkanUseFlag::eWrite);
                     transferCB->appendMask(useMask);
                     isNormalWrite = true;
                 }
@@ -575,9 +575,9 @@ void irr::video::CVulkanTexture::unlock()
             transferCB->setLayout(image->getHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, currentAccessMask, transferLayout, dstLayout, range);
 
             // Notify the command buffer that these resources are being used on it
-            mStagingBuffer->NotifySoftBound(VulkanUseFlag::Read);
-            //transferCB->getCB()->registerResource(mStagingBuffer, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::Read);
-            transferCB->getCB()->registerResource(image, range, VulkanUseFlag::Write, ResourceUsage::Transfer);
+            mStagingBuffer->NotifySoftBound(VulkanUseFlag::eRead);
+            //transferCB->getCB()->registerResource(mStagingBuffer, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::eRead);
+            transferCB->getCB()->registerResource(image, range, VulkanUseFlag::eWrite, ResourceUsage::eTransfer);
 
             // We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
             // done automatically before next "normal" command buffer submission.
@@ -719,8 +719,8 @@ bool irr::video::CVulkanTexture::createMipMaps(u32 level)
         transferCB->setLayout(GetVkImages(0)->getHandle(), currentAccessMask, dstAccessMask,
             VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, subresourceRange);
 
-        transferCB->appendMask(subresource->getUseInfo(VulkanUseFlag::Write));
-        transferCB->getCB()->registerResource(GetVkImages(0), subresourceRange, VulkanUseFlag::Read, ResourceUsage::Transfer);
+        transferCB->appendMask(subresource->getUseInfo(VulkanUseFlag::eWrite));
+        transferCB->getCB()->registerResource(GetVkImages(0), subresourceRange, VulkanUseFlag::eRead, ResourceUsage::eTransfer);
 
         // Submit the command buffer and wait until it finishes
         transferCB->flush(true);
@@ -964,8 +964,8 @@ void irr::video::CVulkanTexture::copyImage(VulkanTransferBuffer * cb, VulkanImag
     cb->setLayout(dstImage->getHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, dstAccessMask,
         transferDstLayout, dstFinalLayout, range);
 
-    cb->getCB()->registerResource(srcImage, range, VulkanUseFlag::Read, ResourceUsage::Transfer);
-    cb->getCB()->registerResource(dstImage, range, VulkanUseFlag::Write, ResourceUsage::Transfer);
+    cb->getCB()->registerResource(srcImage, range, VulkanUseFlag::eRead, ResourceUsage::eTransfer);
+    cb->getCB()->registerResource(dstImage, range, VulkanUseFlag::eWrite, ResourceUsage::eTransfer);
 
     delete [](imageRegions);
 }
@@ -1384,7 +1384,7 @@ void VulkanImage::map(uint32_t face, uint32_t mipLevel, MappedImageData& output)
     VkDeviceSize memoryOffset;
     device->getAllocationInfo(mAllocation, memory, memoryOffset);
 
-    UINT8* data;
+    uint8_t* data;
     VkResult result = vkMapMemory(device->getLogical(), memory, memoryOffset + layout.offset, layout.size, 0, (void**)&data);
     assert(result == VK_SUCCESS);
 
@@ -1392,7 +1392,7 @@ void VulkanImage::map(uint32_t face, uint32_t mipLevel, MappedImageData& output)
     output.size = layout.size;
 }
 
-UINT8* VulkanImage::map(uint32_t offset, uint32_t size) const
+uint8_t* VulkanImage::map(uint32_t offset, uint32_t size) const
 {
     VulkanDevice* device = Driver->_getPrimaryDevice();
 
@@ -1400,7 +1400,7 @@ UINT8* VulkanImage::map(uint32_t offset, uint32_t size) const
     VkDeviceSize memoryOffset;
     device->getAllocationInfo(mAllocation, memory, memoryOffset);
 
-    UINT8* data;
+    uint8_t* data;
     VkResult result = vkMapMemory(device->getLogical(), memory, memoryOffset + offset, size, 0, (void**)&data);
     assert(result == VK_SUCCESS);
 

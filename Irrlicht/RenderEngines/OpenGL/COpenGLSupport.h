@@ -69,6 +69,11 @@ THE SOFTWARE.
 #include <GL/wglew.h>
 #else
 #include <GL/glxew.h>
+#include <GL/glext.h>
+#endif
+
+#ifndef APIENTRY
+#define APIENTRY
 #endif
 
 #define SAFE_BUFFER_DELETE(x)               \

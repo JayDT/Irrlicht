@@ -7,6 +7,7 @@
 #include "IVideoDriver.h"
 #include "IShader.h"
 #include "IShaderConstantSetCallBack.h"
+#include "IGPUProgrammingServices.h"
 
 namespace irr
 {

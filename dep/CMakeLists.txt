@@ -1,7 +1,11 @@
 add_subdirectory(glm)
 add_subdirectory(jpeglib)
 add_subdirectory(libpng)
-add_subdirectory(zlib)
+add_subdirectory(threads)
+
+IF (NOT ZLIB_FOUND)
+  add_subdirectory(zlib)
+ENDIF()
 
 IF (BUILD_IN_USE_GLSLANG)
 

@@ -95,11 +95,11 @@ namespace irr
         };
 
         /** Determines where are the current descriptor sets bound to. */
-        enum class DescriptorSetBindFlag
+        enum class DescriptorSetBindFlag : u8
         {
-            None = 0,
-            Graphics = 1 << 0,
-            Compute = 1 << 1
+            eNone = 0,
+            eGraphics = 1 << 0,
+            eCompute = 1 << 1
         };
 
         ENABLE_ENUM_CLASS_FLAG(DescriptorSetBindFlag)
@@ -107,9 +107,9 @@ namespace irr
         /** Specifies for what purpose is a resource being bound to a command buffer. */
         enum class ResourceUsage
         {
-            ShaderBind,
-            Framebuffer,
-            Transfer
+            eShaderBind,
+            eFramebuffer,
+            eTransfer
         };
 
         /**
@@ -286,10 +286,10 @@ namespace irr
             void setRenderTarget(const video::IRenderTarget* rt, uint32_t readOnlyFlags, RenderSurfaceMaskBits loadMask, bool LifeTimeBound);
 
             /** Clears the entirety currently bound render target. */
-            void clearRenderTarget(uint32_t buffers, const irr::video::SColor& color, float depth, UINT16 stencil, UINT8 targetMask);
+            void clearRenderTarget(uint32_t buffers, const irr::video::SColor& color, float depth, uint16_t stencil, uint8_t targetMask);
 
             /** Clears the viewport portion of the currently bound render target. */
-            void clearViewport(uint32_t buffers, const irr::video::SColor& color, float depth, UINT16 stencil, UINT8 targetMask);
+            void clearViewport(uint32_t buffers, const irr::video::SColor& color, float depth, uint16_t stencil, uint8_t targetMask);
 
             /** Assigns a pipeline state to use for subsequent draw commands. */
             void setPipelineState(const VulkanGraphicsPipelineState* state);
@@ -410,7 +410,7 @@ namespace irr
             void bindGpuParams();
 
             /** Clears the specified area of the currently bound render target. */
-            void clearViewport(const core::recti& area, uint32_t buffers, const irr::video::SColor& color, float depth, UINT16 stencil, UINT8 targetMask);
+            void clearViewport(const core::recti& area, uint32_t buffers, const irr::video::SColor& color, float depth, uint16_t stencil, uint8_t targetMask);
 
             /** Starts and ends a render pass, intended only for a clear operation. */
             void executeClearPass();

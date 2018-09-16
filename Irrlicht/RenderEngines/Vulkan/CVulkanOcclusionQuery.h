@@ -35,7 +35,7 @@ namespace irr
             bool isReady() const override;
 
             /** @copydoc OcclusionQuery::getNumSamples */
-            UINT32 getNumSamples() override;
+            uint32_t getNumSamples() override;
 
             /** Returns true if the query begin() was called, but not end(). */
             bool _isInProgress() const;
@@ -55,7 +55,7 @@ namespace irr
             VulkanDevice& mDevice;
             std::vector<VulkanQuery*> mQueries;
 
-            UINT64 mNumSamples;
+            uint64_t mNumSamples;
             bool mQueryEndCalled : 1;
             bool mQueryFinalized : 1;
             bool mQueryInterrupted : 1;

@@ -33,11 +33,31 @@
 #include <iostream>
 #include "CGUITTFont.h"
 
+
+// Manages the FreeType library.
+FT_Library c_library;
+irr::core::map<irr::io::path, irr::gui::SGUITTFace*> c_faces;
+bool c_libraryLoaded = false;
+irr::scene::IMesh* shared_plane_ptr_ = 0;
+irr::scene::SMesh shared_plane_;
+
 namespace irr
 {
 namespace gui
 {
 
+//! Class to assist in deleting glyphs.
+class CGUITTAssistDelete
+{
+    public:
+        template <class T, typename TAlloc>
+        static void Delete(core::array<T, TAlloc>& a)
+        {
+            TAlloc allocator;
+            allocator.deallocate(a.pointer());
+        }
+};
+    
 // Manages the FT_Face cache.
 struct SGUITTFace : public virtual irr::IReferenceCounted
 {
@@ -56,13 +76,6 @@ struct SGUITTFace : public virtual irr::IReferenceCounted
 	FT_Byte* face_buffer;
 	FT_Long face_buffer_size;
 };
-
-// Static variables.
-FT_Library CGUITTFont::c_library;
-core::map<io::path, SGUITTFace*> CGUITTFont::c_faces;
-bool CGUITTFont::c_libraryLoaded = false;
-scene::IMesh* CGUITTFont::shared_plane_ptr_ = 0;
-scene::SMesh CGUITTFont::shared_plane_;
 
 //
 
@@ -1301,3 +1314,62 @@ core::array<scene::ISceneNode*> CGUITTFont::addTextSceneNode(const wchar_t* text
 
 } // end namespace gui
 } // end namespace irr
+
+void irr::gui::CGUITTGlyphPage::updateTexture()
+{
+    if (!dirty) return;
+
+    void* ptr = texture->lock(irr::video::E_TEXTURE_LOCK_MODE::ETLM_WRITE_ONLY);
+    video::ECOLOR_FORMAT format = texture->getColorFormat();
+    core::dimension2du size = texture->getOriginalSize();
+    video::IImage* pageholder = driver->createImageFromData(format, size, ptr, true, false);
+
+    for (u32 i = 0; i < glyph_to_be_paged.size(); ++i)
+    {
+        const SGUITTGlyph* glyph = glyph_to_be_paged[i];
+        if (glyph && glyph->isLoaded)
+        {
+            if (glyph->surface)
+            {
+                glyph->surface->copyTo(pageholder, glyph->source_rect.UpperLeftCorner);
+                glyph->surface->drop();
+                glyph->surface = 0;
+            }
+            else
+            {
+                ; // TODO: add error message?
+                  //currently, if we failed to create the image, just ignore this operation.
+            }
+        }
+    }
+
+    pageholder->drop();
+    texture->unlock();
+    glyph_to_be_paged.clear();
+    dirty = false;
+}
+
+bool irr::gui::CGUITTGlyphPage::createPageTexture(const u8& pixel_mode, const core::dimension2du& texture_size)
+{
+    if (texture)
+        return false;
+
+    bool flgmip = driver->getTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS);
+    driver->setTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS, false);
+
+    // Set the texture color format.
+    switch (pixel_mode)
+    {
+        case FT_PIXEL_MODE_MONO:
+            texture = driver->addTexture(texture_size, name, video::ECF_A1R5G5B5);
+            break;
+        case FT_PIXEL_MODE_GRAY:
+        default:
+            texture = driver->addTexture(texture_size, name, video::ECF_A8R8G8B8);
+            break;
+    }
+
+    // Restore our texture creation flags.
+    driver->setTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS, flgmip);
+    return texture ? true : false;
+}

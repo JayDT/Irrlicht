@@ -9,17 +9,24 @@ include(MacroLogFeature REQUIRED)
 #######################################################################
 
 find_package(PCHSupport)
-find_package(LLVM REQUIRED)
+#find_package(LLVM REQUIRED)
 #find_package(CURL REQUIRED)
 
 #######################################################################
 # Render Systems
 #######################################################################
 
-find_package(OpenGL) # Use Build in
+find_package(OpenGL)
 find_package(DirectX)
 find_package(DirectX11)
 find_package(Vulkan)
+find_package(Threads REQUIRED)
+
+message(${ASTATUS} "Found Vulkan headers       : ${Vulkan_INCLUDE_DIR}")
+message(${ASTATUS} "Found Vulkan library       : ${Vulkan_LIBRARY}")
+
+message(${ASTATUS} "Found OpenGL headers       : ${OPENGL_INCLUDE_DIRS}")
+message(${ASTATUS} "Found OpenGL library       : ${OPENGL_LIBRARIES}")
 
 IF(UNIX)
     FIND_PACKAGE(Libdl REQUIRED)
@@ -27,7 +34,7 @@ IF(UNIX)
         MESSAGE(FATAL_ERROR "Dynamic Library handler missing: Can't load dynamic library.")
     ENDIF (NOT LIBDL_FOUND)
 
-    #Required GCC  binutils-dev  
+    #Required GCC  binutils-dev
     # Look for binutils-dev. Needed for pretty stack printing.
     FIND_PACKAGE(BFD REQUIRED)
     IF (BFD_FOUND)
@@ -39,12 +46,9 @@ IF(UNIX)
     ENDIF (BFD_FOUND)
 ENDIF(UNIX)
 
-FIND_PACKAGE(Threads REQUIRED)
-
 # PROJECT_DEPENDENCIES_DIR can be used to specify a single base
 # folder where the required dependencies may be found.
 set(PROJECT_DEPENDENCIES_DIR "" CACHE PATH "Path to prebuilt PROJECT dependencies")
-option(PROJECT_BUILD_DEPENDENCIES "automatically build Ogre Dependencies (freetype, zzip, boost)" TRUE)
 
 getenv_path(PROJECT_DEPENDENCIES_DIR)
 if(PROJECT_BUILD_PLATFORM_EMSCRIPTEN)
@@ -58,7 +62,7 @@ if(PROJECT_BUILD_PLATFORM_EMSCRIPTEN)
     "${CMAKE_SOURCE_DIR}/../EmscriptenDependencies"
   )
 elseif(APPLE_IOS)
-  set(PROJECT_DEP_SEARCH_PATH 
+  set(PROJECT_DEP_SEARCH_PATH
     ${PROJECT_DEPENDENCIES_DIR}
     ${ENV_PROJECT_DEPENDENCIES_DIR}
     "${CMAKE_BINARY_DIR}/iOSDependencies"
@@ -67,7 +71,7 @@ elseif(APPLE_IOS)
     "${CMAKE_SOURCE_DIR}/../iOSDependencies"
   )
 elseif(PROJECT_BUILD_PLATFORM_ANDROID)
-  set(PROJECT_DEP_SEARCH_PATH 
+  set(PROJECT_DEP_SEARCH_PATH
     ${PROJECT_DEPENDENCIES_DIR}
     ${ENV_PROJECT_DEPENDENCIES_DIR}
     "${CMAKE_BINARY_DIR}/AndroidDependencies"
@@ -76,7 +80,7 @@ elseif(PROJECT_BUILD_PLATFORM_ANDROID)
     "${CMAKE_SOURCE_DIR}/../AndroidDependencies"
   )
 else()
-  set(PROJECT_DEP_SEARCH_PATH 
+  set(PROJECT_DEP_SEARCH_PATH
     ${PROJECT_DEPENDENCIES_DIR}
     ${ENV_PROJECT_DEPENDENCIES_DIR}
     "${CMAKE_BINARY_DIR}/Dependencies"
@@ -86,21 +90,21 @@ else()
   )
 endif()
 
-message(STATUS "Search path: ${PROJECT_DEP_SEARCH_PATH}")
+#message(STATUS "Search path: ${PROJECT_DEP_SEARCH_PATH}")
 list(GET PROJECT_DEP_SEARCH_PATH 0 PROJECTDEPS_PATH)
 
 if(CMAKE_CROSSCOMPILING)
     set(CMAKE_FIND_ROOT_PATH ${PROJECTDEPS_PATH} "${CMAKE_FIND_ROOT_PATH}")
 
     set(CROSS -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE})
-    
+
     if(ANDROID)
         set(CROSS ${CROSS}
             -DANDROID_NATIVE_API_LEVEL=${ANDROID_NATIVE_API_LEVEL}
             -DANDROID_ABI=${ANDROID_ABI}
             -DANDROID_NDK=${ANDROID_NDK})
     endif()
-    
+
     if(APPLE_IOS)
         set(CROSS ${CROSS}
             -DIOS_PLATFORM=${IOS_PLATFORM})
@@ -119,7 +123,7 @@ set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${PROJECT_DEP_SEARCH_PATH})
 set(CMAKE_FRAMEWORK_PATH ${CMAKE_FRAMEWORK_PATH} ${PROJECT_DEP_SEARCH_PATH})
 set(DEP_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 
-if(PROJECT_BUILD_DEPENDENCIES AND NOT EXISTS ${PROJECTDEPS_PATH})
+if(BUILD_DEPENDENCIES AND NOT EXISTS ${PROJECTDEPS_PATH})
     set(PROJECTDEPS_SHARED TRUE)
     if(PROJECT_STATIC OR MSVC)
         # freetype and Glslang does not like shared build on MSVC and it generally eases distribution there
@@ -151,12 +155,12 @@ if(PROJECT_BUILD_DEPENDENCIES AND NOT EXISTS ${PROJECTDEPS_PATH})
         #        ${CROSS}
         #        ${CMAKE_BINARY_DIR}/glslang-master-tot
         #        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/glslang-master-tot)
-        #    execute_process(COMMAND ${CMAKE_COMMAND} 
+        #    execute_process(COMMAND ${CMAKE_COMMAND}
         #        --build ${CMAKE_BINARY_DIR}/glslang-master-tot ${BUILD_COMMAND_OPTS})
         #endif(NOT DEPLOY_GLSLANG)
-    
-        message(STATUS "Building SPIRV-Tools") # 
-    
+
+        message(STATUS "Building SPIRV-Tools") #
+
         file(DOWNLOAD
             https://github.com/KhronosGroup/SPIRV-Tools/archive/v2018.3.tar.gz
             ${CMAKE_BINARY_DIR}/SPIRV-Tools-master.tar.gz)
@@ -167,7 +171,7 @@ if(PROJECT_BUILD_DEPENDENCIES AND NOT EXISTS ${PROJECTDEPS_PATH})
         #    ${CMAKE_BINARY_DIR}/SPIRV-Headers-master.tar.gz)
         #execute_process(COMMAND ${CMAKE_COMMAND}
         #    -E tar xf SPIRV-Headers-master.tar.gz WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-    
+
         execute_process(COMMAND ${CMAKE_COMMAND}
             -DCMAKE_INSTALL_PREFIX=${PROJECTDEPS_PATH}
             -DCMAKE_INSTALL_LIBDIR=${PROJECTDEPS_PATH}
@@ -179,17 +183,17 @@ if(PROJECT_BUILD_DEPENDENCIES AND NOT EXISTS ${PROJECTDEPS_PATH})
             ${CROSS}
             ${CMAKE_BINARY_DIR}/SPIRV-Tools-2018.3
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/SPIRV-Tools-2018.3)
-        execute_process(COMMAND ${CMAKE_COMMAND} 
+        execute_process(COMMAND ${CMAKE_COMMAND}
             --build ${CMAKE_BINARY_DIR}/SPIRV-Tools-2018.3 ${BUILD_COMMAND_OPTS})
     endif(NOT BUILD_IN_USE_GLSLANG AND (Vulkan_FOUND OR MSVC OR MINGW))
 
     #if(MSVC OR EMSCRIPTEN OR MINGW) # other platforms ship zlib
     #    message(STATUS "Building zlib")
-    #    file(DOWNLOAD 
+    #    file(DOWNLOAD
     #        http://zlib.net/zlib-1.2.11.tar.gz
-    #        ${CMAKE_BINARY_DIR}/zlib-1.2.11.tar.gz 
+    #        ${CMAKE_BINARY_DIR}/zlib-1.2.11.tar.gz
     #        EXPECTED_MD5 1c9f62f0778697a09d36121ead88e08e)
-    #    execute_process(COMMAND ${CMAKE_COMMAND} 
+    #    execute_process(COMMAND ${CMAKE_COMMAND}
     #        -E tar xf zlib-1.2.11.tar.gz WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
     #    execute_process(COMMAND ${CMAKE_COMMAND}
     #        -DCMAKE_INSTALL_PREFIX=${PROJECTDEPS_PATH}
@@ -200,7 +204,7 @@ if(PROJECT_BUILD_DEPENDENCIES AND NOT EXISTS ${PROJECTDEPS_PATH})
     #        ${CROSS}
     #        ${CMAKE_BINARY_DIR}/zlib-1.2.11
     #        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/zlib-1.2.11)
-    #    execute_process(COMMAND ${CMAKE_COMMAND} 
+    #    execute_process(COMMAND ${CMAKE_COMMAND}
     #        --build ${CMAKE_BINARY_DIR}/zlib-1.2.11 ${BUILD_COMMAND_OPTS})
     #endif()
 
@@ -220,9 +224,9 @@ if(PROJECT_BUILD_DEPENDENCIES AND NOT EXISTS ${PROJECTDEPS_PATH})
     #    ${CROSS}
     #    ${CMAKE_BINARY_DIR}/ZZIPlib-master
     #    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/ZZIPlib-master)
-    #execute_process(COMMAND ${CMAKE_COMMAND} 
+    #execute_process(COMMAND ${CMAKE_COMMAND}
     #    --build ${CMAKE_BINARY_DIR}/ZZIPlib-master ${BUILD_COMMAND_OPTS})
-    
+
     message(STATUS "Building freetype")
     file(DOWNLOAD
         https://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.gz
@@ -255,7 +259,7 @@ if(PROJECT_BUILD_DEPENDENCIES AND NOT EXISTS ${PROJECTDEPS_PATH})
     #    file(DOWNLOAD
     #        https://libsdl.org/release/SDL2-2.0.8.tar.gz
     #        ${CMAKE_BINARY_DIR}/SDL2-2.0.8.tar.gz)
-    #    execute_process(COMMAND ${CMAKE_COMMAND} 
+    #    execute_process(COMMAND ${CMAKE_COMMAND}
     #        -E tar xf SDL2-2.0.8.tar.gz WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
     #    execute_process(COMMAND ${CMAKE_COMMAND}
     #        -E make_directory ${CMAKE_BINARY_DIR}/SDL2-build)
@@ -312,15 +316,15 @@ if (UNIX AND NOT APPLE AND NOT ANDROID AND NOT EMSCRIPTEN)
   mark_as_advanced(XAW_LIBRARY)
 endif ()
 
-  
+
 if (NOT BUILD_IN_USE_GLSLANG) # DEPLOY_GLSLANG
     option(ENABLE_SPVREMAPPER "Enables building of SPVRemapper" ON)
     option(ENABLE_AMD_EXTENSIONS "Enables support of AMD-specific extensions" ON)
     option(ENABLE_GLSLANG_BINARIES "Builds glslangValidator and spirv-remap" OFF)
     option(ENABLE_NV_EXTENSIONS "Enables support of Nvidia-specific extensions" ON)
     option(ENABLE_HLSL "Enables HLSL input support" ON)
-    option(ENABLE_OPT "Enables spirv-opt capability if present" OFF) 
-    
+    option(ENABLE_OPT "Enables spirv-opt capability if present" OFF)
+
     findpkg_begin(Glslang)
 
     set(Glslang_INCLUDE_DIR ${CMAKE_BINARY_DIR}/glslang-master-tot ${CMAKE_BINARY_DIR}/glslang-master-tot/glslang/Public ${CMAKE_BINARY_DIR}/glslang-master-tot/SPIRV)
@@ -338,11 +342,11 @@ if (NOT BUILD_IN_USE_GLSLANG) # DEPLOY_GLSLANG
     if(ENABLE_AMD_EXTENSIONS)
         add_definitions(-DAMD_EXTENSIONS)
     endif(ENABLE_AMD_EXTENSIONS)
-    
+
     if(ENABLE_NV_EXTENSIONS)
         add_definitions(-DNV_EXTENSIONS)
     endif(ENABLE_NV_EXTENSIONS)
-    
+
     if(ENABLE_HLSL)
         add_definitions(-DENABLE_HLSL)
     endif(ENABLE_HLSL)
@@ -352,11 +356,11 @@ if (NOT BUILD_IN_USE_GLSLANG) # DEPLOY_GLSLANG
     SET(CMAKE_INSTALL_LIBDIR ${LibName})
     set(spirv-tools_SOURCE_DIR "${CMAKE_BINARY_DIR}/SPIRV-Tools-2018.3")
     set(ENABLE_OPT TRUE)
-    
+
 
     #ADD_DEFINITIONS(-DENABLE_GLSLANG_INSTALL=ON)
     add_subdirectory(${CMAKE_BINARY_DIR}/glslang-master-tot/glslang)
-    add_subdirectory(${CMAKE_BINARY_DIR}/glslang-master-tot/OGLCompilersDLL) 
+    add_subdirectory(${CMAKE_BINARY_DIR}/glslang-master-tot/OGLCompilersDLL)
     add_subdirectory(${CMAKE_BINARY_DIR}/glslang-master-tot/SPIRV)
     if(ENABLE_HLSL)
         add_subdirectory(${CMAKE_BINARY_DIR}/glslang-master-tot/hlsl)
@@ -367,7 +371,7 @@ if (NOT BUILD_IN_USE_GLSLANG) # DEPLOY_GLSLANG
     AddInterfaceLibrary(Glslang)
 #elseif (Vulkan_FOUND)
 #  #set(CMAKE_FIND_ROOT_PATH "${CMAKE_BINARY_DIR}/glslang-master-tot" "${CMAKE_FIND_ROOT_PATH}")
-#  
+#
 #  # Find Glslang
 #  find_package(Glslang)
 #  macro_log_feature(Glslang "Glslang" "Glslang SDK needed for building Vulkan driver" "https://github.com/KhronosGroup/glslang/" FALSE "" "")
@@ -446,7 +450,12 @@ file(GLOB DLLS ${PROJECTDEPS_PATH}/bin/*.dll)
 
 file(COPY ${DLLS} DESTINATION ${BIN_DIR}/debug)
 file(COPY ${DLLS} DESTINATION ${BIN_DIR}/release)
-  
+else()
+
+# copy the required DLLs to the build directory
+file(GLOB DLLS ${PROJECTDEPS_PATH}/lib/*.so*)
+
+file(COPY ${DLLS} DESTINATION ${LIBS_DIR})
 endif ()
 
 #######################################################################

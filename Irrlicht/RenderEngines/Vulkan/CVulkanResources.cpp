@@ -38,7 +38,7 @@ void irr::video::CVulkanDeviceResource::notifyBound()
 void irr::video::CVulkanDeviceResource::notifyUsed(u32 globalQueueIdx, u32 queueFamily, VulkanUseFlag useFlags)
 {
     //std::unique_lock<std::mutex> lock(mMutex);
-    assert(useFlags != VulkanUseFlag::None);
+    assert(useFlags != VulkanUseFlag::eNone);
 
     bool isUsed = mNumUsedHandles > 0;
     if (isUsed && mState == State::Normal) // Used without support for concurrency
@@ -52,13 +52,13 @@ void irr::video::CVulkanDeviceResource::notifyUsed(u32 globalQueueIdx, u32 queue
 
     assert(globalQueueIdx < MAX_UNIQUE_QUEUES);
 
-    if (useFlags & VulkanUseFlag::Read)
+    if (useFlags & VulkanUseFlag::eRead)
     {
         assert(mReadUses[globalQueueIdx] < 255 && "Resource used in too many command buffers at once.");
         mReadUses[globalQueueIdx]++;
     }
 
-    if (useFlags & VulkanUseFlag::Write)
+    if (useFlags & VulkanUseFlag::eWrite)
     {
         assert(mWriteUses[globalQueueIdx] < 255 && "Resource used in too many command buffers at once.");
         mWriteUses[globalQueueIdx]++;
@@ -76,13 +76,13 @@ void irr::video::CVulkanDeviceResource::notifyDone(u32 globalQueueIdx, VulkanUse
         mNumUsedHandles--;
         mNumBoundHandles--;
 
-        if (useFlags & VulkanUseFlag::Read)
+        if (useFlags & VulkanUseFlag::eRead)
         {
             assert(mReadUses[globalQueueIdx] > 0);
             mReadUses[globalQueueIdx]--;
         }
 
-        if (useFlags & VulkanUseFlag::Write)
+        if (useFlags & VulkanUseFlag::eWrite)
         {
             assert(mWriteUses[globalQueueIdx] > 0);
             mWriteUses[globalQueueIdx]--;
@@ -140,7 +140,7 @@ u32 irr::video::CVulkanDeviceResource::getUseInfo(VulkanUseFlag useFlags) const
     if (!mUseHandle.used)
         return mask;
 
-    if (useFlags & VulkanUseFlag::Read)
+    if (useFlags & VulkanUseFlag::eRead)
     {
         for (u32 i = 0; i < MAX_UNIQUE_QUEUES; i++)
         {
@@ -149,7 +149,7 @@ u32 irr::video::CVulkanDeviceResource::getUseInfo(VulkanUseFlag useFlags) const
         }
     }
 
-    if (useFlags & VulkanUseFlag::Write)
+    if (useFlags & VulkanUseFlag::eWrite)
     {
         for (u32 i = 0; i < MAX_UNIQUE_QUEUES; i++)
         {
@@ -169,7 +169,7 @@ void irr::video::CVulkanDeviceResource::NotifySoftBound(VulkanUseFlag flags)
     {
         mUseHandle.used = false;
         mUseHandle.flags = flags;
-        assert(mUseHandle.flags != VulkanUseFlag::None);
+        assert(mUseHandle.flags != VulkanUseFlag::eNone);
     }
     else
     {

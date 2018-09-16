@@ -240,7 +240,7 @@ void VulkanQueue::refreshStates(bool forceWait, bool queueEmpty)
             VulkanSemaphore* semaphore = mActiveSemaphores.front();
             mActiveSemaphores.pop();
         
-            semaphore->notifyDone(0, VulkanUseFlag::Read | VulkanUseFlag::Write);
+            semaphore->notifyDone(0, VulkanUseFlag::eRead | VulkanUseFlag::eWrite);
         }
 
         for (uint32_t i = 0; i < iter->numCommandBuffers; i++)
@@ -263,7 +263,7 @@ void VulkanQueue::prepareSemaphores(VulkanSemaphore** inSemaphores, VkSemaphore*
         VulkanSemaphore* semaphore = inSemaphores[i];
 
         semaphore->notifyBound();
-        semaphore->notifyUsed(0, 0, VulkanUseFlag::Read | VulkanUseFlag::Write);
+        semaphore->notifyUsed(0, 0, VulkanUseFlag::eRead | VulkanUseFlag::eWrite);
 
         outSemaphores[semaphoreIdx++] = semaphore->getHandle();
         mActiveSemaphores.push(semaphore);
@@ -275,7 +275,7 @@ void VulkanQueue::prepareSemaphores(VulkanSemaphore** inSemaphores, VkSemaphore*
         VulkanSemaphore* prevSemaphore = mLastCommandBuffer->getIntraQueueSemaphore();
 
         prevSemaphore->notifyBound();
-        prevSemaphore->notifyUsed(0, 0, VulkanUseFlag::Read | VulkanUseFlag::Write);
+        prevSemaphore->notifyUsed(0, 0, VulkanUseFlag::eRead | VulkanUseFlag::eWrite);
 
         outSemaphores[semaphoreIdx++] = prevSemaphore->getHandle();
         mActiveSemaphores.push(prevSemaphore);

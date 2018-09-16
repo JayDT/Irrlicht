@@ -1,6 +1,7 @@
 #include "irrlicht.h"
 #include "CGUIFileSelector.h"
-#include <codecvt>
+#include "irrString.h"
+#include "extra_string.h"
 #include <locale>
 
 using namespace irr;
@@ -1087,9 +1088,8 @@ core::stringw CGUIFileSelector::translateDOS(core::stringw input)
 #ifndef WIN32
 	//Ubutu should store the filenames in UTF8, Windows in UTF16
 	wchar_t out[255];
-	stringc in = stringc(input);
-	core::utf8ToWchar(in.c_str(),out,255);
-	return stringw(out);
+	core::stringc in = core::stringc(input);
+	return core::stringw(utf8_to_wide(in.c_str()).c_str());
 #endif
 
 	core::stringw result=L"";
@@ -1108,46 +1108,46 @@ core::stringw CGUIFileSelector::translateDOS(core::stringw input)
 		// if the result give < 0 then it look like an accented letter, then convert
 
 		if (code==-56)
-			result.append(core::stringw("È"));
+			result.append(core::stringw("Ãˆ"));
 
 		if (code==-55)
-			result.append(core::stringw("É"));
+			result.append(core::stringw("Ã‰"));
 
 		if (code==-53)
-			result.append(core::stringw("Ë"));
+			result.append(core::stringw("Ã‹"));
 
 		if (code==-24)
-			result.append(core::stringw("è"));
+			result.append(core::stringw("Ã¨"));
 
 		if (code==-23)
-			result.append(core::stringw("é"));
+			result.append(core::stringw("Ã©"));
 
 		if (code==-21)
-			result.append(core::stringw("ë"));
+			result.append(core::stringw("Ã«"));
 
 		if (code==-64)
-			result.append(core::stringw("À"));
+			result.append(core::stringw("Ã€"));
 
 		if (code==-32)
-			result.append(core::stringw("à"));
+			result.append(core::stringw("Ã "));
 
 		if (code==-57)
-			result.append(core::stringw("Ç"));
+			result.append(core::stringw("Ã‡"));
 
 		if (code==-25)
-			result.append(core::stringw("ç"));
+			result.append(core::stringw("Ã§"));
 
 		if (code==-42)
-			result.append(core::stringw("Ö"));
+			result.append(core::stringw("Ã–"));
 
 		if (code==-10)
-			result.append(core::stringw("ö"));
+			result.append(core::stringw("Ã¶"));
 
 		if (code==-39)
-			result.append(core::stringw("Ù"));
+			result.append(core::stringw("Ã™"));
 
 		if (code==-7)
-			result.append(core::stringw("ù"));
+			result.append(core::stringw("Ã¹"));
 
 	}
 	return result;

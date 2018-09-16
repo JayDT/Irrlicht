@@ -227,7 +227,7 @@ VulkanCmdBuffer::~VulkanCmdBuffer()
     if (mState == State::Submitted)
     {
         // Wait 1s
-        UINT64 waitTime = 1000 * 1000 * 1000;
+        uint64_t waitTime = 1000 * 1000 * 1000;
         VkResult result = vkWaitForFences(device, 1, &mFence, true, waitTime);
         assert(result == VK_SUCCESS || result == VK_TIMEOUT);
 
@@ -739,7 +739,7 @@ void VulkanCmdBuffer::submit(VulkanQueue* queue, uint32_t queueIdx, uint32_t syn
     mCmpPipelineRequiresBind = true;
     if (!mPermanentFrameBuffer)
         mFramebuffer = nullptr;
-    mDescriptorSetsBindState = DescriptorSetBindFlag::Graphics | DescriptorSetBindFlag::Compute;
+    mDescriptorSetsBindState = DescriptorSetBindFlag::eGraphics | DescriptorSetBindFlag::eCompute;
     mQueuedLayoutTransitions.clear();
     mBoundParams = nullptr;
     mSwapChains.clear();
@@ -926,7 +926,7 @@ void VulkanCmdBuffer::setRenderTarget(const video::IRenderTarget* rt, uint32_t r
 
 }
 
-void VulkanCmdBuffer::clearViewport(const core::recti& area, uint32_t buffers, const irr::video::SColor& color, float depth, UINT16 stencil, UINT8 targetMask)
+void VulkanCmdBuffer::clearViewport(const core::recti& area, uint32_t buffers, const irr::video::SColor& color, float depth, uint16_t stencil, uint8_t targetMask)
 {
     if (buffers == 0 /*|| mFramebuffer == nullptr*/)
         return;
@@ -1088,13 +1088,13 @@ void VulkanCmdBuffer::clearViewport(const core::recti& area, uint32_t buffers, c
     }
 }
 
-void VulkanCmdBuffer::clearRenderTarget(uint32_t buffers, const irr::video::SColor& color, float depth, UINT16 stencil, UINT8 targetMask)
+void VulkanCmdBuffer::clearRenderTarget(uint32_t buffers, const irr::video::SColor& color, float depth, uint16_t stencil, uint8_t targetMask)
 {
     core::recti area(0, 0, mRenderTargetWidth, mRenderTargetHeight);
     clearViewport(area, buffers, color, depth, stencil, targetMask);
 }
 
-void VulkanCmdBuffer::clearViewport(uint32_t buffers, const irr::video::SColor& color, float depth, UINT16 stencil, UINT8 targetMask)
+void VulkanCmdBuffer::clearViewport(uint32_t buffers, const irr::video::SColor& color, float depth, uint16_t stencil, uint8_t targetMask)
 {
     core::recti area(
         (uint32_t)(mViewport.UpperLeftCorner.X),
@@ -1144,7 +1144,7 @@ void VulkanCmdBuffer::setGpuParams(VulkanGpuParams* gpuParams)
         mBoundParamsDirty = false;
     }
 
-    mDescriptorSetsBindState = DescriptorSetBindFlag::Graphics | DescriptorSetBindFlag::Compute;
+    mDescriptorSetsBindState = DescriptorSetBindFlag::eGraphics | DescriptorSetBindFlag::eCompute;
 }
 
 void VulkanCmdBuffer::setViewport(const irr::core::recti& area)
@@ -1193,7 +1193,7 @@ void VulkanCmdBuffer::setVertexBuffers(uint32_t index, VulkanBuffer** buffers, u
         if (buffers[0] != nullptr)
         {
             mVertexBuffersTemp[0] = buffers[0]->getHandle();
-            buffers[0]->NotifySoftBound(VulkanUseFlag::Read);
+            buffers[0]->NotifySoftBound(VulkanUseFlag::eRead);
         }
         else
             mVertexBuffersTemp[0] = VK_NULL_HANDLE;
@@ -1203,7 +1203,7 @@ void VulkanCmdBuffer::setVertexBuffers(uint32_t index, VulkanBuffer** buffers, u
         if (buffers[1] != nullptr)
         {
             mVertexBuffersTemp[1] = buffers[1]->getHandle();
-            buffers[1]->NotifySoftBound(VulkanUseFlag::Read);
+            buffers[1]->NotifySoftBound(VulkanUseFlag::eRead);
         }
         else
             mVertexBuffersTemp[1] = VK_NULL_HANDLE;
@@ -1220,7 +1220,7 @@ void VulkanCmdBuffer::setIndexBuffer(VulkanBuffer* buffer, E_INDEX_TYPE type, Vk
     {
         vkBuffer = buffer->getHandle();
         indexType = VulkanUtility::getIndexType(type);
-        buffer->NotifySoftBound(VulkanUseFlag::Read);
+        buffer->NotifySoftBound(VulkanUseFlag::eRead);
     }
 
     vkCmdBindIndexBuffer(mCmdBuffer, vkBuffer, offset, indexType);
@@ -1260,7 +1260,7 @@ bool VulkanCmdBuffer::bindGraphicsPipeline()
 
     mPipeline = pipeline;
     mGraphicsPipeline->registerPipelineResources(this);
-    pipeline->NotifySoftBound(VulkanUseFlag::Read);
+    pipeline->NotifySoftBound(VulkanUseFlag::eRead);
 
     vkCmdBindPipeline(mCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getHandle());
 
@@ -1338,7 +1338,7 @@ void VulkanCmdBuffer::bindGpuParams()
         {
             mNumBoundDescriptorSets = mBoundParams->getNumSets();
             if (mBoundParams->UpdateDescriptors(*this, mDescriptorSetsTemp))
-                mDescriptorSetsBindState |= (DescriptorSetBindFlag::Graphics);
+                mDescriptorSetsBindState |= (DescriptorSetBindFlag::eGraphics);
         }
         else
             mNumBoundDescriptorSets = 0;
@@ -1482,7 +1482,7 @@ void VulkanCmdBuffer::draw(uint32_t vertexOffset, uint32_t vertexCount, uint32_t
     else
         bindDynamicStates(false);
 
-    if (mDescriptorSetsBindState & (DescriptorSetBindFlag::Graphics))
+    if (mDescriptorSetsBindState & (DescriptorSetBindFlag::eGraphics))
     {
         if (mNumBoundDescriptorSets > 0)
         {
@@ -1492,7 +1492,7 @@ void VulkanCmdBuffer::draw(uint32_t vertexOffset, uint32_t vertexCount, uint32_t
             vkCmdBindDescriptorSets(mCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, mNumBoundDescriptorSets, mDescriptorSetsTemp, 0, nullptr);
         }
 
-        mDescriptorSetsBindState &= (DescriptorSetBindFlag)~(u8)(DescriptorSetBindFlag::Graphics);
+        mDescriptorSetsBindState &= (DescriptorSetBindFlag)~(u8)(DescriptorSetBindFlag::eGraphics);
     }
 
     if (instanceCount <= 0)
@@ -1520,7 +1520,7 @@ void VulkanCmdBuffer::drawIndexed(uint32_t startIndex, uint32_t indexCount, uint
     else
         bindDynamicStates(false);
 
-    if (mDescriptorSetsBindState & (DescriptorSetBindFlag::Graphics))
+    if (mDescriptorSetsBindState & (DescriptorSetBindFlag::eGraphics))
     {
         if (mNumBoundDescriptorSets > 0)
         {
@@ -1530,7 +1530,7 @@ void VulkanCmdBuffer::drawIndexed(uint32_t startIndex, uint32_t indexCount, uint
             vkCmdBindDescriptorSets(mCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, mNumBoundDescriptorSets, mDescriptorSetsTemp, 0, nullptr);
         }
 
-        mDescriptorSetsBindState &= (DescriptorSetBindFlag)~(u8)(DescriptorSetBindFlag::Graphics);
+        mDescriptorSetsBindState &= (DescriptorSetBindFlag)~(u8)(DescriptorSetBindFlag::eGraphics);
     }
 
     if (instanceCount <= 0)
@@ -1827,7 +1827,7 @@ void VulkanCmdBuffer::registerResource(CVulkanDeviceResource* res, VulkanUseFlag
         useHandle.mPoolMask |= 1;
         useHandle.used = false;
         useHandle.flags = flags;
-        assert(useHandle.flags != VulkanUseFlag::None);
+        assert(useHandle.flags != VulkanUseFlag::eNone);
 
         res->notifyBound();
     }
@@ -1844,13 +1844,13 @@ void VulkanCmdBuffer::registerResource(VulkanImage* res, const VkImageSubresourc
 {
     //registerResource(static_cast<CVulkanDeviceResource*>(res), flags);
 
-    bool isFBAttachment = usage == ResourceUsage::Framebuffer;
-    bool isTransfer = usage == ResourceUsage::Transfer;
-    bool isShaderBind = usage == ResourceUsage::ShaderBind;
+    bool isFBAttachment = usage == ResourceUsage::eFramebuffer;
+    bool isTransfer = usage == ResourceUsage::eTransfer;
+    bool isShaderBind = usage == ResourceUsage::eShaderBind;
     
     // If binding it for write in a shader (not as color attachment or transfer op), we will need to issue a memory
     // barrier if the image gets used again during this render pass, so remember this information.
-    bool needsBarrier = isShaderBind && flags & (VulkanUseFlag::Write);
+    bool needsBarrier = isShaderBind && flags & (VulkanUseFlag::eWrite);
     
     auto registerSubresourceInfo = [&](const VkImageSubresourceRange& range)
     {
@@ -1874,7 +1874,7 @@ void VulkanCmdBuffer::registerResource(VulkanImage* res, const VkImageSubresourc
             {
                 subresourceInfo.hasExternalTransition = false;
                 subresourceInfo.hasTransitioned = false;
-                subresourceInfo.isReadOnly = !((u8)flags & (u8)(VulkanUseFlag::Write));
+                subresourceInfo.isReadOnly = !((u8)flags & (u8)(VulkanUseFlag::eWrite));
             }
             else
             {
@@ -2115,7 +2115,7 @@ void VulkanCmdBuffer::registerResource(VulkanFramebuffer* res, RenderSurfaceMask
     {
         assert(!useHandle.used);
 
-        useHandle.flags |= VulkanUseFlag::Write;
+        useHandle.flags |= VulkanUseFlag::eWrite;
     }
     else
     {
@@ -2123,7 +2123,7 @@ void VulkanCmdBuffer::registerResource(VulkanFramebuffer* res, RenderSurfaceMask
 
         useHandle.mPoolMask |= 1;
         useHandle.used = false;
-        useHandle.flags = VulkanUseFlag::Write;
+        useHandle.flags = VulkanUseFlag::eWrite;
 
         res->notifyBound();
     }
@@ -2146,13 +2146,13 @@ void VulkanCmdBuffer::registerResource(VulkanFramebuffer* res, RenderSurfaceMask
             layout = VK_IMAGE_LAYOUT_UNDEFINED;
 
         VkImageSubresourceRange range = attachment.image->getRange();
-        registerResource(attachment.image, range, layout, attachment.finalLayout, VulkanUseFlag::Write, ResourceUsage::Framebuffer);
+        registerResource(attachment.image, range, layout, attachment.finalLayout, VulkanUseFlag::eWrite, ResourceUsage::eFramebuffer);
     }
 
     if (res->hasDepthAttachment())
     {
         const VulkanFramebufferAttachment& attachment = res->getDepthStencilAttachment();
-        VulkanUseFlag useFlag = VulkanUseFlag::Write;
+        VulkanUseFlag useFlag = VulkanUseFlag::eWrite;
 
         // If image is being loaded, we need to transfer it to correct layout, otherwise it doesn't matter
         VkImageLayout layout;
@@ -2166,7 +2166,7 @@ void VulkanCmdBuffer::registerResource(VulkanFramebuffer* res, RenderSurfaceMask
             layout = VK_IMAGE_LAYOUT_UNDEFINED;
 
         VkImageSubresourceRange range = attachment.image->getRange();
-        registerResource(attachment.image, range, layout, attachment.finalLayout, useFlag, ResourceUsage::Framebuffer);
+        registerResource(attachment.image, range, layout, attachment.finalLayout, useFlag, ResourceUsage::eFramebuffer);
     }
 }
 
@@ -2174,14 +2174,14 @@ bool VulkanCmdBuffer::updateSubresourceInfo(VulkanImage* image, uint32_t imageIn
     ImageSubresourceInfo& subresourceInfo, VkImageLayout newLayout, VkImageLayout finalLayout, VulkanUseFlag flags,
     ResourceUsage usage)
 {
-    bool isTransfer = usage == ResourceUsage::Transfer;
-    bool isFBAttachment = usage == ResourceUsage::Framebuffer;
-    bool isShaderBind = usage == ResourceUsage::ShaderBind;
+    bool isTransfer = usage == ResourceUsage::eTransfer;
+    bool isFBAttachment = usage == ResourceUsage::eFramebuffer;
+    bool isShaderBind = usage == ResourceUsage::eShaderBind;
 
     // Transfers are always considered read only because this only matters for destination access mask, and transfers
     // handle that externally
     if (!isTransfer)
-        subresourceInfo.isReadOnly &= !((u8)flags & (u8)(VulkanUseFlag::Write));
+        subresourceInfo.isReadOnly &= !((u8)flags & (u8)(VulkanUseFlag::eWrite));
 
     // For transfers, just assign new layout, external code does all the work
     if (isTransfer)
@@ -2305,7 +2305,7 @@ bool VulkanCmdBuffer::updateSubresourceInfo(VulkanImage* image, uint32_t imageIn
         // Memory barrier only matters if image is bound for shader use (no need for color attachments or transfers)
         if (subresourceInfo.needsBarrier && isShaderBind)
         {
-            bool isWrite = flags & (VulkanUseFlag::Write);
+            bool isWrite = flags & (VulkanUseFlag::eWrite);
 
             VkPipelineStageFlags stages =
                 VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
@@ -2536,8 +2536,8 @@ void VulkanTransferBuffer::setLayout(VulkanImage* image, const VkImageSubresourc
     if (mBarriersTemp.size() == 0)
         return;
 
-    INT32 count = (INT32)mBarriersTemp.size();
-    for (INT32 i = 0; i < count; i++)
+    int32_t count = (int32_t)mBarriersTemp.size();
+    for (int32_t i = 0; i < count; i++)
     {
         VkImageMemoryBarrier& barrier = mBarriersTemp[i];
 
@@ -2583,10 +2583,10 @@ void VulkanTransferBuffer::flush(bool wait)
     {
         mQueue->waitIdle();
 
-        for (UINT32 i = 0; i < GQT_COUNT; i++)
+        for (uint32_t i = 0; i < GQT_COUNT; i++)
         {
-            UINT32 numQueues = mDevice->getNumQueues((GpuQueueType)i);
-            for (UINT32 j = 0; j < numQueues; j++)
+            uint32_t numQueues = mDevice->getNumQueues((GpuQueueType)i);
+            for (uint32_t j = 0; j < numQueues; j++)
             {
                 VulkanQueue* queue = mDevice->getQueue((GpuQueueType)i, j);
                 queue->refreshStates(true, false);

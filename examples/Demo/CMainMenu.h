@@ -4,7 +4,7 @@
 #ifndef __C_MAIN_MENU_H_INCLUDED__
 #define __C_MAIN_MENU_H_INCLUDED__
 
-#include <irrlicht.h>
+#include "include/irrlicht.h"
 
 using namespace irr;
 

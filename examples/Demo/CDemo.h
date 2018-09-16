@@ -7,7 +7,7 @@
 //#define USE_IRRKLANG
 //#define USE_SDL_MIXER
 
-#include <irrlicht.h>
+#include "include/irrlicht.h"
 
 #ifdef _IRR_WINDOWS_
 #include <windows.h>

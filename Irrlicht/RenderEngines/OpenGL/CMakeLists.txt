@@ -10,10 +10,10 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${OPENGL_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/dep/include
     ${CMAKE_SOURCE_DIR}/contrib/IrrLicht
     ${CMAKE_SOURCE_DIR}/contrib/IrrLicht/include
-    ${CMAKE_SOURCE_DIR}
 )
 
 file(GLOB_RECURSE OpenGL_Source RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp *.c *.h *.hpp *.vert *.frag)
@@ -21,7 +21,7 @@ file(GLOB_RECURSE OpenGL_Source RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp *.c *
 file(GLOB_RECURSE RESOURCE_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.vert *.frag)
 
 #resource_prebuild(
-#    TARGET "OpenGL"
+#    TARGET "IrrOpenGL"
 #    GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/.Resource"
 #    SOURCE_ROOT "${CMAKE_CURRENT_LIST_DIR}"
 #    RESOURCE_FILES ${RESOURCE_SRCS}
@@ -32,12 +32,12 @@ file(GLOB_RECURSE RESOURCE_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.vert *.fr
 #
 #LIST(APPEND OpenGL_Source ${RESOURCE_GENERATED_FILES})
 
-CreateLibrary("OpenGL" "${OpenGL_Source}" "${LIBTYPE}" "" "")
+CreateLibrary(IrrOpenGL "${OpenGL_Source}" "${LIBTYPE}" "" "")
 
-add_dependencies(OpenGL ZLIB)
+add_dependencies(IrrOpenGL ZLIB)
 
 #resource_build(
-#    TARGET "OpenGL"
+#    TARGET "IrrOpenGL"
 #    GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/.Resource"
 #    SOURCE_ROOT "${CMAKE_CURRENT_LIST_DIR}"
 #    SOURCE_FILE "${CMAKE_CURRENT_BINARY_DIR}/.Resource/Resource_OpenGL.dsc"
@@ -48,18 +48,22 @@ add_dependencies(OpenGL ZLIB)
 #)
 
 if(_IRR_DYNAMIC_)
-    target_link_libraries (OpenGL ${OPENGL_LIBRARIES} ZLIB)
+    target_link_libraries (IrrOpenGL
+        OpenGL::GL
+        irrlicht
+        ZLIB
+        Glslang)
     IF (WIN32)
-        target_link_libraries (OpenGL winmm)
+        target_link_libraries (IrrOpenGL winmm)
     ENDIF(WIN32)
-    install(TARGETS OpenGL DESTINATION ${CMAKE_INSTALL_PREFIX})
+    install(TARGETS IrrOpenGL DESTINATION ${CMAKE_INSTALL_PREFIX})
 else()
     add_definitions(-D_LIB_SOURCE_ROOT="${CMAKE_CURRENT_SOURCE_DIR}")
     add_definitions(-D_IRR_COMPILE_WITH_OPENGL_)
     add_definitions(-DIRRLICHT_EXPORTS)
 endif(_IRR_DYNAMIC_)
 
-set_target_properties(OpenGL
+set_target_properties(IrrOpenGL
     PROPERTIES
       FOLDER
         "RenderEngine/IrrLicht")

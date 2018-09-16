@@ -22,6 +22,7 @@ namespace irr
     {
         enum E_VERTEX_ELEMENT_SEMANTIC : irr::u8;
         class IHardwareBuffer;
+        class IVideoDriver;
         struct IShader;
         struct IConstantBuffer;
     }

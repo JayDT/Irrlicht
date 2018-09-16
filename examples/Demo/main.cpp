@@ -1,7 +1,7 @@
 // This is a Demo of the Irrlicht Engine (c) 2005-2009 by N.Gebhardt.
 // This file is not documented.
 
-#include <irrlicht.h>
+#include "include/irrlicht.h"
 #ifdef _IRR_WINDOWS_
 #include <windows.h>
 #endif

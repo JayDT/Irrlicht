@@ -45,18 +45,6 @@ namespace gui
 	struct SGUITTFace;
 	class CGUITTFont;
 
-	//! Class to assist in deleting glyphs.
-	class CGUITTAssistDelete
-	{
-		public:
-			template <class T, typename TAlloc>
-			static void Delete(core::array<T, TAlloc>& a)
-			{
-				TAlloc allocator;
-				allocator.deallocate(a.pointer());
-			}
-	};
-
 	//! Structure representing a single TrueType glyph.
 	struct IRRLICHT_API SGUITTGlyph
 	{
@@ -106,7 +94,9 @@ namespace gui
 	class IRRLICHT_API CGUITTGlyphPage
 	{
 		public:
-			CGUITTGlyphPage(video::IVideoDriver* Driver, const io::path& texture_name) :texture(0), available_slots(0), used_slots(0), dirty(false), driver(Driver), name(texture_name) {}
+			CGUITTGlyphPage(video::IVideoDriver* Driver, const io::path& texture_name)
+                : texture(0), available_slots(0), used_slots(0)
+                , dirty(false), driver(Driver), name(texture_name) {}
 			~CGUITTGlyphPage()
 			{
 				if (texture)
@@ -118,30 +108,7 @@ namespace gui
 			}
 
 			//! Create the actual page texture,
-			bool createPageTexture(const u8& pixel_mode, const core::dimension2du& texture_size)
-			{
-                if (texture)
-                    return false;
-
-                bool flgmip = driver->getTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS);
-                driver->setTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS, false);
-
-                // Set the texture color format.
-                switch (pixel_mode)
-                {
-                    case FT_PIXEL_MODE_MONO:
-                        texture = driver->addTexture(texture_size, name, video::ECF_A1R5G5B5);
-                        break;
-                    case FT_PIXEL_MODE_GRAY:
-                    default:
-                        texture = driver->addTexture(texture_size, name, video::ECF_A8R8G8B8);
-                        break;
-                }
-
-                // Restore our texture creation flags.
-                driver->setTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS, flgmip);
-                return texture ? true : false;
-			}
+			bool createPageTexture(const u8& pixel_mode, const core::dimension2du& texture_size);
 
 			//! Add the glyph to a list of glyphs to be paged.
 			//! This collection will be cleared after updateTexture is called.
@@ -151,39 +118,7 @@ namespace gui
 			}
 
 			//! Updates the texture atlas with new glyphs.
-			void updateTexture()
-			{
-                if (!dirty) return;
-
-                void* ptr = texture->lock(irr::video::E_TEXTURE_LOCK_MODE::ETLM_WRITE_ONLY);
-                video::ECOLOR_FORMAT format = texture->getColorFormat();
-                core::dimension2du size = texture->getOriginalSize();
-                video::IImage* pageholder = driver->createImageFromData(format, size, ptr, true, false);
-
-                for (u32 i = 0; i < glyph_to_be_paged.size(); ++i)
-                {
-                    const SGUITTGlyph* glyph = glyph_to_be_paged[i];
-                    if (glyph && glyph->isLoaded)
-                    {
-                        if (glyph->surface)
-                        {
-                            glyph->surface->copyTo(pageholder, glyph->source_rect.UpperLeftCorner);
-                            glyph->surface->drop();
-                            glyph->surface = 0;
-                        }
-                        else
-                        {
-                            ; // TODO: add error message?
-                              //currently, if we failed to create the image, just ignore this operation.
-                        }
-                    }
-                }
-
-                pageholder->drop();
-                texture->unlock();
-                glyph_to_be_paged.clear();
-                dirty = false;
-			}
+			void updateTexture();
 
 			video::ITexture* texture;
 			u32 available_slots;
@@ -332,13 +267,6 @@ namespace gui
 
 		private:
             void setMaxHeight();
-
-			// Manages the FreeType library.
-			static FT_Library c_library;
-			static core::map<io::path, SGUITTFace*> c_faces;
-			static bool c_libraryLoaded;
-			static scene::IMesh* shared_plane_ptr_;
-			static scene::SMesh  shared_plane_;
 
 			CGUITTFont(IGUIEnvironment *env);
 			bool load(const io::path& filename, const u32 size, const bool antialias, const bool transparency);

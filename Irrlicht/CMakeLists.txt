@@ -1,6 +1,5 @@
 # Init variables
 set(RENDER_ENGINE_DEFINES "")
-
 set(_IRR_DYNAMIC_ true)
 
 if(_IRR_DYNAMIC_)
@@ -38,7 +37,7 @@ list(APPEND IrrLicht_source
     aesGladman/pwd2key.cpp
     aesGladman/sha1.cpp
     aesGladman/sha2.cpp
-    
+
     bzip2/blocksort.c
     bzip2/bzlib.c
     bzip2/crctable.c
@@ -46,14 +45,21 @@ list(APPEND IrrLicht_source
     bzip2/bzcompress.c
     bzip2/huffman.c
     bzip2/randtable.c
-    
+
     lzma/LzmaDec.c
 
     util/extra_string.cpp
 
-	${IrrLicht_header}
-	${IrrLicht_render}
+    ${IrrLicht_header}
+    ${IrrLicht_render}
 )
+
+unset(IRR_BUILD_RENDERSYSTEM_GL CACHE)
+unset(IRR_BUILD_RENDERSYSTEM_D3DX8 CACHE)
+unset(IRR_BUILD_RENDERSYSTEM_D3DX9 CACHE)
+unset(IRR_BUILD_RENDERSYSTEM_D3D11 CACHE)
+unset(IRR_BUILD_RENDERSYSTEM_Vulkan CACHE)
+
 
 add_subdirectory(RenderEngines)
 
@@ -79,71 +85,67 @@ if (IRR_BUILD_RENDERSYSTEM_Vulkan EQUAL 1)
 endif(IRR_BUILD_RENDERSYSTEM_Vulkan EQUAL 1)
 
 add_definitions(-D_LIB_SOURCE_ROOT="${CMAKE_CURRENT_SOURCE_DIR}")
-
 SET(IrrLicht_libs "")
 
 if(_IRR_DYNAMIC_)
 
   list(APPEND IrrLicht_libs
-  PRIVATE
+  PUBLIC
     FREETYPE
-	libjpeg
-	libpng
+  PRIVATE
+    libjpeg
+    libpng
     ZLIB
-    )
+    Threads::Threads
+  )
 
   if (IRR_BUILD_RENDERSYSTEM_GL EQUAL 1)
       message(${LibExSTATUS} "Irr: Install Render Engine OpenGL")
       list(APPEND IrrLicht_libs
-      OpenGL)
-      list(APPEND IrrLicht_libs
-        ${OPENGL_LIBRARIES})          
+        Glslang
+        OpenGL::GL
+        IrrOpenGL)
   endif(IRR_BUILD_RENDERSYSTEM_GL EQUAL 1)
-  
-  #! Only define _IRR_COMPILE_WITH_DIRECT3D_8_ if you have an appropriate DXSDK, e.g. Summer 2004
-  if (IRR_BUILD_RENDERSYSTEM_D3DX8 EQUAL 1)
-      message(${LibExSTATUS} "Irr: Install Render Engine DX8")
-      list(APPEND IrrLicht_libs
-      DirectX8)
-      list(APPEND IrrLicht_libs
-        ${DirectX8_LIBRARIES})                 
-  endif(IRR_BUILD_RENDERSYSTEM_D3DX8 EQUAL 1)
 
-  if (IRR_BUILD_RENDERSYSTEM_D3DX9 EQUAL 1)
-      message(${LibExSTATUS} "Irr: Install Render Engine DX9")
-      list(APPEND IrrLicht_libs 
-      DirectX9)
-      list(APPEND IrrLicht_libs
-        ${DirectX9_LIBRARIES})          
-  endif(IRR_BUILD_RENDERSYSTEM_D3DX9 EQUAL 1)
-  
-  if (IRR_BUILD_RENDERSYSTEM_D3D11 EQUAL 1)
-      message(${LibExSTATUS} "Irr: Install Render Engine D3D11")
-      list(APPEND IrrLicht_libs 
-      Direct3D11)
-      list(APPEND IrrLicht_libs
-        ${DirectX11_LIBRARY} )          
-  endif(IRR_BUILD_RENDERSYSTEM_D3D11 EQUAL 1)
-  
   if (IRR_BUILD_RENDERSYSTEM_Vulkan EQUAL 1)
       message(${LibExSTATUS} "Irr: Install Render Engine Vulkan")
-      list(APPEND IrrLicht_libs 
-      CVulkan)
-      list(APPEND IrrLicht_libs 
-        Vulkan::Vulkan
-        Glslang)
+      list(APPEND IrrLicht_libs
+        Glslang
+        CVulkan
+        Vulkan::Vulkan)
 
       LINK_DIRECTORIES(${CMAKE_BINARY_DIR}/Dependencies)
 
   endif(IRR_BUILD_RENDERSYSTEM_Vulkan EQUAL 1)
 
+  #! Only define _IRR_COMPILE_WITH_DIRECT3D_8_ if you have an appropriate DXSDK, e.g. Summer 2004
+  #if (IRR_BUILD_RENDERSYSTEM_D3DX8 EQUAL 1)
+  #    message(${LibExSTATUS} "Irr: Install Render Engine DX8")
+  #    list(APPEND IrrLicht_libs
+  #    DirectX8)
+  #    list(APPEND IrrLicht_libs
+  #      ${DirectX8_LIBRARIES})
+  #endif(IRR_BUILD_RENDERSYSTEM_D3DX8 EQUAL 1)
+
+  if (IRR_BUILD_RENDERSYSTEM_D3DX9 EQUAL 1)
+      message(${LibExSTATUS} "Irr: Install Render Engine DX9")
+      list(APPEND IrrLicht_libs
+        DirectX9
+        ${DirectX9_LIBRARIES})
+  endif(IRR_BUILD_RENDERSYSTEM_D3DX9 EQUAL 1)
+
+  if (IRR_BUILD_RENDERSYSTEM_D3D11 EQUAL 1)
+      message(${LibExSTATUS} "Irr: Install Render Engine D3D11")
+      list(APPEND IrrLicht_libs
+        Direct3D11
+        ${DirectX11_LIBRARY} )
+  endif(IRR_BUILD_RENDERSYSTEM_D3D11 EQUAL 1)
 
   IF (WIN32)
-      list(APPEND IrrLicht_libs 
+      list(APPEND IrrLicht_libs
         winmm)
   ENDIF(WIN32)
 
-#  install(TARGETS irrlicht DESTINATION ${CMAKE_INSTALL_PREFIX}) # irrlicht needs to go to the install dir on windows as it's a dll
 endif(_IRR_DYNAMIC_)
 
 source_group("video\\Software"
@@ -202,7 +204,7 @@ add_dependencies(irrlicht ZLIB)
 
 SET_TARGET_PROPERTIES (irrlicht PROPERTIES COMPILE_FLAGS "${RENDER_ENGINE_DEFINES}" )
 SET_TARGET_PROPERTIES (irrlicht PROPERTIES DEFINE_SYMBOL  "IRRLICHT_EXPORTS" )
-  
+
 set_target_properties(irrlicht
     PROPERTIES
       FOLDER

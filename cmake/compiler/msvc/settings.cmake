@@ -1,7 +1,7 @@
 set(MSVC_EXPECTED_VERSION 19.0.0) # MSVC Update 3
 
 if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS MSVC_EXPECTED_VERSION)
-  message(FATAL_ERROR "MSVC: XUI requires version ${MSVC_EXPECTED_VERSION} (MSVC 2017) to build but found ${CMAKE_CXX_COMPILER_VERSION}")
+  message(FATAL_ERROR "MSVC: Irr requires version ${MSVC_EXPECTED_VERSION} (MSVC 2017) to build but found ${CMAKE_CXX_COMPILER_VERSION}")
 endif()
 
 # Set build-directive (used in core to tell which buildtype we used)
@@ -50,8 +50,8 @@ else()
     # Setup Fast link for Debug
     if (WFL)
         message(STATUS "MSVC: Enable Fast Link For Debug (HotSwap Library not supported)")
-        #set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /Debug:FastLink")
-        #set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} /Debug:FastLink")
+        set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /Debug:FastLink")
+        set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} /Debug:FastLink")
     endif(WFL)
     
     if (EAC)
@@ -76,11 +76,6 @@ if((PLATFORM EQUAL 64) OR (NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.0.2302
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /bigobj")
   message(STATUS "MSVC: Enabled increased number of sections in object files")
 endif()
-
-#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Od /Ob0") #/Oy- /Ot /GS- /EHa /GR /GF-
-
-#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm1024")
-#    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zm1024")
 
 if (DEBUG GREATER 1)
     message(STATUS "MSVC: Debug mode: Full Debug")

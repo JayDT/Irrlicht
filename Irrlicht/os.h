@@ -113,7 +113,7 @@ namespace os
 		static u32 getRealTime();
 
         //! returns the current real time in milliseconds
-        static u64 getRealUTime();
+        //static u64 getRealUTime();
 
 	private:
 

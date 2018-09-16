@@ -29,8 +29,8 @@ namespace video
         //! Constructor.
         CWGLManager();
 
-		//! Destructor
-		~CWGLManager();
+        //! Destructor
+        virtual ~CWGLManager();
 
         // Initialize
         bool initialize(const SIrrlichtCreationParameters& params, const SExposedVideoData& data);

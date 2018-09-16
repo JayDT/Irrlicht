@@ -172,9 +172,9 @@ If not defined, Windows Multimedia library is used, which offers also broad supp
 /** If you do not wish the engine to be compiled with OpenGL, comment this
 define out. */
 //#define _IRR_COMPILE_WITH_OPENGL_
-#ifdef NO_IRR_COMPILE_WITH_OPENGL_
-#undef _IRR_COMPILE_WITH_OPENGL_
-#endif
+//#ifdef NO_IRR_COMPILE_WITH_OPENGL_
+//#undef _IRR_COMPILE_WITH_OPENGL_
+//#endif
 
 //! Define _IRR_COMPILE_WITH_SOFTWARE_ to compile the Irrlicht engine with software driver
 /** If you do not need the software driver, or want to use Burning's Video instead,
@@ -694,7 +694,7 @@ precision will be lower but speed higher. currently X86 only
 #ifdef IRRLICHT_EXPORTS
 #define IRRLICHT_DECL __declspec(dllexport)
 #else
-#define IRRLICHT_DECL 
+#define IRRLICHT_DECL
 #endif // IRRLICHT_EXPORT
 #ifdef IRRLICHT_EXPORTS
 #define IRRLICHT_API __declspec(dllexport)

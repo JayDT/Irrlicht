@@ -75,7 +75,7 @@ namespace irr
             * @param[out]	result	Value of the query, if the method return true. Undefined otherwise.
             * @return				True if the result is ready, false otherwise.
             */
-            bool getResult(UINT64& result) const;
+            bool getResult(uint64_t& result) const;
 
             /** Queues a command for the query reset, on the provided command buffer. */
             void reset(VkCommandBuffer cmdBuf);
@@ -141,7 +141,7 @@ namespace irr
             struct PoolInfo
             {
                 VkQueryPool pool = VK_NULL_HANDLE;
-                UINT32 startIdx;
+                uint32_t startIdx;
             };
 
             /** Attempts to find a free query of the specified type, or allocates a new one. Creates new pools as needed. */
@@ -150,7 +150,7 @@ namespace irr
             /** Creates a new Vulkan query pool object. */
             PoolInfo& allocatePool(VkQueryType type);
 
-            static const UINT32 NUM_QUERIES_PER_POOL = 16;
+            static const uint32_t NUM_QUERIES_PER_POOL = 16;
 
             VulkanDevice& mDevice;
 

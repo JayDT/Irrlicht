@@ -3,7 +3,7 @@
 #define __C_DATASOURCE_STANARD_H__
 
 #include <stdio.h>
-#include <standard/client/IDataSourceClient.h>
+#include <standard/client/datasource_standard.h>
 
 namespace System
 {
