@@ -122,10 +122,10 @@ if(_IRR_DYNAMIC_)
   
   if (IRR_BUILD_RENDERSYSTEM_D3D11 EQUAL 1)
       message(${LibExSTATUS} "Irr: Install Render Engine D3D11")
-	  if (WIN32 AND MINGW)
-	    list(APPEND IrrLicht_libs d3d11)
-	  else()
+	  if (WIN32 AND MSVC)
 	    list(APPEND IrrLicht_libs Direct3D11)
+	  else()
+	    list(APPEND IrrLicht_libs d3d11)
 	  endif()
 
       list(APPEND IrrLicht_libs
