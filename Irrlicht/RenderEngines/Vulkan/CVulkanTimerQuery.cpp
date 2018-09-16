@@ -140,7 +140,7 @@ bool VulkanTimerQuery::isReady() const
     if (mQueryFinalized)
         return true;
 
-    UINT64 timeBegin, timeEnd;
+    std::uint64_t timeBegin, timeEnd;
     bool ready = true;
     for (auto& entry : mQueries)
     {
@@ -155,12 +155,12 @@ float VulkanTimerQuery::getTimeMs()
 {
     if (!mQueryFinalized)
     {
-        UINT64 totalTimeDiff = 0;
+        std::uint64_t totalTimeDiff = 0;
         bool ready = true;
         for (auto& entry : mQueries)
         {
-            UINT64 timeBegin = 0;
-            UINT64 timeEnd = 0;
+            std::uint64_t timeBegin = 0;
+            std::uint64_t timeEnd = 0;
             ready &= !entry.first->isBound() && entry.first->getResult(timeBegin);
             ready &= !entry.second->isBound() && entry.second->getResult(timeEnd);
 

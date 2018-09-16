@@ -2589,7 +2589,7 @@ void CD3D11Driver::setRenderStates2DMode(bool alpha, bool texture, bool alphaCha
         setTransform(ETS_WORLD, m);
 
         // Set view to translate a little forward
-        //m.setTranslation(core::vector3df(-0.5f, -0.5f, 0)ü);
+        //m.setTranslation(core::vector3df(-0.5f, -0.5f, 0));
         setTransform(ETS_VIEW, getTransform(ETS_VIEW_2D));
 
         // Adjust projection
@@ -2764,7 +2764,7 @@ void CD3D11Driver::setBasicRenderStates(const SMaterial& material, const SMateri
         (resetAllRenderstates || ResetBlending || lastMaterial.ColorMask != material.ColorMask) )
     {
         // multiple color masks and independent blend will be handled in setRenderTarget
-        const UINT8 flag =
+        const std::uint8_t flag =
             ((material.ColorMask & ECP_RED) ? D3D11_COLOR_WRITE_ENABLE_RED : 0) |
             ((material.ColorMask & ECP_GREEN) ? D3D11_COLOR_WRITE_ENABLE_GREEN : 0) |
             ((material.ColorMask & ECP_BLUE) ? D3D11_COLOR_WRITE_ENABLE_BLUE : 0) |
@@ -4224,15 +4224,11 @@ IVideoDriver* CD3D11Driver::getVideoDriver()
 } // end namespace video
 } // end namespace irr
 
-#endif
-
-
 namespace irr
 {
 namespace video
 {
 
-#ifdef _IRR_COMPILE_WITH_DIRECT3D_11_
 //! creates a video driver
 IVideoDriver* createDirectX11Driver(const SIrrlichtCreationParameters& params,
     io::IFileSystem* io, HWND hwnd)
@@ -4247,7 +4243,8 @@ IVideoDriver* createDirectX11Driver(const SIrrlichtCreationParameters& params,
 
     return dx11;
 }
-#endif // _IRR_COMPILE_WITH_DIRECT3D_11_
 
 } // end namespace video
 } // end namespace irr
+
+#endif // _IRR_COMPILE_WITH_DIRECT3D_11_

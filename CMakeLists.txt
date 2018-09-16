@@ -1,10 +1,14 @@
 cmake_minimum_required(VERSION 3.6 FATAL_ERROR)
-
+set(CMAKE_CXX_STANDARD 14)
 project(IrrlichtDV VERSION 0.0.1 LANGUAGES CXX C)
 
 message("")
 message("Configuration:")
 message("")
+
+configure_file(buildin_data.h.in.cmake buildin_data.h)
+# Correct your Windows SDK version for DirectX 11
+set(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION 10.0.17134.0)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake")
@@ -15,6 +19,11 @@ set(CMAKE_MODULE_PATH
   ${CMAKE_SOURCE_DIR}/cmake/macros
   ${CMAKE_SOURCE_DIR}/cmake/extensions
 )
+if (UNIX)
+  # CMake will try to find -lpthreads and fail, these two lines fix it
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-narrowing -pthread")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing -pthread")
+endif(UNIX)
 
 # set default buildoptions and print them
 include(cmake/defines.cmake)

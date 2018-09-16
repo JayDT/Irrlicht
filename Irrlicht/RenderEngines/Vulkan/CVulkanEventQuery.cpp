@@ -107,7 +107,7 @@ VulkanQuery::VulkanQuery(CVulkanDriver* owner, VkQueryPool pool, uint32_t queryI
 {
 }
 
-bool VulkanQuery::getResult(UINT64& result) const
+bool VulkanQuery::getResult(std::uint64_t& result) const
 {
     // Note: A potentially better approach to get results is to make the query pool a VulkanResource, which we attach
     // to a command buffer upon use. Then when CB finishes executing we perform vkGetQueryPoolResults on all queries
@@ -180,12 +180,12 @@ VulkanQueryPool::PoolInfo& VulkanQueryPool::allocatePool(VkQueryType type)
     assert(result == VK_SUCCESS);
 
     auto& poolInfos = type == VK_QUERY_TYPE_TIMESTAMP ? mTimerPools : mOcclusionPools;
-    poolInfo.startIdx = (UINT32)poolInfos.size() * NUM_QUERIES_PER_POOL;
+    poolInfo.startIdx = (std::uint32_t)poolInfos.size() * NUM_QUERIES_PER_POOL;
 
     poolInfos.push_back(poolInfo);
 
     auto& queries = type == VK_QUERY_TYPE_TIMESTAMP ? mTimerQueries : mOcclusionQueries;
-    for (UINT32 i = 0; i < NUM_QUERIES_PER_POOL; i++)
+    for (std::uint32_t i = 0; i < NUM_QUERIES_PER_POOL; i++)
         queries.push_back(nullptr);
 
     return poolInfos.back();
@@ -196,14 +196,14 @@ VulkanQuery* VulkanQueryPool::getQuery(VkQueryType type)
     auto& queries = type == VK_QUERY_TYPE_TIMESTAMP ? mTimerQueries : mOcclusionQueries;
     auto& poolInfos = type == VK_QUERY_TYPE_TIMESTAMP ? mTimerPools : mOcclusionPools;
 
-    for (UINT32 i = 0; i < (UINT32)queries.size(); i++)
+    for (std::uint32_t i = 0; i < (std::uint32_t)queries.size(); i++)
     {
         VulkanQuery* curQuery = queries[i];
         if (curQuery == nullptr)
         {
-            div_t divResult = std::div(i, (INT32)NUM_QUERIES_PER_POOL);
-            UINT32 poolIdx = (UINT32)divResult.quot;
-            UINT32 queryIdx = (UINT32)divResult.rem;
+            div_t divResult = std::div(i, (std::int32_t)NUM_QUERIES_PER_POOL);
+            std::uint32_t poolIdx = (std::uint32_t)divResult.quot;
+            std::uint32_t queryIdx = (std::uint32_t)divResult.rem;
 
             curQuery = new VulkanQuery(mDevice.getDriver(), poolInfos[poolIdx].pool, queryIdx);
             queries[i] = curQuery;
@@ -215,7 +215,7 @@ VulkanQuery* VulkanQueryPool::getQuery(VkQueryType type)
     }
 
     PoolInfo& poolInfo = allocatePool(type);
-    UINT32 queryIdx = poolInfo.startIdx % NUM_QUERIES_PER_POOL;
+    std::uint32_t queryIdx = poolInfo.startIdx % NUM_QUERIES_PER_POOL;
 
     VulkanQuery* query = new VulkanQuery(mDevice.getDriver(), poolInfo.pool, queryIdx);
     queries[poolInfo.startIdx] = query;

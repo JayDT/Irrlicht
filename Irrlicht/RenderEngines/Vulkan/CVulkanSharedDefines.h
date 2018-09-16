@@ -10,7 +10,7 @@ namespace irr
         /** Flags that determine how is a resource being used by the GPU. */
         enum class VulkanUseFlag
         {
-            None = 0,
+            Null = 0,
             Read = 0x1,
             Write = 0x2
         };

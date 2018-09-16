@@ -1,3 +1,7 @@
 /win
 /win2
 /winMG
+/.vscode
+/.vs
+/build
+/CMakeLists.txt.user

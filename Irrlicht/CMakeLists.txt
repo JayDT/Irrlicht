@@ -55,6 +55,9 @@ list(APPEND IrrLicht_source
 	${IrrLicht_render}
 )
 
+# TODO: allow to choose between SDL2 or platform-specific device
+#add_definitions(-D_IRR_COMPILE_WITH_SDL_DEVICE_)
+
 add_subdirectory(RenderEngines)
 
 #! Only define _IRR_COMPILE_WITH_DIRECT3D_8_ if you have an appropriate DXSDK, e.g. Summer 2004
@@ -119,8 +122,12 @@ if(_IRR_DYNAMIC_)
   
   if (IRR_BUILD_RENDERSYSTEM_D3D11 EQUAL 1)
       message(${LibExSTATUS} "Irr: Install Render Engine D3D11")
-      list(APPEND IrrLicht_libs 
-      Direct3D11)
+	  if (WIN32 AND MSVC)
+	    list(APPEND IrrLicht_libs Direct3D11)
+	  else()
+	    list(APPEND IrrLicht_libs d3d11)
+	  endif()
+
       list(APPEND IrrLicht_libs
         ${DirectX11_LIBRARY} )          
   endif(IRR_BUILD_RENDERSYSTEM_D3D11 EQUAL 1)

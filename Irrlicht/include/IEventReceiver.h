@@ -8,7 +8,7 @@
 #include "ILogger.h"
 #include "Keycodes.h"
 #include "irrString.h"
-#include "standard\events.h"
+#include "standard/events.h"
 
 namespace irr
 {

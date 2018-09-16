@@ -37,6 +37,6 @@ namespace video
 }
 }
 
-#endif
+#endif // _IRR_COMPILE_WITH_WINDOWS_DEVICE_
 
 #endif

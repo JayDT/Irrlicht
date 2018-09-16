@@ -35,7 +35,7 @@ VulkanBuffer::VulkanBuffer(CVulkanDriver* owner, VkBuffer buffer, VkBufferView v
     VkDeviceSize bufferSize;
     device->getAllocationInfo(mAllocation, memory, memoryOffset, &bufferSize);
 
-    pMappedData = (UINT8*)MappedData;
+    pMappedData = (std::uint8_t*)MappedData;
 }
 
 VulkanBuffer::~VulkanBuffer()
@@ -49,12 +49,12 @@ VulkanBuffer::~VulkanBuffer()
     device->freeMemory(mAllocation);
 }
 
-UINT8* VulkanBuffer::map(VulkanDevice * device, VkDeviceSize offset, VkDeviceSize length) const
+std::uint8_t* VulkanBuffer::map(VulkanDevice * device, VkDeviceSize offset, VkDeviceSize length) const
 {
     if (pMappedData)
         return pMappedData;
 
-    UINT8* data;
+    std::uint8_t* data;
     VkResult result = vkMapMemory(device->getLogical(), memory, memoryOffset + offset, length, 0, (void**)&data);
     assert(result == VK_SUCCESS);
 
@@ -96,7 +96,7 @@ void VulkanBuffer::copy(VulkanCmdBuffer* cb, VulkanImage* destination, const VkE
     vkCmdCopyBufferToImage(cb->getHandle(), mBuffer, destination->getHandle(), layout, 1, &region);
 }
 
-void VulkanBuffer::update(VulkanCmdBuffer* cb, UINT8* data, VkDeviceSize offset, VkDeviceSize length)
+void VulkanBuffer::update(VulkanCmdBuffer* cb, std::uint8_t* data, VkDeviceSize offset, VkDeviceSize length)
 {
     vkCmdUpdateBuffer(cb->getHandle(), mBuffer, offset, length, (uint32_t*)data);
 }
@@ -185,7 +185,7 @@ void * irr::video::CVulkanHardwareBuffer::lock(E_HARDWARE_BUFFER_TYPE type, u32 
     VulkanDevice* device = mMappedDeviceIdx == 0 ? Driver->_getPrimaryDevice() : Driver->_getDevice(mMappedDeviceIdx);
 
     GpuQueueType queueType;
-    UINT32 localQueueIdx = CommandSyncMask::getQueueIdxAndType(mMappedGlobalQueueIdx, queueType);
+    std::uint32_t localQueueIdx = CommandSyncMask::getQueueIdxAndType(mMappedGlobalQueueIdx, queueType);
 
     VkAccessFlags accessFlags;
     if (mMappedReadOnly)
@@ -218,7 +218,7 @@ void * irr::video::CVulkanHardwareBuffer::lock(E_HARDWARE_BUFFER_TYPE type, u32 
         if (accessFlags & (VK_ACCESS_HOST_READ_BIT | VK_ACCESS_HOST_WRITE_BIT))
         {
             // Check is the GPU currently reading or writing from the buffer
-            UINT32 useMask;
+            std::uint32_t useMask;
 
             // We need to wait until (potential) read/write operations complete
             VulkanTransferBuffer* transferCB = device->getTransferBuffer(queueType, localQueueIdx);
@@ -257,8 +257,8 @@ void * irr::video::CVulkanHardwareBuffer::lock(E_HARDWARE_BUFFER_TYPE type, u32 
                 VulkanBuffer* newBuffer = GetCacheBuffer(*device, desc, desc.bufferCI, desc.AccessType, desc.Stride, true);
     
                 // Copy contents of the current buffer to the new one
-                UINT8* src = buffer->map(device, desc.Offset, length);
-                UINT8* dst = newBuffer->map(device, desc.Offset, length);
+                std::uint8_t* src = buffer->map(device, desc.Offset, length);
+                std::uint8_t* dst = newBuffer->map(device, desc.Offset, length);
     
                 memcpy(dst, src, length);
     
@@ -294,7 +294,7 @@ void * irr::video::CVulkanHardwareBuffer::lock(E_HARDWARE_BUFFER_TYPE type, u32 
         {
             if (desc.mStagingMemory)
                 free(desc.mStagingMemory);
-            desc.mStagingMemory = (UINT8*)malloc(length);
+            desc.mStagingMemory = (std::uint8_t*)malloc(length);
             desc.mStagingMemorySize = length;
         }
         return desc.mStagingMemory;
@@ -310,7 +310,7 @@ void * irr::video::CVulkanHardwareBuffer::lock(E_HARDWARE_BUFFER_TYPE type, u32 
 
         // Similar to above, if buffer supports GPU writes or is currently being written to, we need to wait on any
         // potential writes to complete
-        UINT32 writeUseMask = buffer->getUseInfo(VulkanUseFlag::Write);
+        std::uint32_t writeUseMask = buffer->getUseInfo(VulkanUseFlag::Write);
         if (desc.mSupportsGPUWrites || writeUseMask != 0)
         {
             // Ensure flush() will wait for all queues currently writing to the buffer (if any) to finish
@@ -380,7 +380,7 @@ void irr::video::CVulkanHardwareBuffer::unlock(E_HARDWARE_BUFFER_TYPE type)
                 device = mMappedDeviceIdx == 0 ? Driver->_getPrimaryDevice() : Driver->_getDevice(mMappedDeviceIdx);
 
             GpuQueueType queueType;
-            UINT32 localQueueIdx = CommandSyncMask::getQueueIdxAndType(mMappedGlobalQueueIdx, queueType);
+            std::uint32_t localQueueIdx = CommandSyncMask::getQueueIdxAndType(mMappedGlobalQueueIdx, queueType);
 
             VulkanTransferBuffer* transferCB = device->getTransferBuffer(queueType, localQueueIdx);
 
@@ -895,13 +895,13 @@ bool irr::video::CVulkanHardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type
                     u32 _dBufferSize = dataSize - desc.Descriptor.range;
 
                     GpuQueueType queueType;
-                    UINT32 localQueueIdx = CommandSyncMask::getQueueIdxAndType(0, queueType);
+                    std::uint32_t localQueueIdx = CommandSyncMask::getQueueIdxAndType(0, queueType);
 
                     VulkanTransferBuffer* transferCB = Device->getTransferBuffer(queueType, localQueueIdx);
 
                     // Similar to above, if buffer supports GPU writes or is currently being written to, we need to wait on any
                     // potential writes to complete
-                    UINT32 writeUseMask = oldBuffer->getUseInfo(VulkanUseFlag::Write);
+                    std::uint32_t writeUseMask = oldBuffer->getUseInfo(VulkanUseFlag::Write);
                     if (desc.mSupportsGPUWrites || writeUseMask != 0)
                     {
                         // Ensure flush() will wait for all queues currently writing to the buffer (if any) to finish

@@ -74,8 +74,9 @@ wchar_t *utf8_to_wide_c(const char *str);
 
 // You must free the returned string!
 // The returned string is allocated using new
-wchar_t *narrow_to_wide_c(const char *str);
-std::wstring narrow_to_wide(const std::string &mbs);
+// FIXME(manh): implement for all platforms before enabling
+// wchar_t *narrow_to_wide_c(const char *str);
+// std::wstring narrow_to_wide(const std::string &mbs);
 std::string wide_to_narrow(const std::wstring &wcs);
 
 std::string urlencode(const std::string &str);

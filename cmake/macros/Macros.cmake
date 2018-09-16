@@ -173,7 +173,7 @@ FUNCTION(AppendDefaultIncludeDir)
       ${PUBLIC_INCLUDES}
       ${CMAKE_SOURCE_DIR}
       ${CMAKE_SOURCE_DIR}/Irrlicht
-      ${CMAKE_SOURCE_DIR}/IrrLicht/include
+      ${CMAKE_SOURCE_DIR}/Irrlicht/include
       ${CMAKE_SOURCE_DIR}/dep
       ${CMAKE_SOURCE_DIR}/dep/zlib
       ${CMAKE_BINARY_DIR}

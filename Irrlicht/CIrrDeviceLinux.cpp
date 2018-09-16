@@ -52,8 +52,10 @@ namespace irr
 {
 	namespace video
 	{
+		#ifdef _IRR_COMPILE_WITH_OPENGL_
 		IVideoDriver* createOpenGLDriver(const SIrrlichtCreationParameters& params,
 				io::IFileSystem* io, CIrrDeviceLinux* device);
+		#endif
 	}
 } // end namespace irr
 

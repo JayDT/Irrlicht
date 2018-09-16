@@ -271,8 +271,8 @@ void * irr::video::CVulkanTexture::lock(E_TEXTURE_LOCK_MODE mode, u32 mipmapLeve
                     VkMemoryRequirements memReqs;
                     vkGetImageMemoryRequirements(device->getLogical(), image->getHandle(), &memReqs);
 
-                    UINT8* src = image->map(0, (u32)memReqs.size);
-                    UINT8* dst = newImage->map(0, (u32)memReqs.size);
+                    std::uint8_t* src = image->map(0, (u32)memReqs.size);
+                    std::uint8_t* dst = newImage->map(0, (u32)memReqs.size);
 
                     memcpy(dst, src, memReqs.size);
 
@@ -336,8 +336,8 @@ void * irr::video::CVulkanTexture::lock(E_TEXTURE_LOCK_MODE mode, u32 mipmapLeve
                 VkMemoryRequirements memReqs;
                 vkGetImageMemoryRequirements(device->getLogical(), image->getHandle(), &memReqs);
 
-                UINT8* src = image->map(0, (u32)memReqs.size);
-                UINT8* dst = newImage->map(0, (u32)memReqs.size);
+                std::uint8_t* src = image->map(0, (u32)memReqs.size);
+                std::uint8_t* dst = newImage->map(0, (u32)memReqs.size);
 
                 memcpy(dst, src, memReqs.size);
 
@@ -441,7 +441,7 @@ void * irr::video::CVulkanTexture::lock(E_TEXTURE_LOCK_MODE mode, u32 mipmapLeve
     u32 mipHeight = std::max(1u, TextureSize.Height >> mipmapLevel);
     u32 mipDepth = std::max(1u, 1u >> mipmapLevel);
 
-    UINT8* data = mStagingBuffer->map(device, 0, IImage::getMemorySize(mipWidth, mipHeight, mipDepth, mInternalFormats[mMappedDeviceIdx]));
+    std::uint8_t* data = mStagingBuffer->map(device, 0, IImage::getMemorySize(mipWidth, mipHeight, mipDepth, mInternalFormats[mMappedDeviceIdx]));
     return data;
 }
 
@@ -1384,7 +1384,7 @@ void VulkanImage::map(uint32_t face, uint32_t mipLevel, MappedImageData& output)
     VkDeviceSize memoryOffset;
     device->getAllocationInfo(mAllocation, memory, memoryOffset);
 
-    UINT8* data;
+    std::uint8_t* data;
     VkResult result = vkMapMemory(device->getLogical(), memory, memoryOffset + layout.offset, layout.size, 0, (void**)&data);
     assert(result == VK_SUCCESS);
 
@@ -1392,7 +1392,7 @@ void VulkanImage::map(uint32_t face, uint32_t mipLevel, MappedImageData& output)
     output.size = layout.size;
 }
 
-UINT8* VulkanImage::map(uint32_t offset, uint32_t size) const
+std::uint8_t* VulkanImage::map(uint32_t offset, uint32_t size) const
 {
     VulkanDevice* device = Driver->_getPrimaryDevice();
 
@@ -1400,7 +1400,7 @@ UINT8* VulkanImage::map(uint32_t offset, uint32_t size) const
     VkDeviceSize memoryOffset;
     device->getAllocationInfo(mAllocation, memory, memoryOffset);
 
-    UINT8* data;
+    std::uint8_t* data;
     VkResult result = vkMapMemory(device->getLogical(), memory, memoryOffset + offset, size, 0, (void**)&data);
     assert(result == VK_SUCCESS);
 

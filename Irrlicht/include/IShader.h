@@ -214,4 +214,4 @@ namespace irr
     }
 }
 
-#endif //! __I_SHADER_H_INCLUDED__
+#endif // __I_SHADER_H_INCLUDED__

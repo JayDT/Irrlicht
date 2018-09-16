@@ -244,7 +244,7 @@ void VulkanGraphicsPipelineState::initialize()
         }
     }
 
-    const UINT8 colorWriteMask =
+    const std::uint8_t colorWriteMask =
         ((mMaterial.ColorMask & ECP_RED)    ? VkColorComponentFlagBits::VK_COLOR_COMPONENT_R_BIT : 0) |
         ((mMaterial.ColorMask & ECP_GREEN)  ? VkColorComponentFlagBits::VK_COLOR_COMPONENT_G_BIT : 0) |
         ((mMaterial.ColorMask & ECP_BLUE)   ? VkColorComponentFlagBits::VK_COLOR_COMPONENT_B_BIT : 0) |
@@ -444,7 +444,7 @@ void irr::video::VulkanGraphicsPipelineState::update(u8 deviceIdx, const irr::vi
         mRasterizationInfo.depthBiasEnable = material.PolygonOffsetFactor != 0;
         mRasterizationInfo.depthBiasConstantFactor = (float)material.PolygonOffsetFactor;
         mRasterizationInfo.depthBiasSlopeFactor = material.PolygonOffsetDirection == EPO_BACK ? 1.f : -1.f;
-        mRasterizationInfo.depthBiasClamp = (FLOAT)material.PolygonOffsetFactor;
+        mRasterizationInfo.depthBiasClamp = (float)material.PolygonOffsetFactor;
     }
 
     //mRasterizationInfo.depthClampEnable = !material.DepthClipEnable;
@@ -538,7 +538,7 @@ void irr::video::VulkanGraphicsPipelineState::update(u8 deviceIdx, const irr::vi
             }
         }
 
-        const UINT8 colorWriteMask =
+        const std::uint8_t colorWriteMask =
             ((material.ColorMask & ECP_RED) ? VkColorComponentFlagBits::VK_COLOR_COMPONENT_R_BIT : 0) |
             ((material.ColorMask & ECP_GREEN) ? VkColorComponentFlagBits::VK_COLOR_COMPONENT_G_BIT : 0) |
             ((material.ColorMask & ECP_BLUE) ? VkColorComponentFlagBits::VK_COLOR_COMPONENT_B_BIT : 0) |

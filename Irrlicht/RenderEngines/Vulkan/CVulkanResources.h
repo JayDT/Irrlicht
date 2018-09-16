@@ -16,7 +16,7 @@ namespace irr
         struct ResourceUseHandle
         {
             uint32_t mPoolMask = 0; // ToDo: Resource Pool Manager
-            VulkanUseFlag flags = VulkanUseFlag::None;
+            VulkanUseFlag flags = VulkanUseFlag::Null;
             bool used = false;
         };
 

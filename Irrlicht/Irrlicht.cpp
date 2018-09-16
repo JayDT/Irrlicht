@@ -131,13 +131,13 @@ namespace irr
 #endif
 
 #ifdef _IRR_COMPILE_WITH_X11_DEVICE_
-		if (params.DeviceType == EIDT_X11 || (!dev && params.DeviceType == EIDT_BEST))
-			dev = new CIrrDeviceLinux(params);
-#endif
-
 #ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
 		if (params.DeviceType == EIDT_SDL || (!dev && params.DeviceType == EIDT_BEST))
 			dev = new CIrrDeviceSDL(params);
+#else
+		if (params.DeviceType == EIDT_X11 || (!dev && params.DeviceType == EIDT_BEST))
+			dev = new CIrrDeviceLinux(params);
+#endif
 #endif
 
 #ifdef _IRR_COMPILE_WITH_FB_DEVICE_

@@ -93,7 +93,7 @@ std::wstring utf8_to_wide(const std::string &input)
 	memset(outbuf, 0, outbuf_size);
 
 	if (!convert("WCHAR_T", "UTF-8", outbuf, outbuf_size, inbuf, inbuf_size)) {
-		infostream << "Couldn't convert UTF-8 string 0x" << hex_encode(input)
+		std::cerr << "Couldn't convert UTF-8 string 0x" << hex_encode(input)
 			<< " into wstring" << std::endl;
 		delete[] inbuf;
 		delete[] outbuf;
@@ -126,7 +126,7 @@ std::string wide_to_utf8(const std::wstring &input)
 	memset(outbuf, 0, outbuf_size);
 
 	if (!convert("UTF-8", "WCHAR_T", outbuf, outbuf_size, inbuf, inbuf_size)) {
-		infostream << "Couldn't convert wstring 0x" << hex_encode(inbuf, inbuf_size)
+		std::cerr << "Couldn't convert wstring 0x" << hex_encode(inbuf, inbuf_size)
 			<< " into UTF-8 string" << std::endl;
 		delete[] inbuf;
 		delete[] outbuf;
@@ -181,28 +181,28 @@ wchar_t *utf8_to_wide_c(const char *str)
 
 // You must free the returned string!
 // The returned string is allocated using new
-wchar_t *narrow_to_wide_c(const char *str)
-{
-	wchar_t *nstr = NULL;
-#if defined(_WIN32)
-	int nResult = MultiByteToWideChar(CP_UTF8, 0, (LPCSTR) str, -1, 0, 0);
-	if (nResult == 0) {
-		std::cout<<"gettext: MultiByteToWideChar returned null"<<std::endl;
-	} else {
-		nstr = new wchar_t[nResult];
-		MultiByteToWideChar(CP_UTF8, 0, (LPCSTR) str, -1, (WCHAR *) nstr, nResult);
-	}
-#else
-	size_t len = strlen(str);
-	nstr = new wchar_t[len + 1];
+// wchar_t *narrow_to_wide_c(const char *str)
+// {
+// 	wchar_t *nstr = NULL;
+// #if defined(_WIN32)
+// 	int nResult = MultiByteToWideChar(CP_UTF8, 0, (LPCSTR) str, -1, 0, 0);
+// 	if (nResult == 0) {
+// 		std::cout<<"gettext: MultiByteToWideChar returned null"<<std::endl;
+// 	} else {
+// 		nstr = new wchar_t[nResult];
+// 		MultiByteToWideChar(CP_UTF8, 0, (LPCSTR) str, -1, (WCHAR *) nstr, nResult);
+// 	}
+// #else
+// 	size_t len = strlen(str);
+// 	nstr = new wchar_t[len + 1];
 
-	std::wstring intermediate = narrow_to_wide(str);
-	memset(nstr, 0, (len + 1) * sizeof(wchar_t));
-	memcpy(nstr, intermediate.c_str(), len * sizeof(wchar_t));
-#endif
+// 	std::wstring intermediate = narrow_to_wide(str);
+// 	memset(nstr, 0, (len + 1) * sizeof(wchar_t));
+// 	memcpy(nstr, intermediate.c_str(), len * sizeof(wchar_t));
+// #endif
 
-	return nstr;
-}
+// 	return nstr;
+// }
 
 
 #ifdef __ANDROID__

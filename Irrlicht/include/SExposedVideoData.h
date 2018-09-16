@@ -5,6 +5,8 @@
 #ifndef __S_EXPOSED_VIDEO_DATA_H_INCLUDED__
 #define __S_EXPOSED_VIDEO_DATA_H_INCLUDED__
 
+#include <cstdint>
+
 // forward declarations for internal pointers
 struct ID3D11Device;
 struct ID3D10Device;

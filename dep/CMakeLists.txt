@@ -1,7 +1,10 @@
 add_subdirectory(glm)
 add_subdirectory(jpeglib)
 add_subdirectory(libpng)
+
+if (MSVC)
 add_subdirectory(zlib)
+endif()
 
 IF (BUILD_IN_USE_GLSLANG)
 

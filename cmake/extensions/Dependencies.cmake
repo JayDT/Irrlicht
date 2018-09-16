@@ -9,7 +9,7 @@ include(MacroLogFeature REQUIRED)
 #######################################################################
 
 find_package(PCHSupport)
-find_package(LLVM REQUIRED)
+#find_package(LLVM REQUIRED)
 #find_package(CURL REQUIRED)
 
 #######################################################################
@@ -29,14 +29,16 @@ IF(UNIX)
 
     #Required GCC  binutils-dev  
     # Look for binutils-dev. Needed for pretty stack printing.
-    FIND_PACKAGE(BFD REQUIRED)
-    IF (BFD_FOUND)
+    # BFD is invalid, wait for CMake to release FindBinUtils.cmake
+    # https://github.com/Kitware/CMake/blob/master/Modules/CMakeFindBinUtils.cmake
+    #FIND_PACKAGE(BFD REQUIRED)
+    #IF (BFD_FOUND)
         MESSAGE(STATUS "Binutils found.")
         ADD_DEFINITIONS(-DHAVE_BFD)
         SET(HAVE_BFD 1)
-    ELSE (BFD_FOUND)
-        MESSAGE(FATAL_ERROR "Binutils-dev missing: No pretty stack-trace printing.")
-    ENDIF (BFD_FOUND)
+    #ELSE (BFD_FOUND)
+    #    MESSAGE(FATAL_ERROR "Binutils-dev missing: No pretty stack-trace printing.")
+    #ENDIF (BFD_FOUND)
 ENDIF(UNIX)
 
 FIND_PACKAGE(Threads REQUIRED)
@@ -420,6 +422,7 @@ endif ()
 
 IF (BUILD_EXAMPLES)
     file(COPY ${CMAKE_SOURCE_DIR}/media/ DESTINATION ${BIN_DIR}/media PATTERN *.*)
+    file(COPY ${CMAKE_BINARY_DIR}/Dependencies/lib/ DESTINATION ${LIBS_DIR} PATTERN *.*)
 ENDIF()
 
 IF (NOT EXISTS ${PROJECTDEPS_PATH}/bin)
