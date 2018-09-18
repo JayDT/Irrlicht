@@ -408,7 +408,6 @@ bool CIrrDeviceLinux::createWindow()
 	}
 
 	Screennr = DefaultScreen(XDisplay);
-    CreationParams.WindowId = (void*)Screennr;
 
 	switchToFullscreen();
 
@@ -617,7 +616,7 @@ void CIrrDeviceLinux::createDriver()
     case video::EDT_VULKAN:
 #ifdef _IRR_COMPILE_WITH_VULKAN_
 
-        VideoDriver = video::createVulkanDriver(CreationParams, FileSystem, (void*)Screennr);
+        VideoDriver = video::createVulkanDriver(CreationParams, FileSystem, (void*)XDisplay);
 
         if ( !VideoDriver )
         {

@@ -58,30 +58,33 @@ CGLXManager::CGLXManager(const SIrrlichtCreationParameters& params, const SExpos
 			// attribute array for the draw buffer
 			int visualAttrBuffer[] =
 			{
-				GLX_RENDER_TYPE, GLX_RGBA_BIT,
-				GLX_RED_SIZE, 4,
-				GLX_GREEN_SIZE, 4,
-				GLX_BLUE_SIZE, 4,
-				GLX_ALPHA_SIZE, Params.WithAlphaChannel?1:0,
-				GLX_DEPTH_SIZE, Params.ZBufferBits, //10,11
-				GLX_DOUBLEBUFFER, Params.Doublebuffer?True:False,
-				GLX_STENCIL_SIZE, Params.Stencilbuffer?1:0,
+                GLX_X_RENDERABLE        , True,
+                GLX_DRAWABLE_TYPE       , GLX_WINDOW_BIT,
+				GLX_RENDER_TYPE         , GLX_RGBA_BIT,
+                GLX_X_VISUAL_TYPE       , GLX_TRUE_COLOR,
+				GLX_RED_SIZE            , Params.Bits <= 16 ? 4 : 8,
+				GLX_GREEN_SIZE          , Params.Bits <= 16 ? 4 : 8,
+				GLX_BLUE_SIZE           , Params.Bits <= 16 ? 4 : 8,
+				GLX_ALPHA_SIZE          , Params.WithAlphaChannel? (Params.Bits <= 16 ? 1 : 8) : 0,
+				GLX_DEPTH_SIZE          , Params.ZBufferBits ? (Params.ZBufferBits <= 16 ? 16 : 24) : 0, //10,11
+				GLX_DOUBLEBUFFER        , Params.Doublebuffer?True:False,
+				GLX_STENCIL_SIZE        , Params.Stencilbuffer ? (Params.Stencilbuffer == 1 ? 1 : 8) :0,
 #if defined(GLX_VERSION_1_4) && defined(GLX_SAMPLE_BUFFERS) // we need to check the extension string!
-				GLX_SAMPLE_BUFFERS, 1,
-				GLX_SAMPLES, Params.AntiAlias, // 18,19
+				GLX_SAMPLE_BUFFERS      , 1,
+				GLX_SAMPLES             , Params.AntiAlias, // 18,19
 #elif defined(GLX_ARB_multisample)
-				GLX_SAMPLE_BUFFERS_ARB, 1,
-				GLX_SAMPLES_ARB, Params.AntiAlias, // 18,19
+				GLX_SAMPLE_BUFFERS_ARB  , 1,
+				GLX_SAMPLES_ARB         , Params.AntiAlias, // 18,19
 #elif defined(GLX_SGIS_multisample)
-				GLX_SAMPLE_BUFFERS_SGIS, 1,
-				GLX_SAMPLES_SGIS, Params.AntiAlias, // 18,19
+				GLX_SAMPLE_BUFFERS_SGIS , 1,
+				GLX_SAMPLES_SGIS        , Params.AntiAlias, // 18,19
 #endif
-//#ifdef GL_ARB_framebuffer_sRGB
-//					GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB, Params.HandleSRGB,
-//#elif defined(GL_EXT_framebuffer_sRGB)
-//					GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT, Params.HandleSRGB,
-//#endif
-				GLX_STEREO, Params.Stereobuffer?True:False,
+#ifdef GL_ARB_framebuffer_sRGB
+                GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB, Params.HandleSRGB,
+#elif defined(GL_EXT_framebuffer_sRGB)
+                GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT, Params.HandleSRGB,
+#endif
+				GLX_STEREO              , Params.Stereobuffer?True:False,
 				None
 			};
 

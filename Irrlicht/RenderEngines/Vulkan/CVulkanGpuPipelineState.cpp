@@ -315,6 +315,7 @@ void VulkanGraphicsPipelineState::initialize()
         SMaterialLayer& layer = mMaterial.TextureLayer[st];
         const float tmp = layer.LODBias * 0.125f;
         VkSamplerCreateInfo& samplerCI = mSamplerInfo[st];
+        samplerCI = {};
         samplerCI.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
         samplerCI.flags = 0;
         samplerCI.pNext = nullptr;
@@ -357,6 +358,7 @@ void VulkanGraphicsPipelineState::initialize()
         layoutCI.pSetLayouts = mShader->getLayout()->getHandle();
 
         VkResult result = vkCreatePipelineLayout(devices[i]->getLogical(), &layoutCI, VulkanDevice::gVulkanAllocator, &mPerDeviceData[i].pipelineLayout);
+        assert(result == VK_SUCCESS);
 
         for (uint32_t st = 0; st < MATERIAL_MAX_TEXTURES; ++st)
         {

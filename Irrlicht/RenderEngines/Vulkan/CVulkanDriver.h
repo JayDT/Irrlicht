@@ -22,7 +22,7 @@
 #define DEVEL_LOG(msg,code)	os::Printer::log(msg, code)	
 #endif
 
-#define VULKAN_DEBUG_MODE 1
+#define VULKAN_DEBUG_MODE 0
 
 namespace irr
 {
@@ -141,7 +141,7 @@ namespace irr
                 E_INDEX_TYPE iType);
 
             //! initialises the Vulkan API
-            bool initDriver();
+            bool initDriver(void* param);
 
             //! \return Returns the name of the video driver. Example: In case of the Vulkan
             //! driver, it would return "Vulkan".
@@ -346,7 +346,7 @@ namespace irr
 
         private:
 
-            void initialize();
+            void initialize(void* param);
 
             SMaterial Material, LastMaterial;
             IImage* blankImage = nullptr;

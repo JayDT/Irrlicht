@@ -1,28 +1,27 @@
-#ifndef __C_WVK_MANAGER_H_INCLUDED__
-#define __C_WVK_MANAGER_H_INCLUDED__
+#ifndef __C_LVK_MANAGER_H_INCLUDED__
+#define __C_LVK_MANAGER_H_INCLUDED__
 
 #include "IrrCompileConfig.h"
 
-#ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
+#ifdef _IRR_COMPILE_WITH_X11_DEVICE_
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 #include "CVulkanPlatform.h"
 
 namespace irr
 {
 namespace video
 {
-    class CWinVulkanPlatform : public CVulkanPlatform
+    class CLinuxVulkanPlatform : public CVulkanPlatform
     {
     public:
         //! Constructor.
-        CWinVulkanPlatform(CVulkanDriver* driver)
+        CLinuxVulkanPlatform(CVulkanDriver* driver, Display* dpy)
             : CVulkanPlatform(driver)
+            , mDisplay(dpy)
         {}
 
 		//! Destructor
-        virtual ~CWinVulkanPlatform();
+        virtual ~CLinuxVulkanPlatform();
 
         // Inherited via CVulkanPlatform
         virtual void initialize() override;
@@ -30,12 +29,13 @@ namespace video
 
     protected:
 
+        Display* mDisplay = nullptr;
         bool mIsFullScreen = false;
 
     };
 }
 }
 
-#endif
+#endif // _IRR_COMPILE_WITH_X11_DEVICE_
 
 #endif

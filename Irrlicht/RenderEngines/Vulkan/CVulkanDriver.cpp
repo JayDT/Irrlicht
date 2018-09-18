@@ -1,6 +1,12 @@
 #include "CVulkanDriver.h"
 #if defined(_IRR_COMPILE_WITH_WINDOWS_DEVICE_)
-#include "ContextManager/CWinPlatform.h"
+#   include "ContextManager/CWinPlatform.h"
+#elif defined(_IRR_COMPILE_WITH_X11_DEVICE_)
+#   include "ContextManager/CLinuxPlatform.h"
+#elif defined(_IRR_COMPILE_WITH_OSX_DEVICE_)
+#   include "ContextManager/CMacPlatform.h"
+#elif defined(_IRR_COMPILE_WITH_ANDROID_DEVICE_)
+#   include "ContextManager/CAndroidPlatform.h"
 #endif
 #include "CVulkanVertexDeclaration.h"
 #include "CVulkanHardwareBuffer.h"
@@ -256,7 +262,7 @@ VulkanSwapChain * irr::video::CVulkanDriver::_getSwapChain()
     return mPlatform->GetSwapChain();
 }
 
-void irr::video::CVulkanDriver::initialize()
+void irr::video::CVulkanDriver::initialize(void* param)
 {
     // Create instance
     VkApplicationInfo appInfo;
@@ -376,12 +382,12 @@ void irr::video::CVulkanDriver::initialize()
 
 #if defined(_IRR_COMPILE_WITH_WINDOWS_DEVICE_)
     mPlatform = new CWinVulkanPlatform(this);
-//#elif defined(_IRR_COMPILE_WITH_ANDROID_DEVICE_)
-//    mPlatform = new CAndroidVulkanPlatform(this);
-//#elif defined(_IRR_COMPILE_WITH_OSX_DEVICE_)
-//    mPlatform = new CMacVulkanPlatform(this);
-//#else
-//    mPlatform = new CLinuxVulkanPlatform(this);
+#elif defined(_IRR_COMPILE_WITH_ANDROID_DEVICE_)
+    //mPlatform = new CAndroidVulkanPlatform(this);
+#elif defined(_IRR_COMPILE_WITH_OSX_DEVICE_)
+    //mPlatform = new CMacVulkanPlatform(this);
+#else
+    mPlatform = new CLinuxVulkanPlatform(this, (Display*)param);
 #endif
 
     mPlatform->initialize();
@@ -392,11 +398,11 @@ void irr::video::CVulkanDriver::initialize()
     DriverAndFeatureName += converter.from_bytes(_getPrimaryDevice()->getDeviceProperties().deviceName);
 }
 
-bool irr::video::CVulkanDriver::initDriver()
+bool irr::video::CVulkanDriver::initDriver(void* param)
 {
     CNullDriver::initDriver();
 
-    initialize();
+    initialize(param);
     glslang::InitProcess();
     ShInitialize();
     ShInitialize();  // also test reference counting of users
@@ -533,7 +539,7 @@ bool irr::video::CVulkanDriver::initDriver()
 
 #ifndef HAVE_CSYSTEM_EXTENSION
         auto vertShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Vulkan/GLSL/VkDefaultSK.vert");
-        auto fragShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Vulkan/GLSL/vkDefault.frag");
+        auto fragShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/Vulkan/GLSL/VkDefault.frag");
 #else
         auto vertShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/CVulkan;/GLSL/VkDefaultSK.vert", true))->ToMemoryStreamReader();
         auto fragShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/CVulkan;/GLSL/VkDefault.frag", true))->ToMemoryStreamReader();
@@ -572,7 +578,6 @@ bool irr::video::CVulkanDriver::beginScene(bool backBuffer, bool zBuffer, SColor
     mMainCommandBuffer->getInternal()->clearViewport(FrameBufferType::FBT_COLOR | FrameBufferType::FBT_DEPTH | FrameBufferType::FBT_STENCIL, color, 1.0f, 0, 0xFF);
 
     mMainCommandBuffer->getInternal()->beginRenderPass();
-
     return true;
 }
 
@@ -1879,10 +1884,10 @@ namespace irr
     {
         //! creates a video driver
         IVideoDriver* createVulkanDriver(const SIrrlichtCreationParameters& params,
-            io::IFileSystem* io, void* hwnd)
+            io::IFileSystem* io, void* param)
         {
             CVulkanDriver* driver = new CVulkanDriver(params, io);
-            if (!driver->initDriver())
+            if (!driver->initDriver(param))
             {
                 driver->drop();
                 driver = 0;

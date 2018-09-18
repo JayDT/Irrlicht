@@ -7,6 +7,7 @@
 
 #include "IrrCompileConfig.h"
 #include "path.h"
+#include "buildin_data.h"
 
 namespace irr
 {
@@ -48,8 +49,9 @@ static io::path getExampleMediaPath()
 #if defined(WIN32) and !defined(__MINGW32__)
     // Fix Visual Studio debugger working dir issues
     SetWorkingDirectory();
-#endif
     return io::path("media/");
+#endif
+    return io::path(_BIN_OUTPUT_DIRECTORY) + "/media/";
 }
 
 } // end namespace irr
