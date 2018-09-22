@@ -11,7 +11,7 @@
 #endif
 
 #ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #endif
 
 #include <algorithm>

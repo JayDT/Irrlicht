@@ -9,7 +9,7 @@
 #include <time.h>
 
 #if defined(_IRR_COMPILE_WITH_SDL_DEVICE_)
-	#include <SDL/SDL_endian.h>
+	#include <SDL2/SDL_endian.h>
 	#define bswap_16(X) SDL_Swap16(X)
 	#define bswap_32(X) SDL_Swap32(X)
 #elif defined(_IRR_WINDOWS_API_) && defined(_MSC_VER) && (_MSC_VER > 1298)
