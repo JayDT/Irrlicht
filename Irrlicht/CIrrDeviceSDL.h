@@ -16,8 +16,8 @@
 #include "IImagePresenter.h"
 #include "ICursorControl.h"
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_syswm.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_syswm.h>
 
 namespace irr
 {
@@ -86,6 +86,9 @@ namespace irr
 		//! Get the current Gamma Value for the Display
 		virtual bool getGammaRamp( f32 &red, f32 &green, f32 &blue, f32 &brightness, f32 &contrast );
 
+        SDL_Window* getInternalWindow() const { return mWindow; }
+        SDL_Renderer* getinternalRenderer() const { return mRenderer; }
+
 		//! Get the device type
 		virtual E_DEVICE_TYPE getType() const
 		{
@@ -139,7 +142,7 @@ namespace irr
 			//! Sets the new position of the cursor.
 			virtual void setPosition(s32 x, s32 y)
 			{
-				SDL_WarpMouse( x, y );
+				SDL_WarpMouseInWindow(Device->getInternalWindow(), x, y );
 			}
 
 			//! Returns the current position of the mouse cursor.
@@ -192,8 +195,13 @@ namespace irr
 
 		void createKeyMap();
 
-		SDL_Surface* Screen;
+        SDL_Window* mWindow;
+        SDL_Renderer* mRenderer;
+		SDL_Surface* mScreen;
+        intptr_t mDisplayHandle;
+        intptr_t mWndHandle;
 		int SDL_Flags;
+
 #if defined(_IRR_COMPILE_WITH_JOYSTICK_EVENTS_)
 		core::array<SDL_Joystick*> Joysticks;
 #endif

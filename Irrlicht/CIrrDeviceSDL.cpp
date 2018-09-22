@@ -17,11 +17,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "SIrrCreationParameters.h"
-#include <SDL/SDL_syswm.h>
-#include <SDL/SDL_video.h>
+#include <SDL2/SDL_syswm.h>
+#include <SDL2/SDL_video.h>
 
 #ifdef _MSC_VER
-#pragma comment(lib, "SDL.lib")
+#pragma comment(lib, "SDL2.lib")
 #endif // _MSC_VER
 
 namespace irr
@@ -43,6 +43,11 @@ namespace irr
 		IVideoDriver* createOpenGLDriver(const SIrrlichtCreationParameters& params,
 				io::IFileSystem* io, CIrrDeviceSDL* device);
 		#endif
+
+        #ifdef _IRR_COMPILE_WITH_VULKAN_
+        IVideoDriver* createVulkanDriver(const SIrrlichtCreationParameters& params,
+            io::IFileSystem* io, void* hwnd);
+        #endif
 	} // end namespace video
 
 } // end namespace irr
@@ -54,8 +59,8 @@ namespace irr
 //! constructor
 CIrrDeviceSDL::CIrrDeviceSDL(const SIrrlichtCreationParameters& param)
 	: CIrrDeviceStub(param),
-	Screen((SDL_Surface*)param.WindowId), SDL_Flags(SDL_ANYFORMAT),
-	MouseX(0), MouseY(0), MouseButtonStates(0),
+	mScreen((SDL_Surface*)param.WindowId), SDL_Flags(SDL_PIXELFORMAT_ARGB8888),
+    mWndHandle(0), mDisplayHandle(0), MouseX(0), MouseY(0), MouseButtonStates(0),
 	Width(param.WindowSize.Width), Height(param.WindowSize.Height),
 	Resizable(false), WindowHasFocus(false), WindowMinimized(false)
 {
@@ -75,47 +80,40 @@ CIrrDeviceSDL::CIrrDeviceSDL(const SIrrlichtCreationParameters& param)
 		Close = true;
 	}
 
-#if defined(_IRR_WINDOWS_)
-	SDL_putenv("SDL_VIDEODRIVER=directx");
-#elif defined(_IRR_OSX_PLATFORM_)
-	SDL_putenv("SDL_VIDEODRIVER=Quartz");
-#else
-	SDL_putenv("SDL_VIDEODRIVER=x11");
-#endif
-//	SDL_putenv("SDL_WINDOWID=");
-
 	SDL_VERSION(&Info.version);
 
-	SDL_GetWMInfo(&Info);
-	core::stringc sdlversion = "SDL Version ";
-	sdlversion += Info.version.major;
-	sdlversion += ".";
-	sdlversion += Info.version.minor;
-	sdlversion += ".";
-	sdlversion += Info.version.patch;
+    if (CreationParams.Fullscreen)
+        SDL_Flags |= SDL_WINDOW_FULLSCREEN;
+    if (CreationParams.DriverType == video::EDT_OPENGL)
+        SDL_Flags |= SDL_WINDOW_OPENGL;
 
-	Operator = new COSOperator(sdlversion);
+    // create window
+    if (CreationParams.DriverType != video::EDT_NULL)
+    {
+        // create the window, only if we do not use the null device
+        createWindow();
+    }
+
+    SDL_GetWindowWMInfo(mWindow, &Info);
+    core::stringc sdlversion = "SDL Version ";
+    sdlversion += Info.version.major;
+    sdlversion += ".";
+    sdlversion += Info.version.minor;
+    sdlversion += ".";
+    sdlversion += Info.version.patch;
+
+    #ifdef _IRR_WINDOWS_API_
+    mWndHandle = (intptr_t)Info.info.win.window;
+    #else
+    mDisplayHandle = (intptr_t)Info.info.x11.display;
+    CreationParams.WindowId = (void*)mWndHandle = (intptr_t)Info.info.x11.window;
+    #endif
+
+    Operator = new COSOperator(sdlversion);
 	os::Printer::log(sdlversion.c_str(), ELL_INFORMATION);
 
 	// create keymap
 	createKeyMap();
-	// enable key to character translation
-	SDL_EnableUNICODE(1);
-
-	(void)SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-
-	if ( CreationParams.Fullscreen )
-		SDL_Flags |= SDL_FULLSCREEN;
-	if (CreationParams.DriverType == video::EDT_OPENGL)
-		SDL_Flags |= SDL_OPENGL;
-	else if (CreationParams.Doublebuffer)
-		SDL_Flags |= SDL_DOUBLEBUF;
-	// create window
-	if (CreationParams.DriverType != video::EDT_NULL)
-	{
-		// create the window, only if we do not use the null device
-		createWindow();
-	}
 
 	// create cursor control
 	CursorControl = new CCursorControl(this);
@@ -171,39 +169,40 @@ bool CIrrDeviceSDL::createWindow()
 			SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 1 );
 			SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, CreationParams.AntiAlias );
 		}
-		if ( !Screen )
-			Screen = SDL_SetVideoMode( Width, Height, CreationParams.Bits, SDL_Flags );
-		if ( !Screen && CreationParams.AntiAlias>1)
-		{
-			while (--CreationParams.AntiAlias>1)
-			{
-				SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, CreationParams.AntiAlias );
-				Screen = SDL_SetVideoMode( Width, Height, CreationParams.Bits, SDL_Flags );
-				if (Screen)
-					break;
-			}
-			if ( !Screen )
-			{
-				SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 0 );
-				SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 0 );
-				Screen = SDL_SetVideoMode( Width, Height, CreationParams.Bits, SDL_Flags );
-				if (Screen)
-					os::Printer::log("AntiAliasing disabled due to lack of support!" );
-			}
-		}
-	}
-	else if ( !Screen )
-		Screen = SDL_SetVideoMode( Width, Height, CreationParams.Bits, SDL_Flags );
+		if ( !mWindow )
+            mWindow = SDL_CreateWindow(/*title.c_str()*/"", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, Width, Height, SDL_Flags);
 
-	if ( !Screen && CreationParams.Doublebuffer)
-	{
-		// Try single buffer
-		if (CreationParams.DriverType == video::EDT_OPENGL)
-			SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
-		SDL_Flags &= ~SDL_DOUBLEBUF;
-		Screen = SDL_SetVideoMode( Width, Height, CreationParams.Bits, SDL_Flags );
+        //if ( !mWindow && CreationParams.AntiAlias>1)
+		//{
+		//	while (--CreationParams.AntiAlias>1)
+		//	{
+		//		SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, CreationParams.AntiAlias );
+		//		Screen = SDL_SetVideoMode( Width, Height, CreationParams.Bits, SDL_Flags );
+		//		if (Screen)
+		//			break;
+		//	}
+		//	if ( !Screen )
+		//	{
+		//		SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 0 );
+		//		SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 0 );
+		//		Screen = SDL_SetVideoMode( Width, Height, CreationParams.Bits, SDL_Flags );
+		//		if (Screen)
+		//			os::Printer::log("AntiAliasing disabled due to lack of support!" );
+		//	}
+		//}
 	}
-	if ( !Screen )
+	else if ( !mWindow)
+        mWindow = SDL_CreateWindow(/*title.c_str()*/"", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, Width, Height, SDL_Flags);
+    
+	//if ( !Screen && CreationParams.Doublebuffer)
+	//{
+	//	// Try single buffer
+	//	if (CreationParams.DriverType == video::EDT_OPENGL)
+	//		SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
+	//	SDL_Flags &= ~SDL_DOUBLEBUF;
+	//	Screen = SDL_SetVideoMode( Width, Height, CreationParams.Bits, SDL_Flags );
+	//}
+	if ( !mWindow)
 	{
 		os::Printer::log( "Could not initialize display!" );
 		return false;
@@ -235,7 +234,7 @@ void CIrrDeviceSDL::createDriver()
 	case video::EDT_DIRECT3D9:
 		#ifdef _IRR_COMPILE_WITH_DIRECT3D_9_
 
-		VideoDriver = video::createDirectX9Driver(CreationParams, FileSystem, HWnd);
+		VideoDriver = video::createDirectX9Driver(CreationParams, FileSystem, (HWND)mWndHandle);
 		if (!VideoDriver)
 		{
 			os::Printer::log("Could not create DIRECT3D9 Driver.", ELL_ERROR);
@@ -269,7 +268,20 @@ void CIrrDeviceSDL::createDriver()
 		os::Printer::log("No OpenGL support compiled in.", ELL_ERROR);
 		#endif
 		break;
+    case video::EDT_VULKAN:
+        #ifdef _IRR_COMPILE_WITH_VULKAN_
 
+        VideoDriver = video::createVulkanDriver(CreationParams, FileSystem, (void*)mDisplayHandle);
+
+        if ( !VideoDriver )
+        {
+            os::Printer::log("Could not create Vulkan Driver.", ELL_ERROR);
+        }
+        #else
+        os::Printer::log("Vulkan Driver was not compiled into this dll. Try another one.", ELL_ERROR);
+        #endif
+
+        break;
 	case video::EDT_NULL:
 		VideoDriver = video::createNullDriver(FileSystem, CreationParams.WindowSize);
 		break;
@@ -409,7 +421,7 @@ bool CIrrDeviceSDL::run()
 				}
 #endif
 				irrevent.EventType = irr::EET_KEY_INPUT_EVENT;
-				irrevent.KeyInput.Char = SDL_event.key.keysym.unicode;
+				irrevent.KeyInput.Char = SDL_event.key.keysym.sym;
 				irrevent.KeyInput.Key = key;
 				irrevent.KeyInput.PressedDown = (SDL_event.type == SDL_KEYDOWN);
 				irrevent.KeyInput.Shift = (SDL_event.key.keysym.mod & KMOD_SHIFT) != 0;

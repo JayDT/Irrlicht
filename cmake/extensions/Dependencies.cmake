@@ -254,27 +254,27 @@ if(BUILD_DEPENDENCIES AND NOT EXISTS ${PROJECTDEPS_PATH})
     execute_process(COMMAND ${CMAKE_COMMAND}
         --build ${CMAKE_BINARY_DIR}/freetype-2.9/objs ${BUILD_COMMAND_OPTS})
 
-    #if(MSVC OR MINGW) # other platforms dont need this
-    #    message(STATUS "Building SDL2")
-    #    file(DOWNLOAD
-    #        https://libsdl.org/release/SDL2-2.0.8.tar.gz
-    #        ${CMAKE_BINARY_DIR}/SDL2-2.0.8.tar.gz)
-    #    execute_process(COMMAND ${CMAKE_COMMAND}
-    #        -E tar xf SDL2-2.0.8.tar.gz WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-    #    execute_process(COMMAND ${CMAKE_COMMAND}
-    #        -E make_directory ${CMAKE_BINARY_DIR}/SDL2-build)
-    #    execute_process(COMMAND ${CMAKE_COMMAND}
-    #        -DCMAKE_INSTALL_PREFIX=${PROJECTDEPS_PATH}
-    #        -DCMAKE_BUILD_TYPE=${DEP_BUILD_TYPE}
-    #        -DSDL_STATIC=FALSE
-    #        -G ${CMAKE_GENERATOR}
-    #        -DCMAKE_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}
-    #        ${CROSS}
-    #        ${CMAKE_BINARY_DIR}/SDL2-2.0.8
-    #        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/SDL2-build)
-    #    execute_process(COMMAND ${CMAKE_COMMAND}
-    #        --build ${CMAKE_BINARY_DIR}/SDL2-build ${BUILD_COMMAND_OPTS})
-    #endif()
+    if(BUILD_USE_SDL2 AND (MSVC OR MINGW)) # other platforms dont need this
+        message(STATUS "Building SDL2")
+        file(DOWNLOAD
+            https://libsdl.org/release/SDL2-2.0.8.tar.gz
+            ${CMAKE_BINARY_DIR}/SDL2-2.0.8.tar.gz)
+        execute_process(COMMAND ${CMAKE_COMMAND}
+            -E tar xf SDL2-2.0.8.tar.gz WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+        execute_process(COMMAND ${CMAKE_COMMAND}
+            -E make_directory ${CMAKE_BINARY_DIR}/SDL2-build)
+        execute_process(COMMAND ${CMAKE_COMMAND}
+            -DCMAKE_INSTALL_PREFIX=${PROJECTDEPS_PATH}
+            -DCMAKE_BUILD_TYPE=${DEP_BUILD_TYPE}
+            -DSDL_STATIC=FALSE
+            -G ${CMAKE_GENERATOR}
+            -DCMAKE_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}
+            ${CROSS}
+            ${CMAKE_BINARY_DIR}/SDL2-2.0.8
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/SDL2-build)
+        execute_process(COMMAND ${CMAKE_COMMAND}
+            --build ${CMAKE_BINARY_DIR}/SDL2-build ${BUILD_COMMAND_OPTS})
+    endif()
 endif()
 
 #######################################################################
@@ -289,6 +289,12 @@ IF (NOT ZLIB_FOUND)
     SET(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/dep/zlib )
     SET(ZLIB_LIBRARIES zlib)
 ENDIF(NOT ZLIB_FOUND)
+
+IF (BUILD_USE_SDL2)
+find_package(SDL2)
+macro_log_feature(SDL2 "SDL2" "Simple direct media library" "https://www.libsdl.org" FALSE "" "")
+AddInterfaceLibrary(SDL2)
+ENDIF(BUILD_USE_SDL2)
 
 #if (ZLIB_FOUND)
 #  # Find zziplib

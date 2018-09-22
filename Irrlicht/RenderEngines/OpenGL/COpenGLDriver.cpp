@@ -31,7 +31,8 @@
 #endif
 
 #ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
+#include "CIrrDeviceSDL.h"
 #endif
 
 #include "standard/client/datasource_standard.h"
@@ -168,11 +169,18 @@ COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params, io::IFil
 
 #ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
 COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params, io::IFileSystem* io, CIrrDeviceSDL* device)
-    : CNullDriver(io, params.WindowSize), COpenGLExtensionHandler(), CacheHandler(0),
-    CurrentRenderMode(ERM_NONE), ResetRenderStates(true), Transformation3DChanged(true),
-    AntiAlias(params.AntiAlias), ColorFormat(ECF_R8G8B8), FixedPipelineState(EOFPS_ENABLE),
-    Params(params), SDLDevice(device), ContextManager(0), DeviceType(EIDT_SDL)
+    : CNullDriver(io, params.WindowSize), COpenGLExtensionHandler(),
+    ResetRenderStates(true), Transformation3DChanged(true),
+    AntiAlias(params.AntiAlias), RenderTargetTexture(0),
+    CurrentRendertargetSize(0, 0), ColorFormat(ECF_R8G8B8),
+    CurrentTarget(ERT_FRAME_BUFFER), Params(params),
+    ContextManager(nullptr), DeviceType(EIDT_SDL),
+    SDLDevice(device)
 {
+    memset(m_defaultShader, 0, sizeof(m_defaultShader));
+    memset(DynamicHardwareBuffer, 0, sizeof(DynamicHardwareBuffer));
+    memset(CurrentTexture, 0, sizeof(CurrentTexture));
+
 #ifdef _DEBUG
     setDebugName("COpenGLDriver");
 #endif
@@ -561,7 +569,7 @@ bool COpenGLDriver::endScene()
 #ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
     if (DeviceType == EIDT_SDL)
     {
-        SDL_GL_SwapBuffers();
+        SDL_GL_SwapWindow(SDLDevice->getInternalWindow());
         status = true;
     }
 #endif

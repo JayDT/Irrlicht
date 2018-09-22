@@ -60,6 +60,9 @@ unset(IRR_BUILD_RENDERSYSTEM_D3DX9 CACHE)
 unset(IRR_BUILD_RENDERSYSTEM_D3D11 CACHE)
 unset(IRR_BUILD_RENDERSYSTEM_Vulkan CACHE)
 
+if (SDL2_FOUND AND BUILD_USE_SDL2)
+    add_definitions(-D_IRR_COMPILE_WITH_SDL_DEVICE_)
+endif(SDL2_FOUND AND BUILD_USE_SDL2)
 
 add_subdirectory(RenderEngines)
 
@@ -117,6 +120,12 @@ if(_IRR_DYNAMIC_)
       LINK_DIRECTORIES(${CMAKE_BINARY_DIR}/Dependencies)
 
   endif(IRR_BUILD_RENDERSYSTEM_Vulkan EQUAL 1)
+
+if (SDL2_FOUND AND BUILD_USE_SDL2)
+      list(APPEND IrrLicht_libs
+        SDL2)
+endif(SDL2_FOUND AND BUILD_USE_SDL2)
+
 
   #! Only define _IRR_COMPILE_WITH_DIRECT3D_8_ if you have an appropriate DXSDK, e.g. Summer 2004
   #if (IRR_BUILD_RENDERSYSTEM_D3DX8 EQUAL 1)

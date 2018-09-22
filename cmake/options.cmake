@@ -9,6 +9,7 @@ option(MEMCHECK           "Use Internal Memory checker"            OFF)
 OPTION(BUILD_EXAMPLES     "Build examples." 	                   ON)
 option(INSTEX             "Detect highest instruction Extension"   OFF)
 option(DYNLIB             "Optimize for Dynamic Libraries"         OFF)
-option(BUILD_DEPENDENCIES "automatically build Dependencies (freetype, zzip, boost)" ON)
+option(BUILD_DEPENDENCIES "automatically build Dependencies (freetype, zzip, boost, sdl2)" ON)
+option(BUILD_USE_SDL2     "Use SDL2"                               OFF) #unstable
 
 message("Loaded Config")
