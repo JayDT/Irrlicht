@@ -692,7 +692,7 @@ void irr::video::IrrDefaultShaderVertexCallBack::OnPrepare(irr::video::IConstant
     drop();
 }
 
-void irr::video::IrrDefaultShaderVertexCallBack::OnSetConstants(irr::video::IConstantBuffer* buffer, irr::scene::IMeshBuffer* meshBuffer)
+void irr::video::IrrDefaultShaderVertexCallBack::OnSetConstants(irr::video::IConstantBuffer* buffer, irr::scene::IMeshBuffer* meshBuffer, scene::IMesh* mesh/* = nullptr*/, scene::ISceneNode* node/* = nullptr*/)
 {
     video::IVideoDriver* driver = buffer->getShader()->getVideoDriver();
 
@@ -735,7 +735,7 @@ void irr::video::IrrDefaultShaderFragmentCallBack::OnPrepare(irr::video::IConsta
     drop();
 }
 
-void irr::video::IrrDefaultShaderFragmentCallBack::OnSetConstants(irr::video::IConstantBuffer* buffer, irr::scene::IMeshBuffer* meshBuffer)
+void irr::video::IrrDefaultShaderFragmentCallBack::OnSetConstants(irr::video::IConstantBuffer* buffer, irr::scene::IMeshBuffer* meshBuffer, scene::IMesh* mesh/* = nullptr*/, scene::ISceneNode* node/* = nullptr*/)
 {
     video::IVideoDriver* driver = buffer->getShader()->getVideoDriver();
 

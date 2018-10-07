@@ -70,6 +70,8 @@ CD3D11HardwareBuffer::~CD3D11HardwareBuffer()
             SAFE_DELETE(VertexBufferStreams[i].TempStagingBuffer);
         }
 
+        SAFE_RELEASE(VertexBufferStreams[i].UAView);
+        SAFE_RELEASE(VertexBufferStreams[i].SRView);
         SAFE_RELEASE(VertexBufferStreams[i].buffer);
     }
 
@@ -452,6 +454,8 @@ bool CD3D11HardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type, E_HARDWARE_
         D3D11_BUFFER_DESC bufferDesc;
         BuildBufferDesc(bufferDesc, Type, AccessType, size);
 
+        if (desc.buffer)
+            desc.buffer->Release();
         hr = Device->CreateBuffer(&bufferDesc, data, &desc.buffer);
         if ( FAILED(hr) )
         {

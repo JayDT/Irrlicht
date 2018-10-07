@@ -272,16 +272,7 @@ namespace gui
 			bool load(const io::path& filename, const u32 size, const bool antialias, const bool transparency);
 			void reset_images();
 			void update_glyph_pages() const;
-			void update_load_flags()
-			{
-				// Set up our loading flags.
-				load_flags = FT_LOAD_DEFAULT | FT_LOAD_RENDER;
-                load_flags |= FT_LOAD_TARGET_MONO | FT_LOAD_FORCE_AUTOHINT;
-				//if (!useHinting()) load_flags |= FT_LOAD_NO_HINTING;
-				//if (!useAutoHinting()) load_flags |= FT_LOAD_NO_AUTOHINT;
-				//if (useMonochrome()) load_flags |= FT_LOAD_MONOCHROME | FT_LOAD_TARGET_MONO | FT_RENDER_MODE_MONO;
-				//else load_flags |= FT_LOAD_TARGET_NORMAL;
-			}
+            void update_load_flags();
         public:
 			u32 getWidthFromCharacter(wchar_t c) const;
 			u32 getWidthFromCharacter(uchar32_t c) const;

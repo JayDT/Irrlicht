@@ -32,7 +32,10 @@
 #include <irrlicht.h>
 #include <iostream>
 #include "CGUITTFont.h"
+#include "CWriteFile.h"
+#include "CImageWriterBMP.h"
 
+#include FT_GLYPH_H
 
 // Manages the FreeType library.
 FT_Library c_library;
@@ -98,7 +101,6 @@ video::IImage* SGUITTGlyph::createGlyphImage(const FT_Bitmap& bits, video::IVide
     // Add 1 because textures are inclusive-exclusive.
     core::dimension2du d(bits.width + 1, bits.rows + 1);
     core::dimension2du texture_size;
-    //core::dimension2du texture_size(bits.width + 1, bits.rows + 1);
 
     // Create and load our image now.
     video::IImage* image = 0;
@@ -135,26 +137,28 @@ video::IImage* SGUITTGlyph::createGlyphImage(const FT_Bitmap& bits, video::IVide
         case FT_PIXEL_MODE_GRAY:
         {
             // Create our blank image.
-            texture_size = d.getOptimalSize(!driver->queryFeature(video::EVDF_TEXTURE_NPOT), !driver->queryFeature(video::EVDF_TEXTURE_NSQUARE), true, 0);
+            texture_size = d; // .getOptimalSize(!driver->queryFeature(video::EVDF_TEXTURE_NPOT), !driver->queryFeature(video::EVDF_TEXTURE_NSQUARE), true, 0);
             image = driver->createImage(video::ECF_A8R8G8B8, texture_size);
-            image->fill(video::SColor(0, 255, 255, 255));
+            //image->fill(video::SColor(0, 255, 255, 255));
 
             // Load the grayscale data in.
-            const float gray_count = static_cast<float>(bits.num_grays);
-            const u32 image_pitch = image->getPitch() / sizeof(u32);
-            u32* image_data = (u32*)image->lock();
-            u8* glyph_data = bits.buffer;
+            //const float gray_count = static_cast<float>(bits.num_grays);
+            //const u32 image_pitch = image->getPitch() / sizeof(u32);
+            //u32* image_data = (u32*)image->lock();
+            //u8* glyph_data = bits.buffer;
             for (s32 y = 0; y < int(bits.rows); ++y)
             {
-                u8* row = glyph_data;
+                //u8* row = glyph_data;
                 for (s32 x = 0; x < int(bits.width); ++x)
                 {
-                    image_data[y * image_pitch + x] |= static_cast<u32>(255.0f * (static_cast<float>(*row++) / gray_count)) << 24;
-                    //data[y * image_pitch + x] |= ((u32)(*bitsdata++) << 24);
+                    u8 Color = bits.buffer[y*bits.width + x];
+                    image->setPixel(x, y, video::SColor(Color, 255, 255, 255));
+                    //image_data[y * image->getPitch() + x] = video::SColor(Color, 255, 255, 255).color;
+                    //image_data[y * image_pitch + x] |= static_cast<u32>(255.0f * (static_cast<float>(*row++) / gray_count)) << 24;
                 }
-                glyph_data += bits.pitch;
+                //glyph_data += bits.pitch;
             }
-            image->unlock();
+            //image->unlock();
             break;
         }
         default:
@@ -171,9 +175,15 @@ void SGUITTGlyph::preload(u32 char_index, FT_Face face, video::IVideoDriver* dri
     // Set the size of the glyph.
     FT_Set_Pixel_Sizes(face, 0, font_size);
 
+    // Render glyph at high resolution (highres_size points)
+    //FT_Set_Char_Size(face, font_size * 64, 0, 96, 96);
+
     // Attempt to load the glyph.
     if (FT_Load_Glyph(face, char_index, loadFlags) != FT_Err_Ok)
         // TODO: error message?
+        return;
+
+    if (FT_Render_Glyph(face->glyph, FT_Render_Mode::FT_RENDER_MODE_NORMAL) != FT_Err_Ok)
         return;
 
     FT_GlyphSlot glyph = face->glyph;
@@ -389,6 +399,11 @@ bool CGUITTFont::load(const io::path& filename, const u32 size, const bool antia
     // Store our face.
     tt_face = face->face;
 
+    //FT_Select_Charmap(tt_face, FT_ENCODING_UNICODE);
+
+    // Render glyph at high resolution (highres_size points)
+    //FT_Set_Char_Size(tt_face, size * 64, 0, 96, 96);
+
     // Store font metrics.
     FT_Set_Pixel_Sizes(tt_face, size, 0);
     font_metrics = tt_face->size->metrics;
@@ -486,6 +501,17 @@ void CGUITTFont::update_glyph_pages() const
 		if (Glyph_Pages[i]->dirty)
 			Glyph_Pages[i]->updateTexture();
 	}
+}
+
+void CGUITTFont::update_load_flags()
+{
+    // Set up our loading flags.
+    load_flags = FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL;
+    //load_flags |= FT_LOAD_TARGET_MONO;
+    //if (!useHinting()) load_flags |= FT_LOAD_NO_HINTING;
+    //if (!useAutoHinting()) load_flags |= FT_LOAD_NO_AUTOHINT;
+    //if (useMonochrome()) load_flags |= FT_LOAD_MONOCHROME | FT_LOAD_TARGET_MONO | FT_RENDER_MODE_MONO;
+    //else load_flags |= FT_LOAD_TARGET_NORMAL;
 }
 
 CGUITTGlyphPage* CGUITTFont::getLastGlyphPage() const
@@ -933,6 +959,8 @@ core::vector2di CGUITTFont::getKerning(const uchar32_t thisLetter, const uchar32
     // Set the size of the face.
     // This is because we cache faces and the face may have been set to a different size.
     FT_Set_Pixel_Sizes(tt_face, 0, size);
+
+    //FT_Set_Char_Size(tt_face, 0, size * 64, 96, 96);
 
     core::vector2di ret(GlobalKerningWidth, GlobalKerningHeight);
 

@@ -18,9 +18,9 @@
 #include "CVulkanGpuParams.h"
 #include "CVulkanSwapChain.h"
 #include "CVulkanRenderTarget.h"
-#include "CVulkanPlatform.h"
+#include "ContextManager/CVulkanPlatform.h"
 
-#include "standard/client/datasource_standard.h"
+#include "standard/client/DataSource_Standard.h"
 #include "buildin_data.h"
 
 #include "os.h"
@@ -29,14 +29,14 @@
 #define GLM_FORCE_LEFT_HANDED
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
 //#include <gli/gli.hpp>
 
 #ifdef HAVE_CSYSTEM_EXTENSION
 #include "System/Uri.h"
-#include "CFramework/System/Resource/ResourceManager.h"
+#include "System/Resource/ResourceManager.h"
 
 extern bool InitializeModulResourceCVulkan();
 #endif
@@ -623,7 +623,7 @@ void convertProjectionMatrix(const core::matrix4& matrix, core::matrix4& dest)
 
 void irr::video::CVulkanDriver::setTransform(E_TRANSFORMATION_STATE state, const core::matrix4 & mat)
 {
-    Transformation3DChanged = true;
+    Transformation3DChanged = state == ETS_PROJECTION || state == ETS_VIEW || state == ETS_WORLD;
 
     if (state == ETS_PROJECTION)
         convertProjectionMatrix(mat, Matrices[state]);
@@ -637,7 +637,7 @@ void irr::video::CVulkanDriver::setTransform(E_TRANSFORMATION_STATE state, const
 void irr::video::CVulkanDriver::setMaterial(const SMaterial & material)
 {
     Material = material;
-    OverrideMaterial.apply(Material);
+    //OverrideMaterial.apply(Material);
 
     // set textures
     for (u16 i = 0; i < MATERIAL_MAX_TEXTURES; i++)
@@ -1081,7 +1081,7 @@ void irr::video::CVulkanDriver::drawMeshBuffer(const scene::IMeshBuffer * mb, sc
     HWBuffer->GetPipeline(mb->GetActiveSubBuffer())->update(0, GetMaterial(), pType);
 
     InitDrawStates(HWBuffer, pType);
-    SyncShaderConstant(HWBuffer);
+    SyncShaderConstant(HWBuffer, mesh, node);
 
     u32 instanceCount = (!mesh || mesh->IsInstanceModeAvailable()) && mb->getStreamBuffer() ? mb->getStreamBuffer()->size() : 1;
 
@@ -1537,7 +1537,7 @@ u32 irr::video::CVulkanDriver::queryMultisampleLevels(ECOLOR_FORMAT format, u32 
 //    return true;
 //}
 
-bool irr::video::CVulkanDriver::SyncShaderConstant(CVulkanHardwareBuffer* HWBuffer)
+bool irr::video::CVulkanDriver::SyncShaderConstant(CVulkanHardwareBuffer* HWBuffer, scene::IMesh* mesh/* = nullptr*/, scene::ISceneNode* node/* = nullptr*/)
 {
     if (!HWBuffer)
         return false;
@@ -1554,7 +1554,7 @@ bool irr::video::CVulkanDriver::SyncShaderConstant(CVulkanHardwareBuffer* HWBuff
         irr::video::SConstantBuffer* cbuffer = _vkShader->mBuffers[i];
 
         if (cbuffer->mCallBack)
-            cbuffer->mCallBack->OnSetConstants(cbuffer, cbuffer->mHwObject->GetBuffer());
+            cbuffer->mCallBack->OnSetConstants(cbuffer, HWBuffer ? HWBuffer->GetBuffer() : nullptr, mesh, node);
 
         E_HARDWARE_BUFFER_ACCESS MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_DEFAULT;
         s8* dataBuffer;
@@ -1702,6 +1702,8 @@ bool irr::video::CVulkanDriver::setRenderStates3DMode()
     if (ResetRenderStates || LastMaterial != Material)
     {
         irr::video::CVulkanGLSLProgram* _vkShader = static_cast<irr::video::CVulkanGLSLProgram*>(GetActiveShader());
+        if (!_vkShader)
+            _vkShader = m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD];
 
         if (_vkShader)
         {
@@ -1726,41 +1728,24 @@ void irr::video::CVulkanDriver::setRenderStates2DMode(bool alpha, bool texture, 
 {
     if (CurrentRenderMode != ERM_2D || Transformation3DChanged)
     {
-        // unset last 3d material
-        if (CurrentRenderMode == ERM_3D)
-        {
-            if (static_cast<u32>(LastMaterial.MaterialType) < MaterialRenderers.size())
-                MaterialRenderers[LastMaterial.MaterialType].Renderer->OnUnsetMaterial();
-        }
-
-        if (!OverrideMaterial2DEnabled)
-        {
-            //if (!DepthStencilStateChanged)
-            //    DepthStencilStateChanged = true;
-
-            setBasicRenderStates(InitMaterial2D, LastMaterial, true);
-            LastMaterial = InitMaterial2D;
-
-            //DepthStencilDesc.StencilEnable = FALSE;
-        }
-
         // Set world to identity
         core::matrix4 m;
         setTransform(ETS_WORLD, m);
-
-        // Set view to translate a little forward
-        //m.setTranslation(core::vector3df(-0.5f, -0.5f, 0)ü);
-        setTransform(ETS_VIEW, getTransform(ETS_VIEW_2D));
-
+        
         // Adjust projection
         const core::dimension2d<u32>& renderTargetSize = getCurrentRenderTargetSize();
-
+        
         auto _tmp_mat = glm::ortho(0.0f, (f32)renderTargetSize.Width, 0.0f, (f32)renderTargetSize.Height, 0.0f, 1.0f);
         m = (core::matrix4&)_tmp_mat;
         Matrices[ETS_PROJECTION] = m;
-
+        
         Transformation3DChanged = false;
     }
+
+    // Set view to translate a little forward
+    //m.setTranslation(core::vector3df(-0.5f, -0.5f, 0)ü);
+    setTransform(ETS_VIEW, getTransform(ETS_VIEW_2D));
+    Transformation3DChanged = false;
 
     // no alphaChannel without texture
     alphaChannel &= texture;
@@ -1773,27 +1758,45 @@ void irr::video::CVulkanDriver::setRenderStates2DMode(bool alpha, bool texture, 
         Transformation3DChanged = false;
     }
 
-    if (OverrideMaterial2DEnabled)
-    {
-        OverrideMaterial2D.Lighting = false;
-        OverrideMaterial2D.ZBuffer = ECFN_NEVER;
-        OverrideMaterial2D.ZWriteEnable = false;
-        setBasicRenderStates(OverrideMaterial2D, LastMaterial, false);
-        LastMaterial = OverrideMaterial2D;
-    }
+    Material.AntiAliasing = video::EAAM_OFF;
+    Material.Lighting = false;
+    Material.ZBuffer = ECFN_NEVER;
+    Material.ZWriteEnable = false;
 
     // handle alpha
     if (alpha || alphaChannel)
     {
         Material.MaterialType = E_MATERIAL_TYPE::EMT_TRANSPARENT_ALPHA_CHANNEL;
         Material.BlendOperation = E_BLEND_OPERATION::EBO_ADD;
+        Material.ColorMask = ECP_ALL;
 
         Material.uMaterialTypeParam = pack_textureBlendFunc(video::EBF_SRC_ALPHA, video::EBF_ONE_MINUS_SRC_ALPHA, video::EMFN_MODULATE_1X, video::EAS_TEXTURE | video::EAS_VERTEX_COLOR, video::EBF_SRC_ALPHA, video::EBF_ONE_MINUS_SRC_ALPHA, E_BLEND_OPERATION::EBO_ADD, E_BLEND_OPERATION::EBO_ADD);
     }
     else
     {
-        Material.MaterialType = E_MATERIAL_TYPE::EMT_SOLID;
         Material.BlendOperation = E_BLEND_OPERATION::EBO_NONE;
+    }
+
+    if (ResetRenderStates || LastMaterial != Material)
+    {
+        irr::video::CVulkanGLSLProgram* shader = static_cast<irr::video::CVulkanGLSLProgram*>(GetActiveShader());
+        if (!shader)
+            shader = m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD];
+
+        if (shader)
+        {
+            for (int i = 0; i < shader->mBuffers.size(); ++i)
+            {
+                irr::video::SConstantBuffer* cbuffer = shader->mBuffers[i];
+                if (cbuffer->mCallBack)
+                    cbuffer->mCallBack->OnSetMaterial(cbuffer, Material);
+            }
+        }
+
+        setBasicRenderStates(Material, LastMaterial, ResetRenderStates);
+
+        LastMaterial = Material;
+        ResetRenderStates = false;
     }
 
     CurrentRenderMode = ERM_2D;

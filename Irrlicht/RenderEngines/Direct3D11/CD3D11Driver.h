@@ -399,7 +399,7 @@ namespace video
 
         //! Check multisample quality levels
         virtual u32 queryMultisampleLevels(ECOLOR_FORMAT format, u32 numSamples) const;
-        bool SyncShaderConstant(CD3D11HardwareBuffer * HWBuffer);
+        bool SyncShaderConstant(CD3D11HardwareBuffer * HWBuffer, scene::IMesh* mesh = nullptr, scene::ISceneNode* node = nullptr);
         virtual video::IShader* createShader(ShaderInitializerEntry*) override;
         virtual void useShader(video::IShader* gpuProgram);
 

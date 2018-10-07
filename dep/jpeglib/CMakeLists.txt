@@ -53,7 +53,9 @@ include_directories(
   ${ZLIB_INCLUDE_DIR}
 )
 
-CreateLibrary("libjpeg" "${lib_SRCS}" "STATIC" "" "")
+CreateLibrary(libjpeg "${lib_SRCS}" "STATIC" "" "")
+
+target_include_directories(libjpeg INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
 set_target_properties(libjpeg
     PROPERTIES

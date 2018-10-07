@@ -4,6 +4,8 @@
 #include <cmath>
 #include <functional>
 
+#include <standard/Platform/Define.h>
+
 #ifdef _WIN32
 #  if defined(__MINGW32__) || defined(__CYGWIN__)
 #       include <minwindef.h>

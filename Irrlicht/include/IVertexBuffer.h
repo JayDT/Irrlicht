@@ -50,6 +50,7 @@ namespace scene
     class IRRLICHT_API IStreamBuffer : public virtual IReferenceCounted
     {
     public:
+        virtual void clear() = 0;
         virtual void* getData() = 0;
         virtual u8 getType() const = 0;
         virtual void setType(u8 vertexType) = 0;

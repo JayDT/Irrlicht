@@ -419,7 +419,7 @@ namespace video
         void SetResetRenderStates() { ResetRenderStates = true; }
 
         IShader * createShader(ShaderInitializerEntry * shaderCreateInfo) override;
-        bool SyncShaderConstant();
+        bool SyncShaderConstant(const scene::IMeshBuffer * mb, scene::IMesh* mesh = nullptr, scene::ISceneNode* node = nullptr);
         virtual void useShader(IShader*);
         virtual void deleteShader(IShader*);
 

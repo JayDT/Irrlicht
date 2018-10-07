@@ -19,8 +19,8 @@ extern "C"
 	#include <jpeglib.h>
 	#include <jerror.h>
 #else
-	#include "jpeglib/jpeglib.h"
-	#include "jpeglib/jerror.h"
+	#include "jpeglib.h"
+	#include "jerror.h"
 #endif
 }
 

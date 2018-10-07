@@ -37,7 +37,7 @@
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan.hpp>
 
-#include "CCommonDefines.h"
+#include "RenderEngines/General/CCommonDefines.h"
 
 #include <vector>
 #include "vk_mem_alloc.h"

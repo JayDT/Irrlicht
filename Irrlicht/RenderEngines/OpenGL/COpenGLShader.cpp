@@ -1018,7 +1018,7 @@ void COpenGLDriver::deleteShader(IShader* gpuProgram)
 //    return status;
 //}
 
-bool COpenGLDriver::SyncShaderConstant()
+bool COpenGLDriver::SyncShaderConstant(const scene::IMeshBuffer * mb, scene::IMesh* mesh/* = nullptr*/, scene::ISceneNode* node/* = nullptr*/)
 {
     irr::video::GLSLGpuShader* glsl = static_cast<irr::video::GLSLGpuShader*>(GetActiveShader());
 
@@ -1027,7 +1027,7 @@ bool COpenGLDriver::SyncShaderConstant()
         irr::video::SConstantBuffer* cbuffer = glsl->mBuffers[ib];
 
         if (cbuffer->mCallBack)
-            cbuffer->mCallBack->OnSetConstants(cbuffer, cbuffer->mHwObject->GetBuffer());
+            cbuffer->mCallBack->OnSetConstants(cbuffer, cbuffer->mHwObject->GetBuffer(), mesh, node);
 
         if (!cbuffer->mHwObject)
             continue;

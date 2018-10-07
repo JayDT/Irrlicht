@@ -25,7 +25,7 @@ namespace irr
         public:
             irr::core::array<T> Vertices;
             irr::scene::E_HARDWARE_MAPPING MappingHint : 8;
-            uint8 ChangedID;
+            u8 ChangedID;
 
             explicit CDynamicVerticies() : ChangedID(1), MappingHint(irr::scene::EHM_NEVER)
             {
@@ -121,7 +121,7 @@ namespace irr
         public:
             irr::core::array<T> Elements;
             irr::scene::E_HARDWARE_MAPPING MappingHint : 8;
-            uint8 ChangedID;
+            u8 ChangedID;
 
             explicit CDynamicStreamBuffer() : ChangedID(1), MappingHint(irr::scene::EHM_NEVER)
             {
@@ -130,6 +130,8 @@ namespace irr
             virtual ~CDynamicStreamBuffer()
             {
             }
+
+            virtual void clear() override { Elements.clear(); }
 
             virtual u32 stride() const { return sizeof(T); }
             virtual u32 size() const { return Elements.size(); }
@@ -175,7 +177,7 @@ namespace irr
             }
 
             virtual irr::video::I3DStreamElement* pointer() { return Elements.pointer(); }
-            virtual irr::video::E_VERTEX_TYPE getType() const
+            virtual irr::u8 getType() const
             {
                 static T empty;
                 return empty.getType();
@@ -203,7 +205,7 @@ namespace irr
             /** This shouldn't be used for anything outside the VideoDriver. */
             virtual u32 getChangedID() const { return ChangedID; }
 
-            virtual void setType(irr::video::E_VERTEX_TYPE vertexType)
+            virtual void setType(irr::u8 vertexType)
             {
                 throw std::runtime_error("not implement yet!");
             }
@@ -382,7 +384,7 @@ namespace irr
                 SubBuffer.reallocate(count);
             }
 
-            virtual void AddSubBuffer(u16 istart, u16 icount, u16 vstart, u16 vcount);
+            virtual void AddSubBuffer(u32 istart, u32 icount, u32 vstart, u32 vcount);
 
             virtual void SetActiveSubBuffer(u16 sid);
 

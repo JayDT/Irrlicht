@@ -1,7 +1,7 @@
 #ifndef __CVULKAN_SHADER_DEFINES_H__
 #define __CVULKAN_SHADER_DEFINES_H__
 
-#include "CCommonDefines.h"
+#include "RenderEngines/General/CCommonDefines.h"
 #include "standard/enum.h"
 
 namespace irr

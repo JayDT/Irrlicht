@@ -373,13 +373,13 @@ namespace scene
         //! Get Material of this buffer.
         virtual const video::SMaterial& getMaterial() const
         {
-            return (!SubBuffer.empty() ? SubBuffer[ActiveSubBuffer]->Material : this->getMaterial());
+            return (!SubBuffer.empty() ? SubBuffer[ActiveSubBuffer]->Material : this->Material);
         }
 
         //! Get Material of this buffer.
         virtual video::SMaterial& getMaterial()
         {
-            return (!SubBuffer.empty() ? SubBuffer[ActiveSubBuffer]->Material : this->getMaterial());
+            return (!SubBuffer.empty() ? SubBuffer[ActiveSubBuffer]->Material : this->Material);
         }
 
         virtual void InitSubBuffers(u16 count)
@@ -394,7 +394,7 @@ namespace scene
             SubBuffer.reallocate(count);
         }
 
-        virtual void AddSubBuffer(u16 istart, u16 icount, u16 vstart, u16 vcount)
+        virtual void AddSubBuffer(u32 istart, u32 icount, u32 vstart, u32 vcount)
         {
             SubBuffer.push_back(new CMeshVertexBufferEx(istart, icount, vstart, vcount));
         }

@@ -1360,10 +1360,10 @@ typedef string<c8> stringc;
 //! Typedef for wide character strings
 typedef string<wchar_t> stringw;
 
-static stringc StrFormat(FORMAT_STRING(const char* fmt), ...) ATTR_PRINTF(1, 2)
+static stringc StrFormat(IRR_FORMAT_STRING(const char* fmt), ...) IRR_ATTR_PRINTF(1, 2)
 {
     va_list ap;
-    std::string result;
+    stringc result;
     char temp[4096];
     va_start(ap, fmt);
     vsnprintf(&temp[0], 4096, fmt, ap);

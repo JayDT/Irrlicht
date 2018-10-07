@@ -1,7 +1,7 @@
 #include "irrlicht.h"
 #include "CGUIFileSelector.h"
 #include "irrString.h"
-#include "extra_string.h"
+//#include "extra_string.h"
 #include <locale>
 
 using namespace irr;

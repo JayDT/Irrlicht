@@ -26,6 +26,11 @@ CreateLibrary("DirectX9" "${DirectX9_Source}" "${LIBTYPE}" "" "")
 
 add_dependencies(DirectX9 ZLIB)
 
+if (BUILD_HAS_RESOURCE_SYSTEM)
+    target_link_libraries (DirectX9
+        CFramework)
+endif (BUILD_HAS_RESOURCE_SYSTEM)
+
 if(_IRR_DYNAMIC_)
     target_link_libraries (DirectX9 ${DirectX_LIBRARY} ${DirectX_D3DX9_LIBRARY} ${DirectX_DXGUID_LIBRARY} Winmm ZLIB)
     install(TARGETS DirectX9 DESTINATION ${CMAKE_INSTALL_PREFIX})

@@ -22,7 +22,7 @@ namespace irr
 namespace video
 {
 
-ATTR_THREAD void* PreviouslyContext;
+IRR_ATTR_THREAD void* PreviouslyContext;
 
 CWGLManager::CWGLManager()
 	: PrimaryContext(SExposedVideoData(0)), PixelFormat(0), ColorFormat(ECOLOR_FORMAT::ECF_UNKNOWN)

@@ -843,8 +843,6 @@ void CNullDriver::draw3DBox(const core::aabbox3d<f32>& box, SColor color)
         vertex[i].Color = color;
     }
 
-    // draw everything
-    setRenderStates3DMode();
     drawVertexPrimitiveList(vertex, 8, indicies, indiciesSize / 2, EVT_STANDARD, scene::EPT_LINES, EIT_16BIT);
 }
 

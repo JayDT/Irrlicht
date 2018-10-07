@@ -199,9 +199,11 @@ void main()
             case EMT_SOLID:
                 textureColor = (textureColor * _input.color.bgra);
                 break;
-            //case EMT_ONETEXTURE_BLEND:
-            //    textureColor.rgb = (textureColor.rgb * _input.color.bgr);
-            //    break;
+            case EMT_TRANSPARENT_ALPHA_CHANNEL_REF:
+                textureColor = (textureColor * _input.color.bgra);
+                if (g_bAlphaTest != 0 && g_fAlphaRef > textureColor.a)
+                    discard;
+                break;
             case EMT_TRANSPARENT_ALPHA_CHANNEL:
                 textureColor = (textureColor * _input.color.bgra);
                 break;
@@ -247,9 +249,6 @@ void main()
 	            textureColor = (textureColor * textureColor2) * 4.0;
                 break;
         };
-
-        if (g_bAlphaTest > 0 && g_fAlphaRef > textureColor.a)
-            discard;
         
         if (g_material.Lighted == true)
         {

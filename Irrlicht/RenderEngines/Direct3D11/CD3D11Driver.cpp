@@ -31,7 +31,7 @@
 
 #ifdef HAVE_CSYSTEM_EXTENSION
 #include "System/Uri.h"
-#include "CFramework/System/Resource/ResourceManager.h"
+#include "System/Resource/ResourceManager.h"
 
 extern bool InitializeModulResourceDirect3D11();
 #endif
@@ -1019,7 +1019,7 @@ IShader * CD3D11Driver::createShader(ShaderInitializerEntry * shaderCreateInfo)
     return gpuProgram;
 }
 
-bool CD3D11Driver::SyncShaderConstant(CD3D11HardwareBuffer * HWBuffer)
+bool CD3D11Driver::SyncShaderConstant(CD3D11HardwareBuffer * HWBuffer, scene::IMesh* mesh/* = nullptr*/, scene::ISceneNode* node/* = nullptr*/)
 {
     bool needUpdateResource[EST_HIGH_LEVEL_SHADER];
     ::ZeroMemory(needUpdateResource, sizeof(needUpdateResource));
@@ -1035,7 +1035,7 @@ bool CD3D11Driver::SyncShaderConstant(CD3D11HardwareBuffer * HWBuffer)
         irr::video::SConstantBuffer* cbuffer = hlsl->mBuffers[ib];
 
         if (cbuffer->mCallBack)
-            cbuffer->mCallBack->OnSetConstants(cbuffer, cbuffer->mHwObject->GetBuffer());
+            cbuffer->mCallBack->OnSetConstants(cbuffer, HWBuffer ? HWBuffer->GetBuffer() : nullptr, mesh, node);
 
         E_HARDWARE_BUFFER_ACCESS MemoryAccess = E_HARDWARE_BUFFER_ACCESS::EHBA_DEFAULT;
         s8* dataBuffer;
@@ -1499,7 +1499,7 @@ bool CD3D11Driver::queryFeature(E_VIDEO_DRIVER_FEATURE feature) const
 //! sets transformation
 void CD3D11Driver::setTransform(E_TRANSFORMATION_STATE state, const core::matrix4& mat)
 {
-    Transformation3DChanged = true;
+    Transformation3DChanged = state == ETS_PROJECTION || state == ETS_VIEW || state == ETS_WORLD;
     Matrices[state] = mat;
 
     if ( state == ETS_PROJECTION || state == ETS_VIEW)
@@ -1524,7 +1524,7 @@ bool CD3D11Driver::setActiveTexture(u32 stage, const video::ITexture* texture)
 void CD3D11Driver::setMaterial(const SMaterial& material)
 {
     Material = material;
-    OverrideMaterial.apply(Material);
+    //OverrideMaterial.apply(Material);
 
     // set textures
     for(u16 i = 0; i < MATERIAL_MAX_TEXTURES; i ++)
@@ -2178,7 +2178,7 @@ void CD3D11Driver::drawMeshBuffer(const scene::IMeshBuffer * mb, scene::IMesh * 
     }
 #endif
 
-    SyncShaderConstant(static_cast<CD3D11HardwareBuffer*>(HWBuffer));
+    SyncShaderConstant(static_cast<CD3D11HardwareBuffer*>(HWBuffer), mesh, node);
     InitDrawStates(mb);
 
     u32 instanceCount = (!mesh || mesh->IsInstanceModeAvailable()) && mb->getStreamBuffer() ? mb->getStreamBuffer()->size() : 1;
@@ -2533,6 +2533,8 @@ bool CD3D11Driver::setRenderStates3DMode()
         //    MaterialRenderers[Material.MaterialType].Renderer->OnSetMaterial(Material, LastMaterial, ResetRenderStates, this);
 
         irr::video::D3D11HLSLProgram* hlsl = static_cast<irr::video::D3D11HLSLProgram*>(GetActiveShader());
+        if (!hlsl)
+            hlsl = m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD];
 
         if (hlsl)
         {
@@ -2561,36 +2563,14 @@ bool CD3D11Driver::setRenderStates3DMode()
 
 void CD3D11Driver::setRenderStates2DMode(bool alpha, bool texture, bool alphaChannel)
 {
-    if (Block2DRenderStateChange)
-        return;
-
     if (CurrentRenderMode != ERM_2D || Transformation3DChanged)
     {
-        // unset last 3d material
-        if (CurrentRenderMode == ERM_3D)
-        {
-            if (static_cast<u32>(LastMaterial.MaterialType) < MaterialRenderers.size())
-                MaterialRenderers[LastMaterial.MaterialType].Renderer->OnUnsetMaterial();
-        }
-
-        if(!OverrideMaterial2DEnabled)
-        {
-            if (!DepthStencilStateChanged)
-                DepthStencilStateChanged = true;
-
-            setBasicRenderStates(InitMaterial2D, LastMaterial, true);
-            LastMaterial = InitMaterial2D;
-
-            Material.StencilTest = false;
-        }
+        // Need rework render state change when render mode switch because required here which shader used
+        SetShader(nullptr);
 
         // Set world to identity
         core::matrix4 m;
         setTransform(ETS_WORLD, m);
-
-        // Set view to translate a little forward
-        //m.setTranslation(core::vector3df(-0.5f, -0.5f, 0)ü);
-        setTransform(ETS_VIEW, getTransform(ETS_VIEW_2D));
 
         // Adjust projection
         const core::dimension2d<u32>& renderTargetSize = getCurrentRenderTargetSize();
@@ -2600,6 +2580,11 @@ void CD3D11Driver::setRenderStates2DMode(bool alpha, bool texture, bool alphaCha
 
         Transformation3DChanged = false;
     }
+
+    // Set view to translate a little forward
+    //m.setTranslation(core::vector3df(-0.5f, -0.5f, 0));
+    setTransform(ETS_VIEW, getTransform(ETS_VIEW_2D));
+    Transformation3DChanged = false;
 
     // no alphaChannel without texture
     alphaChannel &= texture;
@@ -2612,30 +2597,46 @@ void CD3D11Driver::setRenderStates2DMode(bool alpha, bool texture, bool alphaCha
         Transformation3DChanged = false;
     }
 
-    if (OverrideMaterial2DEnabled)
-    {
-        OverrideMaterial2D.Lighting=false;
-        OverrideMaterial2D.ZBuffer=ECFN_NEVER;
-        OverrideMaterial2D.ZWriteEnable=false;
-        setBasicRenderStates(OverrideMaterial2D, LastMaterial, false);
-        LastMaterial = OverrideMaterial2D;
-    }
+    Material.AntiAliasing = video::EAAM_OFF;
+    Material.Lighting=false;
+    Material.ZBuffer=ECFN_NEVER;
+    Material.ZWriteEnable=false;
 
     // handle alpha
-    if (!BlendStateChanged)
-        BlendStateChanged = true;
-
     if (alpha || alphaChannel)
     {
-        BlendDesc.RenderTarget[0].BlendEnable = TRUE;
-        BlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+        Material.MaterialType = E_MATERIAL_TYPE::EMT_TRANSPARENT_ALPHA_CHANNEL;
+        Material.BlendOperation = E_BLEND_OPERATION::EBO_ADD;
+        Material.ColorMask = ECP_ALL;
 
-        BlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-        BlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-        BlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+        Material.uMaterialTypeParam = pack_textureBlendFunc(video::EBF_SRC_ALPHA, video::EBF_ONE_MINUS_SRC_ALPHA, video::EMFN_MODULATE_1X, video::EAS_TEXTURE | video::EAS_VERTEX_COLOR, video::EBF_SRC_ALPHA, video::EBF_ONE_MINUS_SRC_ALPHA, E_BLEND_OPERATION::EBO_ADD, E_BLEND_OPERATION::EBO_ADD);
     }
     else
-        BlendDesc.RenderTarget[0].BlendEnable = FALSE;
+    {
+        Material.BlendOperation = E_BLEND_OPERATION::EBO_NONE;
+    }
+
+    if (ResetRenderStates || LastMaterial != Material)
+    {
+        irr::video::D3D11HLSLProgram* hlsl = static_cast<irr::video::D3D11HLSLProgram*>(GetActiveShader());
+        if (!hlsl)
+            hlsl = m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD];
+
+        if (hlsl)
+        {
+            for (int i = 0; i < hlsl->mBuffers.size(); ++i)
+            {
+                irr::video::SConstantBuffer* cbuffer = hlsl->mBuffers[i];
+                if (cbuffer->mCallBack)
+                    cbuffer->mCallBack->OnSetMaterial(cbuffer, Material);
+            }
+        }
+
+        setBasicRenderStates(Material, LastMaterial, ResetRenderStates);
+
+        LastMaterial = Material;
+        ResetRenderStates = false;
+    }
 
     CurrentRenderMode = ERM_2D;
 }
@@ -2664,6 +2665,14 @@ void CD3D11Driver::setBasicRenderStates(const SMaterial& material, const SMateri
             RasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
         else
             RasterizerDesc.FillMode = D3D11_FILL_SOLID;
+    }
+
+    if (resetAllRenderstates || lastMaterial.IsCCW != material.IsCCW)
+    {
+        if (!RasterizerStateChanged)
+            RasterizerStateChanged = true;
+
+        RasterizerDesc.FrontCounterClockwise = material.IsCCW;
     }
 
     // multisample

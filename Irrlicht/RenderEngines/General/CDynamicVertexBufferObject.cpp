@@ -23,6 +23,7 @@ CDynamicVertexBufferObject::~CDynamicVertexBufferObject()
             delete mShaderConstantBuffers[i];
 
     setVertexBuffer(nullptr);
+    setStreamBuffer(nullptr);
     setIndexBuffer(nullptr);
 }
 
@@ -68,7 +69,7 @@ void irr::scene::CDynamicVertexBufferObject::AddConstantBuffer(video::IConstantB
     mShaderConstantBuffers[buffer->getBindingIndex()] = buffer;
 }
 
-void irr::scene::CDynamicVertexBufferObject::AddSubBuffer(u16 istart, u16 icount, u16 vstart, u16 vcount)
+void irr::scene::CDynamicVertexBufferObject::AddSubBuffer(u32 istart, u32 icount, u32 vstart, u32 vcount)
 {
     SubBuffer.push_back(new CDynamicVertexSubBuffer(istart, icount, vstart, vcount));
     Material = &SubBuffer[ActiveSubBuffer]->Material;

@@ -389,7 +389,7 @@ PixelOutput ps_main(PS_INPUT input)
         }
         else
         {
-            textureColor = shaderTexture.Sample(SampleType, input.tex);
+            textureColor = shaderTexture.Sample(SampleType, input.tex).bgra;
         }
 
         // check material type, and add color operation correctly
@@ -413,7 +413,9 @@ PixelOutput ps_main(PS_INPUT input)
                 break;
             case EMT_TRANSPARENT_ALPHA_CHANNEL_REF:
                 textureColor = (textureColor * input.color.bgra);
-                break;
+                if (g_bAlphaTest > 0 && g_fAlphaRef > textureColor.a)
+                    clip(-1);
+            break;
             case EMT_SOLID_2_LAYER:
             case EMT_LIGHTMAP:
             case EMT_LIGHTMAP_LIGHTING:
@@ -450,10 +452,6 @@ PixelOutput ps_main(PS_INPUT input)
                 textureColor = (textureColor * textureColor2) * 4.0;
                 break;
         };
-
-        //[branch]
-        if (g_bAlphaTest > 0 && g_fAlphaRef > textureColor.a)
-            clip(-1);
 
         if (g_material.Lighted)
         {

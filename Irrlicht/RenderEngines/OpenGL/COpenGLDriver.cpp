@@ -35,7 +35,7 @@
 #include "CIrrDeviceSDL.h"
 #endif
 
-#include "standard/client/datasource_standard.h"
+#include "standard/client/DataSource_Standard.h"
 
 #include <stdio.h>
 #include <iostream>
@@ -51,9 +51,9 @@
 
 #ifdef HAVE_CSYSTEM_EXTENSION
 #include "System/Uri.h"
-#include "CFramework/System/Resource/ResourceManager.h"
+#include "System/Resource/ResourceManager.h"
 
-extern bool InitializeModulResourceOpenGL();
+extern bool InitializeModulResourceIrrOpenGL();
 #endif
 
 //#include <GL/ex
@@ -162,7 +162,7 @@ COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params, io::IFil
         0.5f, 0.5f, 0.0f, 1.0f);
 
 #ifdef HAVE_CSYSTEM_EXTENSION
-    InitializeModulResourceOpenGL();
+    InitializeModulResourceIrrOpenGL();
 #endif
 }
 #endif
@@ -281,8 +281,8 @@ bool COpenGLDriver::initDriver()
         auto vertShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/OpenGL/GLSL/Default.vert");
         auto fragShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/OpenGL/GLSL/Default.frag");
 #else
-        auto vertShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/Default.vert", true))->ToMemoryStreamReader();
-        auto fragShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/Default.frag", true))->ToMemoryStreamReader();
+        auto vertShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/IrrOpenGL;/GLSL/Default.vert", true))->ToMemoryStreamReader();
+        auto fragShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/IrrOpenGL;/GLSL/Default.frag", true))->ToMemoryStreamReader();
 #endif
 
         shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
@@ -305,7 +305,7 @@ bool COpenGLDriver::initDriver()
 #ifndef HAVE_CSYSTEM_EXTENSION
         auto vertShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/OpenGL/GLSL/DefaultSH.vert");
 #else
-        auto vertShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/DefaultSH.vert", true))->ToMemoryStreamReader();
+        auto vertShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/IrrOpenGL;/GLSL/DefaultSH.vert", true))->ToMemoryStreamReader();
 #endif
 
         shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
@@ -326,8 +326,8 @@ bool COpenGLDriver::initDriver()
         auto vertShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/OpenGL/GLSL/DefaultT2.vert");
         auto fragShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/OpenGL/GLSL/Default.frag");
 #else
-        auto vertShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/DefaultT2.vert", true))->ToMemoryStreamReader();
-        auto fragShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/Default.frag", true))->ToMemoryStreamReader();
+        auto vertShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/IrrOpenGL;/GLSL/DefaultT2.vert", true))->ToMemoryStreamReader();
+        auto fragShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/IrrOpenGL;/GLSL/Default.frag", true))->ToMemoryStreamReader();
 #endif
 
         shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
@@ -351,8 +351,8 @@ bool COpenGLDriver::initDriver()
         auto vertShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/OpenGL/GLSL/DefaultSK.vert");
         auto fragShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/OpenGL/GLSL/Default.frag");
 #else
-        auto vertShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/DefaultSK.vert", true))->ToMemoryStreamReader();
-        auto fragShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/Default.frag", true))->ToMemoryStreamReader();
+        auto vertShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/IrrOpenGL;/GLSL/DefaultSK.vert", true))->ToMemoryStreamReader();
+        auto fragShader = System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/IrrOpenGL;/GLSL/Default.frag", true))->ToMemoryStreamReader();
 #endif
 
         shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
@@ -649,8 +649,8 @@ const core::matrix4& COpenGLDriver::getTransform(E_TRANSFORMATION_STATE state) c
 //! sets transformation
 void COpenGLDriver::setTransform(E_TRANSFORMATION_STATE state, const core::matrix4& mat)
 {
+    Transformation3DChanged = state == ETS_PROJECTION || state == ETS_VIEW || state == ETS_WORLD;
     Matrices[state] = mat;
-    Transformation3DChanged = true;
 
     if (state == ETS_PROJECTION || state == ETS_VIEW)
         Matrices[ETS_PROJECTION_VIEW] = Matrices[ETS_PROJECTION] * Matrices[ETS_VIEW];
@@ -894,7 +894,7 @@ void irr::video::COpenGLDriver::drawMeshBuffer(const scene::IMeshBuffer * mb, sc
         }
     }
 
-    SyncShaderConstant();
+    SyncShaderConstant(mb, mesh, node);
     InitDrawStates(mb);
 
 #ifdef _DEBUG
@@ -1118,7 +1118,7 @@ void COpenGLDriver::draw2D3DVertexPrimitiveList(const void* vertices, u32 vertex
 
     GLenum renderPrimitive = primitiveTypeToGL(pType);
 
-    SyncShaderConstant();
+    SyncShaderConstant(nullptr);
     InitDrawStates(nullptr);
 
     if (!indexCount)
@@ -1265,7 +1265,7 @@ video::ITexture* COpenGLDriver::createDeviceDependentTexture(IImage* surface, co
 void COpenGLDriver::setMaterial(const SMaterial& material)
 {
     Material = material;
-    OverrideMaterial.apply(Material);
+    //OverrideMaterial.apply(Material);
 
     for (s32 i = MaxTextureUnits-1; i>= 0; --i)
     {
@@ -1324,17 +1324,6 @@ bool COpenGLDriver::setRenderStates3DMode()
 
     if (ResetRenderStates || LastMaterial != Material)
     {
-        // unset old material
-
-        //if (LastMaterial.MaterialType != Material.MaterialType &&
-        //        static_cast<u32>(LastMaterial.MaterialType) < MaterialRenderers.size())
-        //    MaterialRenderers[LastMaterial.MaterialType].Renderer->OnUnsetMaterial();
-        //
-        //// set new material.
-        //if (static_cast<u32>(Material.MaterialType) < MaterialRenderers.size())
-        //    MaterialRenderers[Material.MaterialType].Renderer->OnSetMaterial(
-        //        Material, LastMaterial, ResetRenderStates, this);
-
         irr::video::GLSLGpuShader* _vkShader = static_cast<irr::video::GLSLGpuShader*>(GetActiveShader());
 
         if (_vkShader)
@@ -1787,6 +1776,16 @@ void COpenGLDriver::setBasicRenderStates(const SMaterial& material, const SMater
             glPolygonOffset(-1.0f, (GLfloat)-material.PolygonOffsetFactor);
     }
 
+    if (resetAllRenderStates || lastmaterial.IsCCW != material.IsCCW)
+    {
+        //GetStateCache()->setFrontFace();
+
+        if (material.IsCCW)
+            glFrontFace(GL_CCW);
+        else
+            glFrontFace(GL_CW);
+    }
+
     //// thickness
     //if (resetAllRenderStates || lastmaterial.Thickness != material.Thickness)
     //{
@@ -1837,69 +1836,142 @@ void COpenGLDriver::setRenderStates2DMode(bool alpha, bool texture, bool alphaCh
 {
     if (CurrentRenderMode != ERM_2D || Transformation3DChanged)
     {
-        // unset last 3d material
-        if (CurrentRenderMode == ERM_3D)
-        {
-            //if (static_cast<u32>(LastMaterial.MaterialType) < MaterialRenderers.size())
-            //    MaterialRenderers[LastMaterial.MaterialType].Renderer->OnUnsetMaterial();
-        }
-        if (Transformation3DChanged)
-        {
-            // Set world to identity
-            core::matrix4 m;
-            setTransform(ETS_WORLD, m);
+        // Set world to identity
+        core::matrix4 m;
+        setTransform(ETS_WORLD, m);
 
-            // Set view to translate a little forward
-            //m.setTranslation(core::vector3df(-0.5f, -0.5f, 0)ü);
-            setTransform(ETS_VIEW, getTransform(ETS_VIEW_2D));
+        // Adjust projection
+        const core::dimension2d<u32>& renderTargetSize = getCurrentRenderTargetSize();
+        m.buildProjectionMatrixOrthoLH(f32(renderTargetSize.Width), f32(-(s32)(renderTargetSize.Height)), -1.0, 1.0);
+        m.setTranslation(core::vector3df(-1, 1, 0));
+        setTransform(ETS_PROJECTION, m);
 
-            // Adjust projection
-            const core::dimension2d<u32>& renderTargetSize = getCurrentRenderTargetSize();
-            m.buildProjectionMatrixOrthoLH(f32(renderTargetSize.Width), f32(-(s32)(renderTargetSize.Height)), -1.0, 1.0);
-            m.setTranslation(core::vector3df(-1, 1, 0));
-            setTransform(ETS_PROJECTION, m);
-
-            Transformation3DChanged = false;
-        }
-        if (!OverrideMaterial2DEnabled)
-        {
-            setBasicRenderStates(InitMaterial2D, LastMaterial, true);
-            LastMaterial = InitMaterial2D;
-        }
+        Transformation3DChanged = false;
     }
-    if (OverrideMaterial2DEnabled)
-    {
-        OverrideMaterial2D.Lighting=false;
-        setBasicRenderStates(OverrideMaterial2D, LastMaterial, false);
-        LastMaterial = OverrideMaterial2D;
-    }
+
+    // Set view to translate a little forward
+    //m.setTranslation(core::vector3df(-0.5f, -0.5f, 0));
+    setTransform(ETS_VIEW, getTransform(ETS_VIEW_2D));
+    Transformation3DChanged = false;
 
     // no alphaChannel without texture
     alphaChannel &= texture;
 
-    if (alphaChannel || alpha)
-    {
-        LastMaterial.BlendOperation = E_BLEND_OPERATION::EBO_ADD;
-        m_stateCache.setEnabled(OGLStateEntries::OGL_BLEND, true);
-        m_stateCache.setBlendEquation(GL_FUNC_ADD_EXT);
-        m_stateCache.setBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    }
-    else
-    {
-        LastMaterial.BlendOperation = E_BLEND_OPERATION::EBO_NONE;
-        m_stateCache.setEnabled(OGLStateEntries::OGL_BLEND, false);
-    }
-
     if (texture)
     {
-        Material.setTexture(0, const_cast<video::ITexture*>(CurrentTexture[0]));
         setTransform(ETS_TEXTURE_0, core::IdentityMatrix);
         // Due to the transformation change, the previous line would call a reset each frame
         // but we can safely reset the variable as it was false before
-        Transformation3DChanged=false;
+        Transformation3DChanged = false;
+    }
+
+    Material.AntiAliasing = video::EAAM_OFF;
+    Material.Lighting = false;
+    Material.ZBuffer = ECFN_NEVER;
+    Material.ZWriteEnable = false;
+
+    // handle alpha
+    if (alpha || alphaChannel)
+    {
+        Material.MaterialType = E_MATERIAL_TYPE::EMT_TRANSPARENT_ALPHA_CHANNEL;
+        Material.BlendOperation = E_BLEND_OPERATION::EBO_ADD;
+        Material.ColorMask = ECP_ALL;
+
+        Material.uMaterialTypeParam = pack_textureBlendFunc(video::EBF_SRC_ALPHA, video::EBF_ONE_MINUS_SRC_ALPHA, video::EMFN_MODULATE_1X, video::EAS_TEXTURE | video::EAS_VERTEX_COLOR, video::EBF_SRC_ALPHA, video::EBF_ONE_MINUS_SRC_ALPHA, E_BLEND_OPERATION::EBO_ADD, E_BLEND_OPERATION::EBO_ADD);
+    }
+    else
+    {
+        Material.BlendOperation = E_BLEND_OPERATION::EBO_NONE;
+    }
+
+    if (ResetRenderStates || LastMaterial != Material)
+    {
+        irr::video::GLSLGpuShader* hlsl = static_cast<irr::video::GLSLGpuShader*>(GetActiveShader());
+        if (!hlsl)
+            hlsl = m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD];
+
+        if (hlsl)
+        {
+            for (int i = 0; i < hlsl->mBuffers.size(); ++i)
+            {
+                irr::video::SConstantBuffer* cbuffer = hlsl->mBuffers[i];
+                if (cbuffer->mCallBack)
+                    cbuffer->mCallBack->OnSetMaterial(cbuffer, Material);
+            }
+        }
+
+        setBasicRenderStates(Material, LastMaterial, ResetRenderStates);
+
+        LastMaterial = Material;
+        ResetRenderStates = false;
     }
 
     CurrentRenderMode = ERM_2D;
+    //if (CurrentRenderMode != ERM_2D || Transformation3DChanged)
+    //{
+    //    // unset last 3d material
+    //    if (CurrentRenderMode == ERM_3D)
+    //    {
+    //        //if (static_cast<u32>(LastMaterial.MaterialType) < MaterialRenderers.size())
+    //        //    MaterialRenderers[LastMaterial.MaterialType].Renderer->OnUnsetMaterial();
+    //    }
+    //    if (Transformation3DChanged)
+    //    {
+    //        // Set world to identity
+    //        core::matrix4 m;
+    //        setTransform(ETS_WORLD, m);
+    //
+    //        // Set view to translate a little forward
+    //        //m.setTranslation(core::vector3df(-0.5f, -0.5f, 0)ü);
+    //        setTransform(ETS_VIEW, getTransform(ETS_VIEW_2D));
+    //
+    //        // Adjust projection
+    //        const core::dimension2d<u32>& renderTargetSize = getCurrentRenderTargetSize();
+    //        m.buildProjectionMatrixOrthoLH(f32(renderTargetSize.Width), f32(-(s32)(renderTargetSize.Height)), -1.0, 1.0);
+    //        m.setTranslation(core::vector3df(-1, 1, 0));
+    //        setTransform(ETS_PROJECTION, m);
+    //
+    //        Transformation3DChanged = false;
+    //    }
+    //    if (!OverrideMaterial2DEnabled)
+    //    {
+    //        setBasicRenderStates(InitMaterial2D, LastMaterial, true);
+    //        LastMaterial = InitMaterial2D;
+    //    }
+    //}
+    //if (OverrideMaterial2DEnabled)
+    //{
+    //    OverrideMaterial2D.Lighting=false;
+    //    setBasicRenderStates(OverrideMaterial2D, LastMaterial, false);
+    //    LastMaterial = OverrideMaterial2D;
+    //}
+    //
+    //// no alphaChannel without texture
+    //alphaChannel &= texture;
+    //
+    //if (alphaChannel || alpha)
+    //{
+    //    LastMaterial.BlendOperation = E_BLEND_OPERATION::EBO_ADD;
+    //    m_stateCache.setEnabled(OGLStateEntries::OGL_BLEND, true);
+    //    m_stateCache.setBlendEquation(GL_FUNC_ADD_EXT);
+    //    m_stateCache.setBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //}
+    //else
+    //{
+    //    LastMaterial.BlendOperation = E_BLEND_OPERATION::EBO_NONE;
+    //    m_stateCache.setEnabled(OGLStateEntries::OGL_BLEND, false);
+    //}
+    //
+    //if (texture)
+    //{
+    //    Material.setTexture(0, const_cast<video::ITexture*>(CurrentTexture[0]));
+    //    setTransform(ETS_TEXTURE_0, core::IdentityMatrix);
+    //    // Due to the transformation change, the previous line would call a reset each frame
+    //    // but we can safely reset the variable as it was false before
+    //    Transformation3DChanged=false;
+    //}
+    //
+    //CurrentRenderMode = ERM_2D;
 }
 
 

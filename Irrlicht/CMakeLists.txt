@@ -12,15 +12,16 @@ endif(_IRR_DYNAMIC_)
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../dep
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../dep/jpeglib
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../dep/libpng
-    #${CMAKE_CURRENT_SOURCE_DIR}/../../dep/freetype
-    #${CMAKE_CURRENT_SOURCE_DIR}/../../dep/freetype/include
-    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_BINARY_DIR}
 )
 
-AppendDefaultIncludeDir(${CMAKE_CURRENT_SOURCE_DIR}/standard)
+if (NOT BUILD_HAS_RESOURCE_SYSTEM)
+    include_directories(
+        ${CMAKE_CURRENT_SOURCE_DIR}/../
+    )
+endif (NOT BUILD_HAS_RESOURCE_SYSTEM)
+
+#AppendDefaultIncludeDir(${CMAKE_CURRENT_SOURCE_DIR}/standard)
 
 file(GLOB IrrLicht_source RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp *.c *.h *.hpp)
 file(GLOB IrrLicht_header RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} include/*.h include/*.hpp)
@@ -91,11 +92,11 @@ add_definitions(-D_LIB_SOURCE_ROOT="${CMAKE_CURRENT_SOURCE_DIR}")
 SET(IrrLicht_libs "")
 
 if(_IRR_DYNAMIC_)
-
   list(APPEND IrrLicht_libs
   PUBLIC
     FREETYPE
   PRIVATE
+    glm
     libjpeg
     libpng
     ZLIB
@@ -210,6 +211,16 @@ endforeach(SRC)
 CreateLibrary("irrlicht" "${IrrLicht_source}" "${LIBTYPE}" "${IrrLicht_libs}" "")
 #ADD_CXX_PCH("irrlicht" Irrlicht.h Irrlicht.cpp)
 add_dependencies(irrlicht ZLIB)
+
+target_include_directories(irrlicht INTERFACE 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+if (BUILD_HAS_RESOURCE_SYSTEM)
+    target_link_libraries (irrlicht
+    PRIVATE
+        CFramework)
+endif (BUILD_HAS_RESOURCE_SYSTEM)
 
 SET_TARGET_PROPERTIES (irrlicht PROPERTIES COMPILE_FLAGS "${RENDER_ENGINE_DEFINES}" )
 SET_TARGET_PROPERTIES (irrlicht PROPERTIES DEFINE_SYMBOL  "IRRLICHT_EXPORTS" )

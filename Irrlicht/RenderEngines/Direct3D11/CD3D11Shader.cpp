@@ -7,7 +7,7 @@
 
 #include <D3DCompiler.h>
 
-#define Dx11ShaderDebug 0
+#define Dx11ShaderDebug 1
 
 using namespace irr;
 using namespace irr::video;

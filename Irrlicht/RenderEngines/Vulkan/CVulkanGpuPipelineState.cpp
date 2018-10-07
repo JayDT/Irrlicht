@@ -97,6 +97,7 @@ u64 VulkanGraphicsPipelineState::CreatePipelineGuid()
     mRequestPipelineGuid2 |= mDepthStencilInfo.stencilTestEnable;
     mRequestPipelineGuid2 |= (mMaterial.StencilFront.Reference) << 1;
     mRequestPipelineGuid2 |= (mMaterial.StencilBack.Reference) << 9;
+    mRequestPipelineGuid2 |= (mMaterial.IsCCW) << 17;
 
     u64 mRequestPipelineGuid3 = 0;
     mRequestPipelineGuid3 |= (*(u32*)&mMaterial.StencilFront);
@@ -163,7 +164,7 @@ void VulkanGraphicsPipelineState::initialize()
     mRasterizationInfo.rasterizerDiscardEnable  = VK_FALSE;
     mRasterizationInfo.polygonMode              = VulkanUtility::getPolygonMode(!mMaterial.Wireframe);
     mRasterizationInfo.cullMode                 = VulkanUtility::getCullMode(mMaterial);
-    mRasterizationInfo.frontFace                = VkFrontFace::VK_FRONT_FACE_CLOCKWISE;
+    mRasterizationInfo.frontFace                = mMaterial.IsCCW ? VkFrontFace::VK_FRONT_FACE_COUNTER_CLOCKWISE : VkFrontFace::VK_FRONT_FACE_CLOCKWISE;
     mRasterizationInfo.depthBiasEnable          = mMaterial.PolygonOffsetFactor != 0;
     mRasterizationInfo.depthBiasConstantFactor  = (float)mMaterial.PolygonOffsetFactor;
     mRasterizationInfo.depthBiasSlopeFactor     = mMaterial.PolygonOffsetDirection == EPO_BACK ? 0.f : 1.f;
@@ -449,9 +450,13 @@ void irr::video::VulkanGraphicsPipelineState::update(u8 deviceIdx, const irr::vi
         mRasterizationInfo.depthBiasClamp = (float)material.PolygonOffsetFactor;
     }
 
+    if (mMaterial.IsCCW != material.IsCCW)
+    {
+        mRasterizationInfo.frontFace = mMaterial.IsCCW ? VkFrontFace::VK_FRONT_FACE_COUNTER_CLOCKWISE : VkFrontFace::VK_FRONT_FACE_CLOCKWISE;
+    }
+
     //mRasterizationInfo.depthClampEnable = !material.DepthClipEnable;
     //mRasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
-    //mRasterizationInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
     //mRasterizationInfo.lineWidth = 1.0f;
 
     // zbuffer

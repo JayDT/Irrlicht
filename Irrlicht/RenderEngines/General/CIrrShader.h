@@ -308,12 +308,12 @@ namespace irr
 
             void OnPrepare(irr::video::IConstantBuffer* shader) override;
 
-            virtual void OnSetMaterial(video::IConstantBuffer* buffer, const SMaterial& material)
+            void OnSetMaterial(video::IConstantBuffer* buffer, const SMaterial& material)
             {
                 mMaterial = &material;
             }
 
-            virtual void OnSetConstants(irr::video::IConstantBuffer* buffer, irr::scene::IMeshBuffer* meshBuffer);
+            void OnSetConstants(irr::video::IConstantBuffer* buffer, irr::scene::IMeshBuffer* meshBuffer, scene::IMesh* mesh = nullptr, scene::ISceneNode* node = nullptr);
 
         private:
 
@@ -333,12 +333,12 @@ namespace irr
 
             void OnPrepare(irr::video::IConstantBuffer* shader) override;
 
-            virtual void OnSetMaterial(video::IConstantBuffer* buffer, const SMaterial& material)
+            void OnSetMaterial(video::IConstantBuffer* buffer, const SMaterial& material)
             {
                 mMaterial = &material;
             }
 
-            virtual void OnSetConstants(irr::video::IConstantBuffer* buffer, irr::scene::IMeshBuffer* meshBuffer);
+            void OnSetConstants(irr::video::IConstantBuffer* buffer, irr::scene::IMeshBuffer* meshBuffer, scene::IMesh* mesh = nullptr, scene::ISceneNode* node = nullptr) override;
 
         private:
 

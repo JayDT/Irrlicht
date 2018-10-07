@@ -292,7 +292,7 @@ namespace irr
 
             //! Check multisample quality levels
             virtual u32 queryMultisampleLevels(ECOLOR_FORMAT format, u32 numSamples) const;
-            bool SyncShaderConstant(CVulkanHardwareBuffer* HWBuffer);
+            bool SyncShaderConstant(CVulkanHardwareBuffer* HWBuffer, scene::IMesh* mesh = nullptr, scene::ISceneNode* node = nullptr);
             IShader * createShader(ShaderInitializerEntry * shaderCreateInfo) override;
             virtual void useShader(IShader* gpuProgram);
 

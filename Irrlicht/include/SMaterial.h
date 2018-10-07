@@ -296,7 +296,7 @@ namespace video
 			Wireframe(false), PointCloud(false), GouraudShading(true),
 			Lighting(true), ZWriteEnable(true), BackfaceCulling(true), FrontfaceCulling(false),
 			FogEnable(false), NormalizeNormals(false), UseMipMaps(true), DepthClipEnable(true),
-            StencilTest(false)
+            StencilTest(false), IsCCW(false)
 		{ 
             VertexShaderId = -1;
             PixelShaderId = -1;
@@ -357,10 +357,12 @@ namespace video
 			UseMipMaps = other.UseMipMaps;
             DepthClipEnable = other.DepthClipEnable;
             VertexShaderId = other.VertexShaderId;
+            BlendId = other.BlendId;
             PixelShaderId = other.PixelShaderId;
             StencilTest = other.StencilTest;
             StencilFront = other.StencilFront;
             StencilBack = other.StencilBack;
+            IsCCW = other.IsCCW;
             return *this;
 		}
 
@@ -529,6 +531,9 @@ namespace video
         bool DepthClipEnable : 1;
 
         bool StencilTest : 1;
+
+        //! Indicates triangles facing the specified direction are not drawn
+        bool IsCCW : 1;
 
 		//! Gets the texture transformation matrix for level i
 		/** \param i The desired level. Must not be larger than MATERIAL_MAX_TEXTURES.

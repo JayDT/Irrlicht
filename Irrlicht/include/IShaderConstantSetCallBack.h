@@ -13,6 +13,8 @@ namespace irr
 namespace scene
 {
     class IMeshBuffer;
+    class IMesh;
+    class ISceneNode;
 }
 
 namespace video
@@ -85,7 +87,7 @@ public:
 	\param services: Pointer to an interface providing methods to set the constants for the shader.
 	\param userData: Userdata int which can be specified when creating the shader.
 	*/
-	virtual void OnSetConstants(video::IConstantBuffer* buffer, scene::IMeshBuffer* meshBuffer) = 0;
+	virtual void OnSetConstants(video::IConstantBuffer* buffer, scene::IMeshBuffer* meshBuffer, scene::IMesh* mesh = nullptr, scene::ISceneNode* node = nullptr) = 0;
 };
 
 

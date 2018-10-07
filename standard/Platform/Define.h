@@ -204,13 +204,13 @@ typedef long long unsigned      QWORD;
 #      define __forceinline __attribute__((__always_inline__)) inline
 #  endif
 #else
-
-#   ifndef __REFLECTION_PARSER__
+#  define WIN32_LEAN_AND_MEAN
+#  if !defined(NOMINMAX) && defined(_MSC_VER)
+#  	define NOMINMAX // Required to stop windows.h messing up std::min
+#  endif
+#  ifndef __REFLECTION_PARSER__
 #   include <windows.h>
-#   endif
-
-#undef min
-#undef max
+#  endif
 #endif //COMPILER
 
 #       ifdef GetObject

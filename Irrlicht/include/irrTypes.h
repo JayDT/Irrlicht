@@ -6,7 +6,7 @@
 #define __IRR_TYPES_H_INCLUDED__
 
 #include "IrrCompileConfig.h"
-#include "standard/Platform/common.h"
+//#include "standard/Platform/common.h"
 
 namespace irr
 {
@@ -114,23 +114,27 @@ typedef double				f64;
 
 #include <wchar.h>
 #ifdef _IRR_WINDOWS_API_
+#  include <sal.h>
+#  define IRR_FORMAT_STRING(p) _In_z_ _Printf_format_string_ p
+#  define IRR_ATTR_PRINTF(F,V)
+#  define IRR_ATTR_THREAD __declspec(thread)
 //! Defines for s{w,n}printf_irr because s{w,n}printf methods do not match the ISO C
 //! standard on Windows platforms.
 //! We want int snprintf_irr(char *str, size_t size, const char *format, ...);
 //! and int swprintf_irr(wchar_t *wcs, size_t maxlen, const wchar_t *format, ...);
-#if defined(_MSC_VER) && _MSC_VER > 1310 && !defined (_WIN32_WCE)
-#define swprintf _snwprintf
-#define snprintf _snprintf
-#define swprintf_irr swprintf_s
-#define snprintf_irr sprintf_s
-#elif !defined(__CYGWIN__)
-#define swprintf_irr _snwprintf
-#define snprintf_irr _snprintf
-#endif
+#  if defined(_MSC_VER) && _MSC_VER > 1310 && !defined (_WIN32_WCE)
+#    define swprintf _snwprintf
+#    define snprintf _snprintf
+#    define swprintf_irr swprintf_s
+#    define snprintf_irr sprintf_s
+#  elif !defined(__CYGWIN__)
+#    define swprintf_irr _snwprintf
+#    define snprintf_irr _snprintf
+#  endif
 
 // define the wchar_t type if not already built in.
-#ifdef _MSC_VER
-#ifndef _WCHAR_T_DEFINED
+#  ifdef _MSC_VER
+#  ifndef _WCHAR_T_DEFINED
 //! A 16 bit wide character type.
 /**
 	Defines the wchar_t-type.
@@ -140,10 +144,13 @@ typedef double				f64;
 	so we'll use this.
 */
 typedef unsigned short wchar_t;
-#define _WCHAR_T_DEFINED
-#endif // wchar is not defined
+#    define _WCHAR_T_DEFINED
+#  endif // wchar is not defined
 #endif // microsoft compiler
 #else
+#define FORMAT_STRING(p) p
+#define IRR_ATTR_PRINTF(F,V) __attribute__ ((format (printf, F, V)))
+#define IRR_ATTR_THREAD __thread
 #define swprintf_irr swprintf
 #define snprintf_irr snprintf
 #endif // _IRR_WINDOWS_API_

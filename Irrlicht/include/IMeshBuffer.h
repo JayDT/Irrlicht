@@ -271,7 +271,7 @@ namespace scene
         virtual bool IsAvailableSubBuffer(u16 sid) { return true; }
         virtual void SetActiveSubBuffer(u16 sid) {}
         virtual u16 GetActiveSubBuffer() const { return 0; }
-        virtual void AddSubBuffer(u16 istart, u16 icount, u16 vstart, u16 vcount) {}
+        virtual void AddSubBuffer(u32 istart, u32 icount, u32 vstart, u32 vcount) {}
         virtual void InitSubBuffers(u16 count) {}
         virtual u32 GetSubBufferCount() const { return 0;  }
 

@@ -23,7 +23,9 @@ include_directories(
   ${ZLIB_INCLUDE_DIR}
 )
 
-CreateLibrary("libpng" "${lib_SRCS}" "STATIC" "" "")
+CreateLibrary(libpng "${lib_SRCS}" "STATIC" "" "")
+
+target_include_directories(libpng INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
 set_target_properties(libpng
     PROPERTIES
