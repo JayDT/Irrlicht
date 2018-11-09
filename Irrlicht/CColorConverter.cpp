@@ -662,6 +662,30 @@ void CColorConverter::convert_viaFormat(const void* sP, ECOLOR_FORMAT sF, s32 sN
 			}
 		break;
         case ECF_RGBA8:
+        case ECF_B8G8R8A8:
+			switch (dF)
+			{
+				case ECF_A1R5G5B5:
+					//convert_B8G8R8A8toA1R5G5B5(sP, sN, dP);
+				break;
+				case ECF_R5G6B5:
+					//convert_B8G8R8A8toR5G6B5(sP, sN, dP);
+				break;
+                case ECF_B8G8R8A8:
+                    convert_A8R8G8B8toA8R8G8B8(sP, sN, dP);
+                    break;
+                case ECF_A8R8G8B8:
+					convert_B8G8R8A8toA8R8G8B8(sP, sN, dP);
+				break;
+				case ECF_R8G8B8:
+					//convert_A8R8G8B8toR8G8B8(sP, sN, dP);
+				break;
+#ifndef _DEBUG
+				default:
+					break;
+#endif
+			}
+		break;
 		case ECF_A8R8G8B8:
 			switch (dF)
 			{
@@ -670,6 +694,9 @@ void CColorConverter::convert_viaFormat(const void* sP, ECOLOR_FORMAT sF, s32 sN
 				break;
 				case ECF_R5G6B5:
 					convert_A8R8G8B8toR5G6B5(sP, sN, dP);
+				break;
+				case ECF_B8G8R8A8:
+					convert_B8G8R8A8toA8R8G8B8(sP, sN, dP);
 				break;
 				case ECF_A8R8G8B8:
 					convert_A8R8G8B8toA8R8G8B8(sP, sN, dP);

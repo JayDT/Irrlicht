@@ -72,6 +72,7 @@ bool CImageWriterBMP::writeImage(io::IWriteFile* file, IImage* image, u32 param)
 		CColorConverter_convertFORMATtoFORMAT
 			= CColorConverter::convert_R8G8B8toR8G8B8;
 		break;
+    case ECF_B8G8R8A8:
 	case ECF_A8R8G8B8:
 		CColorConverter_convertFORMATtoFORMAT
 			= CColorConverter::convert_A8R8G8B8toB8G8R8;
