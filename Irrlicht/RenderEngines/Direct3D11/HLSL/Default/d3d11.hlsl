@@ -389,7 +389,7 @@ PixelOutput ps_main(PS_INPUT input)
         }
         else
         {
-            textureColor = shaderTexture.Sample(SampleType, input.tex).bgra;
+            textureColor = shaderTexture.Sample(SampleType, input.tex);
         }
 
         // check material type, and add color operation correctly
