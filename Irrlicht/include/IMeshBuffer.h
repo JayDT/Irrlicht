@@ -14,6 +14,7 @@
 #include "EPrimitiveTypes.h"
 #include "RenderEngines/General/CIrrVertexDeclaration.h"
 
+#include <vector>
 #include <mutex>
 
 namespace irr
