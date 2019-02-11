@@ -275,7 +275,7 @@ void irr::video::SShaderVariableMatrix::setMatrix(const core::matrix4 & value)
 
     assert(mType->Stride >= sizeof(core::matrix4));
     mBuffer->setRawValue((u8*)&value, mOffset, sizeof(core::matrix4));
-    mBuffer->write8bAlign((u8*)&value, mOffset, sizeof(core::matrix4));
+    //mBuffer->write8bAlign((u8*)&value, mOffset, sizeof(core::matrix4));
 }
 
 core::matrix4 & irr::video::SShaderVariableMatrix::getMatrix()
@@ -292,8 +292,8 @@ void irr::video::SShaderVariableMatrix::setMatrixArray(const core::matrix4 * val
         return;
 
     assert(mType->Stride >= (sizeof(core::matrix4) * offset + sizeof(core::matrix4) * count));
-    //mBuffer->setRawValue((u8*)values, mOffset + (sizeof(core::matrix4) * offset), sizeof(core::matrix4) * count);
-    mBuffer->write8bAlign((u8*)values, mOffset + (sizeof(core::matrix4) * offset), sizeof(core::matrix4) * count);
+    mBuffer->setRawValue((u8*)values, mOffset + (sizeof(core::matrix4) * offset), sizeof(core::matrix4) * count);
+    //mBuffer->write8bAlign((u8*)values, mOffset + (sizeof(core::matrix4) * offset), sizeof(core::matrix4) * count);
 }
 
 core::matrix4 * irr::video::SShaderVariableMatrix::getMatrixArray(u32 offset, u32 count)
