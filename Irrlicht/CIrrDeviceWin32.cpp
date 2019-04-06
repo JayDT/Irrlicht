@@ -10,6 +10,7 @@
 #include "IEventReceiver.h"
 #include "irrList.h"
 #include "os.h"
+#include <map>
 
 #include "CTimer.h"
 #include "irrString.h"
@@ -17,6 +18,8 @@
 #include "dimension2d.h"
 #include "IGUISpriteBank.h"
 #include <winuser.h>
+#include <shellapi.h>
+#include <ShellScalingApi.h>
 #if defined(_IRR_COMPILE_WITH_JOYSTICK_EVENTS_)
 #ifdef _IRR_COMPILE_WITH_DIRECTINPUT_JOYSTICK_
 #define DIRECTINPUT_VERSION 0x0800
@@ -34,6 +37,10 @@
 
 #ifdef _IRR_COMPILE_WITH_OPENGL_
 #include "RenderEngines/OpenGL/ContextManager/CWGLManager.h"
+#endif
+
+#ifndef PATH_MAX
+#define PATH_MAX 260
 #endif
 
 namespace irr
@@ -618,7 +625,7 @@ namespace
         HWND hWnd;
         irr::CIrrDeviceWin32* irrDev;
     };
-    irr::core::list<SEnvMapper> EnvMap;
+    std::map<HWND/*hWnd*/, SEnvMapper> EnvMap;
 
     HKL KEYBOARD_INPUT_HKL=0;
     unsigned int KEYBOARD_INPUT_CODEPAGE = 1252;
@@ -626,31 +633,28 @@ namespace
 
 SEnvMapper* getEnvMapperFromHWnd(HWND hWnd)
 {
-    irr::core::list<SEnvMapper>::Iterator it = EnvMap.begin();
-    for (; it!= EnvMap.end(); ++it)
-        if ((*it).hWnd == hWnd)
-            return &(*it);
-
-    return 0;
+    auto iHnd = EnvMap.find(hWnd);
+    return iHnd != EnvMap.end() ? &iHnd->second : nullptr;
 }
 
 
 irr::CIrrDeviceWin32* getDeviceFromHWnd(HWND hWnd)
 {
-    irr::core::list<SEnvMapper>::Iterator it = EnvMap.begin();
-    for (; it!= EnvMap.end(); ++it)
-        if ((*it).hWnd == hWnd)
-            return (*it).irrDev;
+    auto iHnd = EnvMap.find(hWnd);
+    return iHnd != EnvMap.end() ? iHnd->second.irrDev : nullptr;
+}
 
-    return 0;
+void removeDeviceFromHWnd(HWND hWnd)
+{
+    EnvMap.erase(hWnd);
 }
 
 HWND getHWndFromDevice(irr::CIrrDeviceWin32* device)
 {
-    irr::core::list<SEnvMapper>::Iterator it = EnvMap.begin();
+    auto it = EnvMap.begin();
     for (; it != EnvMap.end(); ++it)
-        if ((*it).irrDev == device)
-            return (*it).hWnd;
+        if ((*it).second.irrDev == device)
+            return (*it).first;
 
     return 0;
 }
@@ -692,6 +696,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {1, WM_MBUTTONUP,   irr::EMIE_MMOUSE_LEFT_UP},
         {2, WM_MOUSEMOVE,   irr::EMIE_MOUSE_MOVED},
         {3, WM_MOUSEWHEEL,  irr::EMIE_MOUSE_WHEEL},
+        //{4, WM_LBUTTONDBLCLK,  irr::EMIE_LMOUSE_DOUBLE_CLICK},
+        //{4, WM_RBUTTONDBLCLK,  irr::EMIE_RMOUSE_DOUBLE_CLICK},
+        //{4, WM_MBUTTONDBLCLK,  irr::EMIE_MMOUSE_DOUBLE_CLICK},
         {-1, 0, 0}
     };
 
@@ -778,16 +785,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     }
     case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            BeginPaint(hWnd, &ps);
-            irr::core::recti rect(ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom);
-            dev = getDeviceFromHWnd(hWnd);
-            if (dev && dev->OnPaintFn)
-                dev->OnPaintFn(rect);
-            EndPaint(hWnd, &ps);
-        }
-        return 0;
+    {
+        PAINTSTRUCT ps;
+        BeginPaint(hWnd, &ps);
+        irr::core::recti rect(ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom);
+        dev = getDeviceFromHWnd(hWnd);
+        if (dev&& dev->OnPaintFn)
+            dev->OnPaintFn(rect);
+        EndPaint(hWnd, &ps);
+    }
+    return 0;
 
     case WM_ERASEBKGND:
         return 0;
@@ -819,94 +826,160 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_SYSKEYUP:
     case WM_KEYDOWN:
     case WM_KEYUP:
+    {
+        BYTE allKeys[256];
+
+        event.EventType = irr::EET_KEY_INPUT_EVENT;
+        event.KeyInput.Key = (irr::EKEY_CODE)wParam;
+        event.KeyInput.RepeatCount = 0;
+        event.KeyInput.PressedDown = (message == WM_KEYDOWN || message == WM_SYSKEYDOWN);
+        event.KeyInput.SystemKey = (message == WM_SYSKEYUP || message == WM_SYSKEYDOWN);
+
+        const UINT MY_MAPVK_VSC_TO_VK_EX = 3; // MAPVK_VSC_TO_VK_EX should be in SDK according to MSDN, but isn't in mine.
+        if (event.KeyInput.Key == irr::KEY_SHIFT)
         {
-            BYTE allKeys[256];
-
-            event.EventType = irr::EET_KEY_INPUT_EVENT;
-            event.KeyInput.Key = (irr::EKEY_CODE)wParam;
-            event.KeyInput.RepeatCount = 0;
-            event.KeyInput.PressedDown = (message==WM_KEYDOWN || message == WM_SYSKEYDOWN);
-            event.KeyInput.SystemKey = (message == WM_SYSKEYUP || message == WM_SYSKEYDOWN);
-
-            const UINT MY_MAPVK_VSC_TO_VK_EX = 3; // MAPVK_VSC_TO_VK_EX should be in SDK according to MSDN, but isn't in mine.
-            if ( event.KeyInput.Key == irr::KEY_SHIFT )
-            {
-                // this will fail on systems before windows NT/2000/XP, not sure _what_ will return there instead.
-                event.KeyInput.Key = (irr::EKEY_CODE)MapVirtualKey( ((lParam>>16) & 255), MY_MAPVK_VSC_TO_VK_EX );
-            }
-            if ( event.KeyInput.Key == irr::KEY_CONTROL )
-            {
-                event.KeyInput.Key = (irr::EKEY_CODE)MapVirtualKey( ((lParam>>16) & 255), MY_MAPVK_VSC_TO_VK_EX );
-                // some keyboards will just return LEFT for both - left and right keys. So also check extend bit.
-                if (lParam & 0x1000000)
-                    event.KeyInput.Key = irr::KEY_RCONTROL;
-            }
-            if ( event.KeyInput.Key == irr::KEY_MENU )
-            {
-                event.KeyInput.Key = (irr::EKEY_CODE)MapVirtualKey( ((lParam>>16) & 255), MY_MAPVK_VSC_TO_VK_EX );
-                if (lParam & 0x1000000)
-                    event.KeyInput.Key = irr::KEY_RMENU;
-            }
-
-            GetKeyboardState(allKeys);
-
-            event.KeyInput.Shift = ((allKeys[VK_SHIFT] & 0x80)!=0);
-            event.KeyInput.Control = ((allKeys[VK_CONTROL] & 0x80)!=0);
-            event.KeyInput.Alt = ((allKeys[VK_MENU] & 0x80) != 0);
-
-            // Handle unicode and deadkeys in a way that works since Windows 95 and nt4.0
-            // Using ToUnicode instead would be shorter, but would to my knowledge not run on 95 and 98.
-            WORD keyChars[2];
-            UINT scanCode = HIWORD(lParam);
-            int conversionResult = ToAsciiEx(wParam,scanCode,allKeys,keyChars,0,KEYBOARD_INPUT_HKL);
-            if (conversionResult == 1)
-            {
-                WORD unicodeChar;
-                MultiByteToWideChar(
-                        KEYBOARD_INPUT_CODEPAGE,
-                        MB_PRECOMPOSED, // default
-                        (LPCSTR)keyChars,
-                        sizeof(keyChars),
-                        (WCHAR*)&unicodeChar,
-                        1 );
-                event.KeyInput.Char = unicodeChar;
-            }
-            else
-                event.KeyInput.Char = 0;
-
-            // allow composing characters like '@' with Alt Gr on non-US keyboards
-            if ((allKeys[VK_MENU] & 0x80) != 0)
-                event.KeyInput.Control = 0;
-
-            dev = getDeviceFromHWnd(hWnd);
-            if (dev)
-                dev->postEventFromUser(event);
-
-            if (message == WM_SYSKEYDOWN || message == WM_SYSKEYUP)
-              return DefWindowProc(hWnd, message, wParam, lParam);
-            else
-                return 0;
+            // this will fail on systems before windows NT/2000/XP, not sure _what_ will return there instead.
+            event.KeyInput.Key = (irr::EKEY_CODE)MapVirtualKey(((lParam >> 16) & 255), MY_MAPVK_VSC_TO_VK_EX);
+        }
+        if (event.KeyInput.Key == irr::KEY_CONTROL)
+        {
+            event.KeyInput.Key = (irr::EKEY_CODE)MapVirtualKey(((lParam >> 16) & 255), MY_MAPVK_VSC_TO_VK_EX);
+            // some keyboards will just return LEFT for both - left and right keys. So also check extend bit.
+            if (lParam & 0x1000000)
+                event.KeyInput.Key = irr::KEY_RCONTROL;
+        }
+        if (event.KeyInput.Key == irr::KEY_MENU)
+        {
+            event.KeyInput.Key = (irr::EKEY_CODE)MapVirtualKey(((lParam >> 16) & 255), MY_MAPVK_VSC_TO_VK_EX);
+            if (lParam & 0x1000000)
+                event.KeyInput.Key = irr::KEY_RMENU;
         }
 
-    case WM_SIZE:
+        GetKeyboardState(allKeys);
+
+        event.KeyInput.Shift = ((allKeys[VK_SHIFT] & 0x80) != 0);
+        event.KeyInput.Control = ((allKeys[VK_CONTROL] & 0x80) != 0);
+        event.KeyInput.Alt = ((allKeys[VK_MENU] & 0x80) != 0);
+
+        // Handle unicode and deadkeys in a way that works since Windows 95 and nt4.0
+        // Using ToUnicode instead would be shorter, but would to my knowledge not run on 95 and 98.
+        WORD keyChars[2];
+        UINT scanCode = HIWORD(lParam);
+        int conversionResult = ToAsciiEx(wParam, scanCode, allKeys, keyChars, 0, KEYBOARD_INPUT_HKL);
+        if (conversionResult == 1)
         {
-            // resize
-            dev = getDeviceFromHWnd(hWnd);
-            if (dev)
-                dev->OnResized();
+            WORD unicodeChar;
+            MultiByteToWideChar(
+                KEYBOARD_INPUT_CODEPAGE,
+                MB_PRECOMPOSED, // default
+                (LPCSTR)keyChars,
+                sizeof(keyChars),
+                (WCHAR*)& unicodeChar,
+                1);
+            event.KeyInput.Char = unicodeChar;
+        }
+        else
+            event.KeyInput.Char = 0;
+
+        // allow composing characters like '@' with Alt Gr on non-US keyboards
+        if ((allKeys[VK_MENU] & 0x80) != 0)
+            event.KeyInput.Control = 0;
+
+        dev = getDeviceFromHWnd(hWnd);
+        if (dev)
+            dev->postEventFromUser(event);
+
+        if (message == WM_SYSKEYDOWN || message == WM_SYSKEYUP)
+            return DefWindowProc(hWnd, message, wParam, lParam);
+        else
+            return 0;
+    }
+    case WM_MOVE:
+    {
+        RECT r;
+        BOOL ret = GetWindowRect(hWnd, &r);
+        dev = getDeviceFromHWnd(hWnd);
+        if (dev)
+        {
+            event.EventType = irr::EET_WINDOW_EVENT;
+            event.WindowEvent.Event = irr::SEvent::SWindowEvent::EventType::IWE_MOVE;
+
+            event.WindowEvent.FParam0 = r.left;
+            event.WindowEvent.FParam1 = r.top;
+
+            dev->postEventFromUser(event);
         }
         return 0;
+    }
+    case WM_SIZE:
+    {
+        // resize
+        dev = getDeviceFromHWnd(hWnd);
+        if (dev)
+        {
+            event.EventType = irr::EET_WINDOW_EVENT;
+            event.WindowEvent.Event = irr::SEvent::SWindowEvent::EventType::IWE_SIZE;
+
+            auto _wndSize = dev->getWindowSize();
+
+            switch (wParam)
+            {
+            case SIZE_RESTORED:
+            {
+                event.WindowEvent.Param0 = irr::SEvent::SWindowEvent::WndState::WNS_RESTORED;
+                event.WindowEvent.FParam0 = _wndSize.Width;
+                event.WindowEvent.FParam1 = _wndSize.Height;
+                break;
+            }
+            case SIZE_MAXIMIZED:
+            {
+                event.WindowEvent.Param0 = irr::SEvent::SWindowEvent::WndState::WNS_MAXIMIZED;
+                event.WindowEvent.FParam0 = _wndSize.Width;
+                event.WindowEvent.FParam1 = _wndSize.Height;
+                break;
+            }
+            case SIZE_MINIMIZED:
+            {
+                event.WindowEvent.Param0 = irr::SEvent::SWindowEvent::WndState::WNS_MINIMAIZE;
+                event.WindowEvent.FParam0 = 0;
+                event.WindowEvent.FParam1 = 0;
+                break;
+            }
+            }
+
+            dev->OnResized();
+            dev->postEventFromUser(event);
+        }
+    }
+    return 0;
 
     case WM_DESTROY:
         dev = getDeviceFromHWnd(hWnd);
-        if (dev && dev->OnClosedFn)
-            dev->OnClosedFn();
-        PostQuitMessage(0);
+        if (dev)
+        {
+            event.EventType = irr::EET_WINDOW_EVENT;
+            event.WindowEvent.Event = irr::SEvent::SWindowEvent::EventType::IWE_DESTROY;
+            event.WindowEvent.Param0 = 0;
+            dev->postEventFromUser(event);
+
+            if (dev&& dev->OnClosedFn)
+                dev->OnClosedFn();
+        }
+        //if (EnvMap.size() <= 1)
+        //    PostQuitMessage(0);
         return 0;
     case WM_CLOSE:
         dev = getDeviceFromHWnd(hWnd);
-        if (dev && dev->OnCloseFn)
-            dev->OnCloseFn();
+        if (dev)
+        {
+            event.EventType = irr::EET_WINDOW_EVENT;
+            event.WindowEvent.Event = irr::SEvent::SWindowEvent::EventType::IWE_CLOSE;
+            event.WindowEvent.Param0 = 0;
+            dev->postEventFromUser(event);
+
+            if (dev&& dev->OnClosedFn)
+                dev->OnClosedFn();
+        }
         break;
     case WM_SYSCOMMAND:
         // prevent screensaver or monitor powersave mode from starting
@@ -921,41 +994,44 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_ACTIVATE:
         // we need to take care for screen changes, e.g. Alt-Tab
         dev = getDeviceFromHWnd(hWnd);
-        if (dev && dev->isFullscreen())
-        {
-            if ((wParam&0xFF)==WA_INACTIVE)
-            {
-                if (dev->OnDeactivatedFn)
-                    dev->OnDeactivatedFn();
 
-                // If losing focus we minimize the app to show other one
-                ShowWindow(hWnd,SW_MINIMIZE);
-                // and switch back to default resolution
-                dev->switchToFullScreen(true);
-            }
-            else
-            {
-                // Otherwise we retore the fullscreen Irrlicht app
-                SetForegroundWindow(hWnd);
-                ShowWindow(hWnd, SW_RESTORE);
-                // and set the fullscreen resolution again
-                dev->switchToFullScreen();
-
-                if (dev->OnActivatedFn)
-                    dev->OnActivatedFn();
-            }
-        }
-        else if (dev)
+        if (dev)
         {
+            event.EventType = irr::EET_WINDOW_EVENT;
+            event.WindowEvent.Event = irr::SEvent::SWindowEvent::EventType::IWE_ACTIVATE;
+
             if ((wParam & 0xFF) == WA_INACTIVE)
             {
+                event.WindowEvent.Param0 = 1;
                 if (dev->OnDeactivatedFn)
                     dev->OnDeactivatedFn();
             }
             else
             {
+                event.WindowEvent.Param0 = 0;
                 if (dev->OnActivatedFn)
                     dev->OnActivatedFn();
+            }
+
+            dev->postEventFromUser(event);
+
+            if (dev->isFullscreen())
+            {
+                if ((wParam & 0xFF) == WA_INACTIVE)
+                {
+                    // If losing focus we minimize the app to show other one
+                    ShowWindow(hWnd, SW_MINIMIZE);
+                    // and switch back to default resolution
+                    dev->switchToFullScreen(true);
+                }
+                else
+                {
+                    // Otherwise we retore the fullscreen Irrlicht app
+                    SetForegroundWindow(hWnd);
+                    ShowWindow(hWnd, SW_RESTORE);
+                    // and set the fullscreen resolution again
+                    dev->switchToFullScreen();
+                }
             }
         }
         break;
@@ -986,16 +1062,96 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         dev = getDeviceFromHWnd(hWnd);
         if (dev)
         {
-            dev->getCursorControl()->setActiveIcon( dev->getCursorControl()->getActiveIcon() );
-            dev->getCursorControl()->setVisible( dev->getCursorControl()->isVisible() );
+            dev->getCursorControl()->setActiveIcon(dev->getCursorControl()->getActiveIcon());
+            dev->getCursorControl()->setVisible(dev->getCursorControl()->isVisible());
         }
         break;
 
     case WM_INPUTLANGCHANGE:
         // get the new codepage used for keyboard input
         KEYBOARD_INPUT_HKL = GetKeyboardLayout(0);
-        KEYBOARD_INPUT_CODEPAGE = LocaleIdToCodepage( LOWORD(KEYBOARD_INPUT_HKL) );
+        KEYBOARD_INPUT_CODEPAGE = LocaleIdToCodepage(LOWORD(KEYBOARD_INPUT_HKL));
         return 0;
+    case WM_DROPFILES:
+    {
+        dev = getDeviceFromHWnd(hWnd);
+
+        HDROP hDrop = (HDROP)wParam;
+        unsigned int numFiles = DragQueryFileW(hDrop, 0xFFFFFFFF, NULL, 0);
+
+        for (unsigned int i = 0; i < numFiles; ++i)
+        {
+            WCHAR filenameU32[PATH_MAX];
+            if (DragQueryFileW(hDrop, i, filenameU32, PATH_MAX) != 0)
+            {
+                event.EventType = irr::EET_WINDOW_EVENT;
+                event.WindowEvent.Event = irr::SEvent::SWindowEvent::EventType::IWE_DROPFILES;
+                event.WindowEvent.UnicodeParam = filenameU32;
+                dev->postEventFromUser(event);
+            }
+        }
+
+        DragFinish(hDrop);
+        SetForegroundWindow(hWnd);
+
+        return 0;
+    }
+    // BEGIN -- Touch Input Notifications
+    case WM_POINTERDOWN:
+    {
+        dev = getDeviceFromHWnd(hWnd);
+
+        uint32_t id = GET_POINTERID_WPARAM(wParam);
+        POINT point = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+        ScreenToClient(hWnd, &point);
+        if (dev)
+        {
+            event.EventType = irr::EET_TOUCH_INPUT_EVENT;
+            event.TouchEvent.Id = id;
+            event.TouchEvent.X = point.x;
+            event.TouchEvent.Y = point.y;
+            event.TouchEvent.States = irr::ETOUCH_INPUT_EVENT::ETIE_TOUCH_DOWN;
+            dev->postEventFromUser(event);
+        }
+        return true;
+    }
+    case WM_POINTERUPDATE:
+    {
+        dev = getDeviceFromHWnd(hWnd);
+
+        uint32_t id = GET_POINTERID_WPARAM(wParam);
+        POINT point = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+        ScreenToClient(hWnd, &point);
+        if (dev)
+        {
+            event.EventType = irr::EET_TOUCH_INPUT_EVENT;
+            event.TouchEvent.Id = id;
+            event.TouchEvent.X = point.x;
+            event.TouchEvent.Y = point.y;
+            event.TouchEvent.States = irr::ETOUCH_INPUT_EVENT::ETIE_NONE;
+            dev->postEventFromUser(event);
+        }
+        return true;
+    }
+    case WM_POINTERUP:
+    {
+        dev = getDeviceFromHWnd(hWnd);
+
+        uint32_t id = GET_POINTERID_WPARAM(wParam);
+        POINT point = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+        ScreenToClient(hWnd, &point);
+        if (dev)
+        {
+            event.EventType = irr::EET_TOUCH_INPUT_EVENT;
+            event.TouchEvent.Id = id;
+            event.TouchEvent.X = point.x;
+            event.TouchEvent.Y = point.y;
+            event.TouchEvent.States = irr::ETOUCH_INPUT_EVENT::ETIE_TOUCH_UP;
+            dev->postEventFromUser(event);
+        }
+        return true;
+    }
+    // END -- Touch Input Notifications
     }
     return DefWindowProc(hWnd, message, wParam, lParam);
 }
@@ -1184,10 +1340,9 @@ CIrrDeviceWin32::CIrrDeviceWin32(const SIrrlichtCreationParameters& params)
 
     // register environment
 
-    SEnvMapper em;
+    SEnvMapper& em = EnvMap[HWnd];
     em.irrDev = this;
     em.hWnd = HWnd;
-    EnvMap.push_back(em);
 
     // set this as active window
     if (!ExternalWindow)
@@ -1320,7 +1475,7 @@ void __InternalTimerCallbackDriver(HWND hwnd,          // handle to window for t
     }
 }
 
-void CIrrDeviceWin32::setTimer(u32 id, uint interval, std::function<void()> const& callback)
+void CIrrDeviceWin32::setTimer(u32 id, u32 interval, std::function<void()> const& callback)
 {
     m_activeTimers[id] = callback;
 
@@ -1348,20 +1503,12 @@ void CIrrDeviceWin32::signal(s32 id, s32 param)
 //! destructor
 CIrrDeviceWin32::~CIrrDeviceWin32()
 {
-    delete JoyControl;
+    if (JoyControl)
+        delete JoyControl;
+    JoyControl = nullptr;
 
     // unregister environment
-
-    irr::core::list<SEnvMapper>::Iterator it = EnvMap.begin();
-    for (; it!= EnvMap.end(); ++it)
-    {
-        if ((*it).hWnd == HWnd)
-        {
-            EnvMap.erase(it);
-            break;
-        }
-    }
-
+    removeDeviceFromHWnd(HWnd);
     switchToFullScreen(true);
 }
 
@@ -1619,7 +1766,8 @@ void CIrrDeviceWin32::closeDevice()
 {
     MSG msg;
     PeekMessage(&msg, NULL, WM_QUIT, WM_QUIT, PM_REMOVE);
-    PostQuitMessage(0);
+    if (EnvMap.size() <= 1)
+        PostQuitMessage(0);
     PeekMessage(&msg, NULL, WM_QUIT, WM_QUIT, PM_REMOVE);
     if (!ExternalWindow)
     {
@@ -2177,28 +2325,11 @@ void CIrrDeviceWin32::handleSystemMessages()
 {
     MSG msg;
 
-    //while (GetMessage(&msg, NULL, 0, 0))
-    //{
-    //    TranslateMessage(&msg);
-    //    DispatchMessage(&msg);
-    //
-    //    if (msg.message == WM_QUIT)
-    //        Close = true;
-    //}
-
-    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+    while (PeekMessage(&msg, (HWND)getHandle(), 0, 0, PM_REMOVE))
     {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
 
-        // No message translation because we don't use WM_CHAR and it would conflict with our
-        // deadkey handling.
-    
-        //if (ExternalWindow && msg.hwnd == HWnd)
-        //    WndProc(HWnd, msg.message, msg.wParam, msg.lParam);
-        //else
-        //    DispatchMessage(&msg);
-    
         if (msg.message == WM_QUIT)
             Close = true;
     }

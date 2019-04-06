@@ -134,45 +134,6 @@ class CD3D11MaterialRenderer_ONETEXTURE_BLEND : public CD3D11FixedFunctionMateri
 
     private:
 
-    static D3D11_BLEND getD3DBlend(E_BLEND_FACTOR factor)
-    {
-        D3D11_BLEND r = D3D11_BLEND_ZERO;
-        switch ( factor )
-        {
-            case EBF_ZERO:					r = D3D11_BLEND_ZERO; break;
-            case EBF_ONE:					r = D3D11_BLEND_ONE; break;
-            case EBF_DST_COLOR:				r = D3D11_BLEND_DEST_COLOR; break;
-            case EBF_ONE_MINUS_DST_COLOR:	r = D3D11_BLEND_INV_DEST_COLOR; break;
-            case EBF_SRC_COLOR:				r = D3D11_BLEND_SRC_COLOR; break;
-            case EBF_ONE_MINUS_SRC_COLOR:	r = D3D11_BLEND_INV_SRC_COLOR; break;
-            case EBF_SRC_ALPHA:				r = D3D11_BLEND_SRC_ALPHA; break;
-            case EBF_ONE_MINUS_SRC_ALPHA:	r = D3D11_BLEND_INV_SRC_ALPHA; break;
-            case EBF_DST_ALPHA:				r = D3D11_BLEND_DEST_ALPHA; break;
-            case EBF_ONE_MINUS_DST_ALPHA:	r = D3D11_BLEND_INV_DEST_ALPHA; break;
-            case EBF_SRC_ALPHA_SATURATE:	r = D3D11_BLEND_SRC_ALPHA_SAT; break;
-        }
-        return r;
-    }
-
-	static D3D11_BLEND_OP getD3DBlendOp(E_BLEND_OPERATION operation)
-    {
-		switch (operation)
-		{
-			case EBO_NONE:			return D3D11_BLEND_OP_ADD;
-			case EBO_ADD:			return D3D11_BLEND_OP_ADD;
-			case EBO_SUBTRACT:		return D3D11_BLEND_OP_SUBTRACT;
-			case EBO_REVSUBTRACT:	return D3D11_BLEND_OP_REV_SUBTRACT;
-			case EBO_MIN:			return D3D11_BLEND_OP_MIN;
-			case EBO_MAX:			return D3D11_BLEND_OP_MAX;
-			case EBO_MIN_FACTOR:	return D3D11_BLEND_OP_MIN;
-			case EBO_MAX_FACTOR:	return D3D11_BLEND_OP_MAX;
-			case EBO_MIN_ALPHA:		return D3D11_BLEND_OP_MIN;
-			case EBO_MAX_ALPHA:		return D3D11_BLEND_OP_MAX;
-		}
-
-		return D3D11_BLEND_OP_ADD;
-    }
-
     bool transparent : 1;
 
 };

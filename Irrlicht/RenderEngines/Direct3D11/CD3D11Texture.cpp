@@ -10,11 +10,6 @@
 #include "CColorConverter.h"
 
 #include <memory>
-
-#define SAFE_RELEASE(x) \
-    if(x)				\
-        x->Release(); 	\
-    x = 0;
 #include <assert.h>
 
 static DWORD STATHREADiD = 0;
@@ -37,15 +32,15 @@ CD3D11Texture::CD3D11Texture(CD3D11Driver* driver, const core::dimension2d<u32>&
                            u32 sampleCount, u32 sampleQuality)
 : ITexture(name)
 , Device(0)
-, ImmediateContext(0)
-, Texture(0)
-, TextureBuffer(0)
-, RTView(0)
-, SRView(0)
+, ImmediateContext()
+, Texture()
+, TextureBuffer()
+, RTView()
+, SRView()
 , TextureDimension(D3D11_RESOURCE_DIMENSION_TEXTURE2D)
-, LastMapDirection((D3D11_MAP)0)
+, LastMapDirection(D3D11_MAP(0))
 , Driver(driver)
-, DepthSurface(0)
+, DepthSurface()
 , TextureSize(size)
 , ImageSize(size)
 , Pitch(0)
@@ -57,7 +52,7 @@ CD3D11Texture::CD3D11Texture(CD3D11Driver* driver, const core::dimension2d<u32>&
 , SampleCount(sampleCount)
 , SampleQuality(sampleQuality)
 , ColorFormat(ECF_UNKNOWN)
-, Image(nullptr)
+, Image()
 , HasMipMaps(false)
 , HardwareMipMaps(false)
 , IsRenderTarget(true)
@@ -74,12 +69,7 @@ CD3D11Texture::CD3D11Texture(CD3D11Driver* driver, const core::dimension2d<u32>&
     _IRR_DEBUG_BREAK_IF(!success);
 
     Device=driver->getExposedVideoData().D3D11.D3DDev11;
-    if (Device)
-    {
-        Device->AddRef();
-    }
-
-    Device->GetImmediateContext( &ImmediateContext );
+    Device->GetImmediateContext( ImmediateContext.GetAddressOf() );
 
     createRenderTarget(format);
 }
@@ -90,15 +80,15 @@ CD3D11Texture::CD3D11Texture(IImage* image, CD3D11Driver* driver,
                u32 flags, const io::path& name, u32 arraySlices, void* mipmapData, u32 sampleCount, u32 sampleQuality)
 : ITexture(name)
 , Device(0)
-, ImmediateContext(0)
-, Texture(0)
-, TextureBuffer(0)
-, RTView(0)
-, SRView(0)
+, ImmediateContext()
+, Texture()
+, TextureBuffer()
+, RTView()
+, SRView()
 , TextureDimension(D3D11_RESOURCE_DIMENSION_TEXTURE2D)
-, LastMapDirection((D3D11_MAP)0)
+, LastMapDirection(D3D11_MAP(0))
 , Driver(driver)
-, DepthSurface(0)
+, DepthSurface()
 , TextureSize(0,0)
 , ImageSize(0,0)
 , Pitch(0)
@@ -110,7 +100,7 @@ CD3D11Texture::CD3D11Texture(IImage* image, CD3D11Driver* driver,
 , SampleCount(sampleCount)
 , SampleQuality(sampleQuality)
 , ColorFormat(ECF_UNKNOWN)
-, Image(nullptr)
+, Image()
 , HasMipMaps(false)
 , HardwareMipMaps(false)
 , IsRenderTarget(false)
@@ -133,20 +123,18 @@ CD3D11Texture::CD3D11Texture(IImage* image, CD3D11Driver* driver,
     case ECF_DXT3:
     case ECF_DXT5:
         ColorFormat = image->getColorFormat();
-        Image = image;
-        image->grab();
+        Image = irr::Ptr<IImage>(image);
         break;
     default:
         if (image->getColorFormat() != ColorFormat)
         {
-            Image = Driver->createImage(ColorFormat, image->getDimension());
+            Image = irr::Ptr<IImage>(*Driver->createImage(ColorFormat, image->getDimension()));
             image->copyTo(Image);
         }
         else
         {
             ColorFormat = image->getColorFormat();
-            Image = image;
-            image->grab();
+            Image = irr::Ptr<IImage>(image);
         }
         break;
     }
@@ -154,18 +142,7 @@ CD3D11Texture::CD3D11Texture(IImage* image, CD3D11Driver* driver,
     HasMipMaps = Driver->getTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS);
 
     Device=driver->getExposedVideoData().D3D11.D3DDev11;
-    if (Device)
-    {
-        Device->AddRef();
-    }
-
-    Device->GetImmediateContext( &ImmediateContext );
-
-    // Load a dds file
-    //if (core::hasFileExtension(name, "dds"))
-    //{
-    //    
-    //}
+    Device->GetImmediateContext( ImmediateContext.GetAddressOf() );
 
     if (image)
     {
@@ -179,52 +156,35 @@ CD3D11Texture::CD3D11Texture(IImage* image, CD3D11Driver* driver,
     }
 
     if ( Image )
-    {
-        Image->drop();
         Image = nullptr;
-    }
-
 }
 
 
 //! destructor
 CD3D11Texture::~CD3D11Texture()
 {	
-    if (DepthSurface)
-    {
-        if (DepthSurface->drop())
-            Driver->removeDepthSurface(DepthSurface);
-    }
-
-    SAFE_RELEASE(RTView);
-    SAFE_RELEASE(SRView);
-    SAFE_RELEASE(Texture);
-    SAFE_RELEASE(TextureBuffer);
-
-    SAFE_RELEASE(ImmediateContext);
-    SAFE_RELEASE(Device);
 }
 
 //! return texture resource
 ID3D11Resource* CD3D11Texture::getTextureResource() const
 {
-    return Texture;
+    return Texture.Get();
 }
 
 //! return render target view
 ID3D11RenderTargetView* CD3D11Texture::getRenderTargetView() const
 {
-    return RTView;
+    return RTView.Get();
 }
 
 //! return shader resource view
 ID3D11ShaderResourceView* CD3D11Texture::getShaderResourceView() const
 {
     // Emulate "auto" mipmap generation
-    if( IsRenderTarget && SRView )
-        ImmediateContext->GenerateMips( SRView );
+    if( IsRenderTarget && hasMipMaps() && SRView )
+        ImmediateContext->GenerateMips( SRView.Get() );
 
-    return SRView;
+    return SRView.Get();
 }
 
 //! lock function
@@ -274,7 +234,7 @@ void* CD3D11Texture::lock(E_TEXTURE_LOCK_MODE mode /*= ETLM_READ_WRITE*/, u32 mi
             // shall sync data from main texture to texture buffer
             if ( (IsRenderTarget == true) && (LastMapDirection & D3D11_MAP_READ) )
             {
-                ImmediateContext->CopyResource(TextureBuffer, Texture);
+                ImmediateContext->CopyResource(TextureBuffer.Get(), Texture.Get());
             }
 
             UINT subresource = D3D11CalcSubresource(MipLevelLocked,		// mip level to lock
@@ -283,7 +243,7 @@ void* CD3D11Texture::lock(E_TEXTURE_LOCK_MODE mode /*= ETLM_READ_WRITE*/, u32 mi
 
             // Map texture buffer
             D3D11_MAPPED_SUBRESOURCE mappedData;
-            hr = ImmediateContext->Map(TextureBuffer,
+            hr = ImmediateContext->Map(TextureBuffer.Get(),
                 subresource,
                 LastMapDirection, 							// direction to map
                 0,
@@ -299,6 +259,21 @@ void* CD3D11Texture::lock(E_TEXTURE_LOCK_MODE mode /*= ETLM_READ_WRITE*/, u32 mi
     }
 
     return nullptr;
+}
+
+void CD3D11Texture::updateTexture(u32 level, u32 x, u32 y, u32 width, u32 height, const void* data)
+{
+    D3D11_BOX box;
+    box.left = x;
+    box.top = y;
+    box.front = 0;
+    box.right = x + width;
+    box.bottom = y + height;
+    box.back = 1;
+    
+    unsigned int pitch = width * (IImage::getBitsPerPixelFromFormat(getColorFormat()) / 8.0f);
+    UINT resource = D3D11CalcSubresource(level, 0, NumberOfMipLevels);
+    ImmediateContext->UpdateSubresource(Texture.Get(), resource, &box, data, pitch, 0);
 }
 
 //! unlock function
@@ -330,12 +305,12 @@ void CD3D11Texture::unlock()
         case ETLM_READ_ONLY:
         {
             // unlock texture buffer
-            ImmediateContext->Unmap( TextureBuffer, D3D11CalcSubresource(MipLevelLocked, ArraySliceLocked, NumberOfMipLevels) );
+            ImmediateContext->Unmap( TextureBuffer.Get(), D3D11CalcSubresource(MipLevelLocked, ArraySliceLocked, NumberOfMipLevels) );
             
             // copy texture buffer to main texture ONLY if buffer was write
             if (LastMapDirection & D3D11_MAP_WRITE)
             {
-                ImmediateContext->CopyResource( Texture, TextureBuffer );
+                ImmediateContext->CopyResource( Texture.Get(), TextureBuffer.Get() );
             }
         }
     }
@@ -394,51 +369,13 @@ void CD3D11Texture::regenerateMipMapLevels(IImage* image)
             IImage::getPitch(Size.Width, Size.Height, 1, getColorFormat(), RowBytes, depthPicht, 0);
 
             size_t numBytes, RowBytes2, numRows;
-            GetSurfaceInfo(Driver, Size.Width, Size.Height, Driver->getD3DFormatFromColorFormat(ColorFormat), &numBytes, &RowBytes2, &numRows);
+            GetSurfaceInfo(Driver, Size.Width, Size.Height, DirectXUtil::getD3DFormatFromColorFormat(ColorFormat), &numBytes, &RowBytes2, &numRows);
 
 
             UINT res = D3D11CalcSubresource(level, 0, NumberOfMipLevels);
-            ImmediateContext->UpdateSubresource(Texture, res, nullptr, Image->lock(level), static_cast<UINT>(RowBytes), static_cast<UINT>(Image->getImageDataSizeInBytes(level)));
+            ImmediateContext->UpdateSubresource(Texture.Get(), res, nullptr, Image->lock(level), static_cast<UINT>(RowBytes), static_cast<UINT>(Image->getImageDataSizeInBytes(level)));
             Image->unlock();
         }
-
-
-
-        //core::dimension2du size = TextureSize;
-        //u32 level = 0;
-        //DXGI_FORMAT d3dformat = Driver->getD3DFormatFromColorFormat(ColorFormat);
-        //
-        //u8* target = static_cast<u8*>(mipmapData);
-        //do
-        //{
-        //    if (size.Width>1)
-        //        size.Width /= 2;
-        //    if (size.Height>1)
-        //        size.Height /= 2;
-        //    ++level;
-        //
-        //    //Texture->
-        //
-        //    u32 imageSize = *(u32*)target;//width*height*Image->getBytesPerPixel();
-        //    target += sizeof(u32);
-        //
-        //    size_t numBytes, RowBytes, numRows;
-        //    GetSurfaceInfo(Driver, size.Width, size.Height, Driver->getD3DFormatFromColorFormat(ColorFormat), &numBytes, &RowBytes, &numRows);
-        //
-        //    //_IRR_DEBUG_BREAK_IF(imageSize != numBytes);
-        //
-        //    ArraySliceLocked = 0;
-        //    UINT res = D3D11CalcSubresource(level, ArraySliceLocked, NumberOfMipLevels);
-        //    ImmediateContext->UpdateSubresource(Texture, res, nullptr, target, static_cast<UINT>(RowBytes), static_cast<UINT>(imageSize));
-        //
-        //    // get next prepared mipmap data if available
-        //    if (mipmapData)
-        //    {
-        //        target += imageSize;
-        //        if (!*(u32*)target)
-        //            break;
-        //    }
-        //} while (size.Width != 1 || size.Height != 1);
     }
     else if ( hasMipMaps() )
     {
@@ -455,7 +392,7 @@ bool CD3D11Texture::createMipMaps(u32 level)
     if (SRView && HardwareMipMaps)
     {
         // generate mipmaps in hardware
-        ImmediateContext->GenerateMips(SRView);
+        ImmediateContext->GenerateMips(SRView.Get());
         return true;
     }
     else
@@ -463,7 +400,7 @@ bool CD3D11Texture::createMipMaps(u32 level)
     {
         core::dimension2du size = TextureSize;
         u32 level = 0;
-        DXGI_FORMAT d3dformat = Driver->getD3DFormatFromColorFormat(ColorFormat);
+        DXGI_FORMAT d3dformat = DirectXUtil::getD3DFormatFromColorFormat(ColorFormat);
         core::array<char> buffer;
         do
         {
@@ -478,14 +415,14 @@ bool CD3D11Texture::createMipMaps(u32 level)
                 break;
 
             size_t numBytes, RowBytes, numRows;
-            GetSurfaceInfo(Driver, size.Width, size.Height, Driver->getD3DFormatFromColorFormat(ColorFormat), &numBytes, &RowBytes, &numRows);
+            GetSurfaceInfo(Driver, size.Width, size.Height, DirectXUtil::getD3DFormatFromColorFormat(ColorFormat), &numBytes, &RowBytes, &numRows);
             buffer.set_used(numBytes);
 
             Image->copyToScaling(buffer.pointer(), size.Width, size.Height, ColorFormat, RowBytes);
 
             ArraySliceLocked = 0;
             UINT res = D3D11CalcSubresource(level, ArraySliceLocked, NumberOfMipLevels);
-            ImmediateContext->UpdateSubresource(Texture, res, nullptr, buffer.pointer(), static_cast<UINT>(RowBytes), static_cast<UINT>(numBytes));
+            ImmediateContext->UpdateSubresource(Texture.Get(), res, nullptr, buffer.pointer(), static_cast<UINT>(RowBytes), static_cast<UINT>(numBytes));
 
         } while ( size.Width != 1 || size.Height != 1 );
     }
@@ -525,17 +462,18 @@ void CD3D11Texture::createRenderTarget(const ECOLOR_FORMAT format)
         if(format != ECF_UNKNOWN)
         {
             ColorFormat = format;
-            d3dformat = Driver->getD3DFormatFromColorFormat(format);
+            d3dformat = DirectXUtil::getD3DFormatFromColorFormat(format);
             setPitch(d3dformat); // This will likely set pitch to 0 for now.
         }
     }
     else
     {
-        d3dformat = Driver->getD3DFormatFromColorFormat(ColorFormat);
+        d3dformat = DirectXUtil::getD3DFormatFromColorFormat(ColorFormat);
     }
 
     // creating texture
-    D3D11_TEXTURE2D_DESC desc;
+	// TODO: Improve RenderDevice API to support D3D11_USAGE_IMMUTABLE
+	D3D11_TEXTURE2D_DESC desc;
     ZeroMemory( &desc, sizeof(D3D11_TEXTURE2D_DESC) );
     desc.ArraySize = NumberOfArraySlices;
     desc.CPUAccessFlags = 0;
@@ -543,18 +481,16 @@ void CD3D11Texture::createRenderTarget(const ECOLOR_FORMAT format)
     desc.Usage = D3D11_USAGE_DEFAULT;
     desc.SampleDesc.Count = SampleCount;
     desc.SampleDesc.Quality = SampleQuality;
-    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 
     // test if Direct3D support automatic mip map generation
-    if ( hasMipMaps() &&
-        Driver->querySupportForColorFormat(d3dformat, D3D11_FORMAT_SUPPORT_MIP_AUTOGEN))
+    if ( !IsRenderTarget && hasMipMaps() && Driver->querySupportForColorFormat(d3dformat, D3D11_FORMAT_SUPPORT_MIP_AUTOGEN))
     {
         desc.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
         desc.MipLevels = 0;
     }
     else
     {
-        //desc.MiscFlags = 0;
         desc.MipLevels = 1;
     }
 
@@ -570,14 +506,27 @@ void CD3D11Texture::createRenderTarget(const ECOLOR_FORMAT format)
         desc.MiscFlags &= ~D3D11_RESOURCE_MISC_GENERATE_MIPS;
         desc.MipLevels = 1;
     }
-    
+
+	if (IsRenderTarget)
+	{
+		if (IImage::isRenderTargetOnlyFormat(ColorFormat))
+		{
+			desc.Format = DirectXUtil::getD3DFormatToTypeless(d3dformat, false);
+			desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+		}
+		else
+			desc.BindFlags |= D3D11_BIND_RENDER_TARGET;
+	}
+
     // Texture size
     desc.Width = TextureSize.Width;
     desc.Height = TextureSize.Height;
 
     // create texture
     hr = Device->CreateTexture2D( &desc, NULL, &Texture );
-    if (FAILED(hr))
+	DX_NAME(Texture.Get(), "%s_TEX_RT", NamedPath.getPath().c_str());
+	if (FAILED(hr))
     {
         if (E_INVALIDARG == hr)
             os::Printer::log("Could not create render target texture", "Invalid Arguments");
@@ -617,7 +566,7 @@ bool CD3D11Texture::createTexture(u32 flags, IImage* image)
     TextureSize.Width = optSize.Width;
     TextureSize.Height = optSize.Height;
 
-    DXGI_FORMAT format = Driver->getD3DFormatFromColorFormat(ColorFormat);
+    DXGI_FORMAT format = DirectXUtil::getD3DFormatFromColorFormat(ColorFormat);
 
     // Check hardware support for automatic mipmap support
     if( hasMipMaps() &&
@@ -676,6 +625,8 @@ bool CD3D11Texture::createTexture(u32 flags, IImage* image)
 
     // create texture
     hr = Device->CreateTexture2D( &desc, nullptr, &Texture );
+	const char* m = NamedPath.getPath().c_str();
+	DX_NAME(Texture.Get(), "%s_TEX", m);
     if (FAILED(hr))
     {
         if (E_INVALIDARG == hr)
@@ -703,11 +654,11 @@ bool CD3D11Texture::createTexture(u32 flags, IImage* image)
 bool CD3D11Texture::copyTexture(IImage* image)
 {
     size_t numBytes, RowBytes, numRows;
-    GetSurfaceInfo(Driver, Image->getDimension().Width, Image->getDimension().Height, Driver->getD3DFormatFromColorFormat(ColorFormat), &numBytes, &RowBytes, &numRows);
+    GetSurfaceInfo(Driver, Image->getDimension().Width, Image->getDimension().Height, DirectXUtil::getD3DFormatFromColorFormat(ColorFormat), &numBytes, &RowBytes, &numRows);
 
     ArraySliceLocked = 0;
     UINT res = D3D11CalcSubresource(0, ArraySliceLocked, NumberOfMipLevels);
-    ImmediateContext->UpdateSubresource(Texture, res, nullptr, Image->GetData(), static_cast<UINT>(RowBytes), static_cast<UINT>(numBytes));
+    ImmediateContext->UpdateSubresource(Texture.Get(), res, nullptr, Image->GetData(), static_cast<UINT>(RowBytes), static_cast<UINT>(numBytes));
 
     return true;
 }
@@ -740,8 +691,9 @@ bool CD3D11Texture::createTextureBuffer()
         desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
         //desc.MipLevels = 0;
         ID3D11Texture2D* tex = NULL;
-        HRESULT hr = Device->CreateTexture2D(&desc, NULL, &TextureBuffer);
-        if ( FAILED(hr) )
+        HRESULT hr = Device->CreateTexture2D(&desc, NULL, TextureBuffer.GetAddressOf());
+		DX_NAME(Texture.Get(), "%s_TEX_BUFFER", NamedPath.getPath().c_str());
+		if ( FAILED(hr) )
         {
             os::Printer::log("Error creating texture buffer", ELL_ERROR);
             return false;
@@ -749,18 +701,19 @@ bool CD3D11Texture::createTextureBuffer()
     }
 
     // sync main texture contents with texture buffer
-    ImmediateContext->CopyResource(TextureBuffer, Texture );
+    ImmediateContext->CopyResource(TextureBuffer.Get(), Texture.Get() );
 
     return true;
 }
 
 bool CD3D11Texture::createViews()
 {
-    if (!Texture)
+    if (!Texture || IImage::isRenderTargetOnlyFormat(ColorFormat))
         return false;
 
     HRESULT hr = S_OK;
-    DXGI_FORMAT format = Driver->getD3DFormatFromColorFormat( ColorFormat );
+	DXGI_FORMAT format;
+	format = DirectXUtil::getD3DFormatFromColorFormat(ColorFormat);
 
     // set final tex. attributes from tex. description
     // they may differ from the source image !!!
@@ -768,51 +721,108 @@ bool CD3D11Texture::createViews()
     Texture->GetDesc(&desc);
 
     // create render target view only if needed
-    if(IsRenderTarget)
-    {
-        SAFE_RELEASE( RTView );
+	if (IsRenderTarget)
+	{
+		RTView = nullptr;
+		D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
+		::ZeroMemory(&rtvDesc, sizeof(rtvDesc));
+		rtvDesc.Format = format;
 
-        D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
-        ::ZeroMemory( &rtvDesc, sizeof( rtvDesc ) );
-        rtvDesc.Format = format;
+		// check if texture is array and/or multisampled
+		if (SampleCount > 1 && NumberOfArraySlices > 1)		// multisampled array
+		{
+			rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY;
+			rtvDesc.Texture2DMSArray.ArraySize = desc.ArraySize;
+			rtvDesc.Texture2DMSArray.FirstArraySlice = 0;
+		}
+		else if (SampleCount > 1)	// only multisampled
+		{
+			rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
+		}
+		else if (NumberOfArraySlices > 1)	// only array
+		{
+			rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+			rtvDesc.Texture2DArray.ArraySize = desc.ArraySize;
+			rtvDesc.Texture2DArray.FirstArraySlice = 0;
+			rtvDesc.Texture2DArray.MipSlice = 0;
+		}
+		else	// simple texture
+		{
+			rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+			rtvDesc.Texture2D.MipSlice = 0;
+		}
 
-        // check if texture is array and/or multisampled
-        if (SampleCount > 1 && NumberOfArraySlices > 1)		// multisampled array
-        {
-            rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY;
-            rtvDesc.Texture2DMSArray.ArraySize = desc.ArraySize;
-            rtvDesc.Texture2DMSArray.FirstArraySlice = 0;
-        }
-        else if (SampleCount > 1)	// only multisampled
-        {
-            rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
-        }
-        else if (NumberOfArraySlices > 1)	// only array
-        {
-            rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
-            rtvDesc.Texture2DArray.ArraySize = desc.ArraySize;
-            rtvDesc.Texture2DArray.FirstArraySlice = 0;
-            rtvDesc.Texture2DArray.MipSlice = 0;
-        }
-        else	// simple texture
-        {
-            rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-            rtvDesc.Texture2D.MipSlice = 0;
-        }
+		hr = Device->CreateRenderTargetView(Texture.Get(), &rtvDesc, RTView.GetAddressOf());
+		DX_NAME(Texture.Get(), "%s_TEX_RTV", NamedPath.getPath().c_str());
+		if (FAILED(hr))
+		{
+			os::Printer::log("Could not create render target view", ELL_ERROR);
+			return false;
+		}
 
-        hr = Device->CreateRenderTargetView( Texture, &rtvDesc, &RTView );
-        if (FAILED(hr))
-        {
-            os::Printer::log("Could not create render target view", ELL_ERROR);
-            return false;
-        }
-    }
+		// if msaa
+		if (SampleCount > 1)
+		{
+			// Texture
+			D3D11_TEXTURE2D_DESC shaderDesc = desc;
+			shaderDesc.Format = DirectXUtil::getD3DFormatFromColorFormat(Driver->getColorFormat());
+			shaderDesc.SampleDesc.Count = 1;
+			shaderDesc.SampleDesc.Quality = 0;
+			shaderDesc.Usage = D3D11_USAGE_DEFAULT;
+			shaderDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+			shaderDesc.CPUAccessFlags = 0;
+			shaderDesc.MiscFlags = 0;
+
+			// create texture
+			hr = Device->CreateTexture2D(&shaderDesc, NULL, ShaderTexture.GetAddressOf());
+			DX_NAME(Texture.Get(), "%s_TEX_SEC", NamedPath.getPath().c_str());
+			if (FAILED(hr))
+			{
+				if (E_INVALIDARG == hr)
+					os::Printer::log("Could not create render target texture", "Invalid Arguments");
+				else if (E_OUTOFMEMORY == hr)
+					os::Printer::log("Could not create render target texture", "Out of Video Memory");
+				else
+					os::Printer::log("Could not create render target texture");
+
+				return false;
+			}
+
+			hr = Device->CreateRenderTargetView(ShaderTexture.Get(), 0, RTTextureView.GetAddressOf());
+			DX_NAME(Texture.Get(), "%s_TEX_SEC_RTV", NamedPath.getPath().c_str());
+			if (FAILED(hr))
+			{
+				os::Printer::log("Could not create render target view", ELL_ERROR);
+				return false;
+			}
+
+			hr = Device->CreateShaderResourceView(ShaderTexture.Get(), 0, SRView.GetAddressOf());
+			DX_NAME(Texture.Get(), "%s_TEX_SEC_SRV", NamedPath.getPath().c_str());
+			if (FAILED(hr))
+			{
+				os::Printer::log("Could not create shader resource view", ELL_ERROR);
+				return false;
+			}
+
+			hr = Device->CreateShaderResourceView(Texture.Get(), 0, SRMSAAView.GetAddressOf());
+			DX_NAME(Texture.Get(), "%s_TEX_SRV", NamedPath.getPath().c_str());
+			if (FAILED(hr))
+			{
+				os::Printer::log("Could not create shader resource view", ELL_ERROR);
+				return false;
+			}
+
+			return true;
+		}
+	}
+
+	ShaderTexture = Texture;
 
     // create shader resource view
-    SAFE_RELEASE( SRView );
+    SRView = nullptr;
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
     ::ZeroMemory( &srvDesc, sizeof( srvDesc ) );
-    srvDesc.Format = format;
+	srvDesc.Format = format;
 
     // check if texture is array and/or multisampled
     if (SampleCount > 1 && NumberOfArraySlices > 1)		// multisampled array
@@ -839,8 +849,9 @@ bool CD3D11Texture::createViews()
         srvDesc.Texture2D.MostDetailedMip = 0;	
     }
         
-    hr = Device->CreateShaderResourceView( Texture, &srvDesc, &SRView );
-    if (FAILED(hr))
+    hr = Device->CreateShaderResourceView(ShaderTexture.Get(), &srvDesc, SRView.GetAddressOf());
+	DX_NAME(Texture.Get(), "%s_TEX_SRV", NamedPath.getPath().c_str());
+	if (FAILED(hr))
     {
         os::Printer::log("Could not create shader resource view", ELL_ERROR);
         return false;
@@ -851,123 +862,123 @@ bool CD3D11Texture::createViews()
 
 bool CD3D11Texture::InitializeColorFormat(u32 flags, ECOLOR_FORMAT colorFormat)
 {
-    DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    // Color format for DX 10 driver shall be different that for DX 9
-    // - B5G5R5A1 family is deprecated in DXGI, and doesn't exists in DX 10
-    // - Irrlicht color format follows DX 9 (alpha first), and DX 10 is alpha last
-    switch ( colorFormat )
-    {
-        case ECF_DXT1:
-            format = DXGI_FORMAT_BC1_UNORM;
-            break;
-        case ECF_DXT3:
-            format = DXGI_FORMAT_BC2_UNORM;
-            break;
-        case ECF_DXT5:
-            format = DXGI_FORMAT_BC3_UNORM;
-            break;
-        default:
-        {
-            switch (colorFormat)
-            {
-                case ECF_R16F:
-                    format = DXGI_FORMAT_R16_FLOAT;
-                    break;
-
-                case ECF_R32F:
-                    format = DXGI_FORMAT_R32_FLOAT;
-                    break;
-
-                case ECF_G16R16F:
-                    format = DXGI_FORMAT_R16G16_FLOAT;
-                    break;
-
-                case ECF_G32R32F:
-                    format = DXGI_FORMAT_R32G32_FLOAT;
-                    break;
-
-                case ECF_A16B16G16R16F:
-                    format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-                    break;
-
-                case ECF_A32B32G32R32F:
-                    format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-                    break;
-
-                case ECF_A1R5G5B5:
-                    format = DXGI_FORMAT_B5G5R5A1_UNORM;
-                    break;
-                case ECF_R5G6B5:
-                    format = DXGI_FORMAT_B5G6R5_UNORM;
-                    break;
-                case ECF_R8G8B8:
-                case ECF_A8R8G8B8:
-                    format = DXGI_FORMAT_B8G8R8A8_UNORM;
-                    break;
-                case ECF_B8G8R8A8:
-                    format = DXGI_FORMAT_R8G8B8A8_UNORM;
-                    break;
-                default:
-                    format = DXGI_FORMAT_B8G8R8A8_UNORM;
-                    break;
-            }
-            //switch ( getTextureFormatFromFlags(flags) )
-            //{
-            //    //case ETCF_ALWAYS_16_BIT:
-            //    //    format = DXGI_FORMAT_B5G5R5A1_UNORM; break;
-            //    //case ETCF_ALWAYS_32_BIT:
-            //    //    format = DXGI_FORMAT_R8G8B8A8_UNORM; break;
-            //    //case ETCF_OPTIMIZED_FOR_QUALITY:
-            //    //{
-            //    //    switch ( colorFormat )
-            //    //    {
-            //    //        case ECF_R16F:
-            //    //            format = DXGI_FORMAT_R16_FLOAT;
-            //    //            break;
-            //    //
-            //    //        case ECF_R32F:
-            //    //            format = DXGI_FORMAT_R32_FLOAT;
-            //    //            break;
-            //    //
-            //    //        case ECF_G16R16F:
-            //    //            format = DXGI_FORMAT_R16G16_FLOAT;
-            //    //            break;
-            //    //
-            //    //        case ECF_G32R32F:
-            //    //            format = DXGI_FORMAT_R32G32_FLOAT;
-            //    //            break;
-            //    //
-            //    //        case ECF_A16B16G16R16F:
-            //    //            format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-            //    //            break;
-            //    //
-            //    //        case ECF_A32B32G32R32F:
-            //    //            format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-            //    //            break;
-            //    //
-            //    //        case ECF_A1R5G5B5:
-            //    //            format = DXGI_FORMAT_B5G5R5A1_UNORM;
-            //    //            break;
-            //    //        case ECF_R5G6B5:
-            //    //        case ECF_R8G8B8:
-            //    //        case ECF_A8R8G8B8:
-            //    //        default:
-            //    //            format = DXGI_FORMAT_R8G8B8A8_UNORM;
-            //    //            break;
-            //    //    }
-            //    //}
-            //    //break;
-            //    //case ETCF_OPTIMIZED_FOR_SPEED:
-            //    //    format = DXGI_FORMAT_B5G5R5A1_UNORM; break;
-            //    //    break;
-            //    //default:
-            //    //    break;
-            //}
-        }
-    }
+    //DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    //// Color format for DX 10 driver shall be different that for DX 9
+    //// - B5G5R5A1 family is deprecated in DXGI, and doesn't exists in DX 10
+    //// - Irrlicht color format follows DX 9 (alpha first), and DX 10 is alpha last
+    //switch ( colorFormat )
+    //{
+    //    case ECF_DXT1:
+    //        format = DXGI_FORMAT_BC1_UNORM;
+    //        break;
+    //    case ECF_DXT3:
+    //        format = DXGI_FORMAT_BC2_UNORM;
+    //        break;
+    //    case ECF_DXT5:
+    //        format = DXGI_FORMAT_BC3_UNORM;
+    //        break;
+    //    default:
+    //    {
+    //        switch (colorFormat)
+    //        {
+    //            case ECF_R16F:
+    //                format = DXGI_FORMAT_R16_FLOAT;
+    //                break;
+	//
+    //            case ECF_R32F:
+    //                format = DXGI_FORMAT_R32_FLOAT;
+    //                break;
+	//
+    //            case ECF_G16R16F:
+    //                format = DXGI_FORMAT_R16G16_FLOAT;
+    //                break;
+	//
+    //            case ECF_G32R32F:
+    //                format = DXGI_FORMAT_R32G32_FLOAT;
+    //                break;
+	//
+    //            case ECF_A16B16G16R16F:
+    //                format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    //                break;
+	//
+    //            case ECF_A32B32G32R32F:
+    //                format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    //                break;
+	//
+    //            case ECF_A1R5G5B5:
+    //                format = DXGI_FORMAT_B5G5R5A1_UNORM;
+    //                break;
+    //            case ECF_R5G6B5:
+    //                format = DXGI_FORMAT_B5G6R5_UNORM;
+    //                break;
+    //            case ECF_R8G8B8:
+    //            case ECF_A8R8G8B8:
+    //                format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    //                break;
+    //            case ECF_B8G8R8A8:
+    //                format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    //                break;
+    //            default:
+    //                format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    //                break;
+    //        }
+    //        //switch ( getTextureFormatFromFlags(flags) )
+    //        //{
+    //        //    //case ETCF_ALWAYS_16_BIT:
+    //        //    //    format = DXGI_FORMAT_B5G5R5A1_UNORM; break;
+    //        //    //case ETCF_ALWAYS_32_BIT:
+    //        //    //    format = DXGI_FORMAT_R8G8B8A8_UNORM; break;
+    //        //    //case ETCF_OPTIMIZED_FOR_QUALITY:
+    //        //    //{
+    //        //    //    switch ( colorFormat )
+    //        //    //    {
+    //        //    //        case ECF_R16F:
+    //        //    //            format = DXGI_FORMAT_R16_FLOAT;
+    //        //    //            break;
+    //        //    //
+    //        //    //        case ECF_R32F:
+    //        //    //            format = DXGI_FORMAT_R32_FLOAT;
+    //        //    //            break;
+    //        //    //
+    //        //    //        case ECF_G16R16F:
+    //        //    //            format = DXGI_FORMAT_R16G16_FLOAT;
+    //        //    //            break;
+    //        //    //
+    //        //    //        case ECF_G32R32F:
+    //        //    //            format = DXGI_FORMAT_R32G32_FLOAT;
+    //        //    //            break;
+    //        //    //
+    //        //    //        case ECF_A16B16G16R16F:
+    //        //    //            format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    //        //    //            break;
+    //        //    //
+    //        //    //        case ECF_A32B32G32R32F:
+    //        //    //            format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    //        //    //            break;
+    //        //    //
+    //        //    //        case ECF_A1R5G5B5:
+    //        //    //            format = DXGI_FORMAT_B5G5R5A1_UNORM;
+    //        //    //            break;
+    //        //    //        case ECF_R5G6B5:
+    //        //    //        case ECF_R8G8B8:
+    //        //    //        case ECF_A8R8G8B8:
+    //        //    //        default:
+    //        //    //            format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    //        //    //            break;
+    //        //    //    }
+    //        //    //}
+    //        //    //break;
+    //        //    //case ETCF_OPTIMIZED_FOR_SPEED:
+    //        //    //    format = DXGI_FORMAT_B5G5R5A1_UNORM; break;
+    //        //    //    break;
+    //        //    //default:
+    //        //    //    break;
+    //        //}
+    //    }
+    //}
 
     // get color format
-    ColorFormat = Driver->getColorFormatFromD3DFormat(format);
+	ColorFormat = colorFormat; // Driver->getColorFormatFromD3DFormat(format);
 
     return ColorFormat != ECF_UNKNOWN;
 }
@@ -1094,7 +1105,7 @@ static void GetSurfaceInfo(_In_ CD3D11Driver* driver, _In_ size_t width,
     }
     else
     {
-        size_t bpp = driver->getBitsPerPixel(fmt);
+        size_t bpp = DirectXUtil::getBitsPerPixel(fmt);
         rowBytes = (width * bpp + 7) / 8; // round up to nearest byte
         numRows = height;
         numBytes = rowBytes * height;

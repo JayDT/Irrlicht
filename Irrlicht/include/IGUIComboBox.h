@@ -67,7 +67,7 @@ namespace gui
 		//! Get the maximimal number of rows for the selection listbox
 		virtual u32 getMaxSelectionRows() const = 0;
 
-		System::Events::EventHandler<GUIEventArg> OnSelectionChanged;
+		//System::Events::EventHandler<GUIEventArg> OnSelectionChanged;
 	};
 
 

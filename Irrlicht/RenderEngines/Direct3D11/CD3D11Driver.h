@@ -16,57 +16,19 @@
 
 #include "CNullDriver.h"
 #include "IMaterialRendererServices.h"
-#include "CD3D11Resources.h"
-
-#include <d3d11_1.h>
-//#include <d2d1_2.h>
-//#include <dwrite.h>
-//#include <wincodec.h>
-
-#if _DEBUG
-#define DEVEL_LOG(msg,code)	os::Printer::log(msg, code)	
-#endif
-
-#define SAFE_RELEASE(x) \
-    if(x)				\
-        x->Release(); 	\
-    x = 0;
+#include "CD3D11Utility.h"
 
 namespace irr
 {
 namespace video
 {
-    class CD3D11FixedFunctionMaterialRenderer;
-    class CD3D11MaterialRenderer_ONETEXTURE_BLEND;
-    class CD3D11VertexDeclaration;
-    class CD3D11HardwareBuffer;
-    class D3D11HLSLProgram;
-    struct IShader;
-
-    struct SDepthSurface11 : public IReferenceCounted
-    {
-        SDepthSurface11() : Surface(0)
-        {
-            #ifdef _DEBUG
-            setDebugName("SDepthSurface");
-            #endif
-        }
-        virtual ~SDepthSurface11()
-        {
-            if (Surface)
-                Surface->Release();
-        }
-
-        ID3D11DepthStencilView* Surface;
-        core::dimension2du Size;
-    };
-
     class CD3D11Driver : public CNullDriver, IMaterialRendererServices
     {
     public:
         friend class CD3D11FixedFunctionMaterialRenderer;
         friend class CD3D11Texture;
         friend class D3D11HLSLProgram;
+		friend struct SDepthSurface11;
 
         //! constructor
         CD3D11Driver(const SIrrlichtCreationParameters& params, io::IFileSystem* io, const bool pureSoftware = false);
@@ -87,6 +49,9 @@ namespace video
         //! applications must call this method after performing any rendering. returns false if failed.
         virtual bool endScene();
 
+		virtual void beginInstrumentEvent(const wchar_t* wlabel, const char* label, SColor color = SColor(255, 0, 0, 0));
+		virtual void endInstrumentEvent();
+
         //! queries the features of the driver, returns true if feature is available
         virtual bool queryFeature(E_VIDEO_DRIVER_FEATURE feature) const;
 
@@ -99,13 +64,15 @@ namespace video
         virtual IRenderTarget* addRenderTarget();
 
         virtual bool setRenderTargetEx(IRenderTarget* target, u16 clearFlag, SColor clearColor = SColor(255, 0, 0, 0),
-            f32 clearDepth = 1.f, u8 clearStencil = 0);
+            f32 clearDepth = 1.f, u8 clearStencil = 0, core::array<core::recti>* scissors = nullptr);
 
         virtual bool setRenderTarget(ITexture* texture, u16 clearFlag = ECBF_COLOR | ECBF_DEPTH, SColor clearColor = SColor(255, 0, 0, 0),
             f32 clearDepth = 1.f, u8 clearStencil = 0);
 
         //! sets a viewport
         virtual void setViewPort(const core::rect<s32>& area);
+
+        virtual void setScissorRect(const core::rect<s32>& rect) override;
 
         //! gets the area of the current viewport
         virtual const core::rect<s32>& getViewPort() const;
@@ -126,7 +93,7 @@ namespace video
         // DirectX 11 doesn't use methods like drawPrimitiveUp (DX9) or glVertex (OpenGL)
         virtual bool isHardwareBufferRecommend(const scene::IMeshBuffer* mb) { return true; }
 
-        void InitDrawStates(const scene::IMeshBuffer * mb, scene::E_PRIMITIVE_TYPE pType = scene::E_PRIMITIVE_TYPE::EPT_TRIANGLES);
+        void InitDrawStates(const scene::IMeshBuffer * mb, video::E_VERTEX_TYPE vType = video::E_VERTEX_TYPE::EVT_MAX_VERTEX_TYPE, scene::E_PRIMITIVE_TYPE pType = scene::E_PRIMITIVE_TYPE::EPT_TRIANGLES);
 
         void drawMeshBuffer(const scene::IMeshBuffer* mb, scene::IMesh* mesh/* = nullptr*/, scene::ISceneNode* node/* = nullptr*/) override;
 
@@ -155,34 +122,6 @@ namespace video
             E_VERTEX_TYPE vType, scene::E_PRIMITIVE_TYPE pType,
             E_INDEX_TYPE iType);
 
-        //! draws an 2d image, using a color (if color is other then Color(255,255,255,255)) and the alpha channel of the texture if wanted.
-        //virtual void draw2DImage(const video::ITexture* texture, const core::position2d<s32>& destPos,
-        //    const core::rect<s32>& sourceRect, const core::rect<s32>* clipRect = 0,
-        //    SColor color = SColor(255, 255, 255, 255), bool useAlphaChannelOfTexture = false);
-
-        ////! Draws a part of the texture into the rectangle.
-        //virtual void draw2DImage(const video::ITexture* texture, const core::rect<s32>& destRect,
-        //    const core::rect<s32>& sourceRect, const core::rect<s32>* clipRect = 0,
-        //    const video::SColor* const colors = 0, bool useAlphaChannelOfTexture = false);
-
-        //! Draws a set of 2d images, using a color and the alpha channel of the texture.
-        //virtual void draw2DImageBatch(const video::ITexture* texture,
-        //    const core::array<core::position2d<s32> >& positions,
-        //    const core::array<core::rect<s32> >& sourceRects,
-        //    const core::rect<s32>* clipRect = 0,
-        //    SColor color = SColor(255, 255, 255, 255),
-        //    bool useAlphaChannelOfTexture = false);
-
-        ////!Draws an 2d rectangle with a gradient.
-        //virtual void draw2DRectangle(const core::rect<s32>& pos,
-        //    SColor colorLeftUp, SColor colorRightUp, SColor colorLeftDown, SColor colorRightDown,
-        //    const core::rect<s32>* clip, bool filled = true);
-
-        ////! Draws a 2d line.
-        //virtual void draw2DLine(const core::position2d<s32>& start,
-        //    const core::position2d<s32>& end,
-        //    SColor color = SColor(255, 255, 255, 255));
-
         //! Draws a pixel.
         virtual void drawPixel(u32 x, u32 y, const SColor & color);
 
@@ -192,8 +131,6 @@ namespace video
 
         //! initialises the Direct3D API
         bool initDriver(HWND hwnd, bool pureSoftware);
-        bool initDriver2D(HWND hwnd, bool pureSoftware);
-        void CreateDeviceIndependentResources();
         void InitAdapters(void);
         bool initOutput(HWND hwnd, bool pureSoftware);
 
@@ -303,7 +240,7 @@ namespace video
 
         //! Creates a render target texture.
         virtual ITexture* addRenderTargetTexture(const core::dimension2d<u32>& size,
-            const io::path& name, const ECOLOR_FORMAT format = ECF_UNKNOWN);
+            const io::path& name, const ECOLOR_FORMAT format = ECF_UNKNOWN, u8 sampleCount = 0);
 
         //! Clears the ZBuffer.
         virtual void clearZBuffer(f32 clearDepth = 1.f, u8 clearStencil = 0);
@@ -337,42 +274,12 @@ namespace video
         //! Returns the maximum texture size supported.
         virtual core::dimension2du getMaxTextureSize() const;
 
-        //! Get D3D color format from Irrlicht color format.
-        DXGI_FORMAT getD3DFormatFromColorFormat(ECOLOR_FORMAT format) const;
-
-        //! Get Irrlicht color format from D3D color format.
-        ECOLOR_FORMAT getColorFormatFromD3DFormat(DXGI_FORMAT format) const;
-
-        //! Get index format from type
-        DXGI_FORMAT getIndexType(E_INDEX_TYPE iType) const;
-
         //! query support for color format
         bool querySupportForColorFormat(DXGI_FORMAT format, D3D11_FORMAT_SUPPORT support);
 
         //! return feature level
         //! this is needed for material renderers to select correct shader profiles
         D3D_FEATURE_LEVEL getFeatureLevel() { return FeatureLevel; }
-
-        //! Get primitive topology
-        D3D_PRIMITIVE_TOPOLOGY getTopology(scene::E_PRIMITIVE_TYPE primType) const;
-
-        //! Get number of bits per pixel
-        u32 getBitsPerPixel(DXGI_FORMAT format) const;
-
-        //! Get number of components
-        u32 getNumberOfComponents(DXGI_FORMAT format) const;
-
-        //! Get number of indices
-        u32 getIndexAmount(scene::E_PRIMITIVE_TYPE primType, u32 primitiveCount) const;
-
-        //! Get depth function
-        D3D11_COMPARISON_FUNC getDepthFunction(E_COMPARISON_FUNC func) const;
-
-        //! get color write enable
-        D3D11_COLOR_WRITE_ENABLE getColorWriteEnable(E_COLOR_PLANE plane) const;
-
-        //! Get Stenil Operartion
-        D3D11_STENCIL_OP getStencilOp(E_STENCIL_OPERATION func) const;
 
         bool isHardware() const { return DriverType == D3D_DRIVER_TYPE_HARDWARE; }
 
@@ -382,6 +289,7 @@ namespace video
         D3D11_DEPTH_STENCIL_DESC& getDepthStencilDesc() { return DepthStencilDesc; }
         D3D11_SAMPLER_DESC* getSamplerDescs() { return SamplerDesc; }
         const ITexture* getCurrentTexture(irr::u8 idx) { return CurrentTexture[idx]; }
+		ID3DUserDefinedAnnotation* GetGroupMarker() const { return GroupMarker.Get(); }
 
         inline void InvalidateBlendDesc() { if (!BlendStateChanged) BlendStateChanged = true; }
         inline void InvalidateRasterizerDesc() { if (!RasterizerStateChanged) RasterizerStateChanged = true; }
@@ -403,7 +311,7 @@ namespace video
         virtual video::IShader* createShader(ShaderInitializerEntry*) override;
         virtual void useShader(video::IShader* gpuProgram);
 
-        ID3D11Device* GetDxDevice() { return Device; }
+        ID3D11Device* GetDxDevice() { return Device.Get(); }
 
         SMaterial& GetMaterial() { return Material; }
         SMaterial& GetLastMaterial() { return LastMaterial; }
@@ -420,72 +328,68 @@ namespace video
 
         void HandleDeviceLost();
 
+        void WriteShaderCache(System::IO::IFileWriter*) override final;
+
     private:
 
 
         SMaterial Material, LastMaterial;
-        IImage* blankImage;
-        ITexture* blankTexture;
+        irr::Ptr<IImage> blankImage;
+        irr::Ptr<ITexture> blankTexture;
         const ITexture* CurrentTexture[MATERIAL_MAX_TEXTURES];
         core::matrix4 Matrices[ETS_COUNT];			// matrizes of the 3d mode we need to restore when we switch back from the 2d mode.
         std::wstring DriverAndFeatureName;
+		DXGI_SAMPLE_DESC mSampleDescs[MSAA::Count];
 
         irr::video::D3D11HLSLProgram* m_defaultShader[(s32)E_VERTEX_TYPE::EVT_MAX_VERTEX_TYPE];
+		irr::Ptr<irr::video::D3D11HLSLProgram> m_rtResolveShader[MSAA::Count];
 
-        // Direct3D 11 objects
+		// Direct3D 11 objects
 
         // Libraries (dxgi library is loaded automatically)
         HINSTANCE D3DLibrary;
 
-        // DirectX Core Objects. Required for 2D and 3D.
+        // DirectX Core Objects
         // DXGI objects
         DXGI_SWAP_CHAIN_DESC1 present;
-        IDXGISwapChain1* SwapChain;
-        IDXGIAdapter* Adapter;
-        IDXGIOutput* Output;
-        IDXGIFactory2* DXGIFactory;
-        IDXGIDevice1* DXGIDevice;
-        ID3D11InfoQueue* m_infoQueue;
+        Msw::ComPtr<IDXGISwapChain1> SwapChain;
+        Msw::ComPtr<IDXGIAdapter> Adapter;
+        Msw::ComPtr<IDXGIOutput> Output;
+        Msw::ComPtr<IDXGIFactory2> DXGIFactory;
+        Msw::ComPtr<IDXGIDevice1> DXGIDevice;
+        Msw::ComPtr<ID3D11InfoQueue> m_infoQueue;
 
         // D3D 11 Device objects
         D3D_DRIVER_TYPE DriverType;
         D3D_FEATURE_LEVEL FeatureLevel;
-        ID3D11Device1* Device;
-        ID3D11DeviceContext1* ImmediateContext;
-
-        // Direct2D Rendering Objects. Required for 2D.
-        //core::vector2df         m_DPI;
-        //IDWriteFactory*         DwriteFactory;
-        //ID2D1Device*            D2DDevice;
-        //ID2D1DeviceContext*     D2DContext;
-        //ID2D1Factory1*          D2DFactory;
-        //ID2D1Bitmap1*           D2DTargetBitmap;
-        //IWICImagingFactory2*    WicFactory;
-        //ID2D1DrawingStateBlock* m_stateBlock;
-
+        Msw::ComPtr<ID3D11Device1> Device;
+        Msw::ComPtr<ID3D11DeviceContext1> ImmediateContext;
+		Msw::ComPtr<ID3DUserDefinedAnnotation> GroupMarker;
 
         // Direct3D Rendering Objects. Required for 3D.
         // Back and depth buffers
-        ID3D11RenderTargetView* DefaultBackBuffer;
-        ID3D11DepthStencilView* DefaultDepthBuffer;
-        ID3D11RenderTargetView* CurrentBackBuffer;
-        ID3D11DepthStencilView* CurrentDepthBuffer;
+        Msw::ComPtr<ID3D11RenderTargetView> DefaultBackBuffer;
+        Msw::ComPtr<ID3D11DepthStencilView> DefaultDepthBuffer;
+        Msw::ComPtr<ID3D11RenderTargetView> CurrentBackBuffer;
+        Msw::ComPtr<ID3D11DepthStencilView> CurrentDepthBuffer;
 
         // Buffers for dynamic data
-        ID3D11Buffer* DynVertexBuffer;
-        ID3D11Buffer* DynIndexBuffer;
+        Msw::ComPtr<ID3D11Buffer> DynVertexBuffer;
+        Msw::ComPtr<ID3D11Buffer> DynIndexBuffer;
         u32 DynVertexBufferSize;
         u32 DynIndexBufferSize;
 
         // Input layout
-        ID3D11InputLayout* CurrentInputLayout;		// store current to prevent set multiple times the same layout
         D3D_PRIMITIVE_TOPOLOGY lastTopology = D3D_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
-        ID3D11DepthStencilState* LastDepthStencilState = nullptr;
-        ID3D11BlendState* LastBlendState = nullptr;
-        ID3D11RasterizerState* LastRasterizerState = nullptr;
+		Msw::ComPtr<ID3D11InputLayout> CurrentInputLayout;		// store current to prevent set multiple times the same layout
+        Msw::ComPtr<ID3D11DepthStencilState> LastDepthStencilState = nullptr;
+        Msw::ComPtr<ID3D11BlendState> LastBlendState = nullptr;
+        Msw::ComPtr<ID3D11RasterizerState> LastRasterizerState = nullptr;
 
         // Storing Resources
         std::set<D3D11DeviceResource*> ResourceList;
+
+		irr::Ptr<IRenderTarget> ActiveRenderTarget;
 
         //// Depricate
         //struct LayoutKey
@@ -736,7 +640,7 @@ namespace video
         core::stringc VendorName;
         u16 VendorID;
 
-        core::array<SDepthSurface11*> DepthBuffers;
+        core::array<irr::Ptr<SDepthSurface11>> DepthBuffers;
 
         core::array<ID3D11Buffer*> BindedBuffers[EST_HIGH_LEVEL_SHADER];
 
@@ -765,8 +669,6 @@ namespace video
             u32 vertexCount, const void* indexList, u32 primitiveCount,
             E_VERTEX_TYPE vType, scene::E_PRIMITIVE_TYPE pType,
             E_INDEX_TYPE iType, bool is3D);
-
-        D3D11_TEXTURE_ADDRESS_MODE getTextureWrapMode(const u8 clamp);
 
         //! sets the needed renderstates
         bool setRenderStates3DMode();

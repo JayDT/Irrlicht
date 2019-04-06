@@ -50,6 +50,7 @@ namespace irr
 
         class VulkanDevice;
         class CVulkanDriver;
+        class VulkanCmdBuffer;
 
         /** @addtogroup Vulkan
          *  @{
@@ -137,6 +138,26 @@ namespace irr
             static bool rangeOverlaps(const VkImageSubresourceRange& a, const VkImageSubresourceRange& b);
 
             static video::E_SHADER_VARIABLE_TYPE getShaderVariableTypeId(u32 glslangType);
+
+            // Sets the debug name of an object
+            // All Objects in Vulkan are represented by their 64-bit handles which are passed into this function
+            // along with the object type
+            static void setObjectName(VulkanDevice& device, uint64_t object, VkObjectType objectType, const char* name);
+            static void setObjectNamef(VulkanDevice& device, uint64_t object, VkObjectType objectType, const char* fmt, ...);
+
+            // Set the tag for an object
+            static void setObjectTag(VulkanDevice& device, uint64_t object, VkObjectType objectType, uint64_t name, size_t tagSize, const void* tag);
+
+            // Start a new debug marker region
+            static void beginRegion(VulkanCmdBuffer& cmdbuffer, const char* pMarkerName, const irr::video::SColor& color);
+            static void beginRegionf(VulkanCmdBuffer& cmdbuffer, const irr::video::SColor& color, const char* fmt, ...);
+
+            // Insert a new debug marker into the command buffer
+            static void insertNewDebugMarker(VulkanCmdBuffer& cmdbuffer, const char* markerName, const irr::video::SColor& color);
+            static void insertNewDebugMarkerf(VulkanCmdBuffer& cmdbuffer, const irr::video::SColor& color, const char* fmt, ...);
+
+            // End the current debug marker region
+            static void endRegion(VulkanCmdBuffer& cmdBuffer);
         };
 
         /** @} */

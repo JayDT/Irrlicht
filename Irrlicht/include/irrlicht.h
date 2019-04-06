@@ -186,6 +186,7 @@
 #include "triangle3d.h"
 #include "vector2d.h"
 #include "vector3d.h"
+#include "standard/client/IDataSourceClient.h"
 
 /*! \mainpage Irrlicht Engine 1.8 API documentation
  *
@@ -343,6 +344,7 @@ namespace irr
 			bool vsync,
 			IEventReceiver* receiver);
 
+    extern "C" IRRLICHT_API void preloadShaderCache(System::IO::IFileReader*);
 
 	//! Creates an Irrlicht device with the option to specify advanced parameters.
 	/** Usually you should used createDevice() for creating an Irrlicht Engine device.

@@ -102,6 +102,7 @@ namespace irr
             std::vector<VkDescriptorSetLayoutBinding> mBindings;
             VulkanDescriptorLayout* mLayout = nullptr;
             VulkanGpuParams* mParams = nullptr;
+            irr::Ptr<CVulkanHardwareBuffer> DynamicHardwareBuffer;
 
         public:
             explicit CVulkanGLSLProgram(video::IVideoDriver* context, E_SHADER_LANG type = E_SHADER_LANG::ESV_GLSL_HIGH_LEVEL);
@@ -115,6 +116,8 @@ namespace irr
             bool initializeUniforms(irr::video::CVulkanGLSLang& compiler, E_SHADER_TYPES shaderType);
 
             bool CreateShaderModul(E_SHADER_TYPES type, CVulkanDriver* device, System::IO::IFileReader* file, const char* entryPoint, const char* shaderModel);
+
+            IConstantBuffer* AddUnknownBuffer(E_SHADER_TYPES shaderType, u32 size) override;
 
             VulkanDescriptorLayout* getLayout();
             VulkanGpuParams* GetDefaultGpuParams();

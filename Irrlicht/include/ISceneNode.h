@@ -17,6 +17,7 @@
 #include "matrix4.h"
 #include "irrList.h"
 #include "IAttributes.h"
+#include <set>
 
 namespace irr
 {

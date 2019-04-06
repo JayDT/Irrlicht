@@ -168,7 +168,7 @@ void irr::video::CVulkanGLSLang::SetMessageOptions(irr::u32& messages)
     //if (Options & EOptionIntermediate)
     //    messages = (EShMessages)(messages | EShMsgAST);
     //if (Options & EOptionSuppressWarnings)
-    //    messages = (EShMessages)(messages | EShMsgSuppressWarnings);
+        messages = (EShMessages)(messages | EShMsgSuppressWarnings);
     //if (Options & EOptionSpv)
         messages = (EShMessages)(messages | EShMsgSpvRules);
     //if (Options & EOptionVulkanRules)
@@ -184,7 +184,7 @@ void irr::video::CVulkanGLSLang::SetMessageOptions(irr::u32& messages)
     //if (Options & EOptionHlslOffsets)
     //    messages = (EShMessages)(messages | EShMsgHlslOffsets);
     //if (Options & EOptionDebug)
-    //    messages = (EShMessages)(messages | EShMsgDebugInfo);
+        messages = (EShMessages)(messages | EShMsgDebugInfo);
     //if (HlslEnable16BitTypes)
     //    messages = (EShMessages)(messages | EShMsgHlslEnable16BitTypes);
     //if ((Options & EOptionOptimizeDisable) || !ENABLE_OPT)
@@ -313,8 +313,15 @@ bool irr::video::CVulkanGLSLang::CompileShader(VkShaderModule * modul, E_SHADER_
         //    continue;
         //}
 
-        if (!shader->parse(&Resources, defaultVersion, false, messages, includer))
+        if (!shader->parse(&Resources, defaultVersion, true, messages, includer))
+        {
+            if (strlen(shader->getInfoLog()) > 1)
+                os::Printer::log(shader->getInfoLog());
+            if (strlen(shader->getInfoDebugLog()) > 1)
+                os::Printer::log(shader->getInfoDebugLog());
+
             CompileFailed = true;
+        }
 
         Program->addShader(shader);
 

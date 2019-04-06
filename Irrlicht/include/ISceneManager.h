@@ -53,7 +53,7 @@ namespace scene
     //! Enumeration for render passes.
     /** A parameter passed to the registerNodeForRendering() method of the ISceneManager,
     specifying when the node wants to be drawn in relation to the other nodes. */
-    enum E_SCENE_NODE_RENDER_PASS : uint32
+    enum E_SCENE_NODE_RENDER_PASS : u32
     {
         //! No pass currently active
         ESNRP_NONE =0,

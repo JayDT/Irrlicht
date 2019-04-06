@@ -6,7 +6,25 @@
 #define __IRR_TYPES_H_INCLUDED__
 
 #include "IrrCompileConfig.h"
-//#include "standard/Platform/common.h"
+
+#if WIN32
+#   ifndef __SHOW_STUPID_WARNINGS__
+#       pragma warning(disable:4267)                             // 'identifier' : macro redefinition
+#       pragma warning(disable:4985)                             // 'identifier' : macro redefinition
+#       pragma warning(disable:4996)                             // 'identifier' : macro redefinition
+#       pragma warning(disable:4005)                             // 'identifier' : macro redefinition
+#       pragma warning(disable:4018)                             // 'expression' : signed/unsigned mismatch
+#       pragma warning(disable:4244)                             // 'argument' : conversion from 'type1' to 'type2', possible loss of data
+#       pragma warning(disable:4267)                             // 'var' : conversion from 'size_t' to 'type', possible loss of data
+#       pragma warning(disable:4305)                             // 'identifier' : truncation from 'type1' to 'type2'
+#       pragma warning(disable:4311)                             // 'variable' : pointer truncation from 'type' to 'type'
+#       pragma warning(disable:4355)                             // 'this' : used in base member initializer list
+#       pragma warning(disable:4800)                             // 'type' : forcing value to bool 'true' or 'false' (performance warning)
+#       pragma warning(disable:4275)                             // non dll-interface class 'type' used as base for dll-interface class 'type'
+#       pragma warning(disable:4251)                             // non dll-interface class 'type' used as base for dll-interface class 'type'
+#   endif                                                      // __SHOW_STUPID_WARNINGS__
+#   pragma warning (error: 4477)                                 // 'printf' : format string '%s' requires an argument of type 'char *', but variadic argument 1 has type 'std::string'
+#endif  
 
 namespace irr
 {
@@ -123,8 +141,6 @@ typedef double				f64;
 //! We want int snprintf_irr(char *str, size_t size, const char *format, ...);
 //! and int swprintf_irr(wchar_t *wcs, size_t maxlen, const wchar_t *format, ...);
 #  if defined(_MSC_VER) && _MSC_VER > 1310 && !defined (_WIN32_WCE)
-#    define swprintf _snwprintf
-#    define snprintf _snprintf
 #    define swprintf_irr swprintf_s
 #    define snprintf_irr sprintf_s
 #  elif !defined(__CYGWIN__)

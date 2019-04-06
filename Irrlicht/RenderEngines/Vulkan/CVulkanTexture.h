@@ -221,15 +221,15 @@ namespace irr
             * different command buffers, and will only be updated only after command buffer submit() call. In short this means
             * you should only care about this value on the core thread.
             */
-            VkImageLayout getLayout() const { return mLayout; }
+            VkImageLayout getLayout() const { return mImageSubresourceInfo.currentLayout; }
 
             /** Notifies the resource that the current subresource layout has changed. */
-            void setLayout(VkImageLayout layout) { mLayout = layout; }
+            //void setLayout(VkImageLayout layout) { mLayout = layout; }
 
             ImageSubresourceInfo mImageSubresourceInfo;
 
         private:
-            VkImageLayout mLayout;
+            //VkImageLayout mLayout;
 
             // Inherited via CVulkanDeviceResource
             virtual void OnDeviceLost(CVulkanDriver * device) _IRR_OVERRIDE_;
@@ -257,36 +257,36 @@ namespace irr
             virtual void clearImage() override;
 
             //! lock function
-            virtual void* lock(E_TEXTURE_LOCK_MODE mode = ETLM_READ_WRITE, u32 mipmapLevel = 0, u32 arraySlice = 0);
-            //! lock function
-            //virtual void* lock(bool readOnly = false, u32 mipmapLevel=0, u32 arraySlice = 0);
+            virtual void* lock(E_TEXTURE_LOCK_MODE mode = ETLM_READ_WRITE, u32 mipmapLevel = 0, u32 arraySlice = 0) override;
+            
+            virtual void updateTexture(u32 level, u32 x, u32 y, u32 width, u32 height, const void* data) override;
 
             //! unlock function
-            virtual void unlock();
+            virtual void unlock() override;
 
             //! Returns original size of the texture.
-            virtual const core::dimension2d<u32>& getOriginalSize() const;
+            virtual const core::dimension2d<u32>& getOriginalSize() const override;
 
             //! Returns (=size) of the texture.
-            virtual const core::dimension2d<u32>& getSize() const;
+            virtual const core::dimension2d<u32>& getSize() const override;
 
             //! returns driver type of texture (=the driver, who created the texture)
-            virtual E_DRIVER_TYPE getDriverType() const;
+            virtual E_DRIVER_TYPE getDriverType() const override;
 
             //! returns color format of texture
-            virtual ECOLOR_FORMAT getColorFormat() const;
+            virtual ECOLOR_FORMAT getColorFormat() const override;
 
-            virtual u32 getPitch() const;
+            virtual u32 getPitch() const override;
 
             //! returns if texture has mipmap levels
-            bool hasMipMaps() const;
+            bool hasMipMaps() const override;
 
             virtual u32 getNumberOfArraySlices() const;
 
             bool createMipMaps(u32 level = 1);
 
             //! returns if it is a render target
-            virtual bool isRenderTarget() const;
+            virtual bool isRenderTarget() const override;
 
             VulkanImage* GetVkImages(u8 deviceIdx) const { return mImages[deviceIdx]; }
 
@@ -338,7 +338,7 @@ namespace irr
 
             CVulkanDriver* Driver;
             VulkanDevice* Device;
-            IImage* Image;
+            irr::Ptr<IImage> Image;
             core::dimension2d<u32> TextureSize;
             core::dimension2d<u32> ImageSize;
             u32 Pitch;
@@ -355,8 +355,8 @@ namespace irr
             u8 mMappedArraySliceIdx;
 
             /** Contains information about view for a specific surface(s) of this image. */
-            VulkanImage* mImages[_MAX_DEVICES];
-            ECOLOR_FORMAT mInternalFormats[_MAX_DEVICES];
+            std::array<VulkanImage*, _MAX_DEVICES> mImages;
+            std::array<ECOLOR_FORMAT, _MAX_DEVICES> mInternalFormats;
             E_TEXTURE_TYPE mTextureType;
             GpuDeviceFlags mDeviceMask;
             VkImageCreateInfo mImageCI;

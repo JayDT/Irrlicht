@@ -68,8 +68,8 @@ bool CGUICheckBox::OnEvent(const SEvent& event)
                     GUIEventArg arg;
                     arg.eData = newEvent;
 
-                    if (OnChecked)
-                        OnChecked(this, arg);
+                    //if (OnChecked)
+                    //    OnChecked(this, arg);
                     
 					Parent->OnEvent(newEvent);
 				}
@@ -116,8 +116,8 @@ bool CGUICheckBox::OnEvent(const SEvent& event)
                     GUIEventArg arg;
                     arg.eData = newEvent;
 
-                    if (OnChecked)
-                        OnChecked(this, arg);
+                    //if (OnChecked)
+                    //    OnChecked(this, arg);
 
 
 					Parent->OnEvent(newEvent);

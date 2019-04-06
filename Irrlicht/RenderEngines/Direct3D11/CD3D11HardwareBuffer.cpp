@@ -25,8 +25,6 @@ CD3D11HardwareBuffer::CD3D11HardwareBuffer(CD3D11Driver* driver, scene::IMeshBuf
 #endif
 
     Device = driver->getExposedVideoData().D3D11.D3DDev11;
-    SAFE_ADDREF(Device);
-
     Device->GetImmediateContext(&ImmediateContext);
 
     // If has dedicate gpu program cache input layout
@@ -34,7 +32,6 @@ CD3D11HardwareBuffer::CD3D11HardwareBuffer(CD3D11Driver* driver, scene::IMeshBuf
     {
         InputLayout = static_cast<CD3D11VertexDeclaration*>(meshBuffer->GetVertexDeclaration())->getInputLayout(static_cast<irr::video::D3D11HLSLProgram*>(GetBuffer()->GetGPUProgram()));
         assert(InputLayout);
-        InputLayout->AddRef();
     }
 }
 
@@ -47,8 +44,6 @@ irr::video::CD3D11HardwareBuffer::CD3D11HardwareBuffer(CD3D11Driver * driver, E_
     , Flags(flags)
 {
     Device = driver->getExposedVideoData().D3D11.D3DDev11;
-    SAFE_ADDREF(Device);
-
     Device->GetImmediateContext(&ImmediateContext);
 
     //UpdateBuffer(type, accessType, initialData, size, 0);
@@ -58,9 +53,6 @@ CD3D11HardwareBuffer::~CD3D11HardwareBuffer()
 {
     // Remove from driver cache
     //Driver->removeHardwareBuffer(this);
-
-    if (InputLayout)
-        InputLayout->Release();
     InputLayout = nullptr;
 
     for (u32 i = 0; i != VertexBufferStreams.size(); ++i)
@@ -69,14 +61,7 @@ CD3D11HardwareBuffer::~CD3D11HardwareBuffer()
         {
             SAFE_DELETE(VertexBufferStreams[i].TempStagingBuffer);
         }
-
-        SAFE_RELEASE(VertexBufferStreams[i].UAView);
-        SAFE_RELEASE(VertexBufferStreams[i].SRView);
-        SAFE_RELEASE(VertexBufferStreams[i].buffer);
     }
-
-    SAFE_RELEASE(ImmediateContext);
-    SAFE_RELEASE(Device);
 }
 
 // Don't use D3DPOOL_MANAGED, is not valid with IDirect3DDevice9Ex
@@ -153,7 +138,7 @@ void* CD3D11HardwareBuffer::lock(E_HARDWARE_BUFFER_TYPE type, u32 size, bool rea
     
     // Otherwise, map this buffer
     D3D11_MAPPED_SUBRESOURCE mappedData;
-    HRESULT hr = ImmediateContext->Map(desc.buffer, 0, desc.LastMapDirection, 0, &mappedData);
+    HRESULT hr = ImmediateContext->Map(desc.buffer.Get(), 0, desc.LastMapDirection, 0, &mappedData);
     if (FAILED(hr))
     	return 0;
     
@@ -181,7 +166,7 @@ void CD3D11HardwareBuffer::unlock(E_HARDWARE_BUFFER_TYPE type)
     }
     
     // Otherwise, unmap this
-    ImmediateContext->Unmap(desc.buffer, 0);
+    ImmediateContext->Unmap(desc.buffer.Get(), 0);
 }
 
 // Remarks
@@ -213,7 +198,7 @@ void CD3D11HardwareBuffer::copyFromMemory(E_HARDWARE_BUFFER_TYPE type, const voi
     	box.bottom = 1;
     	box.top = 0;
     	box.back = 1;
-    	ImmediateContext->UpdateSubresource(desc.buffer, 0, &box, sysData, 0, 0);
+    	ImmediateContext->UpdateSubresource(desc.buffer.Get(), 0, &box, sysData, 0, 0);
 
         //UINT res = D3D11CalcSubresource(0, 0, 0);
         //ImmediateContext->UpdateSubresource(desc.buffer, res, nullptr, sysData, static_cast<UINT>(length), static_cast<UINT>(length));
@@ -247,7 +232,7 @@ void CD3D11HardwareBuffer::copyFromBuffer(E_HARDWARE_BUFFER_TYPE type, IHardware
     if (srcOffset == 0 && destOffset == 0 && length == desc.Size
     	&& desc.Size == buffer->size(type) )
     {
-    	ImmediateContext->CopyResource(desc.buffer, srcBuffer->getBufferResource(type) );
+    	ImmediateContext->CopyResource(desc.buffer.Get(), srcBuffer->getBufferResource(type) );
     }
     else	// else, copy subregion
     {
@@ -259,7 +244,7 @@ void CD3D11HardwareBuffer::copyFromBuffer(E_HARDWARE_BUFFER_TYPE type, IHardware
     	srcBox.front = 0;
     	srcBox.back = 1;
     
-    	ImmediateContext->CopySubresourceRegion(desc.buffer, 0, (UINT)destOffset, 0, 0,
+    	ImmediateContext->CopySubresourceRegion(desc.buffer.Get(), 0, (UINT)destOffset, 0, 0,
     											srcBuffer->getBufferResource(type), 0, &srcBox);
     }
 }
@@ -296,7 +281,7 @@ ID3D11Buffer* CD3D11HardwareBuffer::getBufferResource(E_HARDWARE_BUFFER_TYPE typ
     if (!VertexBufferStreams[(u32)type].initialize)
         return nullptr;
 
-    return (ID3D11Buffer*)VertexBufferStreams[(u32)type].buffer;
+    return (ID3D11Buffer*)VertexBufferStreams[(u32)type].buffer.Get();
 }
 
 //! return unordered access view
@@ -305,7 +290,7 @@ ID3D11UnorderedAccessView* CD3D11HardwareBuffer::getUnorderedAccessView(E_HARDWA
     if ( !VertexBufferStreams[(u32)type].initialize )
         return nullptr;
 
-    return VertexBufferStreams[(u32)type].UAView;
+    return VertexBufferStreams[(u32)type].UAView.Get();
 }
 
 ID3D11ShaderResourceView* CD3D11HardwareBuffer::getShaderResourceView(E_HARDWARE_BUFFER_TYPE type) const
@@ -313,7 +298,7 @@ ID3D11ShaderResourceView* CD3D11HardwareBuffer::getShaderResourceView(E_HARDWARE
     if ( !VertexBufferStreams[(u32)type].initialize )
         return nullptr;
 
-    return VertexBufferStreams[(u32)type].SRView;
+    return VertexBufferStreams[(u32)type].SRView.Get();
 }
 
 void BuildBufferDesc(D3D11_BUFFER_DESC& desc, E_HARDWARE_BUFFER_TYPE Type, E_HARDWARE_BUFFER_ACCESS AccessType, u32 size)
@@ -389,13 +374,10 @@ bool CD3D11HardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type, E_HARDWARE_
 
     HRESULT hr = S_OK;
 
-    //if (VertexBufferStreams.size() <= (int)Type)
-    //    VertexBufferStreams.resize(int(Type) + 1);
-
     CD3D11HardwareBuffer::BufferDesc& desc = VertexBufferStreams[(u32)Type];
 
     // set need of staging buffer
-    if (/*AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC ||*/ AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_IMMUTABLE)
+    if (AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_IMMUTABLE)
         desc.UseTempStagingBuffer = true;
 
     if (Type == E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX || Type == E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX_INSTANCE_STREAM)
@@ -434,12 +416,9 @@ bool CD3D11HardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type, E_HARDWARE_
         return false;
     }
 
-    //if ((AccessType != E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC && desc.AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC) || (desc.AccessType != E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC && desc.Size && desc.buffer))
-    //    AccessType = E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC;
-
     if ( desc.Size < size || desc.AccessType != AccessType )
     {
-        SAFE_RELEASE(desc.buffer);
+        desc.buffer = nullptr;
 
         // Load initial data
         D3D11_SUBRESOURCE_DATA* data = 0;
@@ -456,7 +435,7 @@ bool CD3D11HardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type, E_HARDWARE_
 
         if (desc.buffer)
             desc.buffer->Release();
-        hr = Device->CreateBuffer(&bufferDesc, data, &desc.buffer);
+        hr = Device->CreateBuffer(&bufferDesc, data, desc.buffer.GetAddressOf());
         if ( FAILED(hr) )
         {
             os::Printer::log("Error, failed to create dynamic vertex buffer", ELL_ERROR);
@@ -465,6 +444,11 @@ bool CD3D11HardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type, E_HARDWARE_
 
         SAFE_DELETE(data);
 
+		if (GetBuffer())
+		{
+			DX_NAME(desc.buffer.Get(), "%s_%u_BUFFER", GetBuffer()->GetName(), Type);
+		}
+
         desc.Size = bufferDesc.ByteWidth;
         desc.AccessType = AccessType;
         desc.Element = (desc.Size / desc.Stride);
@@ -472,7 +456,7 @@ bool CD3D11HardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type, E_HARDWARE_
         // If buffer is of type shader resource, create view
         if (Type == E_HARDWARE_BUFFER_TYPE::EHBT_SHADER_RESOURCE)
         {
-            SAFE_RELEASE(desc.SRView);
+            desc.SRView = nullptr;
 
         	D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
         	SRVDesc.ViewDimension = D3D_SRV_DIMENSION_BUFFER;
@@ -480,7 +464,7 @@ bool CD3D11HardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type, E_HARDWARE_
         	SRVDesc.Buffer.ElementOffset = 0;
         	SRVDesc.Buffer.ElementWidth = desc.Size / 4;
         
-        	hr = Device->CreateShaderResourceView(desc.buffer, &SRVDesc, &desc.SRView);
+        	hr = Device->CreateShaderResourceView(desc.buffer.Get(), &SRVDesc, &desc.SRView);
         	if (FAILED(hr))
         	{
         		os::Printer::log("Error creating shader resource view for buffer", ELL_ERROR);
@@ -491,7 +475,7 @@ bool CD3D11HardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type, E_HARDWARE_
         // If buffer if of type compute, create view
         if (Type == E_HARDWARE_BUFFER_TYPE::EHBT_COMPUTE )
         {
-            SAFE_RELEASE(desc.UAView);
+            desc.UAView = nullptr;
 
             D3D11_UNORDERED_ACCESS_VIEW_DESC UAVDesc;
         	UAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
@@ -509,7 +493,7 @@ bool CD3D11HardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type, E_HARDWARE_
         		UAVDesc.Buffer.NumElements = desc.Size;		// size in bytes
         	}
         
-        	hr = Device->CreateUnorderedAccessView(desc.buffer, &UAVDesc, &desc.UAView);
+        	hr = Device->CreateUnorderedAccessView(desc.buffer.Get(), &UAVDesc, &desc.UAView);
         	if (FAILED(hr))
         	{
         		os::Printer::log("Error creating unordered access view for buffer", ELL_ERROR);
@@ -538,10 +522,10 @@ bool CD3D11HardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type, E_HARDWARE_
                 box.top = 0;
                 box.back = 1;
 
-                ImmediateContext->UpdateSubresource(desc.buffer, 0, &box, initialData, 0, 0);
+                ImmediateContext->UpdateSubresource(desc.buffer.Get(), 0, &box, initialData, 0, 0);
             }
             else
-                ImmediateContext->UpdateSubresource(desc.buffer, 0, nullptr, initialData, 0, 0);
+                ImmediateContext->UpdateSubresource(desc.buffer.Get(), 0, nullptr, initialData, 0, 0);
         }
 
         if (desc.Stride)

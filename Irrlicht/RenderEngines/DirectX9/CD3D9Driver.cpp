@@ -963,7 +963,7 @@ bool CD3D9Driver::setRenderTarget(ITexture* texture, u16 clearFlag /*= ECBF_COLO
 }
 
 
-bool CD3D9Driver::setRenderTargetEx(IRenderTarget* target, u16 clearFlag, SColor clearColor, f32 clearDepth, u8 clearStencil)
+bool CD3D9Driver::setRenderTargetEx(IRenderTarget* target, u16 clearFlag, SColor clearColor, f32 clearDepth, u8 clearStencil, core::array<core::recti>* scissors)
 {
     if (target && target->getDriverType() != EDT_DIRECT3D9)
     {
@@ -1104,6 +1104,16 @@ void CD3D9Driver::setViewPort(const core::rect<s32>& area)
 	}
 }
 
+void CD3D9Driver::setScissorRect(const core::rect<s32>& _rect)
+{
+    RECT rect;
+    rect.left = _rect.UpperLeftCorner.X;
+    rect.top = _rect.UpperLeftCorner.Y;
+    rect.right = _rect.LowerRightCorner.X;
+    rect.bottom = _rect.LowerRightCorner.Y;
+
+    pID3DDevice->SetScissorRect(&rect);
+}
 
 //! gets the area of the current viewport
 const core::rect<s32>& CD3D9Driver::getViewPort() const
@@ -3593,7 +3603,7 @@ IVideoDriver* CD3D9Driver::getVideoDriver()
 //! Creates a render target texture.
 ITexture* CD3D9Driver::addRenderTargetTexture(const core::dimension2d<u32>& size,
 											  const io::path& name,
-											  const ECOLOR_FORMAT format)
+											  const ECOLOR_FORMAT format, u8 sampleCount)
 {
 	CD3D9Texture* tex = new CD3D9Texture(this, size, name, format);
 	if (tex)

@@ -2542,7 +2542,7 @@ const core::matrix4& CBurningVideoDriver::getTransform(E_TRANSFORMATION_STATE st
 
 //! Creates a render target texture.
 ITexture* CBurningVideoDriver::addRenderTargetTexture(const core::dimension2d<u32>& size,
-		const io::path& name, const ECOLOR_FORMAT format)
+		const io::path& name, const ECOLOR_FORMAT format, u8 sampleCount)
 {
 	IImage* img = createImage(BURNINGSHADER_COLOR_FORMAT, size);
 	ITexture* tex = new CSoftwareTexture2(img, name, CSoftwareTexture2::IS_RENDERTARGET );

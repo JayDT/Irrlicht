@@ -293,8 +293,8 @@ bool CGUIListBox::OnEvent(const SEvent& event)
                     GUIEventArg arg;
                     arg.eData = e;
 
-                    if (OnSelectedIndexChanged)
-                        OnSelectedIndexChanged(this, arg);
+                    //if (OnSelectedIndexChanged)
+                    //    OnSelectedIndexChanged(this, arg);
 
                     Parent->OnEvent(e);
                 }
@@ -364,8 +364,8 @@ bool CGUIListBox::OnEvent(const SEvent& event)
                                 GUIEventArg arg;
                                 arg.eData = e;
 
-                                if (OnSelectedIndexChanged)
-                                    OnSelectedIndexChanged(this, arg);
+                                //if (OnSelectedIndexChanged)
+                                //    OnSelectedIndexChanged(this, arg);
 
                                 Parent->OnEvent(e);
                             }
@@ -392,8 +392,8 @@ bool CGUIListBox::OnEvent(const SEvent& event)
                                 GUIEventArg arg;
                                 arg.eData = e;
 
-                                if (OnSelectedIndexChanged)
-                                    OnSelectedIndexChanged(this, arg);
+                                //if (OnSelectedIndexChanged)
+                                //    OnSelectedIndexChanged(this, arg);
 
                                 Parent->OnEvent(e);
                             }
@@ -501,8 +501,8 @@ void CGUIListBox::selectNew(s32 ypos, bool onlyHover)
         GUIEventArg arg;
         arg.eData = event;
 
-        if (eventType == EGET_LISTBOX_CHANGED && OnSelectedIndexChanged)
-            OnSelectedIndexChanged(this, arg);
+        //if (eventType == EGET_LISTBOX_CHANGED && OnSelectedIndexChanged)
+        //    OnSelectedIndexChanged(this, arg);
 
         Parent->OnEvent(event);
     }

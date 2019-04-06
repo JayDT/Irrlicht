@@ -1,7 +1,7 @@
-# Use c++14
-set(CMAKE_CXX_STANDARD 14)
+# Use c++17
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# Use -std=c++14 instead of -std=gnu++14
+# Use -std=c++17 instead of -std=gnu++17
 set(CXX_EXTENSIONS OFF)
 
 message( STATUS "Selected Generator: ${CMAKE_GENERATOR}")

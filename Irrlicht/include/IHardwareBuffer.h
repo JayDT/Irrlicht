@@ -133,7 +133,7 @@ namespace irr
             virtual u32 getFlags() const = 0;
 
             const scene::IMeshBuffer * GetBuffer() const { return MeshBuffer; }
-            scene::IMeshBuffer * GetBuffer() { return (scene::IMeshBuffer *)MeshBuffer; }
+            scene::IMeshBuffer * GetBuffer() { return const_cast<scene::IMeshBuffer *>(MeshBuffer); }
 
             virtual void Bind()
             {

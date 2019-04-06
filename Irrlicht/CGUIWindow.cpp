@@ -236,8 +236,8 @@ bool CGUIWindow::OnEvent(const SEvent& event)
 
                         GUIEventArg arg;
                         arg.eData = e;
-                        if (OnClose)
-                            OnClose(this, arg);
+                        //if (OnClose)
+                        //    OnClose(this, arg);
 
                         // if the event was not absorbed
                         if (!arg.eHandled && !Parent->OnEvent(e))
@@ -248,8 +248,8 @@ bool CGUIWindow::OnEvent(const SEvent& event)
                     else
                     {
                         GUIEventArg arg;
-                        if (OnClose)
-                            OnClose(this, arg);
+                        //if (OnClose)
+                        //    OnClose(this, arg);
 
                         // if the event was not absorbed
                         if (!arg.eHandled)
@@ -300,8 +300,8 @@ bool CGUIWindow::OnEvent(const SEvent& event)
 
                     GUIEventArg arg;
                     arg.eData = event;
-                    if (OnValueChanged)
-                        OnValueChanged(this, arg);
+                    //if (OnValueChanged)
+                    //    OnValueChanged(this, arg);
                 }
             }
             break;
@@ -459,8 +459,8 @@ bool CGUIWindow::OnEvent(const SEvent& event)
                 {
                     GUIEventArg arg;
                     arg.eData = event;
-                    if (OnValueChanged)
-                        OnValueChanged(this, arg);
+                    //if (OnValueChanged)
+                    //    OnValueChanged(this, arg);
                 }
                 return true;
             }

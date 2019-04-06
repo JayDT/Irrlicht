@@ -2,6 +2,9 @@
 #define __C_D3D11_RESOURCE_H_INCLUDED__
 
 #include "IReferenceCounted.h"
+#include <wrl.h>
+
+namespace Msw = Microsoft::WRL;
 
 namespace irr
 {

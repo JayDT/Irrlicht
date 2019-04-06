@@ -90,7 +90,7 @@ namespace gui
             return m_formContent;
         }
 
-        System::Events::EventHandler<GUIEventArg> OnClose;
+        //System::Events::EventHandler<GUIEventArg> OnClose;
 	};
 
 

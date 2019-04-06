@@ -122,11 +122,13 @@ public:
 		case ECF_R5G6B5:
 			return 16;
 		case ECF_R8G8B8:
-			return 24;
+        case ECF_B8G8R8:
+            return 24;
         case ECF_RGBA8:
         case ECF_A8R8G8B8:
         case ECF_B8G8R8A8:
-			return 32;
+        case ECF_B8G8R8X8:
+            return 32;
 		case ECF_R16F:
 			return 16;
 		case ECF_G16R16F:
@@ -139,6 +141,10 @@ public:
 			return 64;
 		case ECF_A32B32G32R32F:
 			return 128;
+		case ECF_R8:
+			return 8;
+		case ECF_R8G8:
+			return 16;
 		default:
 			return 0;
 		}
@@ -206,9 +212,13 @@ public:
 			case ECF_A1R5G5B5:
 			case ECF_R5G6B5:
 			case ECF_R8G8B8:
+            case ECF_B8G8R8:
             case ECF_RGBA8:
 			case ECF_A8R8G8B8:
             case ECF_B8G8R8A8:
+            case ECF_B8G8R8X8:
+            case ECF_R8:
+			case ECF_R8G8:
 				return false;
 			default:
 				return true;

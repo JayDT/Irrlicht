@@ -258,11 +258,17 @@ VkFormat VulkanUtility::getPixelFormat(ECOLOR_FORMAT format, bool sRGB)
         case ECF_R8G8B8:
             return VK_FORMAT_R8G8B8_UNORM;
 
+        case ECF_B8G8R8:
+            return VK_FORMAT_B8G8R8_UNORM;
+
         case ECF_RGBA8:
         case ECF_A8R8G8B8:
-            return VK_FORMAT_A8B8G8R8_UNORM_PACK32;
+            return VK_FORMAT_R8G8B8A8_UNORM;
 
         case ECF_B8G8R8A8:
+            return VK_FORMAT_B8G8R8A8_UNORM;
+
+        case ECF_B8G8R8X8:
             return VK_FORMAT_B8G8R8A8_UNORM;
 
         case ECF_R16F:
@@ -294,6 +300,12 @@ VkFormat VulkanUtility::getPixelFormat(ECOLOR_FORMAT format, bool sRGB)
 
         case ECF_D32:
             return VK_FORMAT_D32_SFLOAT;
+
+		case ECF_R8:
+			return VK_FORMAT_R8_UNORM;
+
+		case ECF_R8G8:
+			return VK_FORMAT_R8G8_UNORM;
     }
 
     return VK_FORMAT_UNDEFINED;
@@ -324,7 +336,13 @@ ECOLOR_FORMAT irr::video::VulkanUtility::getPixelFormat(VkFormat format)
         case VK_FORMAT_R8G8B8_UNORM:
             return ECF_R8G8B8;
 
+        case VK_FORMAT_B8G8R8_UNORM:
+            return ECF_B8G8R8;
+
         case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+            return ECF_A8R8G8B8;
+
+        case VK_FORMAT_R8G8B8A8_UNORM:
             return ECF_A8R8G8B8;
 
         case VK_FORMAT_B8G8R8A8_UNORM:
@@ -345,7 +363,7 @@ ECOLOR_FORMAT irr::video::VulkanUtility::getPixelFormat(VkFormat format)
         case VK_FORMAT_R32G32_SFLOAT:
             return ECF_G32R32F;
 
-        case ECF_A32B32G32R32F:
+        case VK_FORMAT_R32G32B32A32_SFLOAT:
             return ECF_A32B32G32R32F;
 
         case VK_FORMAT_D16_UNORM:
@@ -353,6 +371,13 @@ ECOLOR_FORMAT irr::video::VulkanUtility::getPixelFormat(VkFormat format)
 
         case VK_FORMAT_D32_SFLOAT:
             return ECF_D32;
+
+		case VK_FORMAT_R8_UNORM:
+			return ECF_R8;
+
+		case VK_FORMAT_R8G8_UNORM:
+			return ECF_R8G8;
+
     }
 
     return ECOLOR_FORMAT();
@@ -804,4 +829,135 @@ video::E_SHADER_VARIABLE_TYPE irr::video::VulkanUtility::getShaderVariableTypeId
             return video::E_SHADER_VARIABLE_TYPE::ESVT_BUFFER;
     }
     return video::E_SHADER_VARIABLE_TYPE::ESVT_MAX;
+}
+
+// Sets the debug name of an object
+// All Objects in Vulkan are represented by their 64-bit handles which are passed into this function
+// along with the object type
+void irr::video::VulkanUtility::setObjectName(VulkanDevice& device, uint64_t object, VkObjectType objectType, const char* name)
+{
+#if VULKAN_DEBUG_MARKER
+    if (!device.getDriver()->_getVulkanDispatcher().vkSetDebugUtilsObjectNameEXT)
+        return;
+
+    // Check for valid function pointer (may not be present if not running in a debugging application)
+    VkDebugUtilsObjectNameInfoEXT nameInfo = {};
+
+    nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    nameInfo.objectType = objectType;
+    nameInfo.objectHandle = object;
+    nameInfo.pObjectName = name;
+
+    device.getDriver()->_getVulkanDispatcher().vkSetDebugUtilsObjectNameEXT(device.getLogical(), &nameInfo);
+#endif
+}
+
+void irr::video::VulkanUtility::setObjectNamef(VulkanDevice& device, uint64_t object, VkObjectType objectType, const char* fmt, ...)
+{
+#if VULKAN_DEBUG_MARKER
+    char buffer[512];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buffer, 512, fmt, args);
+    va_end(args);
+
+    setObjectName(device, object, objectType, buffer);
+#endif
+}
+
+// Set the tag for an object
+void irr::video::VulkanUtility::setObjectTag(VulkanDevice& device, uint64_t object, VkObjectType objectType, uint64_t name, size_t tagSize, const void* tag)
+{
+#if VULKAN_DEBUG_MARKER
+    if (!device.getDriver()->_getVulkanDispatcher().vkSetDebugUtilsObjectTagEXT)
+        return;
+
+    VkDebugUtilsObjectTagInfoEXT tagInfo = {};
+
+    tagInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_TAG_INFO_EXT;
+    tagInfo.objectType = objectType;
+    tagInfo.objectHandle = object;
+    tagInfo.tagName = name;
+    tagInfo.tagSize = tagSize;
+    tagInfo.pTag = tag;
+
+    device.getDriver()->_getVulkanDispatcher().vkSetDebugUtilsObjectTagEXT(device.getLogical(), &tagInfo);
+#endif
+}
+
+// Start a new debug marker region
+void irr::video::VulkanUtility::beginRegion(VulkanCmdBuffer& cmdbuffer, const char* pMarkerName, const irr::video::SColor& color)
+{
+#if VULKAN_DEBUG_MARKER
+    if (!cmdbuffer.getDriver()->_getVulkanDispatcher().vkCmdBeginDebugUtilsLabelEXT)
+        return;
+
+    VkDebugUtilsLabelEXT markerInfo = {};
+
+    markerInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
+    markerInfo.color[0] = color.getAlpha();
+    markerInfo.color[1] = color.getRed();
+    markerInfo.color[2] = color.getGreen();
+    markerInfo.color[3] = color.getBlue();
+    markerInfo.pLabelName = pMarkerName;
+
+    cmdbuffer.getDriver()->_getVulkanDispatcher().vkCmdBeginDebugUtilsLabelEXT(cmdbuffer.getHandle(), &markerInfo);
+#endif
+}
+
+void irr::video::VulkanUtility::beginRegionf(VulkanCmdBuffer& cmdbuffer, const irr::video::SColor& color, const char* fmt, ...)
+{
+#if VULKAN_DEBUG_MARKER
+    char buffer[512];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buffer, 512, fmt, args);
+    va_end(args);
+
+    beginRegion(cmdbuffer, buffer, color);
+#endif
+}
+
+// Insert a new debug marker into the command buffer
+void irr::video::VulkanUtility::insertNewDebugMarker(VulkanCmdBuffer& cmdbuffer, const char* markerName, const irr::video::SColor& color)
+{
+//#if VULKAN_DEBUG_MARKER
+//    if (!cmdbuffer.getDriver()->_getVulkanDispatcher().vkCmdDebugMarkerInsertEXT)
+//        return;
+//
+//    VkDebugMarkerMarkerInfoEXT markerInfo = {};
+//
+//    markerInfo.sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT;
+//    markerInfo.color[0] = color.getAlpha();
+//    markerInfo.color[1] = color.getRed();
+//    markerInfo.color[2] = color.getGreen();
+//    markerInfo.color[3] = color.getBlue();
+//    markerInfo.pMarkerName = markerName;
+//
+//    cmdbuffer.getDriver()->_getVulkanDispatcher().vkCmdDebugUtilsInsertEXT(cmdbuffer.getHandle(), &markerInfo);
+//#endif
+}
+
+void irr::video::VulkanUtility::insertNewDebugMarkerf(VulkanCmdBuffer& cmdbuffer, const irr::video::SColor& color, const char* fmt, ...)
+{
+#if VULKAN_DEBUG_MARKER
+    char buffer[512];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buffer, 512, fmt, args);
+    va_end(args);
+
+    insertNewDebugMarker(cmdbuffer, buffer, color);
+#endif
+}
+
+// End the current debug marker region
+void irr::video::VulkanUtility::endRegion(VulkanCmdBuffer& cmdBuffer)
+{
+#if VULKAN_DEBUG_MARKER
+    if (!cmdBuffer.getDriver()->_getVulkanDispatcher().vkCmdEndDebugUtilsLabelEXT)
+        return;
+
+    cmdBuffer.getDriver()->_getVulkanDispatcher().vkCmdEndDebugUtilsLabelEXT(cmdBuffer.getHandle());
+#endif
 }

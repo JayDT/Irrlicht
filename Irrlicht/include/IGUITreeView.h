@@ -281,7 +281,7 @@ namespace gui
 		/** This pointer is only valid inside the OnEvent call! */
 		virtual IGUITreeViewNode* getLastEventNode() const = 0;
 
-        System::Events::EventHandler<GUIEventArg> OnSelectedIndexChanged;
+        //System::Events::EventHandler<GUIEventArg> OnSelectedIndexChanged;
 	};
 
 

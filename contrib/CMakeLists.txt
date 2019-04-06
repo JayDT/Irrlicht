@@ -1,0 +1,2 @@
+add_subdirectory(CFramework)
+add_subdirectory(ResourceCompiler)

@@ -7,6 +7,8 @@
 using namespace irr;
 using namespace irr::video;
 
+core::stringc SShaderSampler::mSemantic;
+
 const char* gShaderTypeNames[E_SHADER_VARIABLE_TYPE::ESVT_MAX]
 {
     "VOID",
@@ -372,6 +374,37 @@ u8 * irr::video::SShaderVariableStruct::getRawValue(u32 offset, u32 count)
     return mBuffer->getRawValue(mOffset + offset, count);
 }
 
+
+bool irr::video::SShaderSampler::isValid()
+{
+    return mIsValid;
+}
+
+bool irr::video::SShaderSampler::isDirty()
+{
+    return false;
+}
+
+IConstantBuffer* irr::video::SShaderSampler::getRootBuffer()
+{
+    return mBuffer;
+}
+
+IShaderVariable* irr::video::SShaderSampler::getParentVariable()
+{
+    return mParent;
+}
+
+IShaderScalarVariable* irr::video::SShaderSampler::AsScalar()
+{
+    return nullptr;
+}
+
+IShaderMatrixVariable* irr::video::SShaderSampler::AsMatrix()
+{
+    return nullptr;
+}
+
 irr::video::CNullShader::CNullShader(video::IVideoDriver * context, E_SHADER_LANG type)
     : mContext(context)
     , mShaderLang(type)
@@ -385,7 +418,7 @@ irr::video::CNullShader::~CNullShader()
 void irr::video::CNullShader::AddConstantBuffer(SConstantBuffer * buffer)
 {
     assert(buffer->mShader == this);
-    mBuffers.push_back(buffer);
+    mBuffers.push_back(irr::Ptr<SConstantBuffer>(buffer));
 }
 
 void irr::video::CNullShader::AddShaderResource(IShaderVariable * var)
@@ -426,6 +459,13 @@ IShaderVariable * irr::video::CNullShader::getVariableByIndex(u32 index)
             return var;
     }
 
+    for (int i = 0; i != mTextures.size(); ++i)
+    {
+        IShaderVariable* var = mTextures[i];
+        if (var->_getIndex() == index)
+            return var;
+    }
+
     return getConstantBufferByIndex(index);
 }
 
@@ -434,6 +474,13 @@ IShaderVariable * irr::video::CNullShader::getVariableByName(const char * name)
     for (int i = 0; i != mVertexInput.size(); ++i)
     {
         IShaderVariable* var = mVertexInput[i];
+        if (var->GetName() == name)
+            return var;
+    }
+
+    for (int i = 0; i != mTextures.size(); ++i)
+    {
+        IShaderVariable* var = mTextures[i];
         if (var->GetName() == name)
             return var;
     }
@@ -493,13 +540,7 @@ void irr::video::SConstantBuffer::clear()
 
 void irr::video::SConstantBuffer::setShaderDataCallback(const IShaderConstantSetCallBack * cb)
 {
-    if (mCallBack)
-        mCallBack->drop();
-
-    mCallBack = const_cast<IShaderConstantSetCallBack *>(cb);
-
-    if (mCallBack)
-        mCallBack->grab();
+    mCallBack = irr::Ptr<IShaderConstantSetCallBack>(const_cast<IShaderConstantSetCallBack *>(cb));
 }
 
 IShaderVariable * irr::video::SConstantBuffer::getVariableByIndex(u32 index)

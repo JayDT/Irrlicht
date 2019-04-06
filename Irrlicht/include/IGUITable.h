@@ -230,8 +230,8 @@ namespace gui
         virtual bool isDrawBackgroundEnabled() const = 0;
 
         // EventHandlers
-        System::Events::EventHandler<GUIEventArg> OnSelectionChanged;
-        System::Events::EventHandler<GUIEventArg> OnHeaderChanged;
+        //System::Events::EventHandler<GUIEventArg> OnSelectionChanged;
+        //System::Events::EventHandler<GUIEventArg> OnHeaderChanged;
     };
 
 

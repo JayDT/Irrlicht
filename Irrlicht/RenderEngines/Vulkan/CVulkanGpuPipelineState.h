@@ -132,8 +132,8 @@ namespace irr
                 VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
                 VulkanPipeline* pipeline = nullptr;
                 VkSampler mSampler[MATERIAL_MAX_TEXTURES];
-                std::unordered_map<u64, VulkanPipeline*> pipelines;
-                std::unordered_map<u32, VkSampler> samplers;
+                std::map<u64, VulkanPipeline*> pipelines;
+                std::map<u32, VkSampler> samplers;
             };
 
             VkPipelineShaderStageCreateInfo mShaderStageInfos[5];
@@ -143,7 +143,7 @@ namespace irr
             VkPipelineRasterizationStateCreateInfo mRasterizationInfo;
             VkPipelineMultisampleStateCreateInfo mMultiSampleInfo;
             VkPipelineDepthStencilStateCreateInfo mDepthStencilInfo;
-            VkPipelineColorBlendAttachmentState mAttachmentBlendStates[_MAX_MULTIPLE_RENDER_TARGETS];
+            std::array<VkPipelineColorBlendAttachmentState, _MAX_MULTIPLE_RENDER_TARGETS> mAttachmentBlendStates;
             VkPipelineColorBlendStateCreateInfo mColorBlendStateInfo;
             VkPipelineDynamicStateCreateInfo mDynamicStateInfo;
             VkDynamicState mDynamicStates[3];
@@ -156,7 +156,7 @@ namespace irr
             u32 mFrameBufferId = 0;
 
             GpuDeviceFlags mDeviceMask;
-            PerDeviceData mPerDeviceData[_MAX_DEVICES];
+            std::array<PerDeviceData, _MAX_DEVICES> mPerDeviceData;
             scene::E_PRIMITIVE_TYPE mDrawOp;
 
             bool mScissorEnabled;

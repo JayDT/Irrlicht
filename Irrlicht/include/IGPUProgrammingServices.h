@@ -10,6 +10,14 @@
 #include "EPrimitiveTypes.h"
 #include "path.h"
 
+namespace System
+{
+    namespace IO
+    {
+        struct IFileWriter;
+    }
+}
+
 namespace irr
 {
 
@@ -472,6 +480,7 @@ public:
         s32 userData = 0) = 0;
 
     virtual IShader* createShader(ShaderInitializerEntry*) { return nullptr; }
+    virtual void WriteShaderCache(System::IO::IFileWriter*) {}
 };
 
 

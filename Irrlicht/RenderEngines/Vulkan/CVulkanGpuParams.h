@@ -98,8 +98,8 @@ namespace irr
                 VulkanDescriptorSet* latestSet = nullptr;
                 std::vector<VulkanDescriptorSet*> sets;
 
-                VkWriteDescriptorSet* writeSetInfos = nullptr;
-                WriteInfo* writeInfos = nullptr;
+                std::vector<VkWriteDescriptorSet> writeSetInfos;
+                std::vector<WriteInfo> writeInfos;
 
                 u32 numElements = 0;
                 bool mSetsDirty = true;
@@ -108,7 +108,7 @@ namespace irr
             core::array<u32> bufferBindingSlot;
             core::array<u32> TextureBindingSlot;
 
-            PerSetData* mPerDeviceData[_MAX_DEVICES];
+            std::array<PerSetData*, _MAX_DEVICES> mPerDeviceData;
             GpuDeviceFlags mDeviceMask;
             u32 mNumDeviceData;
 

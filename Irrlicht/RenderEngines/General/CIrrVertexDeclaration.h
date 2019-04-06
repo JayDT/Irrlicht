@@ -18,18 +18,18 @@ namespace irr
             core::array<SVertexElement> mVertexElements;
 
             VertexDeclaration()
-            {
-            }
+            {}
 
-            ~VertexDeclaration()
-            {
-            }
+            virtual ~VertexDeclaration()
+            {}
 
             const SVertexElement& addElement(E_VERTEX_ELEMENT_SEMANTIC semanticType, E_VERTEX_ELEMENT_TYPE type, s32 offset,
                 u32 semanticIndex = 0, u32 slotIndex = 0,
                 u32 instanceStep = 0, bool perInstance = false);
 
             virtual void initialize() {}
+
+            virtual irr::u32 GetVertexPitch(irr::u8 inputSlot) const = 0;
         };
     }
 }

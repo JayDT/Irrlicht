@@ -35,7 +35,7 @@ namespace gui
 		//! Returns the directory of the selected file. Returns NULL, if no directory was selected.
 		virtual const io::path& getDirectoryName() = 0;
 
-        System::Events::EventHandler<GUIEventArg> OnDialogResult;
+        //System::Events::EventHandler<GUIEventArg> OnDialogResult;
 	};
 
 

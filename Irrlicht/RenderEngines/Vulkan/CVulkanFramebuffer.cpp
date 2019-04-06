@@ -72,7 +72,7 @@ VulkanFramebuffer::VulkanFramebuffer(CVulkanDriver* owner, const VULKAN_FRAMEBUF
         VkAttachmentReference& ref = mColorReferences[attachmentIdx];
         ref = {};
         ref.attachment = attachmentIdx;
-        ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        ref.layout = VkImageLayout::VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
         //if (desc.color[i].image->hasMipMaps())
             mAttachmentViews[attachmentIdx] = desc.color[i].image->getView(true);

@@ -283,8 +283,8 @@ bool CD3D9Texture::createTexture(u32 flags, IImage * image)
 
     D3DFORMAT format = D3DFMT_A1R5G5B5;
 
-    switch (image->getColorFormat())
-    {
+    //switch (image->getColorFormat())
+    //{
         //case ECF_RGBA_S3TC_DXT1:
         //    format = D3DFMT_DXT1;
         //    break;
@@ -329,7 +329,7 @@ bool CD3D9Texture::createTexture(u32 flags, IImage * image)
                     break;
             }
         //}
-    }
+    //}
 
 	if (Driver->getTextureCreationFlag(video::ETCF_NO_ALPHA_CHANNEL))
 	{
@@ -501,6 +501,10 @@ void* CD3D9Texture::lock(E_TEXTURE_LOCK_MODE mode, u32 mipmapLevel, u32 arraySli
 	return rect.pBits;
 }
 
+void CD3D9Texture::updateTexture(u32 level, u32 x, u32 y, u32 width, u32 height, const void* data)
+{
+    // ToDo
+}
 
 //! unlock function
 void CD3D9Texture::unlock()

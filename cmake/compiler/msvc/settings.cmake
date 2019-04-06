@@ -18,7 +18,7 @@ add_definitions(-D_RUNTIME_PATH_="${BIN_DIR}")
 
 # Setup MultiThreaded compiling on msvc
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP /Zi")
-set(CMAKE_C_FLAGS_DEBUG "/DWIN32 /D_WINDOWS /W3 /Zi /MP /Ox /Oi /Ot /Ob2")
+set(CMAKE_C_FLAGS_DEBUG "/DWIN32 /D_WINDOWS /W3 /Zi /MP /Ox /Oi /Ot /Ob2 /std:c++latest")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /std:c++latest")
 
 message(STATUS "MSVC: Enabled PDB generators")

@@ -7,6 +7,7 @@
 #include "IVideoDriver.h"
 #include "IMesh.h"
 #include "ISceneNode.h"
+#include <functional>
 
 namespace irr
 {

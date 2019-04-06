@@ -263,7 +263,7 @@ namespace irr
             // someone is doing bad reference counting.
             _IRR_DEBUG_BREAK_IF(ReferenceCounter <= 0)
 
-                --ReferenceCounter;
+            --ReferenceCounter;
             if (!ReferenceCounter)
             {
                 delete this;
@@ -304,6 +304,282 @@ namespace irr
         //! The reference counter. Mutable to do reference counting on const objects.
         mutable std::atomic_int ReferenceCounter;
     };
+
+    // Cloning Noesis implementation
+    template<class T> class Ptr
+    {
+    public:
+        typedef T Type;
+
+        /// Constructs empty smart pointer
+        inline Ptr();
+        inline Ptr(std::nullptr_t);
+
+        /// Constructor from pointer, increasing reference counter
+        inline explicit Ptr(T* ptr);
+
+        /// Constructor from dereferenced pointer, without increasing reference counter.
+        /// Very useful for assigning from new operator: Ptr<Cube> cube = *new Cube(50.0f);
+        /// MakePtr is a more flexible alternative to this pattern.
+        inline Ptr(T& ptr);
+
+        /// Copy constructors
+        inline Ptr(const Ptr& ptr);
+        template<class S> inline Ptr(const Ptr<S>& ptr);
+
+        /// Move constructors
+        inline Ptr(Ptr&& ptr);
+        template<class S> inline Ptr(Ptr<S>&& ptr);
+
+        /// Destructor
+        inline ~Ptr();
+
+        /// Copy operators
+        inline Ptr& operator=(const Ptr& ptr);
+        template<class S> inline Ptr& operator=(const Ptr<S>& ptr);
+
+        /// Move operators
+        inline Ptr& operator=(Ptr&& ptr);
+        template<class S> inline Ptr& operator=(Ptr<S>&& ptr);
+
+        /// Copy from from dereferenced pointer. without increasing reference counter.
+        /// Very useful for assigning from new operator: cube = *new Cube(50.0f);
+        inline Ptr& operator=(T& ptr);
+
+        /// Resets to null pointer
+        inline void Reset();
+
+        /// Resets to pointer, increasing reference counter
+        inline void Reset(T* ptr);
+
+        /// Clears the stored pointer without decrementing the reference counter
+        inline T* GiveOwnership();
+
+        /// Dereferences the stored pointer
+        inline T* operator->() const;
+
+        /// Returns the stored pointer 
+        inline T* GetPtr() const;
+
+        /// Automatic conversion to pointer
+        inline operator T* () const;
+
+    private:
+        T* mPtr;
+    };
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    Ptr<T>::Ptr() : mPtr(0) {}
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    Ptr<T>::Ptr(std::nullptr_t) : mPtr(0) {}
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    Ptr<T>::Ptr(T* ptr) : mPtr(ptr)
+    {
+        if (mPtr != 0)
+        {
+            mPtr->grab();
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    Ptr<T>::Ptr(T& ptr) : mPtr(&ptr) {}
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    Ptr<T>::Ptr(const Ptr& ptr) : mPtr(ptr.mPtr)
+    {
+        if (mPtr != 0)
+        {
+            mPtr->grab();
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    template<class S> Ptr<T>::Ptr(const Ptr<S>& ptr) : mPtr(ptr.GetPtr())
+    {
+        if (mPtr != 0)
+        {
+            mPtr->grab();
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    Ptr<T>::Ptr(Ptr&& ptr) : mPtr(ptr.mPtr)
+    {
+        ptr.GiveOwnership();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    template<class S> Ptr<T>::Ptr(Ptr<S>&& ptr) : mPtr(ptr.GetPtr())
+    {
+        ptr.GiveOwnership();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    Ptr<T>::~Ptr()
+    {
+        if (mPtr != 0)
+        {
+            mPtr->drop();
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    Ptr<T>& Ptr<T>::operator=(const Ptr& ptr)
+    {
+        Reset(ptr.mPtr);
+        return *this;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    template<class S> Ptr<T>& Ptr<T>::operator=(const Ptr<S>& ptr)
+    {
+        Reset(ptr.GetPtr());
+        return *this;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    Ptr<T>& Ptr<T>::operator=(Ptr&& ptr)
+    {
+        if (mPtr != ptr.mPtr)
+        {
+            if (mPtr != 0)
+            {
+                mPtr->drop();
+            }
+
+            mPtr = ptr.mPtr;
+            ptr.GiveOwnership();
+        }
+
+        return *this;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    template<class S> Ptr<T>& Ptr<T>::operator=(Ptr<S>&& ptr)
+    {
+        // GiveOwnership() done at the beginning to avoid a bug in MSVC2015 Update3 when compiling with 
+        // Whole Program Optimization and Omit Frame Pointers enabled
+        S* obj = ptr.GetPtr();
+        ptr.GiveOwnership();
+
+        if (mPtr != 0)
+        {
+            mPtr->drop();
+        }
+
+        mPtr = obj;
+        return *this;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    Ptr<T>& Ptr<T>::operator=(T& ptr)
+    {
+        if (mPtr != &ptr)
+        {
+            if (mPtr != 0)
+            {
+                mPtr->drop();
+            }
+
+            mPtr = &ptr;
+        }
+
+        return *this;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    void Ptr<T>::Reset()
+    {
+        if (mPtr != 0)
+        {
+            mPtr->drop();
+        }
+
+        mPtr = 0;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    void Ptr<T>::Reset(T* ptr)
+    {
+        if (mPtr != ptr)
+        {
+            if (ptr != 0)
+            {
+                ptr->grab();
+            }
+
+            if (mPtr != 0)
+            {
+                mPtr->drop();
+            }
+
+            mPtr = ptr;
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    T* Ptr<T>::GiveOwnership()
+    {
+        T* ptr = mPtr;
+        mPtr = 0;
+        return ptr;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    T* Ptr<T>::operator->() const
+    {
+        _IRR_DEBUG_BREAK_IF(mPtr == 0);
+        return mPtr;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    T* Ptr<T>::GetPtr() const
+    {
+        return mPtr;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    Ptr<T>::operator T* () const
+    {
+        return mPtr;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    Ptr<T> MakePtr()
+    {
+        return *new T();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T, class... Args>
+    Ptr<T> MakePtr(Args && ... args)
+    {
+        return *new T(std::forward<Args>(args)...);
+    }
 
 } // end namespace irr
 

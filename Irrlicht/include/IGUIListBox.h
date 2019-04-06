@@ -131,7 +131,7 @@ namespace gui
 		//! Sets whether to draw the background
 		virtual void setDrawBackground(bool draw) = 0;
 
-        System::Events::EventHandler<GUIEventArg> OnSelectedIndexChanged;
+        //System::Events::EventHandler<GUIEventArg> OnSelectedIndexChanged;
 };
 
 

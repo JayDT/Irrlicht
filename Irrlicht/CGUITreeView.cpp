@@ -949,8 +949,8 @@ void CGUITreeView::mouseAction( s32 xpos, s32 ypos, bool onlyHover /*= false*/ )
             GUIEventArg arg;
             arg.eData = event;
 
-            if (OnSelectedIndexChanged)
-                OnSelectedIndexChanged(this, arg);
+            //if (OnSelectedIndexChanged)
+            //    OnSelectedIndexChanged(this, arg);
 
             if (!arg.eHandled)
 			    Parent->OnEvent( event );

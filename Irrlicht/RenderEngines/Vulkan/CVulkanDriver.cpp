@@ -29,16 +29,14 @@
 #define GLM_FORCE_LEFT_HANDED
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm.hpp>
-#include <gtc/matrix_transform.hpp>
-#include <gtc/type_ptr.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 //#include <gli/gli.hpp>
 
 #ifdef HAVE_CSYSTEM_EXTENSION
 #include "System/Uri.h"
 #include "System/Resource/ResourceManager.h"
-
-extern bool InitializeModulResourceCVulkan();
 #endif
 
 using namespace irr;
@@ -52,6 +50,7 @@ namespace glslang
 
 extern core::matrix4 VK_UnitMatrix;
 extern core::matrix4 VK_SphereMapMatrix;
+extern "C" void VKLoadShaderCache(System::IO::IFileReader* file);
 
 VKAPI_ATTR VkBool32 debugMsgCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t srcObject,
     size_t location, int32_t msgCode, const char* pLayerPrefix, const char* pMsg, void* pUserData);
@@ -86,11 +85,7 @@ irr::video::CVulkanDriver::CVulkanDriver(const SIrrlichtCreationParameters & par
     , MaxActiveLights(8)
     , MaxTextureUnits(MATERIAL_MAX_TEXTURES)
 {
-#ifdef HAVE_CSYSTEM_EXTENSION
-    InitializeModulResourceCVulkan();
-#endif
     memset(m_defaultShader, 0, sizeof(m_defaultShader));
-    memset(DynamicHardwareBuffer, 0, sizeof(DynamicHardwareBuffer));
 
     // create sphere map matrix
     VK_SphereMapMatrix = core::matrix4(0.5f, 0.0f, 0.0f, 0.0f,
@@ -130,14 +125,6 @@ irr::video::CVulkanDriver::~CVulkanDriver()
     {
         CVulkanTexture::mStagingBufferCache.back().mBuffer->drop();
         CVulkanTexture::mStagingBufferCache.pop_back();
-    }
-
-    for (s32 i = 0; i < (s32)E_VERTEX_TYPE::EVT_MAX_VERTEX_TYPE; ++i)
-    {
-        if (!DynamicHardwareBuffer[i])
-            continue;
-
-        DynamicHardwareBuffer[i]->drop();
     }
 
     mMainCommandBuffer->drop();
@@ -264,6 +251,15 @@ VulkanSwapChain * irr::video::CVulkanDriver::_getSwapChain()
 
 void irr::video::CVulkanDriver::initialize(void* param)
 {
+    //uint32_t count;
+    //vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr); //get number of extensions
+    //std::vector<VkExtensionProperties> _extensions(count);
+    //vkEnumerateInstanceExtensionProperties(nullptr, &count, _extensions.data()); //populate buffer
+    //std::set<std::string> results;
+    //for (auto& extension : _extensions) {
+    //    results.insert(extension.extensionName);
+    //}
+
     // Create instance
     VkApplicationInfo appInfo;
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -272,7 +268,7 @@ void irr::video::CVulkanDriver::initialize(void* param)
     appInfo.applicationVersion = 1;
     appInfo.pEngineName = "IrrVulkan";
     appInfo.engineVersion = (0 << 24) | (4 << 16) | 0;
-    appInfo.apiVersion = VK_API_VERSION_1_0;
+    appInfo.apiVersion = VK_API_VERSION_1_1;
 
 #if VULKAN_DEBUG_MODE
     const char* layers[] =
@@ -284,8 +280,13 @@ void irr::video::CVulkanDriver::initialize(void* param)
     {
         nullptr, /** Surface extension */
         nullptr, /** OS specific surface extension */
-        VK_EXT_DEBUG_REPORT_EXTENSION_NAME
+        VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
+        nullptr, /** Debug Marker **/
     };
+
+#if VULKAN_DEBUG_MARKER
+    extensions[3] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+#endif
 
     uint32_t numLayers = sizeof(layers) / sizeof(layers[0]);
 #else
@@ -294,7 +295,12 @@ void irr::video::CVulkanDriver::initialize(void* param)
     {
         nullptr, /** Surface extension */
         nullptr, /** OS specific surface extension */
+        nullptr, /** Debug Marker **/
     };
+
+#if VULKAN_DEBUG_MARKER
+    extensions[2] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+#endif
 
     uint32_t numLayers = 0;
 #endif
@@ -313,6 +319,10 @@ void irr::video::CVulkanDriver::initialize(void* param)
 
     uint32_t numExtensions = sizeof(extensions) / sizeof(extensions[0]);
 
+#if !VULKAN_DEBUG_MARKER
+    --numExtensions;
+#endif
+
     VkInstanceCreateInfo instanceInfo;
     instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceInfo.pNext = nullptr;
@@ -324,10 +334,23 @@ void irr::video::CVulkanDriver::initialize(void* param)
     instanceInfo.ppEnabledExtensionNames = extensions;
 
     VkResult result = vkCreateInstance(&instanceInfo, VulkanDevice::gVulkanAllocator, &mInstance);
+    if (result != VK_SUCCESS)
+    {
+        --instanceInfo.enabledExtensionCount;
+        result = vkCreateInstance(&instanceInfo, VulkanDevice::gVulkanAllocator, &mInstance);
+    }
     assert(result == VK_SUCCESS);
 
     vk::Instance _instance(mInstance);
+
+#if VK_HEADER_VERSION <= 82
     VulkanDispatcherExt.init(_instance);
+#else
+    auto m_hVulkanDLL = LoadLibrary("vulkan-1.dll");
+    PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = PFN_vkGetInstanceProcAddr(GetProcAddress(m_hVulkanDLL, "vkGetInstanceProcAddr"));
+
+    VulkanDispatcherExt.init(_instance, vkGetInstanceProcAddr);
+#endif
 
     // Set up debugging
 #if VULKAN_DEBUG_MODE
@@ -341,8 +364,10 @@ void irr::video::CVulkanDriver::initialize(void* param)
     debugInfo.pUserData = this;
 
     if (VulkanDispatcherExt.vkCreateDebugReportCallbackEXT)
+    {
         result = VulkanDispatcherExt.vkCreateDebugReportCallbackEXT(mInstance, &debugInfo, VulkanDevice::gVulkanAllocator, &mDebugCallback);
-    assert(result == VK_SUCCESS);
+        assert(result == VK_SUCCESS);
+    }
 #endif
 
     // Enumerate all devices
@@ -354,7 +379,6 @@ void irr::video::CVulkanDriver::initialize(void* param)
     assert(result == VK_SUCCESS);
 
     mPrimaryDevices = nullptr;
-    memset(mDevices, 0, sizeof(mDevices));
 
     for (uint32_t i = 0; i < mNumDevices; i++)
         if (i < _MAX_DEVICES)
@@ -596,6 +620,16 @@ bool irr::video::CVulkanDriver::endScene()
     return true;
 }
 
+void irr::video::CVulkanDriver::beginInstrumentEvent(const wchar_t* wlabel, const char* label, SColor color)
+{
+    VulkanUtility::beginRegion(*mMainCommandBuffer->getInternal(), label, color);
+}
+
+void irr::video::CVulkanDriver::endInstrumentEvent()
+{
+    VulkanUtility::endRegion(*mMainCommandBuffer->getInternal());
+}
+
 bool irr::video::CVulkanDriver::queryFeature(E_VIDEO_DRIVER_FEATURE feature) const
 {
     return true;
@@ -666,9 +700,17 @@ IRenderTarget* irr::video::CVulkanDriver::addRenderTarget()
 }
 
 bool irr::video::CVulkanDriver::setRenderTargetEx(IRenderTarget* target, u16 clearFlag, SColor clearColor /*= SColor(255, 0, 0, 0)*/,
-                                    f32 clearDepth /*= 1.f*/, u8 clearStencil /*= 0*/)
+                                    f32 clearDepth /*= 1.f*/, u8 clearStencil /*= 0*/, core::array<core::recti>* scissors)
 {
-    mMainCommandBuffer->getInternal()->setRenderTarget(target, 0, RenderSurfaceMaskBits(RenderSurfaceMaskBits::RT_DEPTH_STENCIL | RenderSurfaceMaskBits::RT_ALL), true);
+    u32 loadMask = 0;
+    if (~clearFlag & ECBF_COLOR)
+        loadMask |= RenderSurfaceMaskBits::RT_ALL;
+    if (~clearFlag & ECBF_DEPTH)
+        loadMask |= RenderSurfaceMaskBits::RT_DEPTH;
+    if (~clearFlag & ECBF_STENCIL)
+        loadMask |= RenderSurfaceMaskBits::RT_STENCIL;
+
+    mMainCommandBuffer->getInternal()->setRenderTarget(target, 0, RenderSurfaceMaskBits(loadMask), true);
 
     u16 _vkClearFlags = 0;
     if (clearFlag & ECBF_COLOR)
@@ -691,6 +733,11 @@ bool irr::video::CVulkanDriver::setRenderTarget(ITexture* texture, u16 clearFlag
 void irr::video::CVulkanDriver::setViewPort(const core::rect<s32>& area)
 {
     mMainCommandBuffer->getInternal()->setViewport(area);
+}
+
+void irr::video::CVulkanDriver::setScissorRect(const core::rect<s32>& rect)
+{
+    mMainCommandBuffer->getInternal()->setScissorRect(rect);
 }
 
 const core::rect<s32>& irr::video::CVulkanDriver::getViewPort() const
@@ -1066,7 +1113,7 @@ void irr::video::CVulkanDriver::drawMeshBuffer(const scene::IMeshBuffer * mb, sc
 
         // copy vertices to dynamic buffers, if needed
         uploadVertexData(mb->getVertices(), mb->getVertexCount(), mb->getIndices(), mb->getIndexCount(), mb->getVertexType(), mb->getIndexType());
-        HWBuffer = DynamicHardwareBuffer[mb->getVertexType()];
+        HWBuffer = static_cast<CVulkanGLSLProgram*>(GetActiveShader())->DynamicHardwareBuffer;
         if (!HWBuffer->IsBinded() || !HWBuffer->IsManualBind())
         {
             HWBuffer->Bind();
@@ -1085,7 +1132,7 @@ void irr::video::CVulkanDriver::drawMeshBuffer(const scene::IMeshBuffer * mb, sc
 
     u32 instanceCount = (!mesh || mesh->IsInstanceModeAvailable()) && mb->getStreamBuffer() ? mb->getStreamBuffer()->size() : 1;
 
-    HWBuffer->GetCommandBuffer()->getInternal()->drawIndexed(mb->GetIndexRangeStart(), mb->GetIndexRangeCount(), 0, instanceCount);
+    HWBuffer->GetCommandBuffer()->getInternal()->drawIndexed(mb->GetIndexRangeStart(), mb->GetIndexRangeCount(), mb->GetBaseVertexLocation(), instanceCount);
 
     if (HWBuffer && !HWBuffer->IsManualBind())
         HWBuffer->Unbind();
@@ -1330,6 +1377,10 @@ u32 irr::video::CVulkanDriver::getMaximalPrimitiveCount() const
 
 void irr::video::CVulkanDriver::setTextureCreationFlag(E_TEXTURE_CREATION_FLAG flag, bool enabled)
 {
+    if (flag == video::ETCF_CREATE_MIP_MAPS && !queryFeature(EVDF_MIP_MAP))
+        enabled = false;
+
+    CNullDriver::setTextureCreationFlag(flag, enabled);
 }
 
 void irr::video::CVulkanDriver::setFog(SColor color, E_FOG_TYPE fogType, f32 start, f32 end, f32 density, bool pixelFog, bool rangeFog)
@@ -1388,9 +1439,14 @@ IVideoDriver * irr::video::CVulkanDriver::getVideoDriver()
     return this;
 }
 
-ITexture * irr::video::CVulkanDriver::addRenderTargetTexture(const core::dimension2d<u32>& size, const io::path & name, const ECOLOR_FORMAT format)
+ITexture * irr::video::CVulkanDriver::addRenderTargetTexture(const core::dimension2d<u32>& size, const io::path & name, const ECOLOR_FORMAT format, u8 sampleCount)
 {
-    auto _format = format;
+    VkSampleCountFlagBits sampleDesc = _getSwapChain()->getBackBuffer().framebuffer->getSampleFlags();
+    if (sampleCount)
+        sampleDesc = VkSampleCountFlagBits(sampleCount);
+
+    ECOLOR_FORMAT _format = format;
+    // ToDo:: multiple render pass when use different color format
     if (IImage::isDepthFormat(format))
     {
         _format = VulkanUtility::getPixelFormat(_getSwapChain()->getBackBuffer().framebufferDesc.depth.format);
@@ -1400,10 +1456,11 @@ ITexture * irr::video::CVulkanDriver::addRenderTargetTexture(const core::dimensi
         _format = VulkanUtility::getPixelFormat(_getSwapChain()->getBackBuffer().framebufferDesc.color[0].format);
     }
 
-    ITexture* tex = new CVulkanTexture(this, size, name, _format, 1, 1, 0);
+    ITexture* tex = new CVulkanTexture(this, size, name, _format, 1, sampleDesc, 0);
     if (tex)
     {
-        checkDepthBuffer(tex);
+        if (IImage::isRenderTargetOnlyFormat(format))
+            checkDepthBuffer(tex);
         addTexture(tex);
         tex->drop();
     }
@@ -1634,6 +1691,19 @@ IShader * irr::video::CVulkanDriver::createShader(ShaderInitializerEntry * shade
 
         stage->DataStream->Seek(stage->DataStreamOffset, false);
         gpuProgram->CreateShaderModul(stage->ShaderStageType, this, stage->DataStream, ShaderEntryPoint, ShaderModel);
+
+        switch (stage->ShaderStageType)
+        {
+        case E_SHADER_TYPES::EST_VERTEX_SHADER:
+            VulkanUtility::setObjectNamef(*_getPrimaryDevice(), (uint64_t)* gpuProgram->GetShaderModule(stage->ShaderStageType), VkObjectType::VK_OBJECT_TYPE_SHADER_MODULE, "%s_VS", stage->DataStream->FileName.c_str());
+            break;
+        case E_SHADER_TYPES::EST_GEOMETRY_SHADER:
+            VulkanUtility::setObjectNamef(*_getPrimaryDevice(), (uint64_t)* gpuProgram->GetShaderModule(stage->ShaderStageType), VkObjectType::VK_OBJECT_TYPE_SHADER_MODULE, "%s_GS", stage->DataStream->FileName.c_str());
+            break;
+        case E_SHADER_TYPES::EST_FRAGMENT_SHADER:
+            VulkanUtility::setObjectNamef(*_getPrimaryDevice(), (uint64_t)* gpuProgram->GetShaderModule(stage->ShaderStageType), VkObjectType::VK_OBJECT_TYPE_SHADER_MODULE, "%s_PS", stage->DataStream->FileName.c_str());
+            break;
+        }
     }
 
     for (auto cbEntry : shaderCreateInfo->Callback)
@@ -1663,17 +1733,11 @@ void irr::video::CVulkanDriver::createMaterialRenderers()
 
 void irr::video::CVulkanDriver::draw2D3DVertexPrimitiveList(const void * vertices, u32 vertexCount, const void * indexList, u32 primitiveCount, E_VERTEX_TYPE vType, scene::E_PRIMITIVE_TYPE pType, E_INDEX_TYPE iType, bool is3D)
 {
-    if (GetActiveShader() != m_defaultShader[vType])
-    {
+    if (vType < E_VERTEX_TYPE::EVT_MAX_VERTEX_TYPE && GetActiveShader() != m_defaultShader[vType])
         SetShader(m_defaultShader[vType]);
-    }
-
     _IRR_DEBUG_BREAK_IF(!GetActiveShader());
 
     size_t indexCount = VulkanUtility::getIndexAmount(pType, primitiveCount);
-
-    //if (!indexCount)
-    //    return;
 
     uploadVertexData(vertices, vertexCount, indexList, indexCount, vType, iType);
 
@@ -1682,19 +1746,19 @@ void irr::video::CVulkanDriver::draw2D3DVertexPrimitiveList(const void * vertice
         return;
 #endif
 
-    DynamicHardwareBuffer[vType]->GetPipeline(0)->update(0, GetMaterial(), pType);
+    auto HWBuffer = static_cast<CVulkanGLSLProgram*>(GetActiveShader())->DynamicHardwareBuffer;
+    HWBuffer->GetPipeline(0)->update(0, GetMaterial(), pType);
+    HWBuffer->Bind();
 
-    DynamicHardwareBuffer[vType]->Bind();
-
-    InitDrawStates(DynamicHardwareBuffer[vType], pType);
-    SyncShaderConstant(DynamicHardwareBuffer[vType]);
+    InitDrawStates(HWBuffer, pType);
+    SyncShaderConstant(HWBuffer);
 
     if (!indexCount)
-        DynamicHardwareBuffer[vType]->GetCommandBuffer()->getInternal()->draw(0, vertexCount, 1);
+        HWBuffer->GetCommandBuffer()->getInternal()->draw(0, vertexCount, 1);
     else
-        DynamicHardwareBuffer[vType]->GetCommandBuffer()->getInternal()->drawIndexed(0, indexCount, 0, 1);
+        HWBuffer->GetCommandBuffer()->getInternal()->drawIndexed(0, indexCount, 0, 1);
 
-    DynamicHardwareBuffer[vType]->Unbind();
+    HWBuffer->Unbind();
 }
 
 bool irr::video::CVulkanDriver::setRenderStates3DMode()
@@ -1841,37 +1905,52 @@ bool irr::video::CVulkanDriver::reallocateDynamicBuffers(u32 vertexBufferSize, u
 
 bool irr::video::CVulkanDriver::uploadVertexData(const void * vertices, u32 vertexCount, const void * indexList, u32 indexCount, E_VERTEX_TYPE vType, E_INDEX_TYPE iType)
 {
-    if (!DynamicHardwareBuffer[vType])
-    {
-        irr::video::CVulkanGLSLProgram* _vkShader = static_cast<irr::video::CVulkanGLSLProgram*>(m_defaultShader[vType]);
+    u32 vertexStride;
+    irr::video::CVulkanGLSLProgram* _vkShader = static_cast<irr::video::CVulkanGLSLProgram*>(GetActiveShader());
+    if (!_vkShader)
+        return false;
 
-        DynamicHardwareBuffer[vType] = new CVulkanHardwareBuffer(this, E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, 0);
+    CVulkanVertexDeclaration* vertexDecl = static_cast<CVulkanVertexDeclaration*>(GetVertexDeclaration(vType));
+    {
+        if (vType >= E_VERTEX_TYPE::EVT_MAX_VERTEX_TYPE)
+        {
+            vertexStride = vertexDecl->GetVertexPitch(0);
+        }
+        else
+        {
+            vertexStride = getVertexPitchFromType(vType);
+        }
+    }
+
+    if (!_vkShader->DynamicHardwareBuffer)
+    {
+        _vkShader->DynamicHardwareBuffer = irr::MakePtr<CVulkanHardwareBuffer>(this, E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, 0);
 
         if (vertices)
-            DynamicHardwareBuffer[vType]->UpdateBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, vertices, getVertexPitchFromType(vType) * vertexCount);
+            _vkShader->DynamicHardwareBuffer->UpdateBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, vertices, vertexStride * vertexCount);
 
         if (indexList)
-            DynamicHardwareBuffer[vType]->UpdateBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_INDEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, indexList, indexCount * (iType == E_INDEX_TYPE::EIT_32BIT ? sizeof(u32) : sizeof(u16)));
+            _vkShader->DynamicHardwareBuffer->UpdateBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_INDEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, indexList, indexCount * (iType == E_INDEX_TYPE::EIT_32BIT ? sizeof(u32) : sizeof(u16)));
 
-        VulkanGraphicsPipelineState*& pipeline = mPipelines[_vkShader][static_cast<CVulkanVertexDeclaration*>(GetVertexDeclaration(vType))];
+        VulkanGraphicsPipelineState*& pipeline = mPipelines[_vkShader][vertexDecl];
         if (!pipeline)
         {
             pipeline = new VulkanGraphicsPipelineState(GetMaterial(), _vkShader, static_cast<CVulkanVertexDeclaration*>(GetVertexDeclaration(vType)), GpuDeviceFlags::GDF_PRIMARY);
             pipeline->initialize();
         }
 
-        DynamicHardwareBuffer[vType]->SetCommandBuffer(mMainCommandBuffer);
-        DynamicHardwareBuffer[vType]->SetPipeline(0, pipeline); // new VulkanGraphicsPipelineState(GetMaterial(), _vkShader, static_cast<CVulkanVertexDeclaration*>(GetVertexDeclaration(vType)), GpuDeviceFlags::GDF_PRIMARY));
+        _vkShader->DynamicHardwareBuffer->SetCommandBuffer(mMainCommandBuffer);
+        _vkShader->DynamicHardwareBuffer->SetPipeline(0, pipeline); // new VulkanGraphicsPipelineState(GetMaterial(), _vkShader, static_cast<CVulkanVertexDeclaration*>(GetVertexDeclaration(vType)), GpuDeviceFlags::GDF_PRIMARY));
 
-        DynamicHardwareBuffer[vType]->SetGpuParams(0, _vkShader->GetDefaultGpuParams());
+        _vkShader->DynamicHardwareBuffer->SetGpuParams(0, _vkShader->GetDefaultGpuParams());
     }
     else
     {
         if (vertices)
-            DynamicHardwareBuffer[vType]->UpdateBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, vertices, getVertexPitchFromType(vType) * vertexCount);
+            _vkShader->DynamicHardwareBuffer->UpdateBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, vertices, vertexStride * vertexCount);
 
         if (indexList)
-            DynamicHardwareBuffer[vType]->UpdateBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_INDEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, indexList, indexCount * (iType == E_INDEX_TYPE::EIT_32BIT ? sizeof(u32) : sizeof(u16)));
+            _vkShader->DynamicHardwareBuffer->UpdateBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_INDEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, indexList, indexCount * (iType == E_INDEX_TYPE::EIT_32BIT ? sizeof(u32) : sizeof(u16)));
     }
 
     return true;
@@ -1897,6 +1976,11 @@ namespace irr
             }
 
             return driver;
+        }
+
+        void loadVulkanShaderCache(System::IO::IFileReader* file)
+        {
+            VKLoadShaderCache(file);
         }
     }
 }

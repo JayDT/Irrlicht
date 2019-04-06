@@ -8,7 +8,7 @@
 #include "ILogger.h"
 #include "Keycodes.h"
 #include "irrString.h"
-#include "standard/events.h"
+//#include "standard/events.h"
 
 namespace irr
 {
@@ -66,6 +66,17 @@ namespace irr
 		MacOS: Not yet implemented
 		*/
 		EET_USER_EVENT,
+
+        //! A mouse input event.
+        /** Mouse events are created by the device and passed to IrrlichtDevice::postEventFromUser
+        in response to mouse input received from the operating system.
+        Mouse events are first passed to the user receiver, then to the GUI environment and its elements,
+        then finally the input receiving scene manager where it is passed to the active camera.
+        */
+        EET_TOUCH_INPUT_EVENT,
+
+        //! A platform os window events dispatch
+        EET_WINDOW_EVENT,
 
 		//! This enum is never used, it only forces the compiler to
 		//! compile these enumeration values to 32 bit.
@@ -128,6 +139,25 @@ namespace irr
 		//! No real event. Just for convenience to get number of events
 		EMIE_COUNT
 	};
+
+    //! Enumeration for all mouse input events
+    enum ETOUCH_INPUT_EVENT
+    {
+        //! Left touch pointer was down.
+        ETIE_NONE = 0,
+
+        //! Left touch pointer was down.
+        ETIE_TOUCH_DOWN,
+
+        //! Left touch pointer was up.
+        ETIE_TOUCH_UP,
+
+        //! The touch pointer changed.
+        ETIE_POINTER_UPDATE,
+
+        //! No real event. Just for convenience to get number of events
+        ETIE_COUNT
+    };
 
 	//! Masks for mouse button states
 	enum E_MOUSE_BUTTON_STATE_MASK
@@ -427,6 +457,59 @@ struct SEvent
 		s32 UserData2;
 	};
 
+    //! Any kind of mouse event.
+    struct STouchInput
+    {
+        u32 Id;
+
+        //! X position of cursor
+        s32 X;
+
+        //! Y position of cursor
+        s32 Y;
+
+        //! A bitmap of button states. You can use isButtonPressed() to determine
+        //! if a button is pressed or not.
+        //! Currently only valid if the event was EMIE_MOUSE_MOVED
+        u32 States;
+
+        //! Type of mouse event
+        ETOUCH_INPUT_EVENT Event;
+    };
+
+    //! Any kind of user event.
+    struct SWindowEvent
+    {
+        enum EventType
+        {
+            IWE_MOVE = 0,
+            IWE_SIZE,
+            IWE_ACTIVATE,
+            IWE_DROPFILES,
+            IWE_DESTROY,
+            IWE_CLOSE,
+
+        };
+
+        enum WndState
+        {
+            WNS_RESTORED = 0,
+            WNS_MAXIMIZED,
+            WNS_MINIMAIZE
+        };
+
+        SWindowEvent::EventType Event;
+
+        // ToDo: cleanup
+        u32 Param0;
+        u32 Param1;
+
+        float FParam0;
+        float FParam1;
+
+        wchar_t* UnicodeParam;
+    };
+
 	EEVENT_TYPE EventType;
 	union
 	{
@@ -437,20 +520,22 @@ struct SEvent
 		struct SLogEvent LogEvent;
 		struct SUserEvent UserEvent;
         struct STimerEvent TimerEvent;
+        struct STouchInput TouchEvent;
+        struct SWindowEvent WindowEvent;
 	};
 
 };
 
-struct GUIEventArg : System::Events::EventArg
+struct GUIEventArg //: System::Events::EventArg
 {
-    GUIEventArg() : System::Events::EventArg(), eHandled(false)
+    GUIEventArg() : eHandled(false)
     {
 
     }
 
     virtual ~GUIEventArg() {}
 
-    virtual std::string ToString() const { return "GUIEventArg"; }
+    //virtual std::string ToString() const { return "GUIEventArg"; }
 
     SEvent eData;
     bool eHandled;

@@ -220,7 +220,7 @@ int main()
 	more. This would be when the user closes the window or presses ALT+F4
 	(or whatever keycode closes a window).
 	*/
-    uint16 count = 0;
+    u16 count = 0;
     s32 lastFps = 0;
 	while(device->run())
 	{

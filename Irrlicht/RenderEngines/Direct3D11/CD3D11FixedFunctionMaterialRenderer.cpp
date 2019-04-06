@@ -556,12 +556,12 @@ void irr::video::CD3D11MaterialRenderer_ONETEXTURE_BLEND::OnSetMaterial(const SM
             transparent = true;
 
             auto& renderTarget0 = blendDesc.RenderTarget[0];
-            auto SrcBlend = getD3DBlend(srcFact); //SrcBlendAlpha
-            auto DestBlend = getD3DBlend(dstFact);
-            auto BlendOp = getD3DBlendOp(blendOp);
-            auto SrcBlendAlpha = getD3DBlend(srcFactAlpha); //SrcBlendAlpha
-            auto DestBlendAlpha = getD3DBlend(dstFactAlpha);
-            auto BlendOpAlpha = getD3DBlendOp(blendOpAlpha);
+            auto SrcBlend = DirectXUtil::getD3DBlend(srcFact); //SrcBlendAlpha
+            auto DestBlend = DirectXUtil::getD3DBlend(dstFact);
+            auto BlendOp = DirectXUtil::getD3DBlendOp(blendOp);
+            auto SrcBlendAlpha = DirectXUtil::getD3DBlend(srcFactAlpha); //SrcBlendAlpha
+            auto DestBlendAlpha = DirectXUtil::getD3DBlend(dstFactAlpha);
+            auto BlendOpAlpha = DirectXUtil::getD3DBlendOp(blendOpAlpha);
 
             if (!renderTarget0.BlendEnable ||
                 renderTarget0.RenderTargetWriteMask != D3D11_COLOR_WRITE_ENABLE_ALL ||

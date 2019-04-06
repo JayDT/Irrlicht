@@ -20,7 +20,7 @@
 #include "EDriverFeatures.h"
 #include "SExposedVideoData.h"
 #include "IRenderTarget.h"
-#include "standard/client/idatasourceclient.h"
+//#include "standard/client/idatasourceclient.h"
 
 namespace irr
 {
@@ -47,6 +47,7 @@ namespace video
 	struct S3DVertexTangents;
 	struct SLight;
     struct VertexDeclaration;
+    struct IUserShaderData;
 	class IImageLoader;
 	class IImageWriter;
 	class IMaterialRenderer;
@@ -456,7 +457,7 @@ namespace video
         could not be created. This pointer should not be dropped. See
         IReferenceCounted::drop() for more information. */
         virtual ITexture* addRenderTargetTexture(const core::dimension2d<u32>& size,
-            const io::path& name = "rt", const ECOLOR_FORMAT format = ECF_UNKNOWN) = 0;
+            const io::path& name = "rt", const ECOLOR_FORMAT format = ECF_UNKNOWN, u8 sampleCount = 0) = 0;
 
 		//! Removes a texture from the texture cache and deletes it.
 		/** This method can free a lot of memory!
@@ -593,7 +594,7 @@ namespace video
         \param clearStencil The clear value for the stencil buffer.
         \return True if successful and false if not. */
         virtual bool setRenderTargetEx(IRenderTarget* target, u16 clearFlag, SColor clearColor = SColor(255, 0, 0, 0),
-            f32 clearDepth = 1.f, u8 clearStencil = 0) = 0;
+            f32 clearDepth = 1.f, u8 clearStencil = 0, core::array<core::recti>* scissors = nullptr) = 0;
 
         //! Sets a new render target.
         /** This will only work if the driver supports the
@@ -648,6 +649,12 @@ namespace video
 		\param area: Rectangle defining the new area of rendering
 		operations. */
 		virtual void setViewPort(const core::rect<s32>& area) =0;
+
+        //! Sets a new scissor.
+        /** The Scissor is a Per-Sample Processing operation that discards Fragments
+        that fall outside of a certain rectangular portion of the screen.
+        */
+        virtual void setScissorRect(const core::rect<s32>& rect) = 0;
 
 		//! Gets the area of the current viewport.
 		/** \return Rectangle of the current viewport. */
@@ -1529,6 +1536,9 @@ namespace video
 
         virtual E_RENDER_MODE GetCurrentRenderMode() const = 0;
         virtual SColorf const& GetAmbientLight() const = 0;
+
+		virtual void beginInstrumentEvent(const wchar_t* wlabel, const char* label, SColor color = SColor(255, 0, 0, 0)) {}
+		virtual void endInstrumentEvent() {}
 	};
 
 } // end namespace video

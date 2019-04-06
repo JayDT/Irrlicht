@@ -148,162 +148,162 @@ CGUIEnvironment::CGUIEnvironment(IrrlichtDevice* device, io::IFileSystem* fs, vi
 
 void CGUIEnvironment::DockGUIElement(E_WINDOW_DOCK_TYPE dockType, IGUIElement* guielement)
 {
-    if (!guielement->IsDockable())
-        return;
-
-    if (dockType == EWD_UNDOCKED)
-    {
-        if (guielement->getDockInfo())
-        {
-            dockType = guielement->getDockInfo()->dockType;
-            auto iDockElement = GUIDockedElements[dockType].find(guielement);
-            if (iDockElement != GUIDockedElements[dockType].end())
-            {
-                //TODO:
-                // - find optimal parent (OK)
-                // - reposition all button
-
-                auto dockInfo = guielement->getDockInfo();
-                auto cursorPos = GetDevice()->getCursorControl()->getPosition();
-                auto scale = (float)guielement->getAbsolutePosition().UpperLeftCorner.getLength() / (float)dockInfo->originalSize.UpperLeftCorner.getLength();
-                auto rectrel = guielement->getAbsolutePosition().UpperLeftCorner - cursorPos;
-
-                rectrel.X = ceil((float)rectrel.X * scale);
-
-                guielement->AddActionModeFlags(EAMF_ALL_CONTROL);
-                guielement->setRelativePosition(dockInfo->originalSize);
-                dockInfo->dockButton->remove();
-                guielement->setDockState(false, nullptr);
-
-                //IGUIElement* optimalParent = IGUIElement::getElementFromPoint(guielement->getAbsolutePosition().UpperLeftCorner, guielement);
-                //if (optimalParent)
-                //    optimalParent->addChild(guielement);
-
-                if (Parent && (!Parent->getAbsolutePosition().isPointInside(cursorPos + rectrel)))
-                {
-                    cursorPos = Parent->getRelativePosition().UpperLeftCorner;
-                    rectrel = core::position2di();
-                }
-
-                guielement->setRelativePosition((cursorPos + rectrel) - guielement->getParent()->getRelativePosition().UpperLeftCorner);
-                // gui window should not be dragged outside its parent
-                guielement->updateAbsolutePosition();
-
-                if (guielement->getType() == EGUIET_WINDOW)
-                {
-                    ((gui::IGUIWindow*)guielement)->OnClose -= [&](void* window, GUIEventArg& arg)
-                    {
-                        DockGUIElement(EWD_UNDOCKED, (IGUIElement*)window);
-                    };
-                }
-                else
-                {
-                    guielement->OnDispose -= [&](void* window, GUIEventArg& arg)
-                    {
-                        DockGUIElement(EWD_UNDOCKED, (IGUIElement*)window);
-                    };
-                }
-
-                GUIDockedElements[dockType].erase(iDockElement);
-            }
-        }
-        return;
-    }
-
-    DockedElementInfo& dockDesc = GUIDockedElements[dockType][guielement];
-    dockDesc.dockType       = dockType;
-    dockDesc.dockButton     = nullptr;
-    dockDesc.dockElement    = guielement;
-    dockDesc.originalSize   = guielement->getRelativePosition();
-
-    auto font = Environment->getSkin()->getFont();
-
-    int Yoffset = 0;
-    for (auto docked : GUIDockedElements[dockType])
-    {
-        if (docked.first != guielement)
-        {
-            auto dimFont = font->getDimension(guielement->getText());
-            Yoffset += dimFont.Width + 5;
-        }
-    }
-
-    int dockCount = GUIDockedElements[dockType].size();
-
-    auto dimFont = font->getDimension(guielement->getText());
-    core::recti brect(0, 0, dimFont.Width ? dimFont.Width + 3 : 18, dimFont.Height ? dimFont.Height : 18);
-
-    dockDesc.dockButton = addButton(brect);
-    dockDesc.dockButton->setSubElement(true);
-    dockDesc.dockButton->setText(guielement->getText());
-    dockDesc.dockButton->OnClicked += getDelegateMgr()(&DockedElementInfo::DockShowOrHide, &dockDesc, GUIEventArg());
-    //guielement->RemoveActionModeFlags(EAMF_MOVE);
-
-    switch (dockType)
-    {
-        case EWD_DOCK_LEFT:
-        {
-            guielement->setRelativePosition(core::recti(20, 0, std::max(dockDesc.originalSize.LowerRightCorner.X, (int)m_screenSize.Width / 4), m_screenSize.Height));
-            guielement->RemoveActionModeFlags(EAMF_RESIZE_B | EAMF_RESIZE_BL | EAMF_RESIZE_BR | EAMF_RESIZE_L | EAMF_RESIZE_T | EAMF_RESIZE_TL | EAMF_RESIZE_TR);
-
-            dockDesc.dockButton->setRotation(core::vector3df(-90, 0, 0));
-            dockDesc.dockButton->setRelativePosition(core::position2di(dimFont.Height + 1, Yoffset + 20));
-            //dockDesc.dockButton->updateAbsolutePosition();
-            break;
-        }
-        case EWD_DOCK_RIGHT:
-        {
-            guielement->setRelativePosition(core::recti(std::min(dockDesc.originalSize.UpperLeftCorner.X, (int)(m_screenSize.Width / 4) * 3), 0, m_screenSize.Width - 20, m_screenSize.Height));
-            guielement->RemoveActionModeFlags(EAMF_RESIZE_B | EAMF_RESIZE_BL | EAMF_RESIZE_BR | EAMF_RESIZE_R | EAMF_RESIZE_T | EAMF_RESIZE_TL | EAMF_RESIZE_TR);
-
-            dockDesc.dockButton->setRotation(core::vector3df(-90, 0, 0));
-            dockDesc.dockButton->setRelativePosition(core::position2di(m_screenSize.Width - 3, Yoffset + 20));
-            //dockDesc.dockButton->updateAbsolutePosition();
-            break;
-        }
-        case EWD_DOCK_TOP:
-        {
-            guielement->setRelativePosition(core::recti(0, 20, m_screenSize.Width, std::max(dockDesc.originalSize.LowerRightCorner.Y, (int)m_screenSize.Height / 4)));
-            guielement->RemoveActionModeFlags(EAMF_RESIZE_R | EAMF_RESIZE_BL | EAMF_RESIZE_BR | EAMF_RESIZE_L | EAMF_RESIZE_T | EAMF_RESIZE_TL | EAMF_RESIZE_TR);
-
-            dockDesc.dockButton->setRotation(core::vector3df(0, 0, 0));
-            dockDesc.dockButton->setRelativePosition(core::position2di(Yoffset + 20, 1));
-            //dockDesc.dockButton->updateAbsolutePosition();
-            break;
-        }
-        case EWD_DOCK_BOTTOM:
-        {
-            guielement->setRelativePosition(core::recti(0, std::min(dockDesc.originalSize.UpperLeftCorner.Y, (int)(m_screenSize.Height / 4) * 3), m_screenSize.Width, m_screenSize.Height - 20));
-            guielement->RemoveActionModeFlags(EAMF_RESIZE_R | EAMF_RESIZE_BL | EAMF_RESIZE_BR | EAMF_RESIZE_B | EAMF_RESIZE_T | EAMF_RESIZE_TL | EAMF_RESIZE_TR);
-
-            dockDesc.dockButton->setRotation(core::vector3df(0, 0, 0));
-            dockDesc.dockButton->setRelativePosition(core::position2di(Yoffset + 20, m_screenSize.Height - dimFont.Height - 1));
-            //dockDesc.dockButton->updateAbsolutePosition();
-            break;
-        }
-    }
-
-    addChild(guielement);
-    guielement->setDockState(true, &dockDesc);
-    GUIDockedElements[dockType][guielement] = dockDesc;
-
-    if (guielement->isVisible() && guielement->IsCanDockHide() && getFocus() != guielement)
-        guielement->setVisible(!guielement->isVisible());
-
-    if (guielement->getType() == EGUIET_WINDOW)
-    {
-        ((gui::IGUIWindow*)guielement)->OnClose += [&](void* window, GUIEventArg& arg)
-        {
-            DockGUIElement(EWD_UNDOCKED, (IGUIElement*)window);
-        };
-    }
-    else
-    {
-        guielement->OnDispose += [&](void* window, GUIEventArg& arg)
-        {
-            DockGUIElement(EWD_UNDOCKED, (IGUIElement*)window);
-        };
-    }
+    //if (!guielement->IsDockable())
+    //    return;
+	//
+    //if (dockType == EWD_UNDOCKED)
+    //{
+    //    if (guielement->getDockInfo())
+    //    {
+    //        dockType = guielement->getDockInfo()->dockType;
+    //        auto iDockElement = GUIDockedElements[dockType].find(guielement);
+    //        if (iDockElement != GUIDockedElements[dockType].end())
+    //        {
+    //            //TODO:
+    //            // - find optimal parent (OK)
+    //            // - reposition all button
+	//
+    //            auto dockInfo = guielement->getDockInfo();
+    //            auto cursorPos = GetDevice()->getCursorControl()->getPosition();
+    //            auto scale = (float)guielement->getAbsolutePosition().UpperLeftCorner.getLength() / (float)dockInfo->originalSize.UpperLeftCorner.getLength();
+    //            auto rectrel = guielement->getAbsolutePosition().UpperLeftCorner - cursorPos;
+	//
+    //            rectrel.X = ceil((float)rectrel.X * scale);
+	//
+    //            guielement->AddActionModeFlags(EAMF_ALL_CONTROL);
+    //            guielement->setRelativePosition(dockInfo->originalSize);
+    //            dockInfo->dockButton->remove();
+    //            guielement->setDockState(false, nullptr);
+	//
+    //            //IGUIElement* optimalParent = IGUIElement::getElementFromPoint(guielement->getAbsolutePosition().UpperLeftCorner, guielement);
+    //            //if (optimalParent)
+    //            //    optimalParent->addChild(guielement);
+	//
+    //            if (Parent && (!Parent->getAbsolutePosition().isPointInside(cursorPos + rectrel)))
+    //            {
+    //                cursorPos = Parent->getRelativePosition().UpperLeftCorner;
+    //                rectrel = core::position2di();
+    //            }
+	//
+    //            guielement->setRelativePosition((cursorPos + rectrel) - guielement->getParent()->getRelativePosition().UpperLeftCorner);
+    //            // gui window should not be dragged outside its parent
+    //            guielement->updateAbsolutePosition();
+	//
+    //            if (guielement->getType() == EGUIET_WINDOW)
+    //            {
+    //                ((gui::IGUIWindow*)guielement)->OnClose -= [&](void* window, GUIEventArg& arg)
+    //                {
+    //                    DockGUIElement(EWD_UNDOCKED, (IGUIElement*)window);
+    //                };
+    //            }
+    //            else
+    //            {
+    //                guielement->OnDispose -= [&](void* window, GUIEventArg& arg)
+    //                {
+    //                    DockGUIElement(EWD_UNDOCKED, (IGUIElement*)window);
+    //                };
+    //            }
+	//
+    //            GUIDockedElements[dockType].erase(iDockElement);
+    //        }
+    //    }
+    //    return;
+    //}
+	//
+    //DockedElementInfo& dockDesc = GUIDockedElements[dockType][guielement];
+    //dockDesc.dockType       = dockType;
+    //dockDesc.dockButton     = nullptr;
+    //dockDesc.dockElement    = guielement;
+    //dockDesc.originalSize   = guielement->getRelativePosition();
+	//
+    //auto font = Environment->getSkin()->getFont();
+	//
+    //int Yoffset = 0;
+    //for (auto docked : GUIDockedElements[dockType])
+    //{
+    //    if (docked.first != guielement)
+    //    {
+    //        auto dimFont = font->getDimension(guielement->getText());
+    //        Yoffset += dimFont.Width + 5;
+    //    }
+    //}
+	//
+    //int dockCount = GUIDockedElements[dockType].size();
+	//
+    //auto dimFont = font->getDimension(guielement->getText());
+    //core::recti brect(0, 0, dimFont.Width ? dimFont.Width + 3 : 18, dimFont.Height ? dimFont.Height : 18);
+	//
+    //dockDesc.dockButton = addButton(brect);
+    //dockDesc.dockButton->setSubElement(true);
+    //dockDesc.dockButton->setText(guielement->getText());
+    //dockDesc.dockButton->OnClicked += getDelegateMgr()(&DockedElementInfo::DockShowOrHide, &dockDesc, GUIEventArg());
+    ////guielement->RemoveActionModeFlags(EAMF_MOVE);
+	//
+    //switch (dockType)
+    //{
+    //    case EWD_DOCK_LEFT:
+    //    {
+    //        guielement->setRelativePosition(core::recti(20, 0, std::max(dockDesc.originalSize.LowerRightCorner.X, (int)m_screenSize.Width / 4), m_screenSize.Height));
+    //        guielement->RemoveActionModeFlags(EAMF_RESIZE_B | EAMF_RESIZE_BL | EAMF_RESIZE_BR | EAMF_RESIZE_L | EAMF_RESIZE_T | EAMF_RESIZE_TL | EAMF_RESIZE_TR);
+	//
+    //        dockDesc.dockButton->setRotation(core::vector3df(-90, 0, 0));
+    //        dockDesc.dockButton->setRelativePosition(core::position2di(dimFont.Height + 1, Yoffset + 20));
+    //        //dockDesc.dockButton->updateAbsolutePosition();
+    //        break;
+    //    }
+    //    case EWD_DOCK_RIGHT:
+    //    {
+    //        guielement->setRelativePosition(core::recti(std::min(dockDesc.originalSize.UpperLeftCorner.X, (int)(m_screenSize.Width / 4) * 3), 0, m_screenSize.Width - 20, m_screenSize.Height));
+    //        guielement->RemoveActionModeFlags(EAMF_RESIZE_B | EAMF_RESIZE_BL | EAMF_RESIZE_BR | EAMF_RESIZE_R | EAMF_RESIZE_T | EAMF_RESIZE_TL | EAMF_RESIZE_TR);
+	//
+    //        dockDesc.dockButton->setRotation(core::vector3df(-90, 0, 0));
+    //        dockDesc.dockButton->setRelativePosition(core::position2di(m_screenSize.Width - 3, Yoffset + 20));
+    //        //dockDesc.dockButton->updateAbsolutePosition();
+    //        break;
+    //    }
+    //    case EWD_DOCK_TOP:
+    //    {
+    //        guielement->setRelativePosition(core::recti(0, 20, m_screenSize.Width, std::max(dockDesc.originalSize.LowerRightCorner.Y, (int)m_screenSize.Height / 4)));
+    //        guielement->RemoveActionModeFlags(EAMF_RESIZE_R | EAMF_RESIZE_BL | EAMF_RESIZE_BR | EAMF_RESIZE_L | EAMF_RESIZE_T | EAMF_RESIZE_TL | EAMF_RESIZE_TR);
+	//
+    //        dockDesc.dockButton->setRotation(core::vector3df(0, 0, 0));
+    //        dockDesc.dockButton->setRelativePosition(core::position2di(Yoffset + 20, 1));
+    //        //dockDesc.dockButton->updateAbsolutePosition();
+    //        break;
+    //    }
+    //    case EWD_DOCK_BOTTOM:
+    //    {
+    //        guielement->setRelativePosition(core::recti(0, std::min(dockDesc.originalSize.UpperLeftCorner.Y, (int)(m_screenSize.Height / 4) * 3), m_screenSize.Width, m_screenSize.Height - 20));
+    //        guielement->RemoveActionModeFlags(EAMF_RESIZE_R | EAMF_RESIZE_BL | EAMF_RESIZE_BR | EAMF_RESIZE_B | EAMF_RESIZE_T | EAMF_RESIZE_TL | EAMF_RESIZE_TR);
+	//
+    //        dockDesc.dockButton->setRotation(core::vector3df(0, 0, 0));
+    //        dockDesc.dockButton->setRelativePosition(core::position2di(Yoffset + 20, m_screenSize.Height - dimFont.Height - 1));
+    //        //dockDesc.dockButton->updateAbsolutePosition();
+    //        break;
+    //    }
+    //}
+	//
+    //addChild(guielement);
+    //guielement->setDockState(true, &dockDesc);
+    //GUIDockedElements[dockType][guielement] = dockDesc;
+	//
+    //if (guielement->isVisible() && guielement->IsCanDockHide() && getFocus() != guielement)
+    //    guielement->setVisible(!guielement->isVisible());
+	//
+    //if (guielement->getType() == EGUIET_WINDOW)
+    //{
+    //    ((gui::IGUIWindow*)guielement)->OnClose += [&](void* window, GUIEventArg& arg)
+    //    {
+    //        DockGUIElement(EWD_UNDOCKED, (IGUIElement*)window);
+    //    };
+    //}
+    //else
+    //{
+    //    guielement->OnDispose += [&](void* window, GUIEventArg& arg)
+    //    {
+    //        DockGUIElement(EWD_UNDOCKED, (IGUIElement*)window);
+    //    };
+    //}
 }
 
 void CGUIEnvironment::showDockIcons(bool on)
@@ -584,7 +584,7 @@ bool CGUIEnvironment::setFocus(IGUIElement* element)
 
         GUIEventArg arg;
         arg.eData = e;
-        Focus->OnFocusLost(Focus, arg);
+        //Focus->OnFocusLost(Focus, arg);
 
         if (!arg.eHandled && Focus->OnEvent(e))
         {
@@ -613,7 +613,7 @@ bool CGUIEnvironment::setFocus(IGUIElement* element)
 
         GUIEventArg arg;
         arg.eData = e;
-        element->OnFocused(element, arg);
+        //element->OnFocused(element, arg);
 
         if (!arg.eHandled && element->OnEvent(e))
         {
@@ -665,7 +665,7 @@ bool CGUIEnvironment::removeFocus(IGUIElement* element)
 
         GUIEventArg arg;
         arg.eData = e;
-        element->OnFocusLost(element, arg);
+        //element->OnFocusLost(element, arg);
 
         if (!arg.eHandled && Focus->OnEvent(e))
         {
@@ -875,7 +875,7 @@ void CGUIEnvironment::updateHoveredElement(core::position2d<s32> mousePos)
 
             GUIEventArg arg;
             arg.eData = event;
-            lastHovered->OnElementLeft(lastHovered, arg);
+            //lastHovered->OnElementLeft(lastHovered, arg);
 
             if (!arg.eHandled)
                 lastHovered->OnEvent(event);
@@ -889,7 +889,7 @@ void CGUIEnvironment::updateHoveredElement(core::position2d<s32> mousePos)
 
             GUIEventArg arg;
             arg.eData = event;
-            Hovered->OnElementHovered(Hovered, arg);
+            //Hovered->OnElementHovered(Hovered, arg);
 
             if (!arg.eHandled)
                 Hovered->OnEvent(event);
@@ -950,8 +950,8 @@ bool CGUIEnvironment::postEventFromUser(const SEvent& event)
         {
             GUIEventArg arg;
             arg.eData = event;
-            if (Focus->OnInputMouse)
-                Focus->OnInputMouse(Focus, arg);
+            //if (Focus->OnInputMouse)
+            //    Focus->OnInputMouse(Focus, arg);
             //if (Focus->OnInputMousePassive)
             //    Focus->OnInputMousePassive(Focus, arg);
 
@@ -983,7 +983,7 @@ bool CGUIEnvironment::postEventFromUser(const SEvent& event)
             {
                 GUIEventArg arg;
                 arg.eData = event;
-                Focus->OnInputKey(Focus, arg);
+                //Focus->OnInputKey(Focus, arg);
 
                 // sending input to focus
                 if (!arg.eHandled && Focus->OnEvent(event))

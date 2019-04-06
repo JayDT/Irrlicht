@@ -681,7 +681,7 @@ public:
 	/** \returns A bitmask which is a combination of ::EFOCUS_FLAG flags.*/
 	virtual u32 getFocusBehavior() const = 0;
 
-    virtual System::Events::DelegateObject& getDelegateMgr() = 0;
+    //virtual System::Events::DelegateObject& getDelegateMgr() = 0;
 
     virtual IrrlichtDevice* GetDevice() = 0;
 

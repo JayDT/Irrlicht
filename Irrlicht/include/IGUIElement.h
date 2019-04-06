@@ -13,11 +13,10 @@
 #include "EGUIElementTypes.h"
 #include "EGUIAlignment.h"
 #include "IAttributes.h"
-#include <standard/events.h>
-#include <standard/callback.h>
 #include <mutex>
 #include <codecvt>
 #include <locale>
+#include <string>
 
 namespace irr
 {
@@ -97,7 +96,7 @@ public:
     virtual ~IGUIElement()
     {
         GUIEventArg arg;
-        OnDispose(this, arg);
+        //OnDispose(this, arg);
 
         _IRR_DEBUG_BREAK_IF(Parent);
 
@@ -545,8 +544,8 @@ public:
     //! Draws the element and its children.
     virtual void draw()
     {
-        if (OnInvoke)
-            OnInvoke();
+        //if (OnInvoke)
+        //    OnInvoke();
 
         if ( isVisible() )
         {
@@ -795,42 +794,42 @@ public:
     //! Called if an event happened.
     virtual bool OnEvent(const SEvent& event)
     {
-        switch (event.EventType)
-        {
-            case EET_MOUSE_INPUT_EVENT:
-            {
-                if (OnInputMousePassive)
-                {
-                    GUIEventArg arg;
-                    arg.eData = event;
-                    OnInputMousePassive(this, arg);
-                }
-
-                switch (event.MouseInput.Event)
-                {
-                    case EMIE_LMOUSE_LEFT_UP:
-                    {
-                        if (OnClicked)
-                        {
-                            SEvent newEvent;
-                            newEvent.EventType = EET_GUI_EVENT;
-                            newEvent.GUIEvent.Caller = this;
-                            newEvent.GUIEvent.Element = 0;
-                            newEvent.GUIEvent.EventType = EGET_BUTTON_CLICKED;
-
-                            GUIEventArg arg;
-                            arg.eData = newEvent;
-
-                            OnClicked(this, arg);
-                            if (arg.eHandled)
-                                return true;
-                        }
-                        break;
-                    }
-                }
-                break;
-            }
-        }
+        //switch (event.EventType)
+        //{
+        //    case EET_MOUSE_INPUT_EVENT:
+        //    {
+        //        if (OnInputMousePassive)
+        //        {
+        //            GUIEventArg arg;
+        //            arg.eData = event;
+        //            OnInputMousePassive(this, arg);
+        //        }
+		//
+        //        switch (event.MouseInput.Event)
+        //        {
+        //            case EMIE_LMOUSE_LEFT_UP:
+        //            {
+        //                if (OnClicked)
+        //                {
+        //                    SEvent newEvent;
+        //                    newEvent.EventType = EET_GUI_EVENT;
+        //                    newEvent.GUIEvent.Caller = this;
+        //                    newEvent.GUIEvent.Element = 0;
+        //                    newEvent.GUIEvent.EventType = EGET_BUTTON_CLICKED;
+		//
+        //                    GUIEventArg arg;
+        //                    arg.eData = newEvent;
+		//
+        //                    OnClicked(this, arg);
+        //                    if (arg.eHandled)
+        //                        return true;
+        //                }
+        //                break;
+        //            }
+        //        }
+        //        break;
+        //    }
+        //}
         return Parent ? Parent->OnEvent(event) : false;
     }
 
@@ -1163,17 +1162,17 @@ public:
 
     IGUIEnvironment* GetEnvironment() const { return Environment; }
 
-    System::Async::InvokeHandler  OnInvoke;
-    System::Events::EventHandler<GUIEventArg> OnValueChanged;
-    System::Events::EventHandler<GUIEventArg> OnClicked;
-    System::Events::EventHandler<GUIEventArg> OnFocused;
-    System::Events::EventHandler<GUIEventArg> OnFocusLost;
-    System::Events::EventHandler<GUIEventArg> OnElementLeft;
-    System::Events::EventHandler<GUIEventArg> OnElementHovered;
-    System::Events::EventHandler<GUIEventArg> OnInputKey;
-    System::Events::EventHandler<GUIEventArg> OnInputMouse;
-    System::Events::EventHandler<GUIEventArg> OnDispose;
-    System::Events::EventHandler<GUIEventArg> OnInputMousePassive;
+    //System::Async::InvokeHandler  OnInvoke;
+    //System::Events::EventHandler<GUIEventArg> OnValueChanged;
+    //System::Events::EventHandler<GUIEventArg> OnClicked;
+    //System::Events::EventHandler<GUIEventArg> OnFocused;
+    //System::Events::EventHandler<GUIEventArg> OnFocusLost;
+    //System::Events::EventHandler<GUIEventArg> OnElementLeft;
+    //System::Events::EventHandler<GUIEventArg> OnElementHovered;
+    //System::Events::EventHandler<GUIEventArg> OnInputKey;
+    //System::Events::EventHandler<GUIEventArg> OnInputMouse;
+    //System::Events::EventHandler<GUIEventArg> OnDispose;
+    //System::Events::EventHandler<GUIEventArg> OnInputMousePassive;
 
     void SetActionModeFlags(u32 f)
     {

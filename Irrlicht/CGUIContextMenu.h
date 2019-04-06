@@ -57,7 +57,7 @@ namespace gui
 		//! Returns text of the menu item.
 		virtual const wchar_t* getItemText(u32 idx) const;
 
-        virtual System::Events::EventHandler<GUIEventArg, System::Events::DummyMutex>& OnClickItem(u32 idx) _IRR_OVERRIDE_;
+        //virtual System::Events::EventHandler<GUIEventArg, System::Events::DummyMutex>& OnClickItem(u32 idx) _IRR_OVERRIDE_;
 
 		//! Sets text of the menu item.
 		virtual void setItemText(u32 idx, const wchar_t* text);
@@ -132,7 +132,7 @@ namespace gui
                 
             }
 
-            System::Events::EventHandler<GUIEventArg, System::Events::DummyMutex> OnClick;
+            //System::Events::EventHandler<GUIEventArg, System::Events::DummyMutex> OnClick;
             CGUIFontCache mFontCache;
 			core::stringw Text;
 			bool IsSeparator;

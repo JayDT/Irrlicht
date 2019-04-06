@@ -191,6 +191,9 @@ public:
 	The last locked mip level will be unlocked. */
 	virtual void unlock() = 0;
 
+    //! A pointer to a box that defines the portion of the destination subresource to copy the resource data into. Coordinates are in bytes for buffers and in texels for textures.
+    virtual void updateTexture(u32 level, u32 x, u32 y, u32 width, u32 height, const void* data) = 0;
+
 	//! Get original size of the texture.
 	/** The texture is usually scaled, if it was created with an unoptimal
 	size. For example if the size was not a power of two. This method

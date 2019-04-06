@@ -9,6 +9,7 @@
 
 #include <standard/enum.h>
 #include <unordered_set>
+#include <map>
 
 namespace irr
 {
@@ -135,6 +136,7 @@ namespace irr
 
         public:
             VulkanCmdBuffer(VulkanDevice& device, uint32_t id, VkCommandPool pool, uint32_t queueFamily, bool secondary);
+            VulkanCmdBuffer() = delete;
             virtual ~VulkanCmdBuffer();
 
             /** Returns an unique identifier of this command buffer. */
@@ -175,6 +177,9 @@ namespace irr
 
             /** Returns a fence that can be used for tracking when the command buffer is done executing. */
             VkFence getFence() const { return mFence; }
+
+            CVulkanDriver* getDriver() const;
+            const VulkanDevice* GetDevice() const { return &mDevice; }
 
             /**
              * Returns a semaphore that may be used for synchronizing execution between command buffers executing on the same

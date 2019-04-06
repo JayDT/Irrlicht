@@ -714,7 +714,7 @@ ITexture* CNullDriver::createDeviceDependentTexture(IImage* surface, const io::p
     return new SDummyTexture(name);
 }
 
-bool CNullDriver::setRenderTargetEx(IRenderTarget* target, u16 clearFlag, SColor clearColor, f32 clearDepth, u8 clearStencil)
+bool CNullDriver::setRenderTargetEx(IRenderTarget* target, u16 clearFlag, SColor clearColor, f32 clearDepth, u8 clearStencil, core::array<core::recti>* scissors)
 {
     return false;
 }
@@ -2937,7 +2937,7 @@ s32 CNullDriver::addShaderMaterialFromFiles(const io::path& vertexShaderProgramF
 
 //! Creates a render target texture.
 ITexture* CNullDriver::addRenderTargetTexture(const core::dimension2d<u32>& size,
-        const io::path&name, const ECOLOR_FORMAT format)
+        const io::path&name, const ECOLOR_FORMAT format, u8 sampleCount)
 {
     return 0;
 }
@@ -2969,6 +2969,10 @@ void CNullDriver::printVersion()
     core::stringw namePrint = L"Using renderer: ";
     namePrint += getName();
     os::Printer::log(namePrint.c_str(), ELL_INFORMATION);
+}
+
+void CNullDriver::setScissorRect(const core::rect<s32>& rect)
+{
 }
 
 
@@ -3065,6 +3069,10 @@ void CNullDriver::convertColor(const void* sP, ECOLOR_FORMAT sF, s32 sN,
     video::CColorConverter::convert_viaFormat(sP, sF, sN, dP, dF);
 }
 
+
+void CNullDriver::SDummyTexture::updateTexture(u32 level, u32 x, u32 y, u32 width, u32 height, const void* data)
+{
+}
 
 } // end namespace
 } // end namespace

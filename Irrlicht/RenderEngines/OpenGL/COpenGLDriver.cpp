@@ -53,7 +53,6 @@
 #include "System/Uri.h"
 #include "System/Resource/ResourceManager.h"
 
-extern bool InitializeModulResourceIrrOpenGL();
 #endif
 
 //#include <GL/ex
@@ -160,10 +159,6 @@ COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params, io::IFil
         0.0f, -0.5f, 0.0f, 0.0f,
         0.0f, 0.0f, 1.0f, 0.0f,
         0.5f, 0.5f, 0.0f, 1.0f);
-
-#ifdef HAVE_CSYSTEM_EXTENSION
-    InitializeModulResourceIrrOpenGL();
-#endif
 }
 #endif
 
@@ -911,9 +906,9 @@ void irr::video::COpenGLDriver::drawMeshBuffer(const scene::IMeshBuffer * mb, sc
     u32 instanceCount = (!mesh || mesh->IsInstanceModeAvailable()) && mb->getStreamBuffer() ? mb->getStreamBuffer()->size() : 1;
 
     if (instanceCount > 1)
-        glDrawElementsInstanced(renderPrimitive, mb->GetIndexRangeCount(), mb->getIndexType() == E_INDEX_TYPE::EIT_32BIT ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT, (void*)(sizeof(u16) * mb->GetIndexRangeStart()), instanceCount);
+		glDrawElementsInstancedBaseVertexBaseInstance(renderPrimitive, mb->GetIndexRangeCount(), mb->getIndexType() == E_INDEX_TYPE::EIT_32BIT ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT, (void*)(sizeof(u16) * mb->GetIndexRangeStart()), instanceCount, mb->GetBaseVertexLocation(), 0);
     else if (mb->GetSubBufferCount())
-        glDrawRangeElements(renderPrimitive, mb->GetVertexRangeStart(), mb->GetVertexRangeStart() + mb->GetVertexRangeEnd(), mb->GetIndexRangeCount(), mb->getIndexType() == E_INDEX_TYPE::EIT_32BIT ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT, (void*)(sizeof(u16) * mb->GetIndexRangeStart()));
+		glDrawElementsBaseVertex(renderPrimitive, mb->GetIndexRangeCount(), mb->getIndexType() == E_INDEX_TYPE::EIT_32BIT ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT, (void*)(sizeof(u16) * mb->GetIndexRangeStart()), mb->GetBaseVertexLocation());
     else
         glDrawElements(renderPrimitive, mb->getIndexCount(), mb->getIndexType() == E_INDEX_TYPE::EIT_32BIT ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT, (void*)0);
 
@@ -1099,11 +1094,9 @@ void COpenGLDriver::draw2D3DVertexPrimitiveList(const void* vertices, u32 vertex
         const void* indexList, u32 primitiveCount,
         scene::E_PRIMITIVE_TYPE pType, E_INDEX_TYPE iType)
 {
-    if (GetActiveShader() != m_defaultShader[vType])
-    {
+    if (vType < E_VERTEX_TYPE::EVT_MAX_VERTEX_TYPE && GetActiveShader() != m_defaultShader[vType])
         SetShader(m_defaultShader[vType]);
-        _IRR_DEBUG_BREAK_IF(!GetActiveShader());
-    }
+    _IRR_DEBUG_BREAK_IF(!GetActiveShader());
 
     size_t indexCount = getIndexAmount(pType, primitiveCount);
 
@@ -1131,21 +1124,17 @@ void COpenGLDriver::draw2D3DVertexPrimitiveList(const void* vertices, u32 vertex
 
 bool irr::video::COpenGLDriver::uploadVertexData(const void * vertices, u32 vertexCount, const void * indexList, u32 indexCount, E_VERTEX_TYPE vType, E_INDEX_TYPE iType)
 {
-    //if (!m_defaultShader && !GetActiveShader())
-    //{
-    //    System::IO::StandardDataSource fileMgr;
-    //
-    //    irr::core::stringc a;
-    //
-    //    auto vertShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/OpenGL/GLSL/Default.vert"); //System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/Default.vert", true));
-    //    auto fragShader = fileMgr.OpenFile(_SOURCE_DIRECTORY "/Irrlicht/RenderEngines/OpenGL/GLSL/Default.frag"); //System::Resource::ResourceManager::Instance()->FindResource(System::URI("pack://application:,,,/OpenGL;/GLSL/Default.frag", true));
-    //
-    //    m_defaultShader = static_cast<GLSLGpuShader*>(createShader(vertShader, fragShader, nullptr, nullptr));
-    //    m_defaultShader->Init();
-    //    m_defaultShader->addDataBuffer(new ShaderGenericValuesBuffer(video::IShaderDataBuffer::EUT_PER_FRAME_PER_MESH), nullptr);
-    //
-    //    activeGPUProgram(m_defaultShader);
-    //}
+    u32 vertexStride;
+    {
+        if (vType >= E_VERTEX_TYPE::EVT_MAX_VERTEX_TYPE)
+        {
+            vertexStride = GetVertexDeclaration(vType)->GetVertexPitch(0);
+        }
+        else
+        {
+            vertexStride = getVertexPitchFromType(vType);
+        }
+    }
 
     if (!DynamicHardwareBuffer[vType])
     {
@@ -1153,7 +1142,7 @@ bool irr::video::COpenGLDriver::uploadVertexData(const void * vertices, u32 vert
 
         static_cast<COpenGLVertexDeclaration*>(GetVertexDeclaration(vType))->SetVertexType(vType);
 
-        DynamicHardwareBuffer[vType]->UpdateBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, vertices, getVertexPitchFromType(vType) * vertexCount);
+        DynamicHardwareBuffer[vType]->UpdateBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, vertices, vertexStride * vertexCount);
         DynamicHardwareBuffer[vType]->UpdateBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_INDEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, indexList, indexCount * (iType == E_INDEX_TYPE::EIT_32BIT ? sizeof(u32) : sizeof(u16)));
 
         static_cast<COpenGLVertexDeclaration*>(GetVertexDeclaration(vType))->SetVertexType(E_VERTEX_TYPE::EVT_MAX_VERTEX_TYPE);
@@ -1164,7 +1153,7 @@ bool irr::video::COpenGLDriver::uploadVertexData(const void * vertices, u32 vert
     {
         if (vertices)
         {
-            DynamicHardwareBuffer[vType]->UpdateBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, vertices, getVertexPitchFromType(vType) * vertexCount);
+            DynamicHardwareBuffer[vType]->UpdateBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_VERTEX, E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM, vertices, vertexStride * vertexCount);
         }
 
         if (indexList)
@@ -2175,6 +2164,7 @@ void COpenGLDriver::setViewPort(const core::rect<s32>& area)
 {
     if (area == ViewPort)
         return;
+
     core::rect<s32> vp = area;
     core::rect<s32> rendert(0,0, getCurrentRenderTargetSize().Width, getCurrentRenderTargetSize().Height);
     vp.clipAgainst(rendert);
@@ -2187,6 +2177,11 @@ void COpenGLDriver::setViewPort(const core::rect<s32>& area)
 
         ViewPort = vp;
     }
+}
+
+void irr::video::COpenGLDriver::setScissorRect(const core::rect<s32>& rect)
+{
+    glScissor(rect.UpperLeftCorner.X, rect.UpperLeftCorner.Y, rect.getWidth(), rect.getHeight());
 }
 
 
@@ -2518,7 +2513,7 @@ IVideoDriver* COpenGLDriver::getVideoDriver()
 
 ITexture* COpenGLDriver::addRenderTargetTexture(const core::dimension2d<u32>& size,
                     const io::path& name,
-                    const ECOLOR_FORMAT format)
+                    const ECOLOR_FORMAT format, u8 sampleCount)
 {
     //disable mip-mapping
     bool generateMipLevels = getTextureCreationFlag(ETCF_CREATE_MIP_MAPS);
@@ -2572,7 +2567,7 @@ IRenderTarget* COpenGLDriver::addRenderTarget()
 }
 
 bool COpenGLDriver::setRenderTargetEx(IRenderTarget* target, u16 clearFlag, SColor clearColor /*= SColor(255, 0, 0, 0)*/,
-    f32 clearDepth /*= 1.f*/, u8 clearStencil /*= 0*/)
+    f32 clearDepth /*= 1.f*/, u8 clearStencil /*= 0*/, core::array<core::recti>* scissors)
 {
     // if simply disabling the MRT via array call
     //if (!target || target->getTexture().size() == 0)
@@ -2845,7 +2840,15 @@ IImage* COpenGLDriver::createScreenShot(video::ECOLOR_FORMAT format, video::E_RE
         fmt = GL_BGRA;
         type = GL_FLOAT;
         break;
-    default:
+	case ECF_R8:
+		fmt = GL_RED;
+		type = GL_UNSIGNED_BYTE;
+		break;
+	case ECF_R8G8:
+		fmt = GL_RG8;
+		type = GL_UNSIGNED_BYTE;
+		break;
+	default:
         fmt = GL_BGRA;
         type = GL_UNSIGNED_BYTE;
         break;

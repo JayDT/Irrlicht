@@ -22,6 +22,54 @@ extern EShLanguage GetCompileLang(E_SHADER_TYPES type);
 core::matrix4 VK_UnitMatrix;
 core::matrix4 VK_SphereMapMatrix;
 
+namespace
+{
+    std::map<size_t, core::array<uint8_t>> mSharedBinaryCache;
+
+    void VKWriteShaderCache(System::IO::IFileWriter* file)
+    {
+        if (!file)
+            return;
+
+        *file << uint32_t('ISDC');
+        *file << uint32_t('IVKD');
+        *file << uint32_t(mSharedBinaryCache.size());
+
+        for (const auto& kvp : mSharedBinaryCache)
+        {
+            *file << uint64_t(kvp.first);
+            *file << uint32_t(kvp.second.size());
+            file->Write((uint8_t*)kvp.second.const_pointer(), kvp.second.size());
+        }
+    }
+}
+
+extern "C" void VKLoadShaderCache(System::IO::IFileReader* file)
+{
+    if (!file)
+        return;
+
+    uint32_t shaderCount;
+
+    *file >> shaderCount;
+
+    for (uint32_t i = 0; i < shaderCount; ++i)
+    {
+        uint64_t seed;
+        uint32_t size;
+        *file >> seed;
+        *file >> size;
+        auto& cacheBuffer = mSharedBinaryCache[seed];
+        cacheBuffer.set_used(size);
+        file->Read((uint8_t*)cacheBuffer.pointer(), cacheBuffer.size());
+    }
+}
+
+void CVulkanDriver::WriteShaderCache(System::IO::IFileWriter* file)
+{
+    VKWriteShaderCache(file);
+}
+
 irr::video::CVulkanGLSLProgram::CVulkanGLSLProgram(video::IVideoDriver * context, E_SHADER_LANG type)
     : CNullShader(context, type)
     , CVulkanDeviceResource(static_cast<CVulkanDriver*>(context))
@@ -67,11 +115,11 @@ bool irr::video::CVulkanGLSLProgram::initializeUniforms(irr::video::CVulkanGLSLa
 
         if (bufferEntry.getType()->getBasicType() == glslang::TBasicType::EbtSampler)
         {
-            SShaderVariableScalar* var = new SShaderVariableScalar();
+            auto var = irr::MakePtr<SShaderSampler>();
             var->mName = bufferEntry.name.c_str();
             var->mParent = nullptr;
             var->mBuffer = nullptr;
-            var->mOffset = bufferEntry.getBinding();
+            var->mBindPoint = bufferEntry.getBinding();
             var->mShaderStage = shaderType;
             var->mType = CNullShader::GetShaderType(
                 VulkanUtility::getShaderVariableTypeId(bufferEntry.getType()->getBasicType()),
@@ -89,7 +137,6 @@ bool irr::video::CVulkanGLSLProgram::initializeUniforms(irr::video::CVulkanGLSLa
             else
                 var->mLayoutIndex = -1;
             var->mIsValid = true;
-            var->mIsDirty = false;
             mTextures.push_back(var);
         }
         //else // Uniforms
@@ -341,7 +388,7 @@ bool irr::video::CVulkanGLSLProgram::CreateShaderModul(E_SHADER_TYPES type, CVul
             {
                 const auto& attrEntry = compiler.Reflection->getAttribute(i);
 
-                SShaderVariableScalar* var = new SShaderVariableScalar();
+                auto var = irr::MakePtr<SShaderVariableScalar>();
                 var->mName = attrEntry.name.c_str();
                 var->mParent = nullptr;
                 var->mBuffer = nullptr;
@@ -378,6 +425,34 @@ bool irr::video::CVulkanGLSLProgram::CreateShaderModul(E_SHADER_TYPES type, CVul
     return result;
 }
 
+IConstantBuffer* irr::video::CVulkanGLSLProgram::AddUnknownBuffer(E_SHADER_TYPES shaderType, u32 size)
+{
+    auto irrCB = irr::MakePtr<SConstantBuffer>(this, shaderType);
+    AddConstantBuffer(irrCB);
+
+    // Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+    irrCB->mHwObject = static_cast<CVulkanHardwareBuffer*>(Driver->createHardwareBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS, E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC, size));
+    irrCB->mHostMemory.resize(size);
+
+    irrCB->mOffset = 0;
+    irrCB->mBindPoint = 0;
+    irrCB->mName = "data";
+    irrCB->mBufferType = ESVT_CONSTANT;
+
+    irrCB->mType = CNullShader::GetShaderType(
+        E_SHADER_VARIABLE_TYPE::ESVT_UINT8,
+        size,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        size);
+
+    return irrCB.GetPtr();
+}
+
 VulkanDescriptorLayout* irr::video::CVulkanGLSLProgram::getLayout()
 {
     if (!mLayout)
@@ -398,14 +473,14 @@ VulkanDescriptorLayout* irr::video::CVulkanGLSLProgram::getLayout()
 
         for (int i = 0; i < mTextures.size(); ++i)
         {
-            const auto& buf = mTextures[i];
+            SShaderSampler* buf = static_cast<SShaderSampler*>(mTextures[i].GetPtr());
             if (buf->getType()->Type != E_SHADER_VARIABLE_TYPE::ESVT_SAMPLER)
                 continue;
 
             mBindings.push_back({});
             VkDescriptorSetLayoutBinding& bind = mBindings.back();
-            bind.binding = buf->_getOffset();
-            bind.stageFlags = GetShaderStageBit(static_cast<SShaderVariableScalar*>(buf)->mShaderStage);
+            bind.binding = buf->mBindPoint;
+            bind.stageFlags = GetShaderStageBit(buf->mShaderStage);
             bind.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             bind.descriptorCount = 1;
             bind.pImmutableSamplers = nullptr;

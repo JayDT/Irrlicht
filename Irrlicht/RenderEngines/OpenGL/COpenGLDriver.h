@@ -253,6 +253,8 @@ namespace video
 		//! sets a viewport
 		virtual void setViewPort(const core::rect<s32>& area);
 
+        virtual void setScissorRect(const core::rect<s32>& rect) override;
+
 		//! Sets the fog mode.
 		virtual void setFog(SColor color, E_FOG_TYPE fogType, f32 start,
 			f32 end, f32 density, bool pixelFog, bool rangeFog);
@@ -342,7 +344,7 @@ namespace video
 		virtual u32 getMaximalPrimitiveCount() const;
 
 		virtual ITexture* addRenderTargetTexture(const core::dimension2d<u32>& size,
-				const io::path& name, const ECOLOR_FORMAT format = ECF_UNKNOWN);
+				const io::path& name, const ECOLOR_FORMAT format = ECF_UNKNOWN, u8 sampleCount = 0);
 
         // Inherited via CNullDriver
         virtual ITexture * addTextureCubemap(const io::path & name, IImage * imagePosX, IImage * imageNegX, IImage * imagePosY, IImage * imageNegY, IImage * imagePosZ, IImage * imageNegZ) override;
@@ -351,7 +353,7 @@ namespace video
         virtual IRenderTarget* addRenderTarget();
 
         virtual bool setRenderTargetEx(IRenderTarget* target, u16 clearFlag, SColor clearColor = SColor(255, 0, 0, 0),
-            f32 clearDepth = 1.f, u8 clearStencil = 0);
+            f32 clearDepth = 1.f, u8 clearStencil = 0, core::array<core::recti>* scissors = nullptr);
 
         virtual bool setRenderTarget(ITexture* texture, u16 clearFlag = ECBF_COLOR | ECBF_DEPTH, SColor clearColor = SColor(255, 0, 0, 0),
             f32 clearDepth = 1.f, u8 clearStencil = 0);

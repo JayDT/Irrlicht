@@ -239,6 +239,11 @@ GLint COpenGLTexture::getOpenGLFormatAndParametersFromColorFormat(ECOLOR_FORMAT 
 			type=GL_UNSIGNED_BYTE;
 			internalformat =  GL_RGB;
 			break;
+        case ECF_B8G8R8:
+            colorformat = GL_BGR;
+            type = GL_UNSIGNED_BYTE;
+            internalformat = GL_BGR;
+            break;
         case ECF_RGBA8:
             colorformat = GL_RGBA;
             if (Driver->Version > 101)
@@ -251,6 +256,13 @@ GLint COpenGLTexture::getOpenGLFormatAndParametersFromColorFormat(ECOLOR_FORMAT 
 				type=GL_UNSIGNED_INT_8_8_8_8_REV;
             internalformat =  GL_RGBA;
 			break;
+        case ECF_B8G8R8A8:
+        case ECF_B8G8R8X8:
+            colorformat = GL_BGRA_EXT;
+            if (Driver->Version > 101)
+                type = GL_UNSIGNED_INT_8_8_8_8_REV;
+            internalformat = GL_BGRA;
+            break;
         case ECF_D16:
             internalformat = GL_DEPTH_COMPONENT16;
             colorformat = GL_DEPTH_COMPONENT;
@@ -364,6 +376,12 @@ GLint COpenGLTexture::getOpenGLFormatAndParametersFromColorFormat(ECOLOR_FORMAT 
 			internalformat =  GL_RGBA8;
 #endif
 		}
+		case ECF_R8:
+			internalformat = GL_RED;
+			break;
+		case ECF_R8G8:
+			internalformat = GL_RG8;
+			break;
 			break;
 		default:
 		{
@@ -650,6 +668,12 @@ void* COpenGLTexture::lock(E_TEXTURE_LOCK_MODE mode, u32 mipmapLevel, u32 arrayS
     return nullptr;
 }
 
+void COpenGLTexture::updateTexture(u32 level, u32 x, u32 y, u32 width, u32 height, const void* data)
+{
+    glActiveTexture(0);
+    glBindTexture(GL_TEXTURE_2D, TextureName);
+    glTexSubImage2D(GL_TEXTURE_2D, level, x, y, width, height, PixelFormat, PixelType, data);
+}
 
 //! unlock function
 void COpenGLTexture::unlock()

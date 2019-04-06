@@ -26,6 +26,7 @@ include(CheckCXXSourceRuns)
 include(CheckIncludeFiles)
 include(CheckPlatform)
 include(HlslUtils)
+include(ResourceCompiler)
 # Find revision ID and hash of the sourcetree
 include(cmake/genrev.cmake)
 
@@ -72,7 +73,10 @@ enable_testing()
 
 message(STATUS "Prepare Source:")
 ADD_SUBDIRECTORY(dep)
+ADD_SUBDIRECTORY(dep/NoesisGui)
+ADD_SUBDIRECTORY(contrib)
 ADD_SUBDIRECTORY(Irrlicht)
+ADD_SUBDIRECTORY(Noesis)
 ADD_SUBDIRECTORY(examples)
 message(STATUS "Complete Source")
 message("")

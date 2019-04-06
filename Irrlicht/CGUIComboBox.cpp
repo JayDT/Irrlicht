@@ -376,8 +376,8 @@ void CGUIComboBox::sendSelectionChangedEvent()
 		GUIEventArg arg;
 		arg.eData = event;
 
-		if (OnSelectionChanged)
-			OnSelectionChanged(this, arg);
+		//if (OnSelectionChanged)
+		//	OnSelectionChanged(this, arg);
 
 		Parent->OnEvent(event);
 	}

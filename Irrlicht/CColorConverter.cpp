@@ -389,9 +389,9 @@ void CColorConverter::convert_A8R8G8B8toR8G8B8(const void* sP, s32 sN, void* dP)
 	for (s32 x = 0; x < sN; ++x)
 	{
 		// sB[3] is alpha
-		dB[0] = sB[2];
-		dB[1] = sB[1];
-		dB[2] = sB[0];
+        dB[0] = sB[0];
+        dB[1] = sB[1];
+        dB[2] = sB[2];
 
 		sB += 4;
 		dB += 3;
@@ -406,9 +406,9 @@ void CColorConverter::convert_A8R8G8B8toB8G8R8(const void* sP, s32 sN, void* dP)
 	for (s32 x = 0; x < sN; ++x)
 	{
 		// sB[3] is alpha
-		dB[0] = sB[0];
-		dB[1] = sB[1];
-		dB[2] = sB[2];
+        dB[0] = sB[2];
+        dB[1] = sB[1];
+        dB[2] = sB[0];
 
 		sB += 4;
 		dB += 3;
@@ -429,6 +429,15 @@ void CColorConverter::convert_A8R8G8B8toA1R5G5B5(const void* sP, s32 sN, void* d
 		*dB++ = A8R8G8B8toA1R5G5B5(*sB++);
 }
 
+void CColorConverter::convert_B8G8R8A8toA1R5G5B5(const void* sP, s32 sN, void* dP)
+{
+    u32* sB = (u32*)sP;
+    u16* dB = (u16*)dP;
+
+    for (s32 x = 0; x < sN; ++x)
+        * dB++ = B8G8R8A8toA1R5G5B5(*sB++);
+}
+
 void CColorConverter::convert_A8R8G8B8toR5G6B5(const void* sP, s32 sN, void* dP)
 {
 	u8 * sB = (u8 *)sP;
@@ -445,6 +454,24 @@ void CColorConverter::convert_A8R8G8B8toR5G6B5(const void* sP, s32 sN, void* dP)
 		sB += 4;
 		dB += 1;
 	}
+}
+
+void CColorConverter::convert_B8G8R8A8toR5G6B5(const void* sP, s32 sN, void* dP)
+{
+    u8* sB = (u8*)sP;
+    u16* dB = (u16*)dP;
+
+    for (s32 x = 0; x < sN; ++x)
+    {
+        s32 b = sB[2] >> 3;
+        s32 g = sB[1] >> 2;
+        s32 r = sB[0] >> 3;
+
+        dB[0] = (r << 11) | (g << 5) | (b);
+
+        sB += 4;
+        dB += 1;
+    }
 }
 
 void CColorConverter::convert_A8R8G8B8toR3G3B2(const void* sP, s32 sN, void* dP)
@@ -482,6 +509,20 @@ void CColorConverter::convert_R8G8B8toA8R8G8B8(const void* sP, s32 sN, void* dP)
 		sB += 3;
 		++dB;
 	}
+}
+
+void CColorConverter::convert_R8G8B8toB8G8R8A8(const void* sP, s32 sN, void* dP)
+{
+    u8* sB = (u8*)sP;
+    u32* dB = (u32*)dP;
+
+    for (s32 x = 0; x < sN; ++x)
+    {
+        *dB = 0xff000000 | sB[0] | (sB[1] << 8) | (sB[2] << 16);
+
+        sB += 3;
+        ++dB;
+    }
 }
 
 void CColorConverter::convert_R8G8B8toA1R5G5B5(const void* sP, s32 sN, void* dP)
@@ -523,10 +564,10 @@ void CColorConverter::convert_B8G8R8A8toA8R8G8B8(const void* sP, s32 sN, void* d
 
 	for (s32 x = 0; x < sN; ++x)
 	{
-		dB[0] = sB[3];
-		dB[1] = sB[2];
-		dB[2] = sB[1];
-		dB[3] = sB[0];
+		dB[3] = sB[3];
+		dB[0] = sB[2];
+		dB[1] = sB[1];
+		dB[2] = sB[0];
 
 		sB += 4;
 		dB += 4;
@@ -663,22 +704,26 @@ void CColorConverter::convert_viaFormat(const void* sP, ECOLOR_FORMAT sF, s32 sN
 		break;
         case ECF_RGBA8:
         case ECF_B8G8R8A8:
+        case ECF_B8G8R8X8:
 			switch (dF)
 			{
 				case ECF_A1R5G5B5:
-					//convert_B8G8R8A8toA1R5G5B5(sP, sN, dP);
+					convert_B8G8R8A8toA1R5G5B5(sP, sN, dP);
 				break;
 				case ECF_R5G6B5:
-					//convert_B8G8R8A8toR5G6B5(sP, sN, dP);
+					convert_B8G8R8A8toR5G6B5(sP, sN, dP);
 				break;
                 case ECF_B8G8R8A8:
+                case ECF_B8G8R8X8:
                     convert_A8R8G8B8toA8R8G8B8(sP, sN, dP);
                     break;
                 case ECF_A8R8G8B8:
 					convert_B8G8R8A8toA8R8G8B8(sP, sN, dP);
 				break;
+				case ECF_B8G8R8:
+                    convert_A8R8G8B8toR8G8B8(sP, sN, dP);
 				case ECF_R8G8B8:
-					//convert_A8R8G8B8toR8G8B8(sP, sN, dP);
+                    convert_A8R8G8B8toB8G8R8(sP, sN, dP);
 				break;
 #ifndef _DEBUG
 				default:
@@ -696,12 +741,15 @@ void CColorConverter::convert_viaFormat(const void* sP, ECOLOR_FORMAT sF, s32 sN
 					convert_A8R8G8B8toR5G6B5(sP, sN, dP);
 				break;
 				case ECF_B8G8R8A8:
-					convert_B8G8R8A8toA8R8G8B8(sP, sN, dP);
+                case ECF_B8G8R8X8:
+                    convert_B8G8R8A8toA8R8G8B8(sP, sN, dP);
 				break;
 				case ECF_A8R8G8B8:
 					convert_A8R8G8B8toA8R8G8B8(sP, sN, dP);
 				break;
-				case ECF_R8G8B8:
+                case ECF_B8G8R8:
+                    convert_A8R8G8B8toB8G8R8(sP, sN, dP);
+                case ECF_R8G8B8:
 					convert_A8R8G8B8toR8G8B8(sP, sN, dP);
 				break;
 #ifndef _DEBUG
@@ -719,7 +767,11 @@ void CColorConverter::convert_viaFormat(const void* sP, ECOLOR_FORMAT sF, s32 sN
 				case ECF_R5G6B5:
 					convert_R8G8B8toR5G6B5(sP, sN, dP);
 				break;
-				case ECF_A8R8G8B8:
+                case ECF_B8G8R8A8:
+                case ECF_B8G8R8X8:
+                    convert_R8G8B8toB8G8R8A8(sP, sN, dP);
+                    break;
+                case ECF_A8R8G8B8:
 					convert_R8G8B8toA8R8G8B8(sP, sN, dP);
 				break;
 				case ECF_R8G8B8:
@@ -731,7 +783,32 @@ void CColorConverter::convert_viaFormat(const void* sP, ECOLOR_FORMAT sF, s32 sN
 #endif
 			}
 		break;
-	}
+//        case ECF_B8G8R8:
+//            switch (dF)
+//            {
+//            case ECF_A1R5G5B5:
+//                convert_R8G8B8toA1R5G5B5(sP, sN, dP);
+//                break;
+//            case ECF_R5G6B5:
+//                convert_R8G8B8toR5G6B5(sP, sN, dP);
+//                break;
+//            case ECF_B8G8R8A8:
+//            case ECF_B8G8R8X8:
+//                convert_R8G8B8toB8G8R8A8(sP, sN, dP);
+//                break;
+//            case ECF_A8R8G8B8:
+//                convert_R8G8B8toA8R8G8B8(sP, sN, dP);
+//                break;
+//            case ECF_R8G8B8:
+//                convert_R8G8B8toR8G8B8(sP, sN, dP);
+//                break;
+//#ifndef _DEBUG
+//            default:
+//                break;
+//#endif
+//            }
+//            break;
+    }
 }
 
 

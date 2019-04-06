@@ -1,7 +1,6 @@
 AddBuildInLibrary(GLM glm)
 AddBuildInLibrary(JPEGLIB jpeglib)
 AddBuildInLibrary(LIBPNG libpng)
-#AddBuildInLibrary(THREADS threads)
 add_subdirectory(threads)
 AddBuildInLibrary(ZLIB zlib)
 

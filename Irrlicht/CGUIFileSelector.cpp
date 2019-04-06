@@ -815,8 +815,8 @@ void CGUIFileSelector::sendSelectedEvent()
     GUIEventArg arg;
     arg.eData = event;
 
-    if (OnDialogResult)
-        OnDialogResult(this, arg);
+    //if (OnDialogResult)
+    //    OnDialogResult(this, arg);
 
     if (Parent && !arg.eHandled)
 		Parent->OnEvent(event);
@@ -834,8 +834,8 @@ void CGUIFileSelector::sendCancelEvent()
     GUIEventArg arg;
     arg.eData = event;
 
-    if (OnDialogResult)
-        OnDialogResult(this, arg);
+    //if (OnDialogResult)
+    //    OnDialogResult(this, arg);
 
     if (Parent && !arg.eHandled)
         Parent->OnEvent(event);

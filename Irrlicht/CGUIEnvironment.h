@@ -288,7 +288,7 @@ public:
 
     virtual IGUIElement* getElementFromPoint(const core::position2d<s32>& point, IGUIElement* except = nullptr) _IRR_OVERRIDE_;
 
-    virtual System::Events::DelegateObject& getDelegateMgr() { return m_delegateMgr; }
+    //virtual System::Events::DelegateObject& getDelegateMgr() { return m_delegateMgr; }
 
     virtual IrrlichtDevice* GetDevice() _IRR_OVERRIDE_ { return Device; }
 
@@ -297,7 +297,7 @@ public:
 private:
 
     System::Concurrent::Queue<IReferenceCounted*> m_disposeElement;
-    System::Events::DelegateObject m_delegateMgr;
+    //System::Events::DelegateObject m_delegateMgr;
 
 	IGUIElement* getNextElement(bool reverse=false, bool group=false);
 

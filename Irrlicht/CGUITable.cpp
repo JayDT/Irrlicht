@@ -200,8 +200,8 @@ bool CGUITable::setActiveColumn(s32 idx, bool doOrder )
 
         GUIEventArg arg;
         arg.eData = event;
-        if ( OnHeaderChanged )
-            OnHeaderChanged(this, arg);
+        //if ( OnHeaderChanged )
+        //    OnHeaderChanged(this, arg);
 
         if ( arg.eHandled )
             return true;
@@ -906,8 +906,8 @@ void CGUITable::selectNew(s32 ypos, bool onlyHover)
 
         GUIEventArg arg;
         arg.eData = event;
-        if ( OnSelectionChanged )
-            OnSelectionChanged(this, arg);
+        //if ( OnSelectionChanged )
+        //    OnSelectionChanged(this, arg);
 
         if ( !arg.eHandled )
             Parent->OnEvent(event);

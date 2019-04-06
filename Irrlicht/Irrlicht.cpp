@@ -45,6 +45,20 @@ static const char* const copyright = "Irrlicht Engine (c) 2002-2012 Nikolaus Geb
 
 namespace irr
 {
+    namespace video
+    {
+#ifdef _IRR_COMPILE_WITH_DIRECT3D_11_
+        void loadDirectX11ShaderCache(System::IO::IFileReader* file);
+#endif
+
+#ifdef _IRR_COMPILE_WITH_VULKAN_
+        void loadVulkanShaderCache(System::IO::IFileReader* file);
+#endif
+    }
+} // end namespace irr
+
+namespace irr
+{
     bool isDriverSupported(video::E_DRIVER_TYPE driver)
     {
         switch (driver)
@@ -160,6 +174,41 @@ namespace irr
 
 		return dev;
 	}
+
+    extern "C" IRRLICHT_API void IRRCALLCONV preloadShaderCache(System::IO::IFileReader* file)
+    {
+        if (!file)
+            return;
+
+        uint32_t signature;
+        *file >> signature;
+
+        if (signature != 'ISDC')
+            return;
+
+        while (file->Position() < file->Size())
+        {
+            uint32_t driverSignature;
+            *file >> driverSignature;
+
+#ifdef _IRR_COMPILE_WITH_DIRECT3D_11_
+            if (driverSignature == 'IDXD')
+            {
+                irr::video::loadDirectX11ShaderCache(file);
+                continue;
+            }
+#endif
+
+#ifdef _IRR_COMPILE_WITH_VULKAN_
+            if (driverSignature == 'IVKD')
+            {
+                irr::video::loadVulkanShaderCache(file);
+                continue;
+            }
+#endif
+            break; // fault
+        }
+    }
 
 namespace core
 {

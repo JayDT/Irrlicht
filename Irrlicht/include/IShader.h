@@ -6,7 +6,6 @@
 #include "IFileSystem.h"
 #include "IVideoDriver.h"
 #include "coreutil.h"
-#include "standard/events.h"
 
 namespace irr
 {
@@ -20,6 +19,7 @@ namespace irr
         struct IShaderMatrixVariable;
         struct IConstantBuffer;
         struct SShaderVariableStruct;
+        struct SShaderSampler;
 
         enum E_SHADER_TYPES : u8
         {
@@ -71,7 +71,7 @@ namespace irr
             ESVT_MAX
         };
 
-        struct IShaderVariable
+        struct IShaderVariable : irr::IReferenceCounted
         {
             virtual bool isValid() = 0;
             virtual bool isDirty() = 0;
@@ -141,7 +141,7 @@ namespace irr
             virtual IShader* getShader() = 0;
         };
 
-        struct IShader
+        struct IShader : virtual irr::IReferenceCounted
         {
             virtual E_SHADER_LANG getShaderType() const = 0;
             virtual video::IVideoDriver* getVideoDriver() = 0;

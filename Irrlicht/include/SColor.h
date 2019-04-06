@@ -96,8 +96,9 @@ namespace video
         ECF_ETC2_ARGB,
         
         /** New image formats. **/
-
+        ECF_B8G8R8,
         ECF_B8G8R8A8,
+        ECF_B8G8R8X8,
 
         //! 16 bit format using 16 bits for depth.
         ECF_D16,
@@ -110,6 +111,9 @@ namespace video
 
         //! WoW Formats
         ECF_RGBA8,      // ToDo: remove this hack
+
+		ECF_R8,
+		ECF_R8G8,
 
         //! Unknown color format:
         ECF_UNKNOWN
@@ -161,6 +165,14 @@ namespace video
             ( color & 0x000000F8) >> 3);
     }
 
+    //! Converts a 32bit (A8R8G8B8) color to a 16bit A1R5G5B5 color
+    inline u16 B8G8R8A8toA1R5G5B5(u32 color)
+    {
+        return (u16)((color & 0x80000000) >> 16 |  // a -> a
+            (color & 0x00F80000) >> 3 |            // b -> r
+            (color & 0x0000F800) >> 6 |            // g -> g
+            (color & 0x000000F8) >> 9);            // r -> b
+    }
 
     //! Converts a 32bit (A8R8G8B8) color to a 16bit R5G6B5 color
     inline u16 A8R8G8B8toR5G6B5(u32 color)

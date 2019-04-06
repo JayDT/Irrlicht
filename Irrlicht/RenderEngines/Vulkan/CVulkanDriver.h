@@ -22,7 +22,8 @@
 #define DEVEL_LOG(msg,code)	os::Printer::log(msg, code)	
 #endif
 
-#define VULKAN_DEBUG_MODE 0
+#define VULKAN_DEBUG_MODE 1
+#define VULKAN_DEBUG_MARKER 1
 
 namespace irr
 {
@@ -68,6 +69,9 @@ namespace irr
             //! applications must call this method after performing any rendering. returns false if failed.
             virtual bool endScene();
 
+            virtual void beginInstrumentEvent(const wchar_t* wlabel, const char* label, SColor color = SColor(255, 0, 0, 0));
+            virtual void endInstrumentEvent();
+
             //! queries the features of the driver, returns true if feature is available
             virtual bool queryFeature(E_VIDEO_DRIVER_FEATURE feature) const;
 
@@ -84,13 +88,15 @@ namespace irr
             virtual IRenderTarget* addRenderTarget();
 
             virtual bool setRenderTargetEx(IRenderTarget* target, u16 clearFlag, SColor clearColor = SColor(255, 0, 0, 0),
-                f32 clearDepth = 1.f, u8 clearStencil = 0);
+                f32 clearDepth = 1.f, u8 clearStencil = 0, core::array<core::recti>* scissors = nullptr);
 
             virtual bool setRenderTarget(ITexture* texture, u16 clearFlag = ECBF_COLOR | ECBF_DEPTH, SColor clearColor = SColor(255, 0, 0, 0),
                 f32 clearDepth = 1.f, u8 clearStencil = 0);
 
             //! sets a viewport
             virtual void setViewPort(const core::rect<s32>& area);
+
+            virtual void setScissorRect(const core::rect<s32>& rect) override;
 
             //! gets the area of the current viewport
             virtual const core::rect<s32>& getViewPort() const;
@@ -249,7 +255,7 @@ namespace irr
 
             //! Creates a render target texture.
             virtual ITexture* addRenderTargetTexture(const core::dimension2d<u32>& size,
-                const io::path& name, const ECOLOR_FORMAT format = ECF_UNKNOWN);
+                const io::path& name, const ECOLOR_FORMAT format = ECF_UNKNOWN, u8 sampleCount = 0);
 
             //! Clears the ZBuffer.
             virtual void clearZBuffer(f32 clearDepth = 1.f, u8 clearStencil = 0);
@@ -344,6 +350,8 @@ namespace irr
 
             u32 GetFrameID() const { return mFrameID; }
 
+            void WriteShaderCache(System::IO::IFileWriter*) override final;
+
         private:
 
             void initialize(void* param);
@@ -362,10 +370,9 @@ namespace irr
             VkDebugReportCallbackEXT mDebugCallback;
 #endif
 
-            VulkanDevice* mDevices[_MAX_DEVICES];
+            std::array<VulkanDevice*, _MAX_DEVICES> mDevices;
             VulkanDevice* mPrimaryDevices;
             VkSampler mDummySampler = VK_NULL_HANDLE;
-            CVulkanHardwareBuffer* DynamicHardwareBuffer[(s32)E_VERTEX_TYPE::EVT_MAX_VERTEX_TYPE];
             CVulkanHardwareBuffer* mDummyStorageBuffer = nullptr;
             VulkanCommandBuffer* mMainCommandBuffer = nullptr;
             CVulkanPlatform* mPlatform;

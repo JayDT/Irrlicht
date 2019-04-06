@@ -130,9 +130,9 @@ namespace gui
 		virtual u32 getMax() const = 0;
 
         // EventHandlers
-        System::Events::EventHandler<GUIEventArg> OnChanged;
-        System::Events::EventHandler<GUIEventArg> OnMarkChanged;
-        System::Events::EventHandler<GUIEventArg> OnPressKey;
+        //System::Events::EventHandler<GUIEventArg> OnChanged;
+        //System::Events::EventHandler<GUIEventArg> OnMarkChanged;
+        //System::Events::EventHandler<GUIEventArg> OnPressKey;
     };
 
 

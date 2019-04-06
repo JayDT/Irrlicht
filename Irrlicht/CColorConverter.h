@@ -65,12 +65,15 @@ public:
 	static void convert_A8R8G8B8toB8G8R8(const void* sP, s32 sN, void* dP);
 	static void convert_A8R8G8B8toA8R8G8B8(const void* sP, s32 sN, void* dP);
 	static void convert_A8R8G8B8toA1R5G5B5(const void* sP, s32 sN, void* dP);
-	static void convert_A8R8G8B8toR5G6B5(const void* sP, s32 sN, void* dP);
+    static void convert_B8G8R8A8toA1R5G5B5(const void* sP, s32 sN, void* dP);
+    static void convert_A8R8G8B8toR5G6B5(const void* sP, s32 sN, void* dP);
+    static void convert_B8G8R8A8toR5G6B5(const void* sP, s32 sN, void* dP);
 
 	static void convert_A8R8G8B8toR3G3B2(const void* sP, s32 sN, void* dP);
 	static void convert_R8G8B8toR8G8B8(const void* sP, s32 sN, void* dP);
 	static void convert_R8G8B8toA8R8G8B8(const void* sP, s32 sN, void* dP);
-	static void convert_R8G8B8toA1R5G5B5(const void* sP, s32 sN, void* dP);
+    static void convert_R8G8B8toB8G8R8A8(const void* sP, s32 sN, void* dP);
+    static void convert_R8G8B8toA1R5G5B5(const void* sP, s32 sN, void* dP);
 	static void convert_R8G8B8toR5G6B5(const void* sP, s32 sN, void* dP);
 	static void convert_B8G8R8toA8R8G8B8(const void* sP, s32 sN, void* dP);
 	static void convert_B8G8R8A8toA8R8G8B8(const void* sP, s32 sN, void* dP);

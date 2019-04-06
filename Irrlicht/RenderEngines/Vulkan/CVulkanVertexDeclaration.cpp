@@ -120,16 +120,17 @@ void irr::video::CVulkanVertexDeclaration::initialize()
         BindDecl.binding = mVertexElements[i].SlotIndex;
         BindDecl.inputRate = mVertexElements[i].PerInstance ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX;
 
+        if (VertexPitch.size() < mVertexElements[i].SlotIndex + 1)
+            VertexPitch.resize(mVertexElements[i].SlotIndex + 1);
+
         VertexDeclaration.emplace_back();
         VkVertexInputAttributeDescription& desc = VertexDeclaration.back();
 
         desc.location = i;
         desc.binding = mVertexElements[i].SlotIndex;
-        desc.offset = mVertexElements[i].Offset == -1 ? 0xFFFFFFFF : mVertexElements[i].Offset;
+        desc.offset = mVertexElements[i].Offset == -1 ? VertexPitch[desc.binding] : mVertexElements[i].Offset;
         desc.format = getVkFormat(mVertexElements[i].Type);
 
-        if (VertexPitch.size() < desc.binding + 1)
-            VertexPitch.resize(desc.binding + 1);
         VertexPitch[desc.binding] += getVkFormatBitSize(mVertexElements[i].Type) / 8;
     }
 

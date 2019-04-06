@@ -32,7 +32,7 @@ namespace gui
 		//! Returns true if box is checked.
 		virtual bool isChecked() const = 0;
 
-        System::Events::EventHandler<GUIEventArg> OnChecked;
+        //System::Events::EventHandler<GUIEventArg> OnChecked;
 	};
 
 } // end namespace gui

@@ -117,13 +117,15 @@ namespace video
         virtual IRenderTarget* addRenderTarget();
 
         virtual bool setRenderTargetEx(IRenderTarget* target, u16 clearFlag, SColor clearColor = SColor(255, 0, 0, 0),
-            f32 clearDepth = 1.f, u8 clearStencil = 0);
+            f32 clearDepth = 1.f, u8 clearStencil = 0, core::array<core::recti>* scissors = nullptr);
 
         virtual bool setRenderTarget(ITexture* texture, u16 clearFlag = ECBF_COLOR | ECBF_DEPTH, SColor clearColor = SColor(255, 0, 0, 0),
             f32 clearDepth = 1.f, u8 clearStencil = 0);
 
 		//! sets a viewport
 		virtual void setViewPort(const core::rect<s32>& area);
+
+        virtual void setScissorRect(const core::rect<s32>& rect) override;
 
 		//! gets the area of the current viewport
 		virtual const core::rect<s32>& getViewPort() const;
@@ -313,7 +315,7 @@ namespace video
 
 		//! Creates a render target texture.
 		virtual ITexture* addRenderTargetTexture(const core::dimension2d<u32>& size,
-				const io::path& name, const ECOLOR_FORMAT format = ECF_UNKNOWN);
+				const io::path& name, const ECOLOR_FORMAT format = ECF_UNKNOWN, u8 sampleCount = 0);
 
 		//! Clears the ZBuffer.
 		virtual void clearZBuffer(f32 clearDepth = 1.f, u8 clearStencil = 0);

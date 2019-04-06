@@ -255,7 +255,8 @@ void CImage::setPixel(u32 x, u32 y, const SColor &color, bool blend, u8 miplevel
 		} break;
 
 		case ECF_R8G8B8:
-		{
+        case ECF_B8G8R8:
+        {
 			u8* dest = pData + ( y * Pitch ) + ( x * 3 );
 			dest[0] = (u8)color.getRed();
 			dest[1] = (u8)color.getGreen();
@@ -264,6 +265,7 @@ void CImage::setPixel(u32 x, u32 y, const SColor &color, bool blend, u8 miplevel
         case ECF_RGBA8:
 		case ECF_A8R8G8B8:
         case ECF_B8G8R8A8:
+        case ECF_B8G8R8X8:
 		{
 			u32 * dest = (u32*) (pData + ( y * Pitch ) + ( x << 2 ));
 			*dest = blend ? PixelBlend32 ( *dest, color.color ) : color.color;
@@ -293,9 +295,11 @@ SColor CImage::getPixel(u32 x, u32 y, u8 miplevel) const
     case ECF_RGBA8:
     case ECF_A8R8G8B8:
     case ECF_B8G8R8A8:
-		return ((u32*)pData)[y*Size.Width + x];
+    case ECF_B8G8R8X8:
+        return ((u32*)pData)[y*Size.Width + x];
     case ECF_R8G8B8:
-		{
+    case ECF_B8G8R8:
+    {
 			u8* p = pData +(y*3)*Size.Width + (x*3);
 			return SColor(255,p[0],p[1],p[2]);
 		}

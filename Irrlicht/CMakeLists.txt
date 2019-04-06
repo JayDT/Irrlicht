@@ -15,14 +15,6 @@ include_directories(
     ${CMAKE_BINARY_DIR}
 )
 
-if (NOT BUILD_HAS_RESOURCE_SYSTEM)
-    include_directories(
-        ${CMAKE_CURRENT_SOURCE_DIR}/../
-    )
-endif (NOT BUILD_HAS_RESOURCE_SYSTEM)
-
-#AppendDefaultIncludeDir(${CMAKE_CURRENT_SOURCE_DIR}/standard)
-
 file(GLOB IrrLicht_source RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp *.c *.h *.hpp)
 file(GLOB IrrLicht_header RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} include/*.h include/*.hpp)
 file(GLOB IrrLicht_render RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} RenderEngines/General/*.h RenderEngines/General/*.cpp RenderEngines/General/*.c RenderEngines/General/*.h RenderEngines/General/*.hpp)
@@ -216,11 +208,9 @@ target_include_directories(irrlicht INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-if (BUILD_HAS_RESOURCE_SYSTEM)
-    target_link_libraries (irrlicht
-    PRIVATE
-        CFramework)
-endif (BUILD_HAS_RESOURCE_SYSTEM)
+target_link_libraries (irrlicht
+PRIVATE
+    CFramework)
 
 SET_TARGET_PROPERTIES (irrlicht PROPERTIES COMPILE_FLAGS "${RENDER_ENGINE_DEFINES}" )
 SET_TARGET_PROPERTIES (irrlicht PROPERTIES DEFINE_SYMBOL  "IRRLICHT_EXPORTS" )

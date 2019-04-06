@@ -146,13 +146,13 @@ bool CGUIButton::OnEvent(const SEvent& event)
                 newEvent.GUIEvent.Element = 0;
                 newEvent.GUIEvent.EventType = EGET_BUTTON_CLICKED;
 
-                if (OnClicked)
-                {
-                    GUIEventArg arg;
-                    arg.eData = newEvent;
-
-                    OnClicked(this, arg);
-                }
+                //if (OnClicked)
+                //{
+                //    GUIEventArg arg;
+                //    arg.eData = newEvent;
+				//
+                //    OnClicked(this, arg);
+                //}
                 Parent->OnEvent(newEvent);
             }
             return true;
@@ -221,15 +221,15 @@ bool CGUIButton::OnEvent(const SEvent& event)
                 newEvent.GUIEvent.Element = 0;
                 newEvent.GUIEvent.EventType = EGET_BUTTON_CLICKED;
 
-                if (OnClicked)
-                {
-                    GUIEventArg arg;
-                    arg.eData = newEvent;
-
-                    OnClicked(this, arg);
-                    if (arg.eHandled)
-                        return true;
-                }
+                //if (OnClicked)
+                //{
+                //    GUIEventArg arg;
+                //    arg.eData = newEvent;
+				//
+                //    OnClicked(this, arg);
+                //    if (arg.eHandled)
+                //        return true;
+                //}
                 Parent->OnEvent(newEvent);
             }
 

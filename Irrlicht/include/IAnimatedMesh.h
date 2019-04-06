@@ -7,7 +7,6 @@
 
 #include "aabbox3d.h"
 #include "IMesh.h"
-#include <standard/callback.h>
 
 namespace irr
 {

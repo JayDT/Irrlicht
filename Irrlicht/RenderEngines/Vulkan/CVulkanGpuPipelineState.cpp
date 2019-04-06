@@ -272,7 +272,7 @@ void VulkanGraphicsPipelineState::initialize()
     mColorBlendStateInfo.logicOpEnable = VK_FALSE;
     mColorBlendStateInfo.logicOp = VK_LOGIC_OP_NO_OP;
     mColorBlendStateInfo.attachmentCount = 0; // Assigned at runtime
-    mColorBlendStateInfo.pAttachments = mAttachmentBlendStates;
+    mColorBlendStateInfo.pAttachments = mAttachmentBlendStates.data();
     mColorBlendStateInfo.blendConstants[0] = 0.0f;
     mColorBlendStateInfo.blendConstants[1] = 0.0f;
     mColorBlendStateInfo.blendConstants[2] = 0.0f;

@@ -27,9 +27,9 @@ namespace irr
                     memset(this, 0, sizeof(BufferDesc));
                 }
 
-                ID3D11Buffer* buffer;  // ID3D11Buffer ID3D11Resource
-                ID3D11UnorderedAccessView* UAView;
-                ID3D11ShaderResourceView* SRView;
+                Msw::ComPtr<ID3D11Buffer> buffer;  // ID3D11Buffer ID3D11Resource
+                Msw::ComPtr<ID3D11UnorderedAccessView> UAView;
+                Msw::ComPtr<ID3D11ShaderResourceView> SRView;
                 bool UseTempStagingBuffer;
                 D3D11_MAP LastMapDirection;
                 CD3D11HardwareBuffer* TempStagingBuffer;
@@ -45,9 +45,9 @@ namespace irr
 
             std::array<BufferDesc, size_t(E_HARDWARE_BUFFER_TYPE::EHBT_SYSTEM)> VertexBufferStreams;
 
-            ID3D11Device* Device;
-            ID3D11DeviceContext* ImmediateContext;
-            ID3D11InputLayout*   InputLayout;
+            Msw::ComPtr<ID3D11Device> Device;
+            Msw::ComPtr<ID3D11DeviceContext> ImmediateContext;
+			Msw::ComPtr<ID3D11InputLayout>   InputLayout;
             u32 Flags;
             E_VERTEX_TYPE vType : 8;
 
@@ -124,7 +124,7 @@ namespace irr
             virtual void Initialize();
             virtual void Finalize();
 
-            ID3D11InputLayout* GetInputLayout() { return InputLayout; }
+            ID3D11InputLayout* GetInputLayout() { return InputLayout.Get(); }
 
             // Inherited via D3D11DeviceResource
             virtual void OnDeviceLost(CD3D11Driver * device) override;

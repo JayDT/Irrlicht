@@ -50,8 +50,6 @@ CVulkanTexture::CVulkanTexture(CVulkanDriver* driver, const core::dimension2d<u3
 {
     Driver = driver;
 
-    memset(mImages, 0, sizeof(mImages));
-    memset(mInternalFormats, 0, sizeof(mInternalFormats));
     mTextureType = E_TEXTURE_TYPE::e2D;
     mDeviceMask = GpuDeviceFlags::GDF_PRIMARY;
 
@@ -84,8 +82,6 @@ irr::video::CVulkanTexture::CVulkanTexture(CVulkanDriver* driver, VulkanImage* i
     , Image(nullptr)
 {
     Driver = driver;
-    memset(mImages, 0, sizeof(mImages));
-    memset(mInternalFormats, 0, sizeof(mInternalFormats));
     mTextureType = E_TEXTURE_TYPE::e2D;
     mDeviceMask = GpuDeviceFlags::GDF_PRIMARY;
 
@@ -115,8 +111,6 @@ CVulkanTexture::CVulkanTexture(IImage* image, CVulkanDriver* driver, u32 flags, 
     , Image(nullptr)
 {
     Driver = driver;
-    memset(mImages, 0, sizeof(mImages));
-    memset(mInternalFormats, 0, sizeof(mInternalFormats));
     mTextureType = type;
     mDeviceMask = GpuDeviceFlags::GDF_PRIMARY;
     
@@ -133,22 +127,20 @@ CVulkanTexture::CVulkanTexture(IImage* image, CVulkanDriver* driver, u32 flags, 
         case ECF_DXT5:
             TextureSize = image->getDimension();
             mInternalFormats[0] = image->getColorFormat();
-            Image = image;
-            image->grab();
+            Image = irr::Ptr<IImage>(image);
             break;
         default:
             if (getColorFormat() != image->getColorFormat())
             {
                 TextureSize = ImageSize.getOptimalSize(!driver->queryFeature(EVDF_TEXTURE_NPOT));
-                Image = driver->createImage(getColorFormat(), image->getDimension());
+                Image = *driver->createImage(getColorFormat(), image->getDimension());
                 image->copyTo(Image);
             }
             else
             {
                 TextureSize = image->getDimension();
                 mInternalFormats[0] = image->getColorFormat();
-                Image = image;
-                image->grab();
+                Image = irr::Ptr<IImage>(image);
             }
             break;
     }
@@ -208,9 +200,7 @@ CVulkanTexture::~CVulkanTexture()
 
 void CVulkanTexture::clearImage()
 {
-    if (Image)
-        Image->drop();
-    Image = nullptr;
+    Image.Reset();
 }
 
 void * irr::video::CVulkanTexture::lock(E_TEXTURE_LOCK_MODE mode, u32 mipmapLevel, u32 arraySlice)
@@ -445,6 +435,149 @@ void * irr::video::CVulkanTexture::lock(E_TEXTURE_LOCK_MODE mode, u32 mipmapLeve
     return data;
 }
 
+void irr::video::CVulkanTexture::updateTexture(u32 level, u32 x, u32 y, u32 width, u32 height, const void* data)
+{
+    mMappedDeviceIdx = 0;
+    VulkanDevice* device = Device;
+    GpuQueueType queueType;
+    u32 localQueueIdx = CommandSyncMask::getQueueIdxAndType(mMappedGlobalQueueIdx, queueType);
+    VulkanImage* image = mImages[mMappedDeviceIdx];
+    
+    u32 memorySize = IImage::getMemorySize(width, height, 1, mInternalFormats[mMappedDeviceIdx]);
+    if (memorySize <= 0)
+        return;
+
+    createTextureBuffer(false, memorySize);
+    uint8_t* stagingData = mStagingBuffer->map(device, 0, memorySize);
+    if (!stagingData)
+        return;
+    
+    memcpy(stagingData, data, memorySize);
+    mStagingBuffer->unmap(device);
+
+    VulkanImageSubresource* subresource = image->getSubresource(mMappedArraySliceIdx, mMappedMipLevelIdx);
+    VulkanTransferBuffer* transferCB = device->getTransferBuffer(queueType, localQueueIdx);
+    VkImageLayout curLayout = subresource->getLayout();
+
+    {
+        // If the subresource is used in any way on the GPU, we need to wait for that use to finish before
+        // we issue our copy
+        bool isNormalWrite = false;
+        if (subresource->isBound()) // Subresource is currently used on the GPU
+        {
+            // Try to avoid the wait by checking for special write conditions
+
+            // Caller guarantees he won't touch the same data as the GPU, so just copy
+            if (MappedMode == ETLM_WRITE_ONLY)
+            {
+                // Fall through to copy()
+            }
+            //// Caller doesn't care about buffer contents, so just discard the existing buffer and create a new one
+            //else if (mMappedLockOptions == GBL_WRITE_ONLY_DISCARD)
+            //{
+            //    // We need to discard the entire image, even though we're only writing to a single sub-resource
+            //    image->destroy();
+            //
+            //    image = createImage(device, mInternalFormats[mMappedDeviceIdx]);
+            //    mImages[mMappedDeviceIdx] = image;
+            //
+            //    subresource = image->getSubresource(mMappedFace, mMappedMip);
+            //}
+            else // Otherwise we have no choice but to issue a dependency between the queues
+            {
+                u32 useMask = subresource->getUseInfo(VulkanUseFlag::eRead | VulkanUseFlag::eWrite);
+                transferCB->appendMask(useMask);
+                isNormalWrite = true;
+            }
+        }
+        else
+            isNormalWrite = true;
+
+        // Check if the subresource will still be bound somewhere after the CBs using it finish
+        if (isNormalWrite)
+        {
+            u32 useCount = subresource->getUseCount();
+            u32 boundCount = subresource->getBoundCount();
+
+            bool isBoundWithoutUse = boundCount > useCount;
+
+            // If image is queued for some operation on a CB, then we need to make a copy of the subresource to
+            // avoid modifying its use in the previous operation
+            if (isBoundWithoutUse)
+            {
+                VulkanImage* newImage = createImage(*device, UsageFlags, mInternalFormats[mMappedDeviceIdx]);
+
+                // Avoid copying original contents if the image only has one sub-resource, which we'll overwrite anyway
+                if (NumberOfMipLevels > 1 || NumberOfArraySlices > 1)
+                {
+                    VkImageLayout oldImgLayout = image->getOptimalLayout();
+
+                    curLayout = newImage->getOptimalLayout();
+                    copyImage(transferCB, image, newImage, oldImgLayout, curLayout);
+                }
+
+                image->drop();
+                image = newImage;
+                mImages[mMappedDeviceIdx] = image;
+            }
+        }
+    }
+    
+    VkImageSubresourceRange range;
+    range.aspectMask = image->getAspectFlags();
+    range.baseArrayLayer = mMappedArraySliceIdx;
+    range.layerCount = 1;
+    range.baseMipLevel = mMappedMipLevelIdx;
+    range.levelCount = 1;
+
+    VkImageLayout transferLayout;
+    if (mDirectlyMappable)
+        transferLayout = VK_IMAGE_LAYOUT_GENERAL;
+    else
+        transferLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+
+    // Transfer texture to a valid layout
+    VkAccessFlags currentAccessMask = image->getAccessFlags(curLayout);
+    //transferCB->setLayout(image, range, VK_ACCESS_TRANSFER_WRITE_BIT, transferLayout);
+    transferCB->setLayout(image->getHandle(), currentAccessMask, VK_ACCESS_TRANSFER_WRITE_BIT,
+        curLayout, transferLayout, range);
+
+    //unsigned int pitch = width * (IImage::getBitsPerPixelFromFormat(getColorFormat()) / 16.0f);
+    
+    VkBufferImageCopy region;
+    region.bufferRowLength = width;
+    region.bufferImageHeight = height;
+    region.bufferOffset = 0;
+    region.imageOffset.x = x;
+    region.imageOffset.y = y;
+    region.imageOffset.z = 0;
+    region.imageExtent.depth = 1;
+    region.imageExtent.width = width;
+    region.imageExtent.height = height;
+    region.imageSubresource.aspectMask = image->getAspectFlags();
+    region.imageSubresource.baseArrayLayer = mMappedArraySliceIdx;
+    region.imageSubresource.layerCount = 1;
+    region.imageSubresource.mipLevel = level;
+    
+    vkCmdCopyBufferToImage(transferCB->getCB()->getHandle(), mStagingBuffer->getHandle(), image->getHandle(), transferLayout, 1, &region);
+
+    // Transfer back to original  (or optimal if initial layout was undefined/preinitialized)
+    VkImageLayout dstLayout = image->getOptimalLayout();
+    
+    currentAccessMask = image->getAccessFlags(dstLayout);
+    transferCB->setLayout(image->getHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, currentAccessMask, transferLayout, dstLayout, range);
+
+    // Notify the command buffer that these resources are being used on it
+    mStagingBuffer->NotifySoftBound(VulkanUseFlag::eRead);
+    //transferCB->getCB()->registerResource(mStagingBuffer, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::eRead);
+    transferCB->getCB()->registerResource(image, range, VulkanUseFlag::eWrite, ResourceUsage::eTransfer);
+
+    // We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
+    // done automatically before next "normal" command buffer submission.
+    mStagingBuffer->drop();
+    mStagingBuffer = nullptr;
+}
+
 void irr::video::CVulkanTexture::unlock()
 {
     // Possibly map() failed with some error
@@ -627,7 +760,7 @@ u32 irr::video::CVulkanTexture::getNumberOfArraySlices() const
 
 bool irr::video::CVulkanTexture::createMipMaps(u32 level)
 {
-    if (level == 0)
+    if (level == 0 || !hasMipMaps())
         return true;
 
     VkFormatProperties formatProperties;
@@ -797,7 +930,11 @@ VulkanImage* irr::video::CVulkanTexture::createImage(VulkanDevice& device, u32 u
     imgDesc.numMipLevels = NumberOfMipLevels;
     imgDesc.usage = usage;
 
-    return new VulkanImage(Driver, imgDesc);
+    auto vkImg = new VulkanImage(Driver, imgDesc);
+
+    VulkanUtility::setObjectNamef(device, (uint64_t)vkImg->getHandle(), VkObjectType::VK_OBJECT_TYPE_IMAGE, "%s_TEX", NamedPath.getPath().c_str());
+
+    return vkImg;
 }
 
 bool irr::video::CVulkanTexture::createTexture(u32 flags, IImage * image, E_TEXTURE_TYPE type)
@@ -1284,6 +1421,8 @@ VkImageView VulkanImage::createView(const TextureSurface& surface, VkImageAspect
     VkResult result = vkCreateImageView(Driver->_getPrimaryDevice()->getLogical(), &mImageViewCI, VulkanDevice::gVulkanAllocator, &view);
     assert(result == VK_SUCCESS);
 
+    //VulkanUtility::setObjectNamef(*Driver->_getPrimaryDevice(), (uint64_t)view, VkObjectType::VK_OBJECT_TYPE_IMAGE_VIEW, "%s_TEX_VIEW", NamedPath.getPath().c_str());
+
     mImageViewCI.viewType = oldViewType;
     return view;
 }
@@ -1659,8 +1798,9 @@ void VulkanImage::getBarriers(const VkImageSubresourceRange& range, std::vector<
 
 VulkanImageSubresource::VulkanImageSubresource(CVulkanDriver* owner, VkImageLayout layout)
     : CVulkanDeviceResource(owner)
-    , mLayout(layout)
-{ }
+{
+    mImageSubresourceInfo.currentLayout = layout;
+}
 
 void irr::video::VulkanImageSubresource::OnDeviceLost(CVulkanDriver * device)
 {

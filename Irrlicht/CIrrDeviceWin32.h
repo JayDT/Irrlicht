@@ -84,7 +84,7 @@ namespace irr
         virtual void uncapture() const;
         virtual void setActiveWindow() const;
         virtual void setParent(IrrlichtDevice*) const;
-        virtual void setTimer(u32 id, uint interval, std::function<void()> const& callback);
+        virtual void setTimer(u32 id, u32 interval, std::function<void()> const& callback);
         virtual void unsetTimer(u32 id);
         virtual void signal(s32 id, s32 param);
 

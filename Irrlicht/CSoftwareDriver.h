@@ -105,7 +105,7 @@ namespace video
 
 		//! Creates a render target texture.
 		virtual ITexture* addRenderTargetTexture(const core::dimension2d<u32>& size,
-				const io::path& name, const ECOLOR_FORMAT format = ECF_UNKNOWN);
+				const io::path& name, const ECOLOR_FORMAT format = ECF_UNKNOWN, u8 sampleCount = 0);
 
 		//! Clears the ZBuffer.
 		virtual void clearZBuffer();

@@ -45,29 +45,29 @@ public:
 	virtual ~CD3D11Texture();
 
     //! lock function
-    virtual void* lock(E_TEXTURE_LOCK_MODE mode = ETLM_READ_WRITE, u32 mipmapLevel = 0, u32 arraySlice = 0);
-	//! lock function
-	//virtual void* lock(bool readOnly = false, u32 mipmapLevel=0, u32 arraySlice = 0);
+    virtual void* lock(E_TEXTURE_LOCK_MODE mode = ETLM_READ_WRITE, u32 mipmapLevel = 0, u32 arraySlice = 0) override;
+
+    virtual void updateTexture(u32 level, u32 x, u32 y, u32 width, u32 height, const void* data) override;
 
 	//! unlock function
 	virtual void unlock();
 
 	//! Returns original size of the texture.
-	virtual const core::dimension2d<u32>& getOriginalSize() const;
+	virtual const core::dimension2d<u32>& getOriginalSize() const override;
 
 	//! Returns (=size) of the texture.
-	virtual const core::dimension2d<u32>& getSize() const;
+	virtual const core::dimension2d<u32>& getSize() const override;
 
 	//! returns driver type of texture (=the driver, who created the texture)
-	virtual E_DRIVER_TYPE getDriverType() const;
+	virtual E_DRIVER_TYPE getDriverType() const override;
 
 	//! returns color format of texture
-	virtual ECOLOR_FORMAT getColorFormat() const;
+	virtual ECOLOR_FORMAT getColorFormat() const override;
 
-	virtual u32 getPitch() const;
+	virtual u32 getPitch() const override;
 
 	//! returns if texture has mipmap levels
-	bool hasMipMaps() const;
+	bool hasMipMaps() const override;
 
 	virtual u32 getNumberOfArraySlices() const;
 
@@ -77,7 +77,7 @@ public:
     bool createMipMaps(u32 level = 1);
 
 	//! returns if it is a render target
-	virtual bool isRenderTarget() const;
+	virtual bool isRenderTarget() const override;
 
 public:
 	//! return texture resource
@@ -89,23 +89,28 @@ public:
 	//! return shader resource view
 	ID3D11ShaderResourceView* getShaderResourceView() const;
 
-    ID3D11Texture2D* getTextureResource() { return Texture; }
+    ID3D11Texture2D* getTextureResource() { return Texture.Get(); }
 
 private:
 	friend class CD3D11Driver;
 
     bool InitializeColorFormat(u32 flags, ECOLOR_FORMAT colorFormat);
 
-	ID3D11Device* Device;
-	ID3D11DeviceContext* ImmediateContext;
-	ID3D11Texture2D* Texture;
-	ID3D11RenderTargetView* RTView;
-	ID3D11ShaderResourceView* SRView;
+	Msw::ComPtr<ID3D11Device> Device;
+	Msw::ComPtr<ID3D11DeviceContext> ImmediateContext;
+	Msw::ComPtr<ID3D11Texture2D> Texture;
+	Msw::ComPtr<ID3D11Texture2D> ShaderTexture;
+	Msw::ComPtr<ID3D11RenderTargetView> RTView;
+	Msw::ComPtr<ID3D11RenderTargetView> RTTextureView;
+	Msw::ComPtr<ID3D11ShaderResourceView> SRMSAAView;
+	Msw::ComPtr<ID3D11ShaderResourceView> SRView;
+	Msw::ComPtr<ID3D11Texture2D> TextureBuffer;		// staging texture used for lock/unlock
+    irr::Ptr<IImage> Image;
 	D3D11_RESOURCE_DIMENSION TextureDimension;
 	D3D11_MAP LastMapDirection;
 	
 	CD3D11Driver* Driver;
-	SDepthSurface11* DepthSurface;
+	irr::Ptr<SDepthSurface11> DepthSurface;
 	core::dimension2d<u32> TextureSize;
 	core::dimension2d<u32> ImageSize;
 	u32 Pitch;
@@ -114,9 +119,7 @@ private:
 	ECOLOR_FORMAT ColorFormat;
 	u32 SampleCount;
 	u32 SampleQuality;
-    IImage* Image;
 
-	ID3D11Texture2D* TextureBuffer;		// staging texture used for lock/unlock
 	s32 MappedPitch;
 	u32 MipLevelLocked;
 	u32 ArraySliceLocked;

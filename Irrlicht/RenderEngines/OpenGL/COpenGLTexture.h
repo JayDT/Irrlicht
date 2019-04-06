@@ -33,6 +33,8 @@ public:
 	//! lock function
 	virtual void* lock(E_TEXTURE_LOCK_MODE mode=ETLM_READ_WRITE, u32 mipmapLevel=0, u32 arraySlice = 0);
 
+    virtual void updateTexture(u32 level, u32 x, u32 y, u32 width, u32 height, const void* data) override;
+
 	//! unlock function
 	virtual void unlock();
 

@@ -94,8 +94,8 @@ void VulkanGpuParams::initialize()
             PerSetData& perSetData = mPerDeviceData[i][j];
             perSetData.sets.resize(numSets);
     
-            perSetData.writeSetInfos = numBindingsPerSet > 0 ? new VkWriteDescriptorSet[numBindingsPerSet] : nullptr;
-            perSetData.writeInfos = new WriteInfo[numBindingsPerSet];
+            perSetData.writeSetInfos.resize(numBindingsPerSet);
+            perSetData.writeInfos.resize(numBindingsPerSet);
     
             VulkanDescriptorLayout* layout = mShader->getLayout();
             perSetData.numElements  = numBindingsPerSet;
@@ -468,7 +468,7 @@ bool VulkanGpuParams::UpdateDescriptors(VulkanCmdBuffer& buffer, VkDescriptorSet
     
         // Note: Currently I write to the entire set at once, but it might be beneficial to remember only the exact
         // entries that were updated, and only write to them individually.
-        perSetData.latestSet->write(perSetData.writeSetInfos, perSetData.numElements);
+        perSetData.latestSet->write(perSetData.writeSetInfos.data(), perSetData.numElements);
         perSetData.latestSet->NotifySoftBound(VulkanUseFlag::eWrite);
 
         perSetData.mSetsDirty = false;

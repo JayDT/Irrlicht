@@ -13,48 +13,31 @@ include_directories(
     ${DirectX11_INCLUDE}
 )
 
-file(GLOB_RECURSE Direct3D11_Source RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp *.c *.h *.hpp *.hlsl)
+file(GLOB_RECURSE Direct3D11_Source RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp *.c *.h *.hpp)
 setup_hlsl(${Direct3D11_Source})
 file(GLOB_RECURSE RESOURCE_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.hlsl)
-
-if (BUILD_HAS_RESOURCE_SYSTEM)
-    resource_prebuild(
-        TARGET "Direct3D11"
-        GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/.Resource"
-        SOURCE_ROOT "${CMAKE_CURRENT_LIST_DIR}"
-        RESOURCE_FILES ${RESOURCE_SRCS}
-        OUT_MODULE_SOURCE RESOURCE_MODULE_SOURCE
-        OUT_GENERATED_FILES RESOURCE_GENERATED_FILES
-        OUT_SRC RESOURCE_GENERATED_SOURCES
-    )
-    
-    LIST(APPEND Direct3D11_Source ${RESOURCE_GENERATED_FILES})
-endif (BUILD_HAS_RESOURCE_SYSTEM)
 
 CreateLibrary("Direct3D11" "${Direct3D11_Source}" "${LIBTYPE}" "" "")
 add_dependencies(Direct3D11 ZLIB)
 
 target_link_libraries (Direct3D11 
+	CFramework
     ${DirectX11_LIBRARY}
     Winmm 
-    ZLIB
+    ZLIB)
+
+resource_build(
+    TARGET "Direct3D11"
+    GENERATED_DIR "${CMAKE_BINARY_DIR}"
+    SOURCE_ROOT "${CMAKE_CURRENT_LIST_DIR}"
+    SOURCE_FILE "${CMAKE_CURRENT_BINARY_DIR}/.Resource/Resource_Direct3D11.dsc"
+    MODULE_SOURCE_FILE "Direct3D11"
+    RESOURCE_FILES ${RESOURCE_SRCS}
+    GENERATED_FILES ${RESOURCE_GENERATED_FILES}
+    RESOURCE_EXECUTABLE ${ResourceCompilerExecutable}
 )
 
-if (BUILD_HAS_RESOURCE_SYSTEM)
-    target_link_libraries (Direct3D11
-        CFramework)
-
-    resource_build(
-        TARGET "Direct3D11"
-        GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/.Resource"
-        SOURCE_ROOT "${CMAKE_CURRENT_LIST_DIR}"
-        SOURCE_FILE "${CMAKE_CURRENT_BINARY_DIR}/.Resource/Resource_Direct3D11.dsc"
-        MODULE_SOURCE_FILE ${RESOURCE_MODULE_SOURCE}
-        RESOURCE_FILES ${RESOURCE_SRCS}
-        GENERATED_FILES ${RESOURCE_GENERATED_FILES}
-        RESOURCE_EXECUTABLE ${ResourceCompilerExecutable}
-    )
-endif (BUILD_HAS_RESOURCE_SYSTEM)
+SET_PROPERTY(GLOBAL APPEND PROPERTY ResxDataFiles "Direct3D11.resx")
 
 if(_IRR_DYNAMIC_)
     target_link_libraries (Direct3D11 

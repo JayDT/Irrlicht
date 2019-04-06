@@ -527,6 +527,113 @@ static void executeBlit_TextureCopy_RBG8_to_A8R8G8B8(const SBlitJob * job)
 
 /*!
 */
+static void executeBlit_TextureCopy_R8G8B8_to_B8G8R8(const SBlitJob* job)
+{
+    const u32 w = job->width;
+    const u32 h = job->height;
+    if (job->stretch)
+    {
+        const u32* src = static_cast<const u32*>(job->src);
+        u32* dst = static_cast<u32*>(job->dst);
+        const float wscale = 1.f / job->x_stretch;
+        const float hscale = 1.f / job->y_stretch;
+
+        for (u32 dy = 0; dy < h; ++dy)
+        {
+            const u32 src_y = (u32)(dy * hscale);
+            src = (u32*)((u8*)(job->src) + job->srcPitch * src_y);
+
+            for (u32 dx = 0; dx < w; ++dx)
+            {
+                const u32 src_x = (u32)(dx * wscale);
+                dst[dx] = (u32)(
+                    (src[src_x] & 0x00FF0000) >> 16 |   // r -> b
+                    (src[src_x] & 0x0000FF00) |         // g -> g
+                    (src[src_x] & 0x000000FF) << 16);   // b -> r
+            }
+            dst = (u32*)((u8*)(dst)+job->dstPitch);
+        }
+    }
+    else
+    {
+        const u32 widthPitch = job->width * job->dstPixelMul;
+        const u32* src = (u32*)job->src;
+        u32* dst = (u32*)job->dst;
+
+        for (u32 dy = 0; dy != h; ++dy)
+        {
+            for (u32 dx = 0; dx < w; ++dx)
+            {
+                dst[dx] = (u32)(
+                    (src[dx] & 0x00FF0000) >> 16 |   // r -> b
+                    (src[dx] & 0x0000FF00) |         // g -> g
+                    (src[dx] & 0x000000FF) << 16);   // b -> r
+            }
+
+            src = (u32*)((u8*)(src)+job->srcPitch);
+            dst = (u32*)((u8*)(dst)+job->dstPitch);
+        }
+    }
+}
+
+
+//
+
+/*!
+*/
+static void executeBlit_TextureCopy_R8G8B8A8_to_B8G8R8A8(const SBlitJob* job)
+{
+    const u32 w = job->width;
+    const u32 h = job->height;
+    if (job->stretch)
+    {
+        const u32* src = static_cast<const u32*>(job->src);
+        u32* dst = static_cast<u32*>(job->dst);
+        const float wscale = 1.f / job->x_stretch;
+        const float hscale = 1.f / job->y_stretch;
+
+        for (u32 dy = 0; dy < h; ++dy)
+        {
+            const u32 src_y = (u32)(dy * hscale);
+            src = (u32*)((u8*)(job->src) + job->srcPitch * src_y);
+
+            for (u32 dx = 0; dx < w; ++dx)
+            {
+                const u32 src_x = (u32)(dx * wscale);
+                dst[dx] = (u32)(
+                    (src[src_x] & 0xFF000000) |   // a -> a
+                    (src[src_x] & 0x00FF0000) >> 16 |   // r -> b
+                    (src[src_x] & 0x0000FF00) |         // g -> g
+                    (src[src_x] & 0x000000FF) << 16);   // b -> r
+            }
+            dst = (u32*)((u8*)(dst)+job->dstPitch);
+        }
+    }
+    else
+    {
+        const u32 widthPitch = job->width * job->dstPixelMul;
+        const u32* src = (u32*)job->src;
+        u32* dst = (u32*)job->dst;
+
+        for (u32 dy = 0; dy != h; ++dy)
+        {
+            for (u32 dx = 0; dx < w; ++dx)
+            {
+                dst[dx] = (u32)(
+                    (src[dx] & 0xFF000000) |         // a -> a
+                    (src[dx] & 0x00FF0000) >> 16 |   // r -> b
+                    (src[dx] & 0x0000FF00) |         // g -> g
+                    (src[dx] & 0x000000FF) << 16);   // b -> r
+            }
+
+            src = (u32*)((u8*)(src)+job->srcPitch);
+            dst = (u32*)((u8*)(dst)+job->dstPitch);
+        }
+    }
+}
+
+/*!
+*/
 static void executeBlit_TextureCopy_x_to_x( const SBlitJob * job )
 {
 	const u32 w = job->width;
@@ -1071,14 +1178,21 @@ static const blitterTable blitTable[] =
 {
 	{ BLITTER_TEXTURE, -2, -2, executeBlit_TextureCopy_x_to_x },
     { BLITTER_TEXTURE, video::ECF_A8R8G8B8, video::ECF_RGBA8, executeBlit_TextureCopy_RBG8_to_A8R8G8B8 },
-    { BLITTER_TEXTURE, video::ECF_B8G8R8A8, video::ECF_R8G8B8, executeBlit_TextureCopy_24_to_32 },
+    { BLITTER_TEXTURE, video::ECF_B8G8R8A8, video::ECF_B8G8R8, executeBlit_TextureCopy_24_to_32 },
+    { BLITTER_TEXTURE, video::ECF_B8G8R8X8, video::ECF_B8G8R8, executeBlit_TextureCopy_24_to_32 },
     { BLITTER_TEXTURE, video::ECF_A1R5G5B5, video::ECF_A8R8G8B8, executeBlit_TextureCopy_32_to_16 },
 	{ BLITTER_TEXTURE, video::ECF_A1R5G5B5, video::ECF_R8G8B8, executeBlit_TextureCopy_24_to_16 },
 	{ BLITTER_TEXTURE, video::ECF_A8R8G8B8, video::ECF_A1R5G5B5, executeBlit_TextureCopy_16_to_32 },
 	{ BLITTER_TEXTURE, video::ECF_A8R8G8B8, video::ECF_R8G8B8, executeBlit_TextureCopy_24_to_32 },
 	{ BLITTER_TEXTURE, video::ECF_R8G8B8, video::ECF_A1R5G5B5, executeBlit_TextureCopy_16_to_24 },
 	{ BLITTER_TEXTURE, video::ECF_R8G8B8, video::ECF_A8R8G8B8, executeBlit_TextureCopy_32_to_24 },
-	{ BLITTER_TEXTURE_ALPHA_BLEND, video::ECF_A1R5G5B5, video::ECF_A1R5G5B5, executeBlit_TextureBlend_16_to_16 },
+    { BLITTER_TEXTURE, video::ECF_B8G8R8, video::ECF_B8G8R8A8, executeBlit_TextureCopy_32_to_24 },
+    { BLITTER_TEXTURE, video::ECF_B8G8R8, video::ECF_B8G8R8X8, executeBlit_TextureCopy_32_to_24 },
+    { BLITTER_TEXTURE, video::ECF_R8G8B8, video::ECF_B8G8R8, executeBlit_TextureCopy_R8G8B8_to_B8G8R8 },
+    { BLITTER_TEXTURE, video::ECF_B8G8R8, video::ECF_R8G8B8, executeBlit_TextureCopy_R8G8B8_to_B8G8R8 },
+    { BLITTER_TEXTURE, video::ECF_B8G8R8A8, video::ECF_A8R8G8B8, executeBlit_TextureCopy_R8G8B8A8_to_B8G8R8A8 },
+    { BLITTER_TEXTURE, video::ECF_A8R8G8B8, video::ECF_B8G8R8A8, executeBlit_TextureCopy_R8G8B8A8_to_B8G8R8A8 },
+    { BLITTER_TEXTURE_ALPHA_BLEND, video::ECF_A1R5G5B5, video::ECF_A1R5G5B5, executeBlit_TextureBlend_16_to_16 },
 	{ BLITTER_TEXTURE_ALPHA_BLEND, video::ECF_A8R8G8B8, video::ECF_A8R8G8B8, executeBlit_TextureBlend_32_to_32 },
 	{ BLITTER_TEXTURE_ALPHA_COLOR_BLEND, video::ECF_A1R5G5B5, video::ECF_A1R5G5B5, executeBlit_TextureBlendColor_16_to_16 },
 	{ BLITTER_TEXTURE_ALPHA_COLOR_BLEND, video::ECF_A8R8G8B8, video::ECF_A8R8G8B8, executeBlit_TextureBlendColor_32_to_32 },

@@ -166,13 +166,13 @@ const wchar_t* CGUIContextMenu::getItemText(u32 idx) const
 	return Items[idx].Text.c_str();
 }
 
-System::Events::EventHandler<GUIEventArg, System::Events::DummyMutex>& CGUIContextMenu::OnClickItem(u32 idx)
-{
-    if (idx >= Items.size())
-        throw std::out_of_range("No item on index");
-
-    return Items[idx].OnClick;
-}
+//System::Events::EventHandler<GUIEventArg, System::Events::DummyMutex>& CGUIContextMenu::OnClickItem(u32 idx)
+//{
+//    if (idx >= Items.size())
+//        throw std::out_of_range("No item on index");
+//
+//    return Items[idx].OnClick;
+//}
 
 //! Sets text of the menu item.
 void CGUIContextMenu::setItemText(u32 idx, const wchar_t* text)
@@ -422,8 +422,8 @@ u32 CGUIContextMenu::sendClick(const core::position2d<s32>& p)
         GUIEventArg arg;
         arg.eData = event;
 
-        if (Items[HighLighted].OnClick)
-            Items[HighLighted].OnClick(this, arg);
+        //if (Items[HighLighted].OnClick)
+        //    Items[HighLighted].OnClick(this, arg);
 
         if (!arg.eHandled)
         {

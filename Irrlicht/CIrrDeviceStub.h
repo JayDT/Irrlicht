@@ -9,6 +9,7 @@
 #include "IImagePresenter.h"
 #include "SIrrCreationParameters.h"
 #include "CVideoModeList.h"
+#include <functional>
 
 namespace irr
 {
@@ -155,7 +156,7 @@ namespace irr
         virtual irr::core::dimension2d<u32> getClientSize() const { return irr::core::dimension2d<u32>(); }
         virtual void setWindowBackgroundLayer(irr::video::SColor const& color) {}
         virtual void setClientSize(irr::core::dimension2d<u32> const& size) const {}
-        virtual void setTimer(u32 id, uint interval, std::function<void()> const& callback) {}
+        virtual void setTimer(u32 id, u32 interval, std::function<void()> const& callback) {}
         virtual void unsetTimer(u32 id) {}
 
         virtual void focus() const {}

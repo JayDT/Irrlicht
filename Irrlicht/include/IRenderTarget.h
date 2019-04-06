@@ -61,6 +61,8 @@ namespace video
 			return DriverType;
 		}
 
+		virtual const char* GetName() const { return "Unnamed"; }
+
 	protected:
 
 		//! Textures assigned to render target.

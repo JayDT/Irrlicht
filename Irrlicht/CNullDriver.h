@@ -121,7 +121,7 @@ namespace video
         virtual ITexture* addTexture(const core::dimension2d<u32>& size, const io::path& name, ECOLOR_FORMAT format = ECF_A8R8G8B8) _IRR_OVERRIDE_;
 
         virtual bool setRenderTargetEx(IRenderTarget* target, u16 clearFlag, SColor clearColor = SColor(255, 0, 0, 0),
-            f32 clearDepth = 1.f, u8 clearStencil = 0) _IRR_OVERRIDE_;
+            f32 clearDepth = 1.f, u8 clearStencil = 0, core::array<core::recti>* scissors = nullptr) _IRR_OVERRIDE_;
 
         virtual bool setRenderTarget(ITexture* texture, u16 clearFlag, SColor clearColor = SColor(255, 0, 0, 0),
             f32 clearDepth = 1.f, u8 clearStencil = 0) _IRR_OVERRIDE_;
@@ -332,7 +332,7 @@ namespace video
 
         //! Creates a render target texture.
         virtual ITexture* addRenderTargetTexture(const core::dimension2d<u32>& size,
-            const io::path& name, const ECOLOR_FORMAT format = ECF_UNKNOWN) _IRR_OVERRIDE_;
+            const io::path& name, const ECOLOR_FORMAT format = ECF_UNKNOWN, u8 sampleCount = 0) _IRR_OVERRIDE_;
 
         //! Creates an 1bit alpha channel of the texture based of an color key.
         virtual void makeColorKeyTexture(video::ITexture* texture, video::SColor color, bool zeroTexels) const;
@@ -808,6 +808,9 @@ namespace video
             virtual u32 getPitch() const { return 0; }
             virtual void regenerateMipMapLevels(IImage* image = nullptr) {};
             core::dimension2d<u32> size;
+
+            // Inherited via ITexture
+            virtual void updateTexture(u32 level, u32 x, u32 y, u32 width, u32 height, const void* data) override;
         };
 
         std::map<irr::u32, VertexDeclaration*> VertexDeclarations;
@@ -873,7 +876,10 @@ namespace video
         bool FeatureEnabled[video::EVDF_COUNT];
     public:
         bool blockgpuprogramchange = false;
-    };
+
+        // Inherited via IVideoDriver
+        virtual void setScissorRect(const core::rect<s32>& rect) override;
+};
 
 } // end namespace video
 } // end namespace irr

@@ -7,10 +7,56 @@
 
 #include <D3DCompiler.h>
 
-#define Dx11ShaderDebug 1
-
 using namespace irr;
 using namespace irr::video;
+
+namespace
+{
+    std::map<size_t, core::array<uint8_t>> mSharedBinaryCache;
+
+    void D3DWriteShaderCache(System::IO::IFileWriter* file)
+    {
+        if (!file)
+            return;
+
+        *file << uint32_t('ISDC');
+        *file << uint32_t('IDXD');
+        *file << uint32_t(mSharedBinaryCache.size());
+
+        for (const auto& kvp : mSharedBinaryCache)
+        {
+            *file << uint64_t(kvp.first);
+            *file << uint32_t(kvp.second.size());
+            file->Write((uint8_t*)kvp.second.const_pointer(), kvp.second.size());
+        }
+    }
+}
+
+extern "C" void D3DLoadShaderCache(System::IO::IFileReader* file)
+{
+    if (!file)
+        return;
+
+    uint32_t shaderCount;
+
+    *file >> shaderCount;
+
+    for (uint32_t i = 0; i < shaderCount; ++i)
+    {
+        uint64_t seed;
+        uint32_t size;
+        *file >> seed;
+        *file >> size;
+        auto& cacheBuffer = mSharedBinaryCache[seed];
+        cacheBuffer.set_used(size);
+        file->Read((uint8_t*)cacheBuffer.pointer(), cacheBuffer.size());
+    }
+}
+
+void CD3D11Driver::WriteShaderCache(System::IO::IFileWriter* file)
+{
+    D3DWriteShaderCache(file);
+}
 
 video::E_SHADER_VARIABLE_TYPE getShaderVariableTypeId(D3D_SHADER_VARIABLE_TYPE hlslangType, D3D_SHADER_VARIABLE_CLASS hlslclass)
 {
@@ -43,15 +89,13 @@ video::E_SHADER_VARIABLE_TYPE getShaderVariableTypeId(D3D_SHADER_VARIABLE_TYPE h
     return video::E_SHADER_VARIABLE_TYPE::ESVT_MAX;
 }
 
-ID3DBlob* D3D11CompileShader(System::IO::IFileReader* file, const char* entryPoint, const char* shaderModel, ID3DBlob*& errorMessage)
+ID3DBlob* D3D11CompileShader(System::IO::IFileReader* file, const char* entryPoint, const char* shaderModel, ID3DBlob*& errorMessage, D3D_SHADER_MACRO* Macros)
 {
     UINT compileFlags = 0;
-    //flags |= D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY;
-#if	Dx11ShaderDebug
+#if	IRR_DIRECTX_SHADER_DEBUG
     // These values allow use of PIX and shader debuggers
     compileFlags |= D3DCOMPILE_DEBUG;
     compileFlags |= D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_PREFER_FLOW_CONTROL;
-    //flags |= D3D10_SHADER_WARNINGS_ARE_ERRORS;
 #else
     // These flags allow maximum performance
     compileFlags |= D3DCOMPILE_ENABLE_STRICTNESS;
@@ -60,9 +104,7 @@ ID3DBlob* D3D11CompileShader(System::IO::IFileReader* file, const char* entryPoi
 
     std::string source;
     source.resize(file->Size());
-    file->Read((byte*)source.data(), file->Size());
-    //if (file->Read((byte*)source.data(), file->Size()) != file->Size())
-    //    throw std::runtime_error("shader not found");
+    file->Read((byte*)source.data(), source.size());
 
     ID3DBlob* ShaderBuffer;
 
@@ -70,7 +112,7 @@ ID3DBlob* D3D11CompileShader(System::IO::IFileReader* file, const char* entryPoi
         source.c_str(),         // [in] Pointer to the shader in memory. 
         source.size(),          // [in] Size of the shader in memory.  
         file->FileName.c_str(), // [in] Optional. You can use this parameter for strings that specify error messages.
-        nullptr,                // [in] Optional. Pointer to a NULL-terminated array of macro definitions. See D3D_SHADER_MACRO. If not used, set this to NULL. 
+        Macros,                 // [in] Optional. Pointer to a NULL-terminated array of macro definitions. See D3D_SHADER_MACRO. If not used, set this to NULL. 
         nullptr,                // [in] Optional. Pointer to an ID3DInclude Interface interface for handling include files. Setting this to NULL will cause a compile error if a shader contains a #include. 
         entryPoint,             // [in] Name of the shader-entrypoint function where shader execution begins. 
         shaderModel,            // [in] A string that specifies the shader model; can be any profile in shader model 4 or higher. 
@@ -116,7 +158,6 @@ irr::video::D3D11HLSLProgram::D3D11HLSLProgram(video::IVideoDriver * context)
     , m_computeShader(nullptr)
     , m_geometryShader(nullptr)
     , m_inputLayout(nullptr)
-    , m_vertexShaderBytecode(nullptr)
     , pReflectVertexShader(nullptr)
     , pReflectHullShader(nullptr)
     , pReflectDomainShader(nullptr)
@@ -128,60 +169,78 @@ irr::video::D3D11HLSLProgram::D3D11HLSLProgram(video::IVideoDriver * context)
 
 irr::video::D3D11HLSLProgram::~D3D11HLSLProgram()
 {
-    SAFE_RELEASE(m_vertexShader)
-    SAFE_RELEASE(m_pixelShader)
-    SAFE_RELEASE(m_hullShader)
-    SAFE_RELEASE(m_domainShader)
-    SAFE_RELEASE(m_computeShader)
-    SAFE_RELEASE(m_geometryShader)
-    SAFE_RELEASE(m_inputLayout)
-    SAFE_RELEASE(m_vertexShaderBytecode)
-    SAFE_RELEASE(pReflectVertexShader)
-    SAFE_RELEASE(pReflectHullShader)
-    SAFE_RELEASE(pReflectDomainShader)
-    SAFE_RELEASE(pReflectComputeShader)
-    SAFE_RELEASE(pReflectGeometryShader)
-    SAFE_RELEASE(pReflectPixelShader)
-
-    if (m_inputLayout)
-        m_inputLayout->Release();
-    m_inputLayout = nullptr;
 }
 
-bool irr::video::D3D11HLSLProgram::createVertexShader(ID3D11Device* device, System::IO::IFileReader* file, const char* entryPoint, const char* shaderModel)
+bool irr::video::D3D11HLSLProgram::createVertexShader(ID3D11Device* device, System::IO::IFileReader* file, const char* entryPoint, const char* shaderModel, D3D_SHADER_MACRO* Macros)
 {
-    SAFE_RELEASE(m_vertexShaderBytecode);
-
     HRESULT hr = S_OK;
-    ID3DBlob* errorMessage;
-    m_vertexShaderBytecode = D3D11CompileShader(file, entryPoint, shaderModel, errorMessage);
+
+    LPCVOID pSrcData;
+    SIZE_T SrcDataSize;
+    ID3DBlob* errorMessage = nullptr;
+
+    if (entryPoint)
+    {
+		// ToDo: Rework
+		std::hash<std::string> hasher;
+		size_t seed = hasher(file->FileName);
+		seed ^= hasher("VS") + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+		seed ^= hasher(entryPoint) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+		auto pMacros = Macros;
+		while (pMacros && (*pMacros).Name)
+		{
+			seed ^= hasher((*pMacros).Name) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+			seed ^= hasher((*pMacros).Definition) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+			++pMacros;
+		}
+		
+		auto& cacheBuffer = mSharedBinaryCache[seed];
+		
+		if (cacheBuffer.empty())
+		{
+			auto ShaderBuffer = D3D11CompileShader(file, entryPoint, shaderModel, errorMessage, Macros);
+
+            cacheBuffer.set_used(ShaderBuffer->GetBufferSize());
+            memcpy(cacheBuffer.pointer(), ShaderBuffer->GetBufferPointer(), ShaderBuffer->GetBufferSize());
+		}
+
+        m_vertexShaderBytecode.set_pointer(cacheBuffer.pointer(), cacheBuffer.size(), false, false);
+    }
+    else
+    {
+        m_vertexShaderBytecode.set_used(file->Size());
+        file->Read(m_vertexShaderBytecode.pointer(), m_vertexShaderBytecode.size());
+    }
+
+    SAFE_RELEASE(errorMessage);
+
+    pSrcData = m_vertexShaderBytecode.pointer();
+    SrcDataSize = m_vertexShaderBytecode.size();
 
     // Create the vertex shader from the buffer.
-    hr = device->CreateVertexShader(m_vertexShaderBytecode->GetBufferPointer(), m_vertexShaderBytecode->GetBufferSize(), NULL, &m_vertexShader);
+    hr = device->CreateVertexShader(pSrcData, SrcDataSize, NULL, &m_vertexShader);
     if (FAILED(hr))
     {
         // Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
-        SAFE_RELEASE(m_vertexShaderBytecode);
         throw std::runtime_error("invalid shader");
         return false;
     }
 
     // get description of precompiled shader
-    pReflectVertexShader = NULL;
+    pReflectVertexShader = nullptr;
     D3DReflect(
-        m_vertexShaderBytecode->GetBufferPointer(),
-        m_vertexShaderBytecode->GetBufferSize(),
+        pSrcData,
+        SrcDataSize,
         IID_ID3D11ShaderReflection,
         (void**)&pReflectVertexShader
     );
 
-    initializeConstantBuffers((CD3D11Driver *)getVideoDriver(), pReflectVertexShader, EST_VERTEX_SHADER);
-    hr = enumInputLayout((CD3D11Driver *)getVideoDriver(), pReflectVertexShader);
+    initializeConstantBuffers((CD3D11Driver *)getVideoDriver(), pReflectVertexShader.Get(), EST_VERTEX_SHADER);
+    hr = enumInputLayout((CD3D11Driver *)getVideoDriver(), pReflectVertexShader.Get());
 
     if (FAILED(hr))
     {
         // Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
-        SAFE_RELEASE(m_vertexShaderBytecode);
         throw std::runtime_error("invalid shader");
         return false;
     }
@@ -189,14 +248,53 @@ bool irr::video::D3D11HLSLProgram::createVertexShader(ID3D11Device* device, Syst
     return true;
 }
 
-bool irr::video::D3D11HLSLProgram::createGeometryShader(ID3D11Device* device, System::IO::IFileReader* file, const char* entryPoint, const char* shaderModel)
+bool irr::video::D3D11HLSLProgram::createGeometryShader(ID3D11Device* device, System::IO::IFileReader* file, const char* entryPoint, const char* shaderModel, D3D_SHADER_MACRO* Macros)
 {
     HRESULT hr = S_OK;
-    ID3DBlob* errorMessage;
-    ID3DBlob* ShaderBuffer = D3D11CompileShader(file, entryPoint, shaderModel, errorMessage);
+    LPCVOID pSrcData;
+    SIZE_T SrcDataSize;
+    ID3DBlob* errorMessage = nullptr;
+    irr::core::array<byte> source;
+
+    if (entryPoint)
+    {
+        std::hash<std::string> hasher;
+        size_t seed = hasher(file->FileName);
+        seed ^= hasher("GS") + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        seed ^= hasher(entryPoint) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        auto pMacros = Macros;
+        while (pMacros && (*pMacros).Name)
+        {
+            seed ^= hasher((*pMacros).Name) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            seed ^= hasher((*pMacros).Definition) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            ++pMacros;
+        }
+
+        auto& cacheBuffer = mSharedBinaryCache[seed];
+
+        if (cacheBuffer.empty())
+        {
+            auto ShaderBuffer = D3D11CompileShader(file, entryPoint, shaderModel, errorMessage, Macros);
+
+            cacheBuffer.set_used(ShaderBuffer->GetBufferSize());
+            memcpy(cacheBuffer.pointer(), ShaderBuffer->GetBufferPointer(), ShaderBuffer->GetBufferSize());
+        }
+
+        source.set_pointer(cacheBuffer.pointer(), cacheBuffer.size(), false, false);
+    }
+    else
+    {
+        source.set_used(file->Size());
+        file->Read(source.pointer(), source.size());
+    }
+
+    SAFE_RELEASE(errorMessage);
+
+    pSrcData = source.pointer();
+    SrcDataSize = source.size();
 
     // Create the vertex shader from the buffer.
-    hr = device->CreateGeometryShader(ShaderBuffer->GetBufferPointer(), ShaderBuffer->GetBufferSize(), NULL, &m_geometryShader);
+    hr = device->CreateGeometryShader(pSrcData, SrcDataSize, NULL, &m_geometryShader);
     if (FAILED(hr))
     {
         throw std::runtime_error("invalid shader");
@@ -204,29 +302,65 @@ bool irr::video::D3D11HLSLProgram::createGeometryShader(ID3D11Device* device, Sy
     }
 
     // get description of precompiled shader
-    pReflectGeometryShader = NULL;
+    pReflectGeometryShader = nullptr;
     D3DReflect(
-        ShaderBuffer->GetBufferPointer(),
-        ShaderBuffer->GetBufferSize(),
+        pSrcData,
+        SrcDataSize,
         IID_ID3D11ShaderReflection,
         (void**)&pReflectGeometryShader
     );
 
-    initializeConstantBuffers((CD3D11Driver *)getVideoDriver(), pReflectGeometryShader, EST_GEOMETRY_SHADER);
-
-    // Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
-    SAFE_RELEASE(ShaderBuffer);
+    initializeConstantBuffers((CD3D11Driver *)getVideoDriver(), pReflectGeometryShader.Get(), EST_GEOMETRY_SHADER);
     return true;
 }
 
-bool irr::video::D3D11HLSLProgram::createPixelShader(ID3D11Device* device, System::IO::IFileReader* file, const char* entryPoint, const char* shaderModel)
+bool irr::video::D3D11HLSLProgram::createPixelShader(ID3D11Device* device, System::IO::IFileReader* file, const char* entryPoint, const char* shaderModel, D3D_SHADER_MACRO* Macros)
 {
     HRESULT hr = S_OK;
-    ID3DBlob* errorMessage;
-    ID3DBlob* ShaderBuffer = D3D11CompileShader(file, entryPoint, shaderModel, errorMessage);
+    LPCVOID pSrcData;
+    SIZE_T SrcDataSize;
+    ID3DBlob* errorMessage = nullptr;
+    irr::core::array<byte> source;
+
+    if (entryPoint)
+    {
+        std::hash<std::string> hasher;
+        size_t seed = hasher(file->FileName);
+        seed ^= hasher("PS") + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        seed ^= hasher(entryPoint) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        auto pMacros = Macros;
+        while (pMacros && (*pMacros).Name)
+        {
+            seed ^= hasher((*pMacros).Name) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            seed ^= hasher((*pMacros).Definition) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            ++pMacros;
+        }
+
+        auto& cacheBuffer = mSharedBinaryCache[seed];
+
+        if (cacheBuffer.empty())
+        {
+            auto ShaderBuffer = D3D11CompileShader(file, entryPoint, shaderModel, errorMessage, Macros);
+
+            cacheBuffer.set_used(ShaderBuffer->GetBufferSize());
+            memcpy(cacheBuffer.pointer(), ShaderBuffer->GetBufferPointer(), ShaderBuffer->GetBufferSize());
+        }
+
+        source.set_pointer(cacheBuffer.pointer(), cacheBuffer.size(), false, false);
+    }
+    else
+    {
+        source.set_used(file->Size());
+        file->Read(source.pointer(), source.size());
+    }
+
+    SAFE_RELEASE(errorMessage);
+
+    pSrcData = source.pointer();
+    SrcDataSize = source.size();
 
     // Create the vertex shader from the buffer.
-    hr = device->CreatePixelShader(ShaderBuffer->GetBufferPointer(), ShaderBuffer->GetBufferSize(), NULL, &m_pixelShader);
+    hr = device->CreatePixelShader(pSrcData, SrcDataSize, NULL, &m_pixelShader);
     if (FAILED(hr))
     {
         throw std::runtime_error("invalid shader");
@@ -234,18 +368,15 @@ bool irr::video::D3D11HLSLProgram::createPixelShader(ID3D11Device* device, Syste
     }
 
     // get description of precompiled shader
-    pReflectPixelShader = NULL;
+    pReflectPixelShader = nullptr;
     D3DReflect(
-        ShaderBuffer->GetBufferPointer(),
-        ShaderBuffer->GetBufferSize(),
+        pSrcData,
+        SrcDataSize,
         IID_ID3D11ShaderReflection,
         (void**)&pReflectPixelShader
     );
 
-    initializeConstantBuffers((CD3D11Driver *)getVideoDriver(), pReflectPixelShader, EST_FRAGMENT_SHADER);
-
-    // Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
-    SAFE_RELEASE(ShaderBuffer);
+    initializeConstantBuffers((CD3D11Driver *)getVideoDriver(), pReflectPixelShader.Get(), EST_FRAGMENT_SHADER);
     return true;
 }
 
@@ -283,6 +414,35 @@ void irr::video::D3D11HLSLProgram::OutputShaderErrorMessage(ID3D10Blob* errorMes
 
 void irr::video::D3D11HLSLProgram::Init()
 {
+}
+
+IConstantBuffer* irr::video::D3D11HLSLProgram::AddUnknownBuffer(E_SHADER_TYPES shaderType, u32 size)
+{
+    auto irrCB = irr::MakePtr<SConstantBuffer>(this, shaderType);
+    AddConstantBuffer(irrCB);
+
+    // Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+    irrCB->mHwObject = static_cast<CD3D11HardwareBuffer*>(Driver->createHardwareBuffer(E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS, E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC, size));
+	irrCB->setHardwareMappingHint(irr::scene::E_HARDWARE_MAPPING::EHM_DYNAMIC);
+    irrCB->mHostMemory.resize(size);
+
+    irrCB->mOffset = 0;
+    irrCB->mBindPoint = 0;
+    irrCB->mName = "data";
+    irrCB->mBufferType = ESVT_CONSTANT;
+
+    irrCB->mType = CNullShader::GetShaderType(
+        E_SHADER_VARIABLE_TYPE::ESVT_UINT8,
+        size,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        size);
+
+    return irrCB.GetPtr();
 }
 
 void irr::video::D3D11HLSLProgram::ReflParseStruct(SConstantBuffer* buffdesc, irr::video::IShaderVariable* parent, ID3D11ShaderReflectionConstantBuffer * pConstBuffer,
@@ -438,6 +598,7 @@ HRESULT irr::video::D3D11HLSLProgram::initializeConstantBuffers(CD3D11Driver * d
     {
         SConstantBuffer* irrCB = new SConstantBuffer(this, shaderType);
         AddConstantBuffer(irrCB);
+        irrCB->drop();
 
         // get description of constant buffer
         ID3D11ShaderReflectionConstantBuffer * pConstBuffer = pReflector->GetConstantBufferByIndex(i);
@@ -480,11 +641,11 @@ HRESULT irr::video::D3D11HLSLProgram::initializeConstantBuffers(CD3D11Driver * d
         pReflector->GetResourceBindingDesc(i, &inputBindDesc);
         if (inputBindDesc.Type == D3D_SIT_TEXTURE || inputBindDesc.Type == D3D_SIT_SAMPLER)
         {
-            SShaderVariableScalar* var = new SShaderVariableScalar();
+            auto var = irr::MakePtr<SShaderSampler>();
             var->mName = inputBindDesc.Name;
             var->mParent = nullptr;
             var->mBuffer = nullptr;
-            var->mOffset = inputBindDesc.BindPoint;
+            var->mBindPoint = inputBindDesc.BindPoint;
             var->mLayoutIndex = -1;
             var->mShaderStage = shaderType;
             var->mType = CNullShader::GetShaderType(
@@ -499,7 +660,6 @@ HRESULT irr::video::D3D11HLSLProgram::initializeConstantBuffers(CD3D11Driver * d
                 0
             );
             var->mIsValid = true;
-            var->mIsDirty = false;
             mTextures.push_back(var);
         }
     }
@@ -609,7 +769,7 @@ HRESULT irr::video::D3D11HLSLProgram::enumInputLayout(CD3D11Driver * d3dDevice, 
             }
         }
 
-        SShaderVariableScalar* var = new SShaderVariableScalar();
+        auto var = irr::MakePtr<SShaderVariableScalar>();
         var->mName = "";
         var->mParent = nullptr;
         var->mBuffer = nullptr;

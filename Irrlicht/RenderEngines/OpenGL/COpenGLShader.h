@@ -107,6 +107,8 @@ namespace irr
 
             COpenGLDriver* getDriverOGL();
 
+            IConstantBuffer* AddUnknownBuffer(E_SHADER_TYPES shaderType, u32 size) override;
+
             virtual GLSLGpuShader* ToGLSL() { return nullptr; }
             virtual GLArbShader* ToASM() { return nullptr; }
         };

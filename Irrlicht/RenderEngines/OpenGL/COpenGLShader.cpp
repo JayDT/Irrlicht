@@ -325,16 +325,15 @@ void GLSLReflectUniform(GLSLGpuShader* shader)
 
         if (eShaderType == E_SHADER_VARIABLE_TYPE::ESVT_SAMPLER)
         {
-            SShaderVariableScalar* var = new SShaderVariableScalar();
+            auto var = irr::MakePtr<SShaderSampler>();
             var->mName = buf;
             var->mParent = nullptr;
             var->mBuffer = nullptr;
-            var->mOffset = memberDescParams[2];
-            //var->mShaderStage = shaderType;
+            var->mBindPoint = memberDescParams[2];
+            var->mShaderStage = E_SHADER_TYPES::EST_FRAGMENT_SHADER;
             var->mType = _shaderType;
             var->mLayoutIndex = memberDescParams[7];
             var->mIsValid = true;
-            var->mIsDirty = false;
             shader->mTextures.push_back(var);
         }
         else // Uniforms
@@ -390,7 +389,7 @@ void GLSLReflectAttributes(GLSLGpuShader* shader)
         GLint memberParamsDescLength = 0;
         glGetProgramResourceiv(shader->getProgramId(), GL_PROGRAM_INPUT, i, 5, memberProps, sizeof(memberDescParams), &memberParamsDescLength, memberDescParams);
 
-        SShaderVariableScalar* var = new SShaderVariableScalar();
+        auto var = irr::MakePtr<SShaderVariableScalar>();
         var->mName = buf;
         var->mParent = nullptr;
         var->mBuffer = nullptr;
@@ -564,6 +563,34 @@ void InitializeBaseAlignConstantStructOGL(irr::video::SConstantBuffer* buffdesc,
         pVariable->getType()->ArrayStride = elementSize;
         pVariable->getType()->Stride = stride;
     }
+}
+
+IConstantBuffer* irr::video::GLShader::AddUnknownBuffer(E_SHADER_TYPES shaderType, u32 size)
+{
+    auto irrCB = irr::MakePtr<SConstantBuffer>(this, shaderType);
+    AddConstantBuffer(irrCB);
+
+    // Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+    irrCB->mHwObject = new COpenGLHardwareBuffer(getDriverOGL(), E_HARDWARE_BUFFER_TYPE::EHBT_CONSTANTS, E_HARDWARE_BUFFER_ACCESS::EHBA_DEFAULT, 0, *irrCB);
+    irrCB->mHostMemory.resize(size);
+
+    irrCB->mOffset = 0;
+    irrCB->mBindPoint = 0;
+    irrCB->mName = "data";
+    irrCB->mBufferType = ESVT_CONSTANT;
+
+    irrCB->mType = CNullShader::GetShaderType(
+        E_SHADER_VARIABLE_TYPE::ESVT_UINT8,
+        size,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        size);
+
+    return irrCB.GetPtr();
 }
 
 void GLSLGpuShader::ReflParseStruct(irr::video::SConstantBuffer* buffdesc, irr::video::IShaderVariable* parent, const u32* memberParams, std::vector<irr::video::IShaderVariable*>& Variables, std::string namePrefix)
@@ -866,7 +893,8 @@ void COpenGLDriver::useShader(IShader* gpuProgram)
                 extGlUseProgram(glsl->getProgramId());
                 for (u8 i = 0; i != glsl->mTextures.size(); ++i)
                 {
-                    glUniform1i(glsl->mTextures[i]->_getIndex(), glsl->mTextures[i]->_getIndex());
+                    SShaderSampler* buf = static_cast<SShaderSampler*>(glsl->mTextures[i].GetPtr());
+                    glUniform1i(buf->mLayoutIndex/*'i' is better?*/, buf->mLayoutIndex);
                 }
                 
             }

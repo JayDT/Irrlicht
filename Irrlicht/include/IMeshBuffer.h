@@ -262,6 +262,7 @@ namespace scene
         virtual s32 GetVertexRangeEnd() const { return getVertexCount(); }
         virtual s32 GetIndexRangeStart() const { return 0; }
         virtual s32 GetIndexRangeCount() const { return getIndexCount(); }
+		virtual s32 GetBaseVertexLocation() const { return 0; }
 
         virtual video::SMaterial& getMaterialBySubBufferId(int sid)
         {
@@ -312,6 +313,8 @@ namespace scene
 
         virtual irr::scene::IStreamBuffer* getStreamBuffer() const { return nullptr; }
         virtual const std::vector<video::IConstantBuffer*>* GetShaderConstantBuffers() const { return nullptr; }
+
+		virtual const char* GetName() const { return "Unnamed"; }
 	};
 
 } // end namespace scene

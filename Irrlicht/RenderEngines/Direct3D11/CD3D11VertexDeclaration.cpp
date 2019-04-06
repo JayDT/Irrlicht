@@ -147,7 +147,7 @@ const core::array<D3D11_SO_DECLARATION_ENTRY>& CD3D11VertexDeclaration::getStrea
 			entry.SemanticIndex = VertexDeclarationMap[i].SemanticIndex;
 			
 			entry.StartComponent = 0;
-			entry.ComponentCount = Driver->getNumberOfComponents(VertexDeclarationMap[i].Format);
+			entry.ComponentCount = DirectXUtil::getNumberOfComponents(VertexDeclarationMap[i].Format);
 
 			//! plan how to use more than one output slot
 			entry.OutputSlot = 0;
@@ -175,8 +175,8 @@ ID3D11InputLayout* CD3D11VertexDeclaration::getInputLayout(const D3D11HLSLProgra
         HRESULT hr = Driver->getExposedVideoData().D3D11.D3DDev11->CreateInputLayout(
             vertDeclImpl.const_pointer(),
             vertDeclImpl.size(),
-            shader->GetVertexShaderByteCode()->GetBufferPointer(),
-            shader->GetVertexShaderByteCode()->GetBufferSize(),
+            shader->GetVertexShaderByteCode().const_pointer(),
+            shader->GetVertexShaderByteCode().size(),
             &layout
         );
 
@@ -218,7 +218,7 @@ void irr::video::CD3D11VertexDeclaration::initialize()
 
         if (VertexPitch.size() < desc.InputSlot + 1)
             VertexPitch.resize(desc.InputSlot + 1);
-        VertexPitch[desc.InputSlot] += Driver->getBitsPerPixel(getFormat(mVertexElements[i].Type)) / 8;
+        VertexPitch[desc.InputSlot] += DirectXUtil::getBitsPerPixel(getFormat(mVertexElements[i].Type)) / 8;
     }
 }
 

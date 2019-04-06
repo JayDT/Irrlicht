@@ -8,6 +8,7 @@
 #include "IShader.h"
 #include "IShaderConstantSetCallBack.h"
 #include "IGPUProgrammingServices.h"
+#include "standard/client/IDataSourceClient.h"
 
 namespace irr
 {
@@ -17,6 +18,12 @@ namespace irr
 
         struct ShaderInitializerEntry
         {
+            struct ShaderMacro
+            {
+                core::stringc Name;
+                core::stringc Value;
+            };
+
             struct StageDesc
             {
                 System::IO::IFileReader* DataStream = nullptr;
@@ -25,6 +32,8 @@ namespace irr
                 E_GPU_SHADING_LANGUAGE ShadingLang = E_GPU_SHADING_LANGUAGE::EGSL_DEFAULT;
                 E_SHADER_TYPES ShaderStageType = E_SHADER_TYPES::EST_HIGH_LEVEL_SHADER;
                 size_t DataStreamOffset = 0;
+                bool IsByteCode = false;
+                std::vector<ShaderMacro> Macros;
             };
 
             std::map<std::string/*buffer name*/, IShaderConstantSetCallBack*> Callback;
@@ -42,7 +51,9 @@ namespace irr
                 E_SHADER_TYPES ShaderStageType,
                 const c8* EntryPoint = nullptr,
                 const c8* ShaderModel = nullptr,
-                E_GPU_SHADING_LANGUAGE ShadingLang = E_GPU_SHADING_LANGUAGE::EGSL_DEFAULT)
+                E_GPU_SHADING_LANGUAGE ShadingLang = E_GPU_SHADING_LANGUAGE::EGSL_DEFAULT,
+                bool IsByteCode = false,
+                std::vector<ShaderMacro> Macros = {})
             {
                 StageDesc* stage = new StageDesc;
                 stage->DataStream = DataStream;
@@ -50,6 +61,8 @@ namespace irr
                 stage->EntryPoint = EntryPoint;
                 stage->ShaderModel = ShaderModel;
                 stage->ShadingLang = ShadingLang;
+                stage->IsByteCode = IsByteCode;
+                stage->Macros = Macros;
                 mStages.push_back(stage);
                 return stage;
             }
@@ -188,12 +201,49 @@ namespace irr
             virtual IShaderVariable * getVariableBySemantic(const char * semantic);
         };
 
+        struct SShaderSampler : IShaderVariable
+        {
+            SConstantBuffer* mBuffer;
+            IShaderVariable* mParent;
+            SShaderType*     mType;
+            core::stringc    mName;
+            static core::stringc mSemantic;
+
+            E_SHADER_TYPES                  mShaderStage;       // Sets which shader stage to use
+
+            u32 mBindPoint;             // Used when a CB has been explicitly(or generated) bound.
+            u32 mLayoutIndex;
+
+            bool mIsValid;
+
+            // Inherited via IShaderVariable
+            virtual bool isValid() override;
+            virtual bool isDirty() override;
+            virtual IConstantBuffer* getRootBuffer() override;
+            virtual IShaderVariable* getParentVariable() override;
+            virtual IShaderScalarVariable* AsScalar() override;
+            virtual IShaderMatrixVariable* AsMatrix() override;
+            virtual SShaderVariableStruct* _asStruct() override { return nullptr; }
+            virtual void setRawValue(const u8* values, u32 offset, u32 count) override {}
+            virtual u8* getRawValue(u32 offset, u32 count) override { return nullptr; }
+
+            virtual const core::stringc& GetName() override { return mName; }
+            virtual u32 _getOffset() override { return 0; }
+            virtual SShaderType* getType() override { return mType; }
+            virtual u32 _getIndex() override { return mBindPoint; }
+            virtual const core::stringc& GetSemantic() override { return mSemantic; }
+
+            virtual IShaderVariable* getVariableByIndex(u32 index) { return nullptr; }
+            virtual IShaderVariable* getVariableByName(const char* name) { return nullptr; }
+            virtual IShaderVariable* getVariableBySemantic(const char* semantic) { return nullptr; }
+        };
+
         struct SConstantBuffer : IConstantBuffer
         {
             IShader*                        mShader;
             irr::video::IHardwareBuffer*    mHwObject;
             SShaderType*                    mType;
-            IShaderConstantSetCallBack*     mCallBack;
+            irr::Ptr<IShaderConstantSetCallBack> mCallBack;
             uint8_t*                        mBackStore;
             uint32_t                        mSize;              // in bytes
 
@@ -268,11 +318,12 @@ namespace irr
 
         struct CNullShader : public IShader
         {
-            typedef core::array<SConstantBuffer*> ConstantBufferArray;
-            typedef core::array<IShaderScalarVariable*> VariableArray;
+            typedef core::array<irr::Ptr<SConstantBuffer>> ConstantBufferArray;
+            typedef core::array<irr::Ptr<IShaderScalarVariable>> VariableArray;
+            typedef core::array<irr::Ptr<SShaderSampler>> SamplerArray;
 
             ConstantBufferArray mBuffers;
-            VariableArray mTextures;
+            SamplerArray mTextures;
             VariableArray mVertexInput;
 
             video::IVideoDriver* mContext;
@@ -287,6 +338,8 @@ namespace irr
 
             virtual void Init() {}
 
+            // Add byte array buffer
+            virtual IConstantBuffer* AddUnknownBuffer(E_SHADER_TYPES shaderType, u32 size) = 0;
             void AddConstantBuffer(SConstantBuffer* buffer);
             void AddShaderResource(IShaderVariable* var);
 

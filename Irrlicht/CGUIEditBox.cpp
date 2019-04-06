@@ -264,8 +264,8 @@ bool CGUIEditBox::processKey(const SEvent& event)
     GUIEventArg arg;
     arg.eData = event;
 
-    if (OnPressKey)
-        OnPressKey(this, arg);
+    //if (OnPressKey)
+    //    OnPressKey(this, arg);
 
     if (arg.eHandled)
         return true;
@@ -1508,20 +1508,20 @@ void CGUIEditBox::sendGuiEvent(EGUI_EVENT_TYPE type)
         GUIEventArg arg;
         arg.eData = e;
 
-        switch (type)
-        {
-            case EGET_EDITBOX_MARKING_CHANGED:
-                if (OnMarkChanged)
-                    OnMarkChanged(this, arg);
-                break;
-            //case EGET_EDITBOX_ENTER: // this useless
-            case EGET_EDITBOX_CHANGED:
-                if (OnChanged)
-                    OnChanged(this, arg);
-                break;
-            default:
-                break;
-        }
+        //switch (type)
+        //{
+        //    case EGET_EDITBOX_MARKING_CHANGED:
+        //        if (OnMarkChanged)
+        //            OnMarkChanged(this, arg);
+        //        break;
+        //    //case EGET_EDITBOX_ENTER: // this useless
+        //    case EGET_EDITBOX_CHANGED:
+        //        if (OnChanged)
+        //            OnChanged(this, arg);
+        //        break;
+        //    default:
+        //        break;
+        //}
 
         Parent->OnEvent(e);
     }

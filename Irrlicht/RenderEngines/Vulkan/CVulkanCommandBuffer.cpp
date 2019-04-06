@@ -745,6 +745,11 @@ void VulkanCmdBuffer::submit(VulkanQueue* queue, uint32_t queueIdx, uint32_t syn
     mSwapChains.clear();
 }
 
+CVulkanDriver* irr::video::VulkanCmdBuffer::getDriver() const
+{
+    return mDevice.getDriver();
+}
+
 bool VulkanCmdBuffer::checkFenceStatus(bool block) const
 {
     VkResult result = vkWaitForFences(mDevice.getLogical(), 1, &mFence, true, block ? 1'000'000'000 : 0);

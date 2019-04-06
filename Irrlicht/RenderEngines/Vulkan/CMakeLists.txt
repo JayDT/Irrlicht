@@ -8,32 +8,10 @@ endif(_IRR_DYNAMIC_)
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
-    #${Vulkan_INCLUDE_DIRS}
-    #${ZLIB_INCLUDE_DIR}
-    #${CMAKE_SOURCE_DIR}
-    #${CMAKE_SOURCE_DIR}/dep/include
-    #${CMAKE_SOURCE_DIR}/contrib/IrrLicht
-    #${CMAKE_SOURCE_DIR}/contrib/IrrLicht/include
-    #${CMAKE_SOURCE_DIR}/dep/SPIRV/Glslang
-    #${CMAKE_SOURCE_DIR}/dep/SPIRV/Glslang/glslang/Public
-    #${CMAKE_SOURCE_DIR}/dep/SPIRV/Glslang/SPIRV
-    #${CMAKE_SOURCE_DIR}/dep/SPIRV/SPIRV-Tools/include
 )
 
 file(GLOB_RECURSE CVulkan_Source RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp *.c *.h *.hpp *.vert *.frag)
 file(GLOB_RECURSE RESOURCE_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.vert *.frag)
-
-if (BUILD_HAS_RESOURCE_SYSTEM)
-    resource_prebuild(
-        TARGET "CVulkan"
-        GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/.Resource"
-        SOURCE_ROOT "${CMAKE_CURRENT_LIST_DIR}"
-        RESOURCE_FILES ${RESOURCE_SRCS}
-        OUT_MODULE_SOURCE RESOURCE_MODULE_SOURCE
-        OUT_GENERATED_FILES RESOURCE_GENERATED_FILES
-        OUT_SRC RESOURCE_GENERATED_SOURCES
-    )
-endif(BUILD_HAS_RESOURCE_SYSTEM)
 
 LIST(APPEND CVulkan_Source ${RESOURCE_GENERATED_FILES})
 
@@ -47,21 +25,21 @@ target_link_libraries (CVulkan
     glm
 )
 
-if (BUILD_HAS_RESOURCE_SYSTEM)
-    target_link_libraries (CVulkan
-        CFramework)
+target_link_libraries (CVulkan
+    CFramework)
 
-    resource_build(
-        TARGET "CVulkan"
-        GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/.Resource"
-        SOURCE_ROOT "${CMAKE_CURRENT_LIST_DIR}"
-        SOURCE_FILE "${CMAKE_CURRENT_BINARY_DIR}/.Resource/Resource_CVulkan.dsc"
-        MODULE_SOURCE_FILE ${RESOURCE_MODULE_SOURCE}
-        RESOURCE_FILES ${RESOURCE_SRCS}
-        GENERATED_FILES ${RESOURCE_GENERATED_FILES}
-        RESOURCE_EXECUTABLE ${ResourceCompilerExecutable}
-    )
-endif (BUILD_HAS_RESOURCE_SYSTEM)
+resource_build(
+    TARGET "CVulkan"
+    GENERATED_DIR "${CMAKE_BINARY_DIR}"
+    SOURCE_ROOT "${CMAKE_CURRENT_LIST_DIR}"
+    SOURCE_FILE "${CMAKE_CURRENT_BINARY_DIR}/.Resource/Resource_CVulkan.dsc"
+    MODULE_SOURCE_FILE CVulkan
+    RESOURCE_FILES ${RESOURCE_SRCS}
+    GENERATED_FILES ${RESOURCE_GENERATED_FILES}
+    RESOURCE_EXECUTABLE ${ResourceCompilerExecutable}
+)
+
+SET_PROPERTY(GLOBAL APPEND PROPERTY ResxDataFiles "CVulkan.resx")
 
 if(_IRR_DYNAMIC_)
     target_link_libraries (CVulkan

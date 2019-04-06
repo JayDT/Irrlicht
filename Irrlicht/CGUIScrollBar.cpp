@@ -106,8 +106,8 @@ bool CGUIScrollBar::OnEvent(const SEvent& event)
                     GUIEventArg arg;
                     arg.eData = newEvent;
 
-                    if (OnValueChanged)
-                        OnValueChanged(this, arg);
+                    //if (OnValueChanged)
+                    //    OnValueChanged(this, arg);
 
                     if ( !arg.eHandled )
 					    Parent->OnEvent(newEvent);
@@ -134,8 +134,8 @@ bool CGUIScrollBar::OnEvent(const SEvent& event)
                 GUIEventArg arg;
                 arg.eData = newEvent;
 
-                if (OnValueChanged)
-                    OnValueChanged(this, arg);
+                //if (OnValueChanged)
+                //    OnValueChanged(this, arg);
 
                 if (!arg.eHandled)
                     Parent->OnEvent(newEvent);
@@ -174,8 +174,8 @@ bool CGUIScrollBar::OnEvent(const SEvent& event)
                     GUIEventArg arg;
                     arg.eData = newEvent;
 
-                    if (OnValueChanged)
-                        OnValueChanged(this, arg);
+                    //if (OnValueChanged)
+                    //    OnValueChanged(this, arg);
 
                     if (!arg.eHandled)
                         Parent->OnEvent(newEvent);
@@ -254,8 +254,8 @@ bool CGUIScrollBar::OnEvent(const SEvent& event)
                     GUIEventArg arg;
                     arg.eData = newEvent;
 
-                    if (OnValueChanged)
-                        OnValueChanged(this, arg);
+                    //if (OnValueChanged)
+                    //    OnValueChanged(this, arg);
 
                     if (!arg.eHandled)
                         Parent->OnEvent(newEvent);
@@ -303,8 +303,8 @@ void CGUIScrollBar::OnPostRender(u32 timeMs)
             GUIEventArg arg;
             arg.eData = newEvent;
 
-            if (OnValueChanged)
-                OnValueChanged(this, arg);
+            //if (OnValueChanged)
+            //    OnValueChanged(this, arg);
 
             if (!arg.eHandled)
 			    Parent->OnEvent(newEvent);
