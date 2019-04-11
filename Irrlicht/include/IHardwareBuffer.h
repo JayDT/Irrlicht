@@ -52,7 +52,8 @@ namespace irr
             EHBA_DEFAULT,
             EHBA_IMMUTABLE,
             EHBA_SYSTEM_MEMORY,
-            EHBA_STREAM
+            EHBA_STREAM,
+            EHBA_MAX
         };
 
         enum class E_HARDWARE_BUFFER_FLAGS : u32

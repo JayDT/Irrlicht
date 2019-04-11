@@ -1,13 +1,16 @@
-#pragma once
+#ifndef __C_VULKAN_DEVICE_H_INCLUDED__
+#define __C_VULKAN_DEVICE_H_INCLUDED__
 
 #include "CVulkanUtility.h"
 #include "CVulkanSharedDefines.h"
 #include "CVulkanCommandBuffer.h"
+#include <IHardwareBuffer.h>
 
 namespace irr
 {
     namespace video
     {
+        class VulkanBuffer;
         class VulkanQueue;
         class VulkanQueryPool;
         class VulkanTransferBuffer;
@@ -30,6 +33,16 @@ namespace irr
         /** Represents a single GPU device usable by Vulkan. */
         class VulkanDevice
         {
+            enum BufferUsageMode
+            {
+                BUM_BUFFER = 0,
+                BUM_VERTEX,
+                BUM_INDEX,
+                BUM_UNIFORM_BUFFER,
+                BUM_STORAGE_BUFFER,
+                BUM_MAX
+            };
+
         public:
             VulkanDevice(CVulkanDriver* driver, VkPhysicalDevice device, uint32_t deviceIdx);
             ~VulkanDevice();
@@ -117,6 +130,9 @@ namespace irr
             /** Allocates a new empty descriptor set matching the provided layout. */
             VulkanDescriptorSet* createSet(VulkanDescriptorLayout* layout);
 
+            VulkanBuffer* getStagingBuffer(uint64_t size, bool readable = false);
+            VulkanBuffer* getBuffer(VkBufferCreateInfo& bufferCI, E_HARDWARE_BUFFER_ACCESS AccessType, uint32_t stride, bool readable = false, int32_t preferBuffer = -1);
+
             static VkAllocationCallbacks* gVulkanAllocator;
 
         private:
@@ -152,8 +168,20 @@ namespace irr
             QueueInfo mQueueInfos[GQT_COUNT];
             VulkanTransferBuffer* transferBuffers[GQT_COUNT][_MAX_QUEUES_PER_TYPE];
             VulkanDescriptorPool* mDescriptorPool;
+
+            //std::vector<irr::Ptr<VulkanBuffer>> mStagingBufferCache;
+            //std::vector<irr::Ptr<VulkanBuffer>> mStagingReadableBufferCache;
+            //size_t mStagingBufferCacheHint;
+            //size_t mStagingReadableBufferCacheHint;
+
+            std::array<std::vector<irr::Ptr<VulkanBuffer>>, uint8(E_HARDWARE_BUFFER_ACCESS::EHBA_MAX)> mBufferCache[BufferUsageMode::BUM_MAX];
+            std::array<size_t, uint8(E_HARDWARE_BUFFER_ACCESS::EHBA_MAX)> mBufferCacheHint[BufferUsageMode::BUM_MAX];
+            std::array<std::vector<irr::Ptr<VulkanBuffer>>, uint8(E_HARDWARE_BUFFER_ACCESS::EHBA_MAX)> mBufferReadableCache[BufferUsageMode::BUM_MAX];
+            std::array<size_t, uint8(E_HARDWARE_BUFFER_ACCESS::EHBA_MAX)> mBufferReadableCacheHint[BufferUsageMode::BUM_MAX];
         };
 
         /** @} */
     }
 }
+
+#endif

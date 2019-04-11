@@ -2,9 +2,11 @@
 #include "CVulkanQueue.h"
 #include "CVulkanCommandBuffer.h"
 #include "CVulkanDriver.h"
+#include "CVulkanHardwareBuffer.h"
 #include "CVulkanDescriptorPool.h"
 #include "CVulkanDescriptorLayout.h"
 #include "CVulkanDescriptorSet.h"
+#include "CVulkanUtility.h"
 
 #include "os.h"
 
@@ -15,6 +17,11 @@ using namespace irr;
 using namespace irr::video;
 
 VkAllocationCallbacks* VulkanDevice::gVulkanAllocator = nullptr;
+
+const size_t irr::video::VulkanBuffer::GetAllocationSize() const
+{
+    return GetAllocationInfo()->GetSize();
+}
 
 VulkanDevice::VulkanDevice(CVulkanDriver* driver, VkPhysicalDevice device, uint32_t deviceIdx)
     : mDriver(driver)
@@ -27,6 +34,12 @@ VulkanDevice::VulkanDevice(CVulkanDriver* driver, VkPhysicalDevice device, uint3
     // Set to default
     for (uint32_t i = 0; i < GQT_COUNT; i++)
         mQueueInfos[i].familyIdx = (uint32_t)-1;
+
+    for (auto& bufferCache : mBufferCacheHint)
+        memset(bufferCache.data(), 0, sizeof(size_t) * uint8(E_HARDWARE_BUFFER_ACCESS::EHBA_MAX));
+
+    for (auto& bufferCache : mBufferReadableCacheHint)
+        memset(bufferCache.data(), 0, sizeof(size_t) * uint8(E_HARDWARE_BUFFER_ACCESS::EHBA_MAX));
 
     vkGetPhysicalDeviceProperties(device, &mDeviceProperties);
     vkGetPhysicalDeviceFeatures(device, &mDeviceFeatures);
@@ -181,6 +194,18 @@ VulkanDevice::~VulkanDevice()
 {
     waitIdle();
 
+    for (auto& bufferCache : mBufferCache)
+    {
+        for (auto& bufferCacheArray : bufferCache)
+            bufferCacheArray.clear();
+    }
+
+    for (auto& bufferCache : mBufferReadableCache)
+    {
+        for (auto& bufferCacheArray : bufferCache)
+            bufferCacheArray.clear();
+    }
+
     for (u32 i = 0; i < GQT_COUNT; i++)
     {
         for (u32 j = 0; j < _MAX_QUEUES_PER_TYPE; j++)
@@ -243,6 +268,221 @@ VulkanDescriptorSet * irr::video::VulkanDevice::createSet(VulkanDescriptorLayout
     assert(result == VK_SUCCESS);
 
     return new VulkanDescriptorSet(getDriver(), set, allocateInfo.descriptorPool);
+}
+
+VulkanBuffer* irr::video::VulkanDevice::getStagingBuffer(uint64_t size, bool readable)
+{
+    const E_HARDWARE_BUFFER_ACCESS AccessType = E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC;
+
+    if (readable)
+    {
+        if (!mBufferReadableCache[BufferUsageMode::BUM_BUFFER][(uint8)AccessType].empty())
+        {
+            size_t startIndex = mBufferReadableCacheHint[BufferUsageMode::BUM_BUFFER][(uint8)AccessType];
+            size_t endIndex = mBufferReadableCache[BufferUsageMode::BUM_BUFFER][(uint8)AccessType].size();
+            //if (preferBuffer != -1)
+            //    startIndex = std::min(size_t(preferBuffer), endIndex - 1);
+            do
+            {
+                const auto& entry = mBufferReadableCache[BufferUsageMode::BUM_BUFFER][(uint8)AccessType][mBufferReadableCacheHint[BufferUsageMode::BUM_BUFFER][(uint8)AccessType]];
+                if (!entry->isBound() && entry->GetAllocationSize() >= size)
+                    return entry.GetPtr();
+
+                ++mBufferReadableCacheHint[BufferUsageMode::BUM_BUFFER][(uint8)AccessType];
+                if (endIndex <= mBufferReadableCacheHint[BufferUsageMode::BUM_BUFFER][(uint8)AccessType])
+                    mBufferReadableCacheHint[BufferUsageMode::BUM_BUFFER][(uint8)AccessType] = 0;
+
+            } while (startIndex != mBufferReadableCacheHint[BufferUsageMode::BUM_BUFFER][(uint8)AccessType]);
+        }
+    }
+    else
+    {
+        if (!mBufferCache[BufferUsageMode::BUM_BUFFER][(uint8)AccessType].empty())
+        {
+            size_t startIndex = mBufferCacheHint[BufferUsageMode::BUM_BUFFER][(uint8)AccessType];
+            size_t endIndex = mBufferCache[BufferUsageMode::BUM_BUFFER][(uint8)AccessType].size();
+            //if (preferBuffer != -1)
+            //    startIndex = std::min(size_t(preferBuffer), endIndex - 1);
+            do
+            {
+                const auto& entry = mBufferCache[BufferUsageMode::BUM_BUFFER][(uint8)AccessType][mBufferCacheHint[BufferUsageMode::BUM_BUFFER][(uint8)AccessType]];
+                if (!entry->isBound() && entry->GetAllocationSize() >= size)
+                    return entry.GetPtr();
+
+                ++mBufferCacheHint[BufferUsageMode::BUM_BUFFER][(uint8)AccessType];
+                if (endIndex <= mBufferCacheHint[BufferUsageMode::BUM_BUFFER][(uint8)AccessType])
+                    mBufferCacheHint[BufferUsageMode::BUM_BUFFER][(uint8)AccessType] = 0;
+
+            } while (startIndex != mBufferCacheHint[BufferUsageMode::BUM_BUFFER][(uint8)AccessType]);
+        }
+    }
+
+    irr::Ptr<VulkanBuffer> buffer;
+
+    VkBufferCreateInfo bufferCI;
+    bufferCI.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferCI.pNext = nullptr;
+    bufferCI.flags = 0;
+    bufferCI.size = size;
+    bufferCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    bufferCI.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    bufferCI.queueFamilyIndexCount = 0;
+    bufferCI.pQueueFamilyIndices = nullptr;
+
+    if (readable)
+        bufferCI.usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
+    VkBuffer vkBuffer;
+    VkResult result = vkCreateBuffer(getLogical(), &bufferCI, VulkanDevice::gVulkanAllocator, &vkBuffer);
+    assert(result == VK_SUCCESS);
+
+    VkMemoryPropertyFlags flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    VmaAllocation allocation = allocateBufferMemory(vkBuffer, flags);
+
+    buffer = irr::MakePtr<VulkanBuffer>(getDriver(), vkBuffer, VkBufferView(VK_NULL_HANDLE), allocation, 0, 0);
+    if (readable)
+        mBufferReadableCache[BufferUsageMode::BUM_BUFFER][(uint8)AccessType].push_back(buffer);
+    else
+        mBufferCache[BufferUsageMode::BUM_BUFFER][(uint8)AccessType].push_back(buffer);
+
+    return buffer.GetPtr();
+}
+
+u32 GetMemoryAccessType(E_HARDWARE_BUFFER_ACCESS AccessType, u32* flags , u32* preferflags /*= nullptr*/, u32* usage /*= nullptr*/, u32* createFlags /*= nullptr*/)
+{
+    u32 _flags, _preferflags;
+    if (AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_IMMUTABLE || AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_DEFAULT)
+    {
+        if (usage)
+            *usage = VmaMemoryUsage::VMA_MEMORY_USAGE_GPU_ONLY;
+        if (createFlags)
+            *createFlags = 0;
+        _preferflags = 0;
+        _flags = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    }
+    else if (AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC)
+    {
+        if (usage)
+            *usage = VmaMemoryUsage::VMA_MEMORY_USAGE_CPU_TO_GPU;
+        if (createFlags)
+            *createFlags = 0;
+        _flags = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+        _preferflags = 0; // VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    }
+    else
+    {
+        if (usage)
+            *usage = VmaMemoryUsage::VMA_MEMORY_USAGE_CPU_TO_GPU;
+        if (createFlags)
+            *createFlags = VMA_ALLOCATION_CREATE_MAPPED_BIT; // Persistent Mapped
+        _flags = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+        _preferflags = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT; // | VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+    }
+
+    if (flags)
+        *flags = _flags;
+    if (preferflags)
+        *preferflags = _preferflags;
+
+    return _flags | _preferflags;
+}
+
+VulkanBuffer* irr::video::VulkanDevice::getBuffer(VkBufferCreateInfo& bufferCI, E_HARDWARE_BUFFER_ACCESS AccessType, uint32_t stride, bool readable, int32_t preferBuffer)
+{
+    BufferUsageMode ModeType = BufferUsageMode::BUM_MAX;
+
+    if (bufferCI.usage & VkBufferUsageFlagBits::VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)
+    {
+        ModeType = BufferUsageMode::BUM_VERTEX;
+    }
+    else if (bufferCI.usage & VkBufferUsageFlagBits::VK_BUFFER_USAGE_INDEX_BUFFER_BIT)
+    {
+        ModeType = BufferUsageMode::BUM_INDEX;
+    }
+    else if (bufferCI.usage & VkBufferUsageFlagBits::VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+    {
+        ModeType = BufferUsageMode::BUM_UNIFORM_BUFFER;
+    }
+    else if (bufferCI.usage & VkBufferUsageFlagBits::VK_BUFFER_USAGE_STORAGE_BUFFER_BIT)
+    {
+        ModeType = BufferUsageMode::BUM_STORAGE_BUFFER;
+    }
+
+    if (ModeType < BufferUsageMode::BUM_MAX)
+    {
+        if (readable)
+        {
+            if (!mBufferReadableCache[(uint8)ModeType][(uint8)AccessType].empty())
+            {
+                size_t startIndex = mBufferReadableCacheHint[(uint8)ModeType][(uint8)AccessType];
+                size_t endIndex = mBufferReadableCache[(uint8)ModeType][(uint8)AccessType].size();
+                if (preferBuffer != -1)
+                    startIndex = std::min(size_t(preferBuffer), endIndex - 1);
+                do
+                {
+                    const auto& entry = mBufferReadableCache[(uint8)ModeType][(uint8)AccessType][mBufferReadableCacheHint[(uint8)ModeType][(uint8)AccessType]];
+                    if (!entry->isBound() && entry->GetAllocationSize() >= bufferCI.size)
+                        return entry.GetPtr();
+
+                    ++mBufferReadableCacheHint[(uint8)ModeType][(uint8)AccessType];
+                    if (endIndex <= mBufferReadableCacheHint[(uint8)ModeType][(uint8)AccessType])
+                        mBufferReadableCacheHint[(uint8)ModeType][(uint8)AccessType] = 0;
+
+                } while (startIndex != mBufferReadableCacheHint[(uint8)ModeType][(uint8)AccessType]);
+            }
+        }
+        else
+        {
+            if (!mBufferCache[(uint8)ModeType][(uint8)AccessType].empty())
+            {
+                size_t startIndex = mBufferCacheHint[(uint8)ModeType][(uint8)AccessType];
+                size_t endIndex = mBufferCache[(uint8)ModeType][(uint8)AccessType].size();
+                if (preferBuffer != -1)
+                    startIndex = std::min(size_t(preferBuffer), endIndex - 1);
+                do
+                {
+                    const auto& entry = mBufferCache[(uint8)ModeType][(uint8)AccessType][mBufferCacheHint[(uint8)ModeType][(uint8)AccessType]];
+                    if (!entry->isBound() && entry->GetAllocationSize() >= bufferCI.size)
+                        return entry.GetPtr();
+
+                    ++mBufferCacheHint[(uint8)ModeType][(uint8)AccessType];
+                    if (endIndex <= mBufferCacheHint[(uint8)ModeType][(uint8)AccessType])
+                        mBufferCacheHint[(uint8)ModeType][(uint8)AccessType] = 0;
+
+                } while (startIndex != mBufferCacheHint[(uint8)ModeType][(uint8)AccessType]);
+            }
+        }
+    }
+
+    if (readable)
+        bufferCI.usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    bufferCI.usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
+    VkBuffer buffer;
+    VkResult result = vkCreateBuffer(getLogical(), &bufferCI, VulkanDevice::gVulkanAllocator, &buffer);
+    assert(result == VK_SUCCESS);
+
+    VkMemoryPropertyFlags flags;
+    VkMemoryPropertyFlags preferflags;
+    u32 usage;
+    u32 createFlags;
+    void* mappedMemory = nullptr;
+    GetMemoryAccessType(AccessType, &flags, &preferflags, &usage, &createFlags);
+    VmaAllocation allocation = allocateBufferMemory(buffer, flags, preferflags, usage, createFlags, &mappedMemory);
+
+    irr::Ptr<VulkanBuffer> vkbuffer = irr::MakePtr<VulkanBuffer>(getDriver(), buffer, VkBufferView(VK_NULL_HANDLE), allocation, stride, 0, mappedMemory);
+
+    if (ModeType < BufferUsageMode::BUM_MAX)
+    {
+        if (readable)
+            mBufferReadableCache[(uint8)ModeType][(uint8)AccessType].push_back(vkbuffer);
+        else
+            mBufferCache[(uint8)ModeType][(uint8)AccessType].push_back(vkbuffer);
+    }
+
+    vkbuffer->setPitch(stride, 0);
+
+    return vkbuffer.GetPtr();
 }
 
 void VulkanDevice::waitIdle() const

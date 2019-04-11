@@ -15,11 +15,6 @@
 using namespace irr;
 using namespace irr::video;
 
-std::vector<CVulkanTexture::StagingBufferEntry> CVulkanTexture::mStagingBufferCache;
-std::vector<CVulkanTexture::StagingBufferEntry> CVulkanTexture::mStagingReadableBufferCache;
-size_t CVulkanTexture::mStagingBufferCacheHint = 0;
-size_t CVulkanTexture::mStagingReadableBufferCacheHint = 0;
-
 inline unsigned int mostSignificantBitSet(unsigned int value)
 {
     //                                     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, A, B, C, D, E, F
@@ -91,8 +86,7 @@ irr::video::CVulkanTexture::CVulkanTexture(CVulkanDriver* driver, VulkanImage* i
     Device = driver->_getPrimaryDevice();
 
     mInternalFormats[0] = VulkanUtility::getPixelFormat(image->GetImageFormat());
-    mImages[0] = image;
-    image->grab();
+    mImages[0].Reset(image);
 }
 
 //! constructor
@@ -153,6 +147,7 @@ CVulkanTexture::CVulkanTexture(IImage* image, CVulkanDriver* driver, u32 flags, 
         else
             NumberOfMipLevels = mostSignificantBitSet(std::max(image->getDimension().Width, image->getDimension().Height));
     }
+    NumberOfMipLevels = std::max(NumberOfMipLevels, uint8(1));
 
     u32 depthPicht;
     IImage::getPitch(TextureSize.Width, TextureSize.Height, 1, getColorFormat(), Pitch, depthPicht, 0);
@@ -185,15 +180,10 @@ CVulkanTexture::~CVulkanTexture()
     for (int i = 0; i < _MAX_DEVICES; ++i)
     {
         if (mImages[i])
-        {
-            mImages[i]->drop();
-            mImages[i] = nullptr;
-        }
+            mImages[i].Reset();
     }
 
-    if (mStagingBuffer)
-        mStagingBuffer->drop();
-    mStagingBuffer = nullptr;
+    mStagingBuffer.Reset();
 
     clearImage();
 }
@@ -221,7 +211,7 @@ void * irr::video::CVulkanTexture::lock(E_TEXTURE_LOCK_MODE mode, u32 mipmapLeve
     mMappedMipLevelIdx = mipmapLevel;
     mMappedArraySliceIdx = arraySlice;
     
-    VulkanImage* image = mImages[mMappedDeviceIdx];
+    VulkanImage* image = mImages[mMappedDeviceIdx].GetPtr();
     VulkanDevice* device = Device;
     GpuQueueType queueType;
     u32 localQueueIdx = CommandSyncMask::getQueueIdxAndType(mMappedGlobalQueueIdx, queueType);
@@ -270,9 +260,8 @@ void * irr::video::CVulkanTexture::lock(E_TEXTURE_LOCK_MODE mode, u32 mipmapLeve
                     newImage->unmap();
                 }
 
-                image->drop();
                 image = newImage;
-                mImages[mMappedDeviceIdx] = image;
+                mImages[mMappedDeviceIdx] = *image;
             }
 
             image->map(mMappedArraySliceIdx, mMappedMipLevelIdx, result);
@@ -334,9 +323,8 @@ void * irr::video::CVulkanTexture::lock(E_TEXTURE_LOCK_MODE mode, u32 mipmapLeve
                 image->unmap();
                 newImage->unmap();
 
-                image->drop();
                 image = newImage;
-                mImages[mMappedDeviceIdx] = image;
+                mImages[mMappedDeviceIdx] = *image;
             }
 
             image->map(mMappedArraySliceIdx, mMappedMipLevelIdx, result);
@@ -516,9 +504,8 @@ void irr::video::CVulkanTexture::updateTexture(u32 level, u32 x, u32 y, u32 widt
                     copyImage(transferCB, image, newImage, oldImgLayout, curLayout);
                 }
 
-                image->drop();
                 image = newImage;
-                mImages[mMappedDeviceIdx] = image;
+                mImages[mMappedDeviceIdx] = *image;
             }
         }
     }
@@ -574,8 +561,7 @@ void irr::video::CVulkanTexture::updateTexture(u32 level, u32 x, u32 y, u32 widt
 
     // We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
     // done automatically before next "normal" command buffer submission.
-    mStagingBuffer->drop();
-    mStagingBuffer = nullptr;
+    mStagingBuffer.Reset();
 }
 
 void irr::video::CVulkanTexture::unlock()
@@ -665,9 +651,8 @@ void irr::video::CVulkanTexture::unlock()
                         copyImage(transferCB, image, newImage, oldImgLayout, curLayout);
                     }
 
-                    image->drop();
                     image = newImage;
-                    mImages[mMappedDeviceIdx] = image;
+                    mImages[mMappedDeviceIdx] = *image;
                 }
             }
 
@@ -716,7 +701,6 @@ void irr::video::CVulkanTexture::unlock()
             // done automatically before next "normal" command buffer submission.
         }
 
-        mStagingBuffer->drop();
         mStagingBuffer = nullptr;
     }
 
@@ -1028,7 +1012,7 @@ bool irr::video::CVulkanTexture::createTexture(u32 flags, IImage * image, E_TEXT
 
         mInternalFormats[i] = VulkanUtility::getClosestSupportedPixelFormat(*devices[i], getColorFormat(), type, flags, optimalTiling, false);
 
-        mImages[i] = createImage(*devices[i], flags, mInternalFormats[i]);
+        mImages[i] = *createImage(*devices[i], flags, mInternalFormats[i]);
     }
 
     return true;
@@ -1122,11 +1106,10 @@ bool irr::video::CVulkanTexture::createTextureBuffer(bool readable, uint64_t siz
 {
     if (mStagingBuffer)
     {
-        if (mStagingBufferReadable == readable)
+        if (mStagingBufferReadable == readable && size == mStagingBuffer->GetAllocationSize())
             return true;
 
-        mStagingBuffer->drop();
-        mStagingBuffer = nullptr;
+        mStagingBuffer.Reset();
     }
 
     mStagingBufferReadable = readable;
@@ -1134,80 +1117,8 @@ bool irr::video::CVulkanTexture::createTextureBuffer(bool readable, uint64_t siz
     if (!size)
         size = Pitch * TextureSize.Height;
 
-    if (readable)
-    {
-        if (!mStagingReadableBufferCache.empty())
-        {
-            size_t startIndex = mStagingReadableBufferCacheHint;
-            do
-            {
-                const StagingBufferEntry& entry = mStagingReadableBufferCache[mStagingReadableBufferCacheHint];
-                if (!entry.mBuffer->isBound() && entry.mSize >= size)
-                {
-                    mStagingBuffer = entry.mBuffer;
-                    mStagingBuffer->grab();
-                    return true;
-                }
-
-                ++mStagingReadableBufferCacheHint;
-                if (mStagingReadableBufferCache.size() <= mStagingReadableBufferCacheHint)
-                    mStagingReadableBufferCacheHint = 0;
-
-            } while (startIndex != mStagingReadableBufferCacheHint);
-        }
-    }
-    else
-    {
-        if (!mStagingBufferCache.empty())
-        {
-            size_t startIndex = mStagingBufferCacheHint;
-            do
-            {
-                const StagingBufferEntry& entry = mStagingBufferCache[mStagingBufferCacheHint];
-                if (!entry.mBuffer->isBound() && entry.mSize >= size)
-                {
-                    mStagingBuffer = entry.mBuffer;
-                    mStagingBuffer->grab();
-                    return true;
-                }
-
-                ++mStagingBufferCacheHint;
-                if (mStagingBufferCache.size() <= mStagingBufferCacheHint)
-                    mStagingBufferCacheHint = 0;
-
-            } while (startIndex != mStagingBufferCacheHint);
-        }
-    }
-
-    VkBufferCreateInfo bufferCI;
-    bufferCI.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferCI.pNext = nullptr;
-    bufferCI.flags = 0;
-    bufferCI.size = size;
-    bufferCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    bufferCI.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    bufferCI.queueFamilyIndexCount = 0;
-    bufferCI.pQueueFamilyIndices = nullptr;
-
-    if (readable)
-        bufferCI.usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-
-    VkDevice vkDevice = Device->getLogical();
-
-    VkBuffer buffer;
-    VkResult result = vkCreateBuffer(vkDevice, &bufferCI, VulkanDevice::gVulkanAllocator, &buffer);
-    assert(result == VK_SUCCESS);
-
-    VkMemoryPropertyFlags flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    VmaAllocation allocation = Device->allocateBufferMemory(buffer, flags);
-
-    mStagingBuffer = new VulkanBuffer(Driver, buffer, VK_NULL_HANDLE, allocation, 0, 0);
-    if (readable)
-        mStagingReadableBufferCache.push_back(StagingBufferEntry{ mStagingBuffer, size });
-    else
-        mStagingBufferCache.push_back(StagingBufferEntry{ mStagingBuffer, size });
-    mStagingBuffer->grab();
-    return true;
+    mStagingBuffer = irr::Ptr<VulkanBuffer>(Device->getStagingBuffer(size, readable));
+    return mStagingBuffer ? true : false;
 }
 
 bool irr::video::CVulkanTexture::createViews()
@@ -1305,9 +1216,9 @@ VulkanImage::VulkanImage(CVulkanDriver* owner, const VULKAN_IMAGE_DESC& desc, bo
     }
 
     uint32_t numSubresources = mNumFaces * mNumMipLevels;
-    mSubresources = new VulkanImageSubresource*[numSubresources];
+    mSubresources = new irr::Ptr<VulkanImageSubresource>[numSubresources];
     for (uint32_t i = 0; i < numSubresources; i++)
-        mSubresources[i] = new VulkanImageSubresource(Driver, desc.layout);
+        mSubresources[i] = irr::MakePtr<VulkanImageSubresource>(Driver, desc.layout);
 }
 
 VulkanImage::~VulkanImage()
@@ -1320,8 +1231,10 @@ VulkanImage::~VulkanImage()
     {
         assert(!mSubresources[i]->getBoundCount() != 0); // Image beeing freed but its subresources are still bound somewhere
 
-        mSubresources[i]->drop();
+        mSubresources[i].Reset();
     }
+
+    delete[] mSubresources;
 
     for (auto& entry : mImageInfos)
         vkDestroyImageView(vkDevice, entry.view, VulkanDevice::gVulkanAllocator);
@@ -1493,7 +1406,7 @@ VkImageSubresourceRange VulkanImage::getRange(const TextureSurface& surface) con
 
 VulkanImageSubresource* VulkanImage::getSubresource(uint32_t face, uint32_t mipLevel)
 {
-    return mSubresources[mipLevel * mNumFaces + face];
+    return mSubresources[mipLevel * mNumFaces + face].GetPtr();
 }
 
 void VulkanImage::map(uint32_t face, uint32_t mipLevel, MappedImageData& output) const

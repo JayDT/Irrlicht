@@ -49,6 +49,14 @@ VulkanBuffer::~VulkanBuffer()
     device->freeMemory(mAllocation);
 }
 
+void irr::video::VulkanBuffer::setPitch(uint32_t rowPitch, uint32_t slicePitch)
+{
+    if (rowPitch != 0)
+        mSliceHeight = slicePitch / rowPitch;
+    else
+        mSliceHeight = 0;
+}
+
 uint8_t* VulkanBuffer::map(VulkanDevice * device, VkDeviceSize offset, VkDeviceSize length) const
 {
     if (pMappedData)
@@ -125,37 +133,27 @@ irr::video::CVulkanHardwareBuffer::CVulkanHardwareBuffer(CVulkanDriver * driver,
 
 irr::video::CVulkanHardwareBuffer::~CVulkanHardwareBuffer()
 {
-    if (CommandBuffer)
-        CommandBuffer->drop();
-
-    for (auto param : mGpuParams)
-        param->drop();
-
-    for (VulkanGraphicsPipelineState* pipeline : Pipelines)
-        if (pipeline)
-            pipeline->drop();
+    CommandBuffer.Reset();
+    mGpuParams.clear();
+    Pipelines.clear();
 
     for (BufferDesc& buffer : VertexBufferStreams)
     {
-        if (buffer.Buffer)
-            buffer.Buffer->drop();
-        if (buffer.mStagingBuffer)
-            buffer.mStagingBuffer->drop();
+        buffer.Buffer.Reset();
+        buffer.mStagingBuffer.Reset();
+
         if (buffer.mStagingMemory)
             free(buffer.mStagingMemory);
 
-        if (buffer.BufferCache)
-        {
-            for (BufferCacheDesc& cacheBuffer : *buffer.BufferCache)
-            {
-                if (cacheBuffer.Buffer)
-                    cacheBuffer.Buffer->drop();
-            }
-        }
+        //if (buffer.BufferCache)
+        //{
+        //    for (BufferCacheDesc& cacheBuffer : *buffer.BufferCache)
+        //    {
+        //        if (cacheBuffer.Buffer)
+        //            cacheBuffer.Buffer->drop();
+        //    }
+        //}
     }
-
-    Pipelines.clear();
-    //VertexBufferStreams.clear();
 }
 
 void * irr::video::CVulkanHardwareBuffer::lock(E_HARDWARE_BUFFER_TYPE type, u32 length, bool readOnly)
@@ -200,16 +198,7 @@ void * irr::video::CVulkanHardwareBuffer::lock(E_HARDWARE_BUFFER_TYPE type, u32 
         if (accessFlags == VK_ACCESS_HOST_WRITE_BIT)
         {
             if (buffer->isBound())
-            {
-                buffer->drop();
-    
-                if (desc.AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_STREAM || desc.AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC)
-                    buffer = GetCacheBuffer(*device, desc, desc.bufferCI, desc.AccessType, desc.Stride, true);
-                else
-                    buffer = CreateBuffer(*device, desc.bufferCI, desc.AccessType, desc.Stride, true);
-    
-                desc.Buffer = buffer;
-            }
+                desc.Buffer.Reset(device->getBuffer(desc.bufferCI, desc.AccessType, desc.Stride, accessFlags & VK_ACCESS_HOST_READ_BIT));
     
             return buffer->map(device, desc.Offset, length);
         }
@@ -254,8 +243,8 @@ void * irr::video::CVulkanHardwareBuffer::lock(E_HARDWARE_BUFFER_TYPE type, u32 
             // create a new  buffer so we don't modify the previous use of the buffer
             if (accessFlags == (VK_ACCESS_HOST_READ_BIT | VK_ACCESS_HOST_WRITE_BIT) && buffer->isBound()) //(options == GBL_READ_WRITE && buffer->isBound())
             {
-                VulkanBuffer* newBuffer = GetCacheBuffer(*device, desc, desc.bufferCI, desc.AccessType, desc.Stride, true);
-    
+                VulkanBuffer* newBuffer = device->getBuffer(desc.bufferCI, desc.AccessType, desc.Stride, accessFlags & VK_ACCESS_HOST_READ_BIT);
+
                 // Copy contents of the current buffer to the new one
                 uint8_t* src = buffer->map(device, desc.Offset, length);
                 uint8_t* dst = newBuffer->map(device, desc.Offset, length);
@@ -265,9 +254,8 @@ void * irr::video::CVulkanHardwareBuffer::lock(E_HARDWARE_BUFFER_TYPE type, u32 
                 buffer->unmap(device);
                 newBuffer->unmap(device);
     
-                buffer->drop();
                 buffer = newBuffer;
-                desc.Buffer = buffer;
+                desc.Buffer.Reset(buffer);
             }
     
             return buffer->map(device, desc.Offset, length);
@@ -302,7 +290,7 @@ void * irr::video::CVulkanHardwareBuffer::lock(E_HARDWARE_BUFFER_TYPE type, u32 
 
     // Create a staging buffer
     VkBufferCreateInfo StagingBufferCI = desc.bufferCI;
-    desc.mStagingBuffer = CreateBuffer(*device, StagingBufferCI, E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC, 0, needRead, true);
+    desc.mStagingBuffer.Reset(device->getStagingBuffer(StagingBufferCI.size, true));
 
     if (needRead)
     {
@@ -389,7 +377,7 @@ void irr::video::CVulkanHardwareBuffer::unlock(E_HARDWARE_BUFFER_TYPE type)
                 // avoid modifying its use in the previous operation
                 if (buffer->isBound()) // Skip this when discard
                 {
-                   VulkanBuffer* newBuffer = GetCacheBuffer(*device, desc, desc.bufferCI, desc.AccessType, desc.Stride, true);
+                    VulkanBuffer* newBuffer = device->getBuffer(desc.bufferCI, desc.AccessType, desc.Stride, mMappedReadOnly);
                 
                     // Avoid copying original contents if the staging buffer completely covers it
                     if (/*mMappedOffset > 0 ||*/ mMappedSize > desc.bufferCI.size)
@@ -401,15 +389,14 @@ void irr::video::CVulkanHardwareBuffer::unlock(E_HARDWARE_BUFFER_TYPE type)
 
                     if (buffer->getReferenceCount() == 1 && buffer->isBound())
                         Driver->GetCommandBuffer()->getInternal()->registerResource(buffer, VulkanUseFlag::eRead);
-                    else
-                        buffer->drop();
+
                     buffer = newBuffer;
-                    desc.Buffer = buffer;
+                    desc.Buffer.Reset(buffer);
                 }
             }
 
             // Queue copy/update command
-            if (desc.mStagingBuffer != nullptr)
+            if (desc.mStagingBuffer)
             {
                 desc.mStagingBuffer->copy(transferCB->getCB(), buffer, 0, desc.Offset, mMappedSize);
                 transferCB->getCB()->registerResource(desc.mStagingBuffer, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::eRead);
@@ -424,11 +411,8 @@ void irr::video::CVulkanHardwareBuffer::unlock(E_HARDWARE_BUFFER_TYPE type)
             //transferCB->getCB()->registerResource(buffer, VK_ACCESS_TRANSFER_WRITE_BIT, VulkanUseFlag::eWrite);
         }
 
-        if (desc.mStagingBuffer != nullptr)
-        {
-            desc.mStagingBuffer->drop();
-            desc.mStagingBuffer = nullptr;
-        }
+        if (desc.mStagingBuffer)
+            desc.mStagingBuffer.Reset();
     }
 
     mIsMapped = false;
@@ -462,54 +446,9 @@ u32 irr::video::CVulkanHardwareBuffer::size(E_HARDWARE_BUFFER_TYPE type) const
     return VertexBufferStreams[(u32)type].bufferCI.size;
 }
 
-u32 irr::video::CVulkanHardwareBuffer::GetMemoryAccessType(E_HARDWARE_BUFFER_ACCESS AccessType, u32* flags , u32* preferflags /*= nullptr*/, u32* usage /*= nullptr*/, u32* createFlags /*= nullptr*/)
-{
-    u32 _flags, _preferflags;
-    if (AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_IMMUTABLE || AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_DEFAULT)
-    {
-        if (usage)
-            *usage = VmaMemoryUsage::VMA_MEMORY_USAGE_GPU_ONLY;
-        if (createFlags)
-            *createFlags = 0;
-        _preferflags = 0;
-        _flags = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    }
-    else if (AccessType == E_HARDWARE_BUFFER_ACCESS::EHBA_DYNAMIC)
-    {
-        if (usage)
-            *usage = VmaMemoryUsage::VMA_MEMORY_USAGE_CPU_TO_GPU;
-        if (createFlags)
-            *createFlags = 0;
-        _flags = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-        _preferflags = 0; // VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    }
-    else
-    {
-        if (usage)
-            *usage = VmaMemoryUsage::VMA_MEMORY_USAGE_CPU_TO_GPU;
-        if (createFlags)
-            *createFlags = VMA_ALLOCATION_CREATE_MAPPED_BIT; // Persistent Mapped
-        _flags = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-        _preferflags = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT; // | VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
-    }
-
-    if (flags)
-        *flags = _flags;
-    if (preferflags)
-        *preferflags = _preferflags;
-
-    return _flags | _preferflags;
-}
-
 void irr::video::CVulkanHardwareBuffer::SetCommandBuffer(VulkanCommandBuffer * cb)
 {
-    if (CommandBuffer)
-        CommandBuffer->drop();
-
-    CommandBuffer = cb;
-
-    if (CommandBuffer)
-        CommandBuffer->grab();
+    CommandBuffer.Reset(cb);
 }
 
 VulkanGraphicsPipelineState * irr::video::CVulkanHardwareBuffer::GetPipeline(u8 idx)
@@ -522,13 +461,7 @@ void irr::video::CVulkanHardwareBuffer::SetPipeline(u8 idx, VulkanGraphicsPipeli
     if (Pipelines.size() <= idx)
         Pipelines.resize(size_t(idx + 1));
 
-    if (Pipelines[idx])
-        Pipelines[idx]->drop();
-
-    Pipelines[idx] = pl;
-
-    if (Pipelines[idx])
-        Pipelines[idx]->grab();
+    Pipelines[idx].Reset(pl);
 }
 
 void irr::video::CVulkanHardwareBuffer::SetGpuParams(u8 idx, VulkanGpuParams * param)
@@ -536,13 +469,7 @@ void irr::video::CVulkanHardwareBuffer::SetGpuParams(u8 idx, VulkanGpuParams * p
     if (mGpuParams.size() <= idx)
         mGpuParams.resize(size_t(idx + 1));
 
-    if (mGpuParams[idx])
-        mGpuParams[idx]->drop();
-
-    mGpuParams[idx] = param;
-
-    if (mGpuParams[idx])
-        mGpuParams[idx]->grab();
+    mGpuParams[idx].Reset(param);
 }
 
 E_DRIVER_TYPE irr::video::CVulkanHardwareBuffer::getDriverType() const
@@ -622,130 +549,70 @@ void irr::video::CVulkanHardwareBuffer::OnDeviceDestroy(CVulkanDriver* device)
     drop();
 }
 
-VulkanBuffer * irr::video::CVulkanHardwareBuffer::GetCacheBuffer(VulkanDevice & device, CVulkanHardwareBuffer::BufferDesc& descriptor, VkBufferCreateInfo& bufferCI, E_HARDWARE_BUFFER_ACCESS AccessType, u32 stride, bool readable)
-{
-    if (!descriptor.BufferCache)
-        descriptor.BufferCache = new std::vector<BufferCacheDesc>;
-
-    if (!descriptor.BufferCache->empty())
-    {
-        size_t startIndex = descriptor.BufferCacheHint > descriptor.BufferCache->size() ? descriptor.BufferCache->size() - 1 : descriptor.BufferCacheHint++;
-        if (descriptor.BufferCache->size() <= descriptor.BufferCacheHint)
-            descriptor.BufferCacheHint = 0;
-        do
-        {
-            const BufferCacheDesc& entry = (*descriptor.BufferCache)[descriptor.BufferCacheHint];
-            if (!entry.Buffer->isBound() && entry.bufferCI.size >= bufferCI.size)
-            {
-                entry.Buffer->grab();
-                return entry.Buffer;
-            }
-
-            ++descriptor.BufferCacheHint;
-            if (descriptor.BufferCache->size() <= descriptor.BufferCacheHint)
-                descriptor.BufferCacheHint = 0;
-        } while (startIndex != descriptor.BufferCacheHint);
-    }
-
-    // Cannot find an empty set, allocate a new one
-    VulkanBuffer* buffer = CreateBuffer(device, bufferCI, AccessType, stride, readable, false);
-    descriptor.BufferCache->emplace_back();
-    BufferCacheDesc& cacheEntry = descriptor.BufferCache->back();
-    cacheEntry.Offset = descriptor.Offset;
-    cacheEntry.Stride = descriptor.Stride;
-    cacheEntry.bufferCI = bufferCI;
-    cacheEntry.Buffer = buffer;
-    cacheEntry.Buffer->grab();
-    return buffer;
-}
-
-VulkanBuffer * irr::video::CVulkanHardwareBuffer::CreateBuffer(VulkanDevice & device, VkBufferCreateInfo& bufferCI, E_HARDWARE_BUFFER_ACCESS AccessType, u32 stride, bool readable, bool staging)
-{
-    VulkanDevice* Device = Driver->_getPrimaryDevice();
-
-    if (staging)
-    {
-        if (readable)
-        {
-            if (!CVulkanTexture::mStagingReadableBufferCache.empty())
-            {
-                size_t startIndex = CVulkanTexture::mStagingReadableBufferCacheHint;
-                do
-                {
-                    const CVulkanTexture::StagingBufferEntry& entry = CVulkanTexture::mStagingReadableBufferCache[CVulkanTexture::mStagingReadableBufferCacheHint];
-                    if (!entry.mBuffer->isBound() && entry.mSize >= bufferCI.size)
-                    {
-                        VulkanBuffer * stagingBuffer = entry.mBuffer;
-                        stagingBuffer->grab();
-                        return stagingBuffer;
-                    }
-
-                    ++CVulkanTexture::mStagingReadableBufferCacheHint;
-                    if (CVulkanTexture::mStagingReadableBufferCache.size() <= CVulkanTexture::mStagingReadableBufferCacheHint)
-                        CVulkanTexture::mStagingReadableBufferCacheHint = 0;
-
-                } while (startIndex != CVulkanTexture::mStagingReadableBufferCacheHint);
-            }
-        }
-        else
-        {
-            if (!CVulkanTexture::mStagingBufferCache.empty())
-            {
-                size_t startIndex = CVulkanTexture::mStagingBufferCacheHint;
-                do
-                {
-                    const CVulkanTexture::StagingBufferEntry& entry = CVulkanTexture::mStagingBufferCache[CVulkanTexture::mStagingBufferCacheHint];
-                    if (!entry.mBuffer->isBound() && entry.mSize >= bufferCI.size)
-                    {
-                        VulkanBuffer * stagingBuffer = entry.mBuffer;
-                        stagingBuffer->grab();
-                        return stagingBuffer;
-                    }
-
-                    ++CVulkanTexture::mStagingBufferCacheHint;
-                    if (CVulkanTexture::mStagingBufferCache.size() <= CVulkanTexture::mStagingBufferCacheHint)
-                        CVulkanTexture::mStagingBufferCacheHint = 0;
-
-                } while (startIndex != CVulkanTexture::mStagingBufferCacheHint);
-            }
-        }
-
-        bufferCI.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-
-        // Staging buffers are used as a destination for reads
-        if (readable)
-            bufferCI.usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-    }
-    else if (readable)
-        bufferCI.usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-
-    bufferCI.usage |= VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-
-    VkBuffer buffer;
-    VkResult result = vkCreateBuffer(Device->getLogical(), &bufferCI, VulkanDevice::gVulkanAllocator, &buffer);
-    assert(result == VK_SUCCESS);
-
-    VkMemoryPropertyFlags flags;
-    VkMemoryPropertyFlags preferflags;
-    u32 usage;
-    u32 createFlags;
-    void* mappedMemory = nullptr;
-    GetMemoryAccessType(AccessType, &flags, &preferflags, &usage, &createFlags);
-    VmaAllocation allocation = Device->allocateBufferMemory(buffer, flags, preferflags, usage, createFlags, &mappedMemory);
-
-    VulkanBuffer* vkbuffer =  new VulkanBuffer(Driver, buffer, VK_NULL_HANDLE, allocation, stride, 0, mappedMemory);
-
-    if (staging)
-    {
-        if (readable)
-            CVulkanTexture::mStagingReadableBufferCache.push_back(CVulkanTexture::StagingBufferEntry{ vkbuffer, bufferCI.size });
-        else
-            CVulkanTexture::mStagingBufferCache.push_back(CVulkanTexture::StagingBufferEntry{ vkbuffer, bufferCI.size });
-        vkbuffer->grab();
-    }
-
-    return vkbuffer;
-}
+//VulkanBuffer * irr::video::CVulkanHardwareBuffer::GetCacheBuffer(VulkanDevice & device, CVulkanHardwareBuffer::BufferDesc& descriptor, VkBufferCreateInfo& bufferCI, E_HARDWARE_BUFFER_ACCESS AccessType, u32 stride, bool readable)
+//{
+//    if (!descriptor.BufferCache)
+//        descriptor.BufferCache = new std::vector<BufferCacheDesc>;
+//
+//    if (!descriptor.BufferCache->empty())
+//    {
+//        size_t startIndex = descriptor.BufferCacheHint > descriptor.BufferCache->size() ? descriptor.BufferCache->size() - 1 : descriptor.BufferCacheHint++;
+//        if (descriptor.BufferCache->size() <= descriptor.BufferCacheHint)
+//            descriptor.BufferCacheHint = 0;
+//        do
+//        {
+//            const BufferCacheDesc& entry = (*descriptor.BufferCache)[descriptor.BufferCacheHint];
+//            if (!entry.Buffer->isBound() && entry.bufferCI.size >= bufferCI.size)
+//            {
+//                entry.Buffer->grab();
+//                return entry.Buffer;
+//            }
+//
+//            ++descriptor.BufferCacheHint;
+//            if (descriptor.BufferCache->size() <= descriptor.BufferCacheHint)
+//                descriptor.BufferCacheHint = 0;
+//        } while (startIndex != descriptor.BufferCacheHint);
+//    }
+//
+//    // Cannot find an empty set, allocate a new one
+//    VulkanBuffer* buffer = CreateBuffer(device, bufferCI, AccessType, stride, readable, false);
+//    descriptor.BufferCache->emplace_back();
+//    BufferCacheDesc& cacheEntry = descriptor.BufferCache->back();
+//    cacheEntry.Offset = descriptor.Offset;
+//    cacheEntry.Stride = descriptor.Stride;
+//    cacheEntry.bufferCI = bufferCI;
+//    cacheEntry.Buffer = buffer;
+//    cacheEntry.Buffer->grab();
+//    return buffer;
+//}
+//
+//VulkanBuffer * irr::video::CVulkanHardwareBuffer::CreateBuffer(VulkanDevice & device, VkBufferCreateInfo& bufferCI, E_HARDWARE_BUFFER_ACCESS AccessType, u32 stride, bool readable, bool staging)
+//{
+//    VulkanDevice* Device = Driver->_getPrimaryDevice();
+//
+//    if (staging)
+//        return irr::Ptr<VulkanBuffer>(Device->getStagingBuffer(bufferCI.size, readable));
+//    else if (readable)
+//        bufferCI.usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+//
+//    bufferCI.usage |= VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+//
+//    VkBuffer buffer;
+//    VkResult result = vkCreateBuffer(Device->getLogical(), &bufferCI, VulkanDevice::gVulkanAllocator, &buffer);
+//    assert(result == VK_SUCCESS);
+//
+//    VkMemoryPropertyFlags flags;
+//    VkMemoryPropertyFlags preferflags;
+//    u32 usage;
+//    u32 createFlags;
+//    void* mappedMemory = nullptr;
+//    GetMemoryAccessType(AccessType, &flags, &preferflags, &usage, &createFlags);
+//    VmaAllocation allocation = Device->allocateBufferMemory(buffer, flags, preferflags, usage, createFlags, &mappedMemory);
+//
+//    VulkanBuffer* vkbuffer =  new VulkanBuffer(Driver, buffer, VK_NULL_HANDLE, allocation, stride, 0, mappedMemory);
+//
+//    return vkbuffer;
+//}
 
 bool irr::video::CVulkanHardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type, E_HARDWARE_BUFFER_ACCESS AccessType, const void * initialData, u32 size, u32 offset, u32 dataSize, u32 typeMask, s32 preferBuffer)
 {
@@ -846,7 +713,7 @@ bool irr::video::CVulkanHardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type
                 else if (offset > 0 && !desc.Buffer)
                 {
                     mBaseBuffer->SubBuffers.push_back(&desc);
-                    desc.BufferCache = mBaseBuffer->BufferCache;
+                    //desc.BufferCache = mBaseBuffer->BufferCache;
                     desc.Buffer = mBaseBuffer->Buffer;
                 }
 
@@ -862,32 +729,33 @@ bool irr::video::CVulkanHardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type
 
             if (needResizeBuffer)
             {
-                if (desc.BufferCache)
-                {
-                    for (BufferCacheDesc& cacheBuffer : *desc.BufferCache)
-                    {
-                        if (cacheBuffer.Buffer)
-                        {
-                            if (cacheBuffer.Buffer->isBound())
-                                Driver->GetCommandBuffer()->getInternal()->registerResource(cacheBuffer.Buffer, VulkanUseFlag::eRead);
-                            cacheBuffer.Buffer->drop();
-                        }
-                    }
+                //if (desc.BufferCache)
+                //{
+                //    for (BufferCacheDesc& cacheBuffer : *desc.BufferCache)
+                //    {
+                //        if (cacheBuffer.Buffer)
+                //        {
+                //            if (cacheBuffer.Buffer->isBound())
+                //                Driver->GetCommandBuffer()->getInternal()->registerResource(cacheBuffer.Buffer, VulkanUseFlag::eRead);
+                //            cacheBuffer.Buffer->drop();
+                //        }
+                //    }
+                //
+                //    desc.BufferCache->clear();
+                //    desc.BufferCacheHint = 0;
+                //}
 
-                    desc.BufferCache->clear();
-                    desc.BufferCacheHint = 0;
-                }
-
-                VulkanBuffer* oldBuffer = desc.Buffer;
+                irr::Ptr<VulkanBuffer> oldBuffer = desc.Buffer;
                 u8* mappedPtr;
                 if (isSubBufferMode && oldBuffer)
                     mappedPtr = mBaseBuffer->SubBuffers.size() > 1 ? (u8*)lock(mBaseBuffer->Type, mBaseBuffer->bufferCI.size, true) : nullptr;
 
-                desc.mDirectlyMappable = (GetMemoryAccessType(AccessType) & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0;
-                if (desc.mDirectlyMappable)
-                    desc.Buffer = GetCacheBuffer(*Device, desc, desc.bufferCI, desc.AccessType, desc.Stride, true);
-                else
-                    desc.Buffer = CreateBuffer(*Device, desc.bufferCI, AccessType, desc.Stride, desc.mDirectlyMappable);
+                desc.Buffer.Reset(Device->getBuffer(desc.bufferCI, AccessType, desc.Stride, desc.mDirectlyMappable, preferBuffer));
+                //desc.mDirectlyMappable = (GetMemoryAccessType(AccessType) & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0;
+                //if (desc.mDirectlyMappable)
+                //    desc.Buffer = GetCacheBuffer(*Device, desc, desc.bufferCI, desc.AccessType, desc.Stride, true);
+                //else
+                //    desc.Buffer = CreateBuffer(*Device, desc.bufferCI, AccessType, desc.Stride, desc.mDirectlyMappable);
 
                 // Sub buffers always gpu visible we need command buffer for memmove
                 if (isSubBufferMode && oldBuffer && mappedPtr)
@@ -937,9 +805,6 @@ bool irr::video::CVulkanHardwareBuffer::UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type
                     // Release reading stanging buffer
                     unlock(mBaseBuffer->Type);
                 }
-
-                if (oldBuffer)
-                    oldBuffer->drop();
             }
 
             desc.Descriptor.buffer = desc.Buffer->getHandle();

@@ -67,6 +67,7 @@ namespace irr
             * sub-resource from another (if no padding, it is equal to image height). Only relevant for 3D images.
             */
             uint32_t getSliceHeight() const { return mSliceHeight; }
+            void setPitch(uint32_t rowPitch, uint32_t slicePitch);
 
             /**
             * Returns a pointer to internal buffer memory. Must be followed by unmap(). Caller must ensure the buffer was
@@ -100,6 +101,7 @@ namespace irr
             void update(VulkanCmdBuffer* cb, uint8_t* data, VkDeviceSize offset, VkDeviceSize length);
 
             const VmaAllocation GetAllocationInfo() const { return mAllocation; }
+            const size_t GetAllocationSize() const;
 
             BufferInfo mBufferInfo;
 
@@ -126,20 +128,20 @@ namespace irr
         private:
             friend class CVulkanDriver;
 
-            struct SubBufferEntry
-            {
-                u32 offset;
-                u32 size;
-            };
+            //struct SubBufferEntry
+            //{
+            //    u32 offset;
+            //    u32 size;
+            //};
 
-            struct BufferCacheDesc
-            {
-                u32 Stride;
-                u32 Offset;
-
-                VkBufferCreateInfo bufferCI;
-                VulkanBuffer* Buffer;
-            };
+            //struct BufferCacheDesc
+            //{
+            //    u32 Stride;
+            //    u32 Offset;
+            //
+            //    VkBufferCreateInfo bufferCI;
+            //    VulkanBuffer* Buffer;
+            //};
 
             struct BufferDesc
             {
@@ -151,11 +153,11 @@ namespace irr
                 u32 Offset;
                 VkBufferCreateInfo bufferCI;
                 VkDescriptorBufferInfo Descriptor;
-                VulkanBuffer* Buffer;
+                irr::Ptr<VulkanBuffer> Buffer;
                 std::vector<BufferDesc*> SubBuffers;
-                std::vector<BufferCacheDesc>* BufferCache; // For Dynamic mode
+                //std::vector<BufferCacheDesc>* BufferCache; // For Dynamic mode
                 size_t BufferCacheHint = 0;
-                VulkanBuffer* mStagingBuffer;
+                irr::Ptr<VulkanBuffer> mStagingBuffer;
                 u8* mStagingMemory;
                 u32 mStagingMemorySize;
                 E_HARDWARE_BUFFER_TYPE Type : 8;
@@ -166,10 +168,10 @@ namespace irr
             };
 
             BufferDesc* mBaseBuffer = nullptr;
-            VulkanCommandBuffer* CommandBuffer = nullptr;
+            irr::Ptr<VulkanCommandBuffer> CommandBuffer;
             std::array<BufferDesc, size_t(E_HARDWARE_BUFFER_TYPE::EHBT_SYSTEM)> VertexBufferStreams;
-            std::vector<VulkanGraphicsPipelineState*> Pipelines;
-            std::vector<VulkanGpuParams*> mGpuParams;
+            std::vector<irr::Ptr<VulkanGraphicsPipelineState>> Pipelines;
+            std::vector<irr::Ptr<VulkanGpuParams>> mGpuParams;
 
             u32 Flags;
             u32 mMappedDeviceIdx = 0;
@@ -178,8 +180,8 @@ namespace irr
             bool mMappedReadOnly = false;
             bool mIsMapped = true;
 
-            VulkanBuffer* GetCacheBuffer(VulkanDevice & device, CVulkanHardwareBuffer::BufferDesc& descriptor, VkBufferCreateInfo& bufferCI, E_HARDWARE_BUFFER_ACCESS AccessType, u32 stride, bool readable);
-            VulkanBuffer* CreateBuffer(VulkanDevice& device, VkBufferCreateInfo& bufferCI, E_HARDWARE_BUFFER_ACCESS AccessType, u32 stride, bool readable, bool staging = false);
+            //VulkanBuffer* GetCacheBuffer(VulkanDevice & device, CVulkanHardwareBuffer::BufferDesc& descriptor, VkBufferCreateInfo& bufferCI, E_HARDWARE_BUFFER_ACCESS AccessType, u32 stride, bool readable);
+            //VulkanBuffer* CreateBuffer(VulkanDevice& device, VkBufferCreateInfo& bufferCI, E_HARDWARE_BUFFER_ACCESS AccessType, u32 stride, bool readable, bool staging = false);
             bool UpdateBuffer(E_HARDWARE_BUFFER_TYPE Type, E_HARDWARE_BUFFER_ACCESS AccessType, const void* initialData, u32 size, u32 offset = 0, u32 endoffset = 0, u32 typeMask = 0, s32 preferBuffer = -1);
             u32 getVertexDeclarationStride(u8 inputSlot) const;
 
@@ -207,8 +209,7 @@ namespace irr
             //! Get size of buffer in bytes
             virtual u32 size(E_HARDWARE_BUFFER_TYPE type) const;
 
-            virtual u32 GetMemoryAccessType(E_HARDWARE_BUFFER_ACCESS access) { return GetMemoryAccessType(access, nullptr); }
-            u32 GetMemoryAccessType(E_HARDWARE_BUFFER_ACCESS access, u32* flags, u32* preferflags = nullptr, u32* usage = nullptr, u32* createFlags = nullptr);
+            virtual u32 GetMemoryAccessType(E_HARDWARE_BUFFER_ACCESS access) { return 0; } // GetMemoryAccessType(access, nullptr); }
 
             virtual u32 getChangeID(E_HARDWARE_BUFFER_TYPE type) const
             {

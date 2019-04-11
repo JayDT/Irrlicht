@@ -199,7 +199,7 @@ namespace irr
 
             uint32_t mNumFaces;
             uint32_t mNumMipLevels;
-            VulkanImageSubresource** mSubresources;
+            irr::Ptr<VulkanImageSubresource>* mSubresources;
 
             mutable VkImageViewCreateInfo mImageViewCI;
             mutable std::vector<ImageViewInfo> mImageInfos;
@@ -295,17 +295,6 @@ namespace irr
                 return std::move(TextureSurface(0, NumberOfMipLevels, 0, NumberOfArraySlices));
             }
 
-            struct StagingBufferEntry
-            {
-                VulkanBuffer* mBuffer;
-                uint64_t mSize;
-            };
-
-            static std::vector<StagingBufferEntry> mStagingBufferCache;
-            static std::vector<StagingBufferEntry> mStagingReadableBufferCache;
-            static size_t mStagingBufferCacheHint;
-            static size_t mStagingReadableBufferCacheHint;
-
         private:
 
             //! creates hardware render target
@@ -355,13 +344,13 @@ namespace irr
             u8 mMappedArraySliceIdx;
 
             /** Contains information about view for a specific surface(s) of this image. */
-            std::array<VulkanImage*, _MAX_DEVICES> mImages;
+            std::array<irr::Ptr<VulkanImage>, _MAX_DEVICES> mImages;
             std::array<ECOLOR_FORMAT, _MAX_DEVICES> mInternalFormats;
             E_TEXTURE_TYPE mTextureType;
             GpuDeviceFlags mDeviceMask;
             VkImageCreateInfo mImageCI;
 
-            VulkanBuffer* mStagingBuffer = nullptr;
+            irr::Ptr<VulkanBuffer> mStagingBuffer;
             bool mStagingBufferReadable = false;
             bool mSupportsGPUWrites = false;
             bool mDirectlyMappable = false;

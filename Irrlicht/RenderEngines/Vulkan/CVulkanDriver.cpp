@@ -115,18 +115,6 @@ irr::video::CVulkanDriver::~CVulkanDriver()
     removeAllOcclusionQueries();
     removeAllHardwareBuffers();
 
-    while (!CVulkanTexture::mStagingReadableBufferCache.empty())
-    {
-        CVulkanTexture::mStagingReadableBufferCache.back().mBuffer->drop();
-        CVulkanTexture::mStagingReadableBufferCache.pop_back();
-    }
-
-    while (!CVulkanTexture::mStagingBufferCache.empty())
-    {
-        CVulkanTexture::mStagingBufferCache.back().mBuffer->drop();
-        CVulkanTexture::mStagingBufferCache.pop_back();
-    }
-
     mMainCommandBuffer->drop();
     mMainCommandBuffer = nullptr;
 
