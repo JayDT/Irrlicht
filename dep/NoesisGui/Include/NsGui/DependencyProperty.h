@@ -30,7 +30,7 @@ class ValueStorageManager;
 class DependencyPropertyTest;
 template<class T> class Ptr;
 struct StoredValue;
-NS_INTERFACE IExpression;
+class Expression;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 enum PropertyAccess
@@ -148,12 +148,12 @@ public:
 
     /// Sets a new value for this property with in the specified destination
     inline void SetValue(DependencyObject* obj, const void* value, uint8_t priority,
-        IExpression* expression, const PropertyMetadata* metadata,
+        Expression* expression, const PropertyMetadata* metadata,
         Value::Destination destination = Value::Destination_BaseValue) const;
 
     /// Sets a new value (boxed) for this property with in the specified destination
     inline void SetValueObject(DependencyObject* obj, BaseComponent* value,
-        uint8_t priority, IExpression* expression, const PropertyMetadata* metadata,
+        uint8_t priority, Expression* expression, const PropertyMetadata* metadata,
         Value::Destination destination = Value::Destination_BaseValue) const;
 
     /// Clears animation value for this property

@@ -11,12 +11,11 @@
 #include <NsCore/Noesis.h>
 #include <NsGui/CoreApi.h>
 #include <NsGui/Panel.h>
+#include <NsGui/Enums.h>
 
 
 namespace Noesis
 {
-
-enum Dock;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Defines an area where you can arrange child elements either horizontally or
@@ -27,7 +26,6 @@ enum Dock;
 class NS_GUI_CORE_API DockPanel: public Panel
 {
 public:
-    /// Constructor
     DockPanel();
 
     /// Gets a value that indicates the position of a child element within a DockPanel
@@ -42,17 +40,6 @@ public:
     void SetLastChildFill(bool fill);
     //@}
 
-private:
-    /// From FrameworkElement
-    //@{
-    Size MeasureOverride(const Size& availableSize);
-    Size ArrangeOverride(const Size& finalSize);
-    //@}
-
-    // Detects docking changes in children elements
-    static void StaticDockChanged(DependencyObject* obj,
-        const DependencyPropertyChangedEventArgs& args);
-
 public:
     /// Dependency properties
     //@{
@@ -60,10 +47,22 @@ public:
     static const DependencyProperty* LastChildFillProperty;
     //@}
 
+protected:
+    /// From FrameworkElement
+    //@{
+    Size MeasureOverride(const Size& availableSize) override;
+    Size ArrangeOverride(const Size& finalSize) override;
+    //@}
+
 private:
+    // Detects docking changes in children elements
+    static void StaticDockChanged(DependencyObject* obj,
+        const DependencyPropertyChangedEventArgs& args);
+
     NS_DECLARE_REFLECTION(DockPanel, Panel)
 };
 
 }
+
 
 #endif

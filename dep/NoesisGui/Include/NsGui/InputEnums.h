@@ -31,8 +31,8 @@ enum MouseButton
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 enum MouseButtonState
 {
-    MouseButtonState_Pressed,
-    MouseButtonState_Released
+    MouseButtonState_Released,
+    MouseButtonState_Pressed
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -286,16 +286,16 @@ enum Key
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-enum KeyStateFlags
+enum KeyStates
 {
-    /// The key is not pressed.
-    KeyStateFlags_None = 0x00,
+    /// The key is not pressed (same as up).
+    KeyStates_None = 0,
 
     /// The key is pressed.
-    KeyStateFlags_Down = 0x01,
+    KeyStates_Down = 1,
 
-    /// The key is toggled.
-    KeyStateFlags_Toggled = 0x02
+    /// The key is toggled on.
+    KeyStates_Toggled = 2
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

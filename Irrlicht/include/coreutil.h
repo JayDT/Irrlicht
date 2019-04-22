@@ -111,14 +111,24 @@ inline io::path& deletePathFromPath(io::path& filename, s32 pathCount)
 
 //! looks if file is in the same directory of path. returns offset of directory.
 //! 0 means in same directory. 1 means file is direct child of path
-inline s32 isInSameDirectory ( const io::path& path, const io::path& file )
+inline s32 isInSameDirectory(const io::path& path, const io::path& file) noexcept
 {
-	s32 subA = 0;
-	s32 subB = 0;
-	s32 pos;
+    s32 subA = 0;
+    s32 subB = 0;
+    s32 pos;
 
-	if ( path.size() && !path.equalsn ( file, path.size() ) )
-		return -1;
+    if (path.size())
+    {
+        if (path[0] == '/' && file[0] != '/')
+        {
+            if ((path.size() - 1) > file.size() || std::memcmp(path.c_str() + 1, file.c_str(), path.size() - 1))
+                return -1;
+
+            --subA;
+        }
+	    else if (!path.equalsn ( file, path.size() ) )
+	    	return -1;
+    }
 
 	pos = 0;
 	while ( (pos = path.findNext ( '/', pos )) >= 0 )
@@ -135,6 +145,36 @@ inline s32 isInSameDirectory ( const io::path& path, const io::path& file )
 	}
 
 	return subB - subA;
+}
+
+//! looks if file is in the same directory of path. returns offset of directory.
+//! 0 means in same directory. 1 means file is direct child of path
+inline bool isContainDirectory(const io::path& path, const io::path& file, s32 subPath) noexcept
+{
+    s32 pos = path.size();
+
+    if (pos > 0)
+    {
+        if (path[0] == '/' && file[0] != '/')
+        {
+            --pos;
+            if (pos > file.size() || std::memcmp(path.c_str() + 1, file.c_str(), pos))
+                return false;
+
+            --subPath;
+        }
+        else
+        {
+            if (pos > file.size() || std::memcmp(path.c_str(), file.c_str(), pos))
+                return false;
+        }
+    }
+
+    ++pos;
+    if (file.findNext('/', pos) >= 0)
+        return false;
+
+    return true;
 }
 
 //! splits a path into components

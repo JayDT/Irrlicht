@@ -708,7 +708,7 @@ bool CD3D11Texture::createTextureBuffer()
 
 bool CD3D11Texture::createViews()
 {
-    if (!Texture || IImage::isRenderTargetOnlyFormat(ColorFormat))
+    if (!Texture || IImage::isStencilFormat(ColorFormat) || IImage::isDepthFormat(ColorFormat))
         return false;
 
     HRESULT hr = S_OK;

@@ -9,16 +9,16 @@
 
 
 #include <NsCore/Noesis.h>
+#include <NsCore/ReflectionDeclare.h>
 #include <NsGui/CoreApi.h>
 #include <NsGui/DependencyObject.h>
 #include <NsGui/IUITreeNode.h>
-#include <NsCore/ReflectionDeclare.h>
 
 
 namespace Noesis
 {
 
-template<class T> class TypedCollection;
+template<class T> class Collection;
 class CollectionView;
 class ResourceKeyType;
 
@@ -55,12 +55,11 @@ public:
     
     /// From IUITreeNode
     //@{
-    IUITreeNode* GetNodeParent() const override;
-    void SetNodeParent(IUITreeNode* parent) override;
-    BaseComponent* FindNodeResource(IResourceKey* key,
-        bool fullElementSearch) const override;
-    BaseComponent* FindNodeName(const char* name) const override;
-    ObjectWithNameScope FindNodeNameAndScope(const char* name) const override;
+    IUITreeNode* GetNodeParent() const final;
+    void SetNodeParent(IUITreeNode* parent) final;
+    BaseComponent* FindNodeResource(IResourceKey* key, bool fullElementSearch) const final;
+    BaseComponent* FindNodeName(const char* name) const final;
+    ObjectWithNameScope FindNodeNameAndScope(const char* name) const final;
     //@}
 
     NS_IMPLEMENT_INTERFACE_FIXUP

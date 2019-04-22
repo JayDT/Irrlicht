@@ -25,9 +25,9 @@ inline void heapsink(T*array, s32 element, s32 max)
 
 		if (array[element] < array[j])
 		{
-			T t = array[j]; // swap elements
-			array[j] = array[element];
-			array[element] = t;
+			T t             = static_cast<T&&>(array[j]); // swap elements
+			array[j]        = static_cast<T&&>(array[element]);
+			array[element]  = static_cast<T&&>(t);
 			element = j;
 		}
 		else
@@ -56,9 +56,9 @@ inline void heapsort(T* array_, s32 size)
 	// sort array, leave out the last element (0)
 	for (i=size-1; i>0; --i)
 	{
-		T t = array_[0];
-		array_[0] = array_[i];
-		array_[i] = t;
+		T t         = static_cast<T&&>(array_[0]);
+		array_[0]   = static_cast<T&&>(array_[i]);
+		array_[i]   = static_cast<T&&>(t);
 		heapsink(virtualArray, 1, i + 1);
 	}
 }

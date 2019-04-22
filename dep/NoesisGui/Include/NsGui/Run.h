@@ -19,6 +19,8 @@ namespace Noesis
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// An inline-level flow content element intended to contain a run of formatted or unformatted text.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.documents.run.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API Run : public Inline
 {
@@ -26,7 +28,7 @@ public:
     Run();
     Run(const char* text);
 
-    /// Gets or sets the unformatted text contents of this text Run.
+    /// Gets or sets the unformatted text contents of this text Run
     //@{
     const char* GetText() const;
     void SetText(const char* text);
@@ -42,5 +44,6 @@ public:
 };
 
 }
+
 
 #endif

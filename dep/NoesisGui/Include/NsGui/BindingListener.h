@@ -9,16 +9,17 @@
 
 
 #include <NsCore/Noesis.h>
+#include <NsCore/BaseComponent.h>
 #include <NsCore/Ptr.h>
 #include <NsCore/Delegate.h>
 #include <NsCore/Vector.h>
 #include <NsCore/ReflectionDeclare.h>
+#include <NsGui/CoreApi.h>
 
 
 namespace Noesis
 {
 
-class BaseComponent;
 class TypeProperty;
 class Type;
 class DependencyObject;
@@ -27,7 +28,6 @@ class FrameworkElement;
 class CollectionView;
 class BaseBinding;
 NS_INTERFACE IResourceKey;
-NS_INTERFACE INotifyPropertyChanged;
 struct PathElement;
 struct DependencyPropertyChangedEventArgs;
 struct AncestorNameScopeChangedArgs;
@@ -35,10 +35,6 @@ struct PropertyChangedEventArgs;
 struct NotifyCollectionChangedEventArgs;
 struct NotifyDictionaryChangedEventArgs;
 struct EventArgs;
-
-typedef Delegate<BaseComponent* ()> GetValueCallback;
-typedef Delegate<void (FrameworkElement* target, FrameworkElement* nameScope,
-    bool skipTargetName, bool fireEnterActions, uint8_t priority)> InvalidateCallback;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// BindingListener shared data
@@ -59,10 +55,7 @@ struct BindingListenerData
 class BindingListener
 {
 public:
-    /// Constructor
     BindingListener();
-
-    /// Destructor
     virtual ~BindingListener() = 0;
 
     /// Tries to resolve binding and subscribes to binding changes
@@ -71,7 +64,7 @@ public:
     /// Unsubscribes from binding changes
     void Unregister();
 
-    /// Indicates if current binding 
+    /// Indicates if current binding value matches the trigger condition
     bool Matches() const;
 
 protected:
@@ -97,8 +90,6 @@ private:
     bool TryConvertTriggerValue();
 
     bool MatchesOnReset();
-    bool MatchesValues(const Ptr<BaseComponent>& val1,
-        const Ptr<BaseComponent>& val2) const;
     void Matches(bool& matchesOldValue, bool& matchesNewValue, bool reevaluate,
         const Ptr<BaseComponent>& newValue = 0);
 
@@ -150,8 +141,6 @@ private:
         const DependencyProperty* dp;
         int index;
         Ptr<IResourceKey> key;
-
-        static WeakPathElement Self(BaseComponent* source);
     };
 
     // Resolved path elements
@@ -163,10 +152,9 @@ private:
 
     // Trigger Value converted to the type of the last path property or object
     Ptr<BaseComponent> mTriggerValue;
-
-    NS_DECLARE_REFLECTION(BindingListener, NoParent)
 };
 
 }
+
 
 #endif

@@ -10,21 +10,18 @@
 
 #include <NsCore/Noesis.h>
 #include <NsGui/ContentControl.h>
+#include <NsGui/Enums.h>
 
 
 namespace Noesis
 {
 
-// Forward declaration
-//@{
-enum PlacementMode;
 class Popup;
 class PopupBinder;
-//@}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents a control that creates a pop-up window that displays information for an
-/// element in the interface.
+/// Represents a control that creates a pop-up window that displays information for an element in
+/// the interface.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.tooltip
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -84,10 +81,10 @@ public:
     void SetVerticalOffset(float offset);
     //@}
 
-    /// Occurs when a ToolTip is closed and is no longer visible.
+    /// Occurs when a ToolTip is closed and is no longer visible
     UIElement::RoutedEvent_<RoutedEventHandler> Closed();
 
-    /// Occurs when a ToolTip becomes visible.
+    /// Occurs when a ToolTip becomes visible
     UIElement::RoutedEvent_<RoutedEventHandler> Opened();
 
     /// Gets Popup where ToolTip is shown
@@ -95,7 +92,7 @@ public:
 
     /// From IUITreeNode
     //@{
-    void SetNodeParent(IUITreeNode* parent);
+    void SetNodeParent(IUITreeNode* parent) override;
     //@}
 
 public:
@@ -121,14 +118,24 @@ protected:
     virtual void OnClosed(const RoutedEventArgs& e);
     virtual void OnOpened(const RoutedEventArgs& e);
 
+    /// From Visual
+    //@{
+    void OnVisualParentChanged(Visual* oldParent) override;
+    //@}
+
+    /// From FrameworkElement
+    //@{
+    void OnLogicalParentChanged(FrameworkElement* oldParent) override;
+    //@}
+
     /// From Control
     //@{
-    void UpdateVisualStates();
+    void UpdateVisualStates() override;
     //@}
 
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
 private:
@@ -162,5 +169,6 @@ private:
 };
 
 }
+
 
 #endif

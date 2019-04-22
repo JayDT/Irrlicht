@@ -35,7 +35,7 @@ NS_INTERFACE ISealable: public Interface
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 inline void SealIfSealable(ISealable* sealable)
 {
-    if (sealable != 0)
+    if (sealable != 0 && !sealable->IsSealed() && sealable->CanSeal())
     {
         sealable->Seal();
     }

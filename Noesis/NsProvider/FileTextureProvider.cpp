@@ -22,9 +22,9 @@ NS_GCC_WARNING_DISABLE("-Wconversion")
 NS_CLANG_WARNING_DISABLE("-Wcomma")
 #endif
 
-#define STBI_MALLOC(sz) NsAlloc(sz)
-#define STBI_REALLOC(p,sz) NsRealloc(p, sz)
-#define STBI_FREE(p) NsDealloc(p)
+#define STBI_MALLOC(sz) Noesis::Alloc(sz)
+#define STBI_REALLOC(p,sz) Noesis::Realloc(p, sz)
+#define STBI_FREE(p) Noesis::Dealloc(p)
 #define STBI_ASSERT(x) NS_ASSERT(x)
 #define STBI_NO_STDIO
 #define STBI_NO_LINEAR
@@ -32,6 +32,7 @@ NS_CLANG_WARNING_DISABLE("-Wcomma")
 #define STBI_ONLY_PNG
 #define STBI_ONLY_BMP
 #define STBI_ONLY_GIF
+#define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
 #include "NsProvider/stb_image.h"
 
@@ -122,16 +123,8 @@ Ptr<Texture> FileTextureProvider::LoadTexture(const char* filename, RenderDevice
         return nullptr;
     }
 
-    // Convert to BGRA and premultiply alpha
-    if (n == 3)
-    {
-        for (int i = 0; i < x * y; i++)
-        {
-            eastl::swap(data[4 * i], data[4 * i + 2]);
-            NS_ASSERT(data[4 * i + 3] == 255);
-        }
-    }
-    else
+    // Premultiply alpha
+    if (n == 4)
     {
         bool sRGB = device->GetCaps().linearRendering;
         for (int i = 0; i < x * y; i++)
@@ -142,14 +135,13 @@ Ptr<Texture> FileTextureProvider::LoadTexture(const char* filename, RenderDevice
             stbi_uc g = (stbi_uc)(((uint32_t)data[4 * i + 1] * a) / 255);
             stbi_uc b = (stbi_uc)(((uint32_t)data[4 * i + 2] * a) / 255);
 
-            data[4 * i] = b;
+            data[4 * i] = r;
             data[4 * i + 1] = g;
-            data[4 * i + 2] = r;
+            data[4 * i + 2] = b;
         }
     }
 
-    NS_ASSERT(device->GetCaps().supportedTextureFormats[TextureFormat::BGRA8]);
-    Ptr<Texture> texture = device->CreateTexture(filename, x, y, 1, TextureFormat::BGRA8);
+    Ptr<Texture> texture = device->CreateTexture(filename, x, y, 1, TextureFormat::RGBA8);
     device->UpdateTexture(texture, 0, 0, 0, x, y, data);
     stbi_image_free(data);
 

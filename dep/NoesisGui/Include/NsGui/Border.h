@@ -33,10 +33,7 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 class NS_GUI_CORE_API Border: public Decorator
 {
 public:
-    /// Constructor
     Border(bool logicalChild = true);
-
-    /// Destructor
     ~Border();
 
     /// Gets or sets border background
@@ -82,18 +79,18 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
     /// From UIElement
     //@{
-    void OnRender(DrawingContext* context);
+    void OnRender(DrawingContext* context) override;
     //@}
 
     /// From FrameworkElement
     //@{
-    Size MeasureOverride(const Size& availableSize);
-    Size ArrangeOverride(const Size& finalSize);
+    Size MeasureOverride(const Size& availableSize) override;
+    Size ArrangeOverride(const Size& finalSize) override;
     //@}
 
 private:

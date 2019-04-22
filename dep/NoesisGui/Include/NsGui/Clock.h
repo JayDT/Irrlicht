@@ -26,10 +26,8 @@ namespace Noesis
 
 class DependencyObject;
 class ClockGroup;
-class ClockController;
 class Timeline;
 class TimeManager;
-class ClockTest;
 
 enum ClockState
 {
@@ -64,9 +62,11 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Maintains run-time timing state for a Timeline. A Timeline, by itself, doesn't actually do
-/// anything other than describe a segment of time. It's the timeline's Clock object that does the
-/// real work: it maintains timing-related run-time state for the timeline. 
+/// Maintains run-time timing state for a Timeline.
+///
+/// A Timeline, by itself, doesn't actually do anything other than describe a segment of time. It's
+/// the timeline's Clock object that does the real work: it maintains timing-related run-time state
+/// for the timeline.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.clock.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -75,31 +75,31 @@ class NS_GUI_ANIMATION_API Clock: public BaseComponent
 public:
     Clock(Timeline* timeline, bool controllable);
     virtual ~Clock() = 0;
-    
+
     /// Get the current iteration of this clock within its current active period, or -1 if this
-    /// clock is stopped.
+    /// clock is stopped
     int GetCurrentIteration() const;
-    
+
     /// Gets the current progress of Clock within its current iteration. This is a value between
     /// 0.0 and 1.0
     float GetCurrentProgress() const;
 
-    /// Gets this clock's current time within its current iteration. 
+    /// Gets this clock's current time within its current iteration
     double GetCurrentTime() const;
 
-    /// Gets a value indicating whether the clock is currently Active, Filling or Stopped.
+    /// Gets a value indicating whether the clock is currently *Active*, *Filling* or *Stopped*
     ClockState GetCurrentState() const;
     
-    /// Gets a value that indicates whether this Clock is part of a controllable clock tree.
+    /// Gets a value that indicates whether this Clock is part of a controllable clock tree
     bool HasControllableRoot() const;
 
-    /// Gets or sets the clock that is the parent of this clock.
+    /// Gets or sets the clock that is the parent of this clock
     ClockGroup* GetParent() const;
 
-    /// Gets the Timeline from which this Clock was created.
+    /// Gets the Timeline from which this Clock was created
     Timeline* GetTimeline() const;
 
-    /// Occurs when this clock has completely finished playing.
+    /// Occurs when this clock has completely finished playing
     DelegateEvent_<EventHandler> Completed();
 
 protected:
@@ -111,7 +111,7 @@ protected:
 
     /// From BaseRefCounted
     //@{
-    int32_t OnDestroy() const;
+    int32_t OnDestroy() const override;
     //@}
 
 private:
@@ -137,7 +137,6 @@ private:
 
     bool mHasControllableRoot;
 
-    /// Handler to be launched at end of clock
     EventHandler mCompleted;
 
     NS_DECLARE_REFLECTION(Clock, BaseComponent)
@@ -148,5 +147,6 @@ NS_WARNING_POP
 }
 
 NS_DECLARE_REFLECTION_ENUM_EXPORT(NS_GUI_ANIMATION_API, Noesis::ClockState)
+
 
 #endif

@@ -17,12 +17,17 @@
 namespace Noesis
 {
 
-template<class T> class Ptr;
 class DependencyObject;
 class DependencyProperty;
 class RoutedEvent;
 class UIElement;
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Provides a set of static methods, attached properties, and events for determining and setting
+/// focus scopes and for setting the focused element within the scope.
+///
+/// http://msdn.microsoft.com/en-us/library/system.windows.input.focusmanager.aspx
+////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API FocusManager
 {
 public:
@@ -41,6 +46,7 @@ public:
     static void SetIsFocusScope(DependencyObject* element, bool value);
     //@}
 
+public:
     /// Dependency properties
     //@{
     static const DependencyProperty* FocusedElementProperty;
@@ -52,9 +58,6 @@ public:
     static const RoutedEvent* LostFocusEvent;
     static const RoutedEvent* GotFocusEvent;
     //@}
-
-private:
-    FocusManager();
 
     NS_DECLARE_REFLECTION(FocusManager, NoParent)
 };

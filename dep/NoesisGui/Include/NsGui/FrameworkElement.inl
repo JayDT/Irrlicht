@@ -11,42 +11,54 @@ namespace Noesis
 template<class T>
 T* FrameworkElement::GetTemplateChild(const char* name) const
 {
-    return NsStaticCast<T*>(GetTemplateChild(name));
+    BaseComponent* child = GetTemplateChild(name);
+    NS_ASSERT(child == 0 || DynamicCast<T*>(child) != 0);
+    return static_cast<T*>(child);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
 T* FrameworkElement::FindName(const char* name) const
 {
-    return NsStaticCast<T*>(FindName(name));
+    BaseComponent* resource = FindName(name);
+    NS_ASSERT(resource == 0 || DynamicCast<T*>(resource) != 0);
+    return static_cast<T*>(resource);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
 T* FrameworkElement::FindResource(IResourceKey* key) const
 {
-    return NsStaticCast<T*>(FindResource(key));
+    BaseComponent* resource = FindResource(key);
+    NS_ASSERT(DynamicCast<T*>(resource) != 0);
+    return static_cast<T*>(resource);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
 T* FrameworkElement::TryFindResource(IResourceKey* key) const
 {
-    return NsStaticCast<T*>(TryFindResource(key));
+    BaseComponent* resource = TryFindResource(key);
+    NS_ASSERT(resource == 0 || DynamicCast<T*>(resource) != 0);
+    return static_cast<T*>(resource);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
 T* FrameworkElement::FindResource(const char* key) const
 {
-    return NsStaticCast<T*>(FindResource(key));
+    BaseComponent* resource = FindResource(key);
+    NS_ASSERT(DynamicCast<T*>(resource) != 0);
+    return static_cast<T*>(resource);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
 T* FrameworkElement::TryFindResource(const char* key) const
 {
-    return NsStaticCast<T*>(TryFindResource(key));
+    BaseComponent* resource = TryFindResource(key);
+    NS_ASSERT(resource == 0 || DynamicCast<T*>(resource) != 0);
+    return static_cast<T*>(resource);
 }
 
 }

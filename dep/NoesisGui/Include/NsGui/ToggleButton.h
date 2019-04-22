@@ -41,50 +41,15 @@ public:
     bool GetIsThreeState() const;
     void SetIsThreeState(bool state);
     //@}
-    
-    // Events
-    //@{
+
     /// Occurs when a ToggleButton is checked.
     UIElement::RoutedEvent_<RoutedEventHandler> Checked();
+
     /// Occurs when the state of a ToggleButton is neither on nor off.
     UIElement::RoutedEvent_<RoutedEventHandler> Indeterminate();
+
     /// Occurs when a ToggleButton is unchecked.
     UIElement::RoutedEvent_<RoutedEventHandler> Unchecked();
-    //@}
-    
-protected:
-    
-    /// Called when a ToggleButton raises a Checked event.
-    virtual void OnChecked(const RoutedEventArgs& e);
-
-    /// Called when a ToggleButton raises an Indeterminate event.
-    virtual void OnIndeterminate(const RoutedEventArgs& e);
-    
-    /// Called by the OnClick() method to implement toggle behavior.
-    virtual void OnToggle();
-    
-    /// Called when a ToggleButton raises an Unchecked event.
-    virtual void OnUnchecked(const RoutedEventArgs& e);
-    
-    /// From BaseButton
-    //@{
-    void OnClick();
-    //@}
-    
-    /// From Control
-    //@{
-    void UpdateVisualStates();
-    //@}
-    
-    /// From UIElement
-    //@{
-    //protected override AutomationPeer OnCreateAutomationPeer();
-    //@}
-    
-    /// From DependencyObject
-    //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
-    //@}
 
 public:
     /// Dependency properties
@@ -100,10 +65,39 @@ public:
     static const RoutedEvent* UncheckedEvent;
     //@}
 
+protected:
+    /// Called when a ToggleButton raises a Checked event
+    virtual void OnChecked(const RoutedEventArgs& e);
+
+    /// Called when a ToggleButton raises an Indeterminate event
+    virtual void OnIndeterminate(const RoutedEventArgs& e);
+
+    /// Called by the OnClick() method to implement toggle behavior
+    virtual void OnToggle();
+
+    /// Called when a ToggleButton raises an Unchecked event
+    virtual void OnUnchecked(const RoutedEventArgs& e);
+
+    /// From BaseButton
+    //@{
+    void OnClick();
+    //@}
+
+    /// From Control
+    //@{
+    void UpdateVisualStates();
+    //@}
+
+    /// From DependencyObject
+    //@{
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    //@}
+
 private:
     NS_DECLARE_REFLECTION(ToggleButton, BaseButton)
 };
 
 }
+
 
 #endif

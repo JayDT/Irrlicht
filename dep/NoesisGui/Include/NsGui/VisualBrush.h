@@ -26,22 +26,20 @@ class Visual;
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.visualbrush.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API VisualBrush: public TileBrush
+class NS_GUI_CORE_API VisualBrush final: public TileBrush
 {
 public:
-    /// Default constructor
     VisualBrush();
-    
-    /// Destructor
     ~VisualBrush();
 
-    /// Gets or sets the brush's content
+    /// Gets or sets the brush's content. Remark that current implementation only works when
+    /// visual refers to an element that is part of the logical tree
     //@{
     Visual* GetVisual() const;
     void SetVisual(Visual* visual);
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<VisualBrush> Clone() const;
     Ptr<VisualBrush> CloneCurrentValue() const;
@@ -49,8 +47,8 @@ public:
 
     /// From IRenderProxyCreator
     //@{
-    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
+    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
     //@}
 
 public:
@@ -62,12 +60,12 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
 private:
@@ -86,5 +84,6 @@ private:
 };
 
 }
+
 
 #endif

@@ -48,7 +48,7 @@ struct SFileListEntry
 		if (IsDirectory != other.IsDirectory)
 			return false;
 
-		return FullName.equals_ignore_case(other.FullName);
+		return FullName.equal(other.FullName);
 	}
 
 	//! The < operator is provided so that CFileList can sort and quickly search the list.
@@ -57,7 +57,7 @@ struct SFileListEntry
 		if (IsDirectory != other.IsDirectory)
 			return IsDirectory;
 
-		return FullName.lower_ignore_case(other.FullName);
+		return FullName.lower(other.FullName);
 	}
 };
 
@@ -113,6 +113,8 @@ public:
 
 	//! Returns the base path of the file list
 	virtual const io::path& getPath() const;
+
+    virtual bool isIgnoreCase() const;
 
 protected:
 

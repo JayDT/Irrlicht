@@ -31,7 +31,7 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.beginstoryboard.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_ANIMATION_API BeginStoryboard: public TriggerAction
+class NS_GUI_ANIMATION_API BeginStoryboard final: public TriggerAction
 {
 public:
     BeginStoryboard();
@@ -57,7 +57,7 @@ public:
 
     /// From TriggerAction
     //@{
-    void Invoke(FrameworkElement* target, FrameworkElement* nameScope = 0) final;
+    void Invoke(FrameworkElement* target, FrameworkElement* nameScope = 0) override;
     void Seal() override;
     //@}
 
@@ -77,5 +77,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

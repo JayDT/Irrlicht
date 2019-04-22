@@ -11,7 +11,6 @@
 #include <NsCore/Noesis.h>
 #include <NsCore/Ptr.h>
 #include <NsCore/BaseComponent.h>
-#include <NsCore/ReflectionDeclare.h>
 #include <NsRender/RenderDeviceApi.h>
 
 
@@ -20,19 +19,14 @@ namespace Noesis
 
 class RenderTarget;
 class Texture;
-NS_INTERFACE IVGLContext;
 
 // Texture formats enumeration
 struct TextureFormat
 {
     enum Enum
     {
-        BGRA8,
-        BGRX8,
+        RGBA8,
         R8,
-        BC1,
-        BC2,
-        BC3,
 
         Count
     };
@@ -52,9 +46,6 @@ struct DeviceCaps
 
     // If the device writes to the render target in linear or gamma space
     bool linearRendering;
-
-    // Texture format availability
-    bool supportedTextureFormats[TextureFormat::Count];
 };
 
 // Shader effect
@@ -93,9 +84,9 @@ struct Paint
 //  ------------------------------------------------------
 //  Pos = X32Y32
 //  Color = R8G8B8A8
-//  Tex0 = caps.halfFloatUV ? U16V16 : U32V32
-//  Tex1 = caps.halfFloatUV ? U16V16 : U32V32
-//  Coverage = X32
+//  Tex0 = U32V32
+//  Tex1 = U32V32
+//  Coverage = A32
 //  ------------------------------------------------------
 //  RGBA                        Pos
 //  Mask                        Pos
@@ -381,13 +372,21 @@ public:
     void SetGlyphCacheHeight(uint32_t height);
     uint32_t GetGlyphCacheHeight() const;
 
-    /// Glyphs with size above this are rendered using triangles meshes. Default is 96
+    /// Width of texture used to cache emojis (0 = automatic). Default is automatic
+    void SetColorGlyphCacheWidth(uint32_t width);
+    uint32_t GetColorGlyphCacheWidth() const;
+
+    /// Height of texture used to cache emojis (0 = automatic). Default is automatic
+    void SetColorGlyphCacheHeight(uint32_t height);
+    uint32_t GetColorGlyphCacheHeight() const;
+
+    /// Glyphs with size above threshold are rendered using triangles meshes. Default is 96
     void SetGlyphCacheMeshThreshold(uint32_t threshold);
     uint32_t GetGlyphCacheMeshThreshold() const;
 
     /// Vector graphics context
-    void SetVGContext(IVGLContext* context);
-    IVGLContext* GetVGContext() const;
+    void SetVGContext(BaseComponent* context);
+    BaseComponent* GetVGContext() const;
 
 protected:
     /// Returns whether the passed render state is compatible with the given shader
@@ -399,13 +398,13 @@ private:
     uint32_t mOffscreenSampleCount;
     uint32_t mOffscreenDefaultNumSurfaces;
     uint32_t mOffscreenMaxNumSurfaces;
-    uint32_t mGlyphCacheTextureWidth;
-    uint32_t mGlyphCacheTextureHeight;
+    uint32_t mGlyphCacheWidth;
+    uint32_t mGlyphCacheHeight;
+    uint32_t mColorGlyphCacheWidth;
+    uint32_t mColorGlyphCacheHeight;
     uint32_t mGlyphCacheMeshThreshold;
 
-    Ptr<IVGLContext> mVGContext;
-
-    NS_DECLARE_REFLECTION(RenderDevice, BaseComponent)
+    Ptr<BaseComponent> mVGContext;
 };
 
 NS_WARNING_POP

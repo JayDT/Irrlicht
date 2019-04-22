@@ -66,23 +66,20 @@ inline char* Append(char* dst, uint32_t capacity, const char* src, uint32_t coun
 /// Replaces all occurrences of a specified characeter
 inline char* Replace(char* str, char oldValue, char newValue);
 
-/// Writes formatted data to a string
-inline char* FormatBuffer(char* str, uint32_t capacity, NS_FORMAT_PRINTF const char* format,
-    ...) NS_FORMAT_PRINTF_ATTR(3);
-
-/// Converts IEEE single precison numbers into decimal ASCII strings. The result string is
-/// convertible to the original value (roundtrip convertible) and the minimum number of decimal
-/// digits are produced (eg: the float 0.7f should convert to "0.7", not "0.69999999")
-NS_CORE_KERNEL_API char* FormatBuffer(char* str, float v);
-
-/// Writes formatted output using a pointer to a list of arguments
-inline char* FormatBufferVA(char* str, uint32_t capacity, const char* format, va_list args);
-
 /// Calculates the hash value of a string
 inline uint32_t Hash(const char* str);
 
 /// Calculates the case-insensitive hash value of a string
 inline uint32_t CaseHash(const char* str);
+
+/// Parses the string, interpreting its content as a float and returns its value
+NS_CORE_KERNEL_API float ToFloat(const char* str, uint32_t* charParsed);
+
+/// Parses the string, interpreting its content as a double and returns its value
+NS_CORE_KERNEL_API double ToDouble(const char* str, uint32_t* charParsed);
+
+/// Parses the string, interpreting its content as an integer and returns its value
+NS_CORE_KERNEL_API int ToInteger(const char* str, uint32_t* charParsed);
 
 }
 }

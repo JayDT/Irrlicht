@@ -24,13 +24,10 @@ struct Point;
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.linegeometry.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API LineGeometry: public Geometry
+class NS_GUI_CORE_API LineGeometry final: public Geometry
 {
 public:
-    /// Constructor
     LineGeometry();
-
-    /// Constructor with start and end points
     LineGeometry(const Point& p1, const Point& p2);
 
     /// Gets or sets the end point of a line.
@@ -47,10 +44,10 @@ public:
 
     /// From Geometry
     //@{
-    bool IsEmpty() const;
+    bool IsEmpty() const override;
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<LineGeometry> Clone() const;
     Ptr<LineGeometry> CloneCurrentValue() const;
@@ -58,13 +55,13 @@ public:
 
     /// From IRenderProxyCreator
     //@{
-    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
+    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
     //@}
 
 public:
     /// Dependency properties
-    //@{    
+    //@{
     static const DependencyProperty* EndPointProperty;
     static const DependencyProperty* StartPointProperty;
     //@}
@@ -72,18 +69,18 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
     /// From Geometry
     //@{
-    Rect GetRenderBoundsOverride(Pen* pen) const;
-    bool StrokeContainsOverride(Pen* pen, const Point& point) const;
+    Rect GetRenderBoundsOverride(Pen* pen) const override;
+    bool StrokeContainsOverride(Pen* pen, const Point& point) const override;
     //@}
 
 private:
@@ -97,5 +94,6 @@ private:
 };
 
 }
+
 
 #endif

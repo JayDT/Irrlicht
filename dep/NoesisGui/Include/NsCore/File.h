@@ -18,7 +18,7 @@ namespace Noesis
 
 class Stream;
 template<class T> class Ptr;
-typedef NsFixedString<PATH_MAX> FixedPath;
+typedef NsFixedString<512> FixedPath;
 
 namespace File
 {

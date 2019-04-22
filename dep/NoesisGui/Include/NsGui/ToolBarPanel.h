@@ -45,7 +45,6 @@ protected:
     Size ArrangeOverride(const Size& finalSize);
     //@}
 
-protected:
     /// From DependencyObject
     //@{
     void OnInit();
@@ -67,5 +66,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

@@ -38,7 +38,7 @@ template<class T> class TypeOfHelper<T&>: public TypeOfHelperBase<
 public:
     static void Fill(Type* type)
     {
-        TypeReference* typeReference = NsStaticCast<TypeReference*>(type);
+        TypeReference* typeReference = static_cast<TypeReference*>(type);
         typeReference->SetContentType(TypeOf<T>());
     }
 };
@@ -59,7 +59,7 @@ template<class T> class TypeOfHelper<const T>: public TypeOfHelperBase<
 public:
     static void Fill(Type* type)
     {
-        TypeConst* typeConst = NsStaticCast<TypeConst*>(type);
+        TypeConst* typeConst = static_cast<TypeConst*>(type);
         typeConst->SetContentType(TypeOf<T>());
     }
 };
@@ -72,7 +72,7 @@ template<class T> class TypeOfHelper<T*>: public TypeOfHelperBase<TypePointer, T
 public:
     static void Fill(Type* type)
     {
-        TypePointer* typePointer = NsStaticCast<TypePointer*>(type);
+        TypePointer* typePointer = static_cast<TypePointer*>(type);
         typePointer->SetStaticContentType(TypeOf<T>());
     }
 };
@@ -85,7 +85,7 @@ template<class T> class TypeOfHelper<Ptr<T> >: public TypeOfHelperBase<TypePtr, 
 public:
     static void Fill(Type* type)
     {
-        TypePtr* typePtr = NsStaticCast<TypePtr*>(type);
+        TypePtr* typePtr = static_cast<TypePtr*>(type);
         typePtr->SetStaticContentType(TypeOf<T>());
     }
 };
@@ -99,7 +99,7 @@ template<class T, uint32_t N> class TypeOfHelper<T[N]>: public TypeOfHelperBase<
 public:
     static void Fill(Type* type)
     {
-        TypeArray* typeArray = NsStaticCast<TypeArray*>(type);
+        TypeArray* typeArray = static_cast<TypeArray*>(type);
         typeArray->SetElemCount(N);
         typeArray->SetElemSize(sizeof(T));
         typeArray->SetElemType(TypeOf<T>());

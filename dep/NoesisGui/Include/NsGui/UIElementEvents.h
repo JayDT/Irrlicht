@@ -14,6 +14,7 @@
 #include <NsGui/Enums.h>
 #include <NsGui/InputEnums.h>
 #include <NsCore/Ptr.h>
+#include <NsCore/ReflectionDeclareEnum.h>
 #include <NsCore/String.h>
 #include <NsDrawing/Point.h>
 #include <NsDrawing/Size.h>
@@ -24,15 +25,23 @@ namespace Noesis
 
 class UIElement;
 class Visual;
-struct MouseState;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// MouseEventArgs.
+/// Provides data for input related events.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-struct NS_GUI_CORE_API MouseEventArgs: public RoutedEventArgs
+struct NS_GUI_CORE_API InputEventArgs: public RoutedEventArgs
+{
+    InputEventArgs(BaseComponent* s, const RoutedEvent* e);
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Provides data for mouse related routed events that do not specifically involve mouse buttons or
+/// the mouse wheel.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+struct NS_GUI_CORE_API MouseEventArgs: public InputEventArgs
 {
     Point position;
     MouseButtonState leftButton;
@@ -41,37 +50,36 @@ struct NS_GUI_CORE_API MouseEventArgs: public RoutedEventArgs
     MouseButtonState xButton1Button;
     MouseButtonState xButton2Button;
 
-    MouseEventArgs(BaseComponent* s, const RoutedEvent* e, const MouseState& mouseState);
+    MouseEventArgs(BaseComponent* s, const RoutedEvent* e);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// MouseButtonEventArgs.
+/// Provides data for mouse button related events.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct NS_GUI_CORE_API MouseButtonEventArgs: public MouseEventArgs
 {
     MouseButton changedButton;
     MouseButtonState buttonState;
-    unsigned int buttonClicks;
+    uint32_t clickCount;
 
-    MouseButtonEventArgs(BaseComponent* s, const RoutedEvent* e, const MouseState& mouseState,
-        MouseButton button, MouseButtonState state, unsigned int clicks);
+    MouseButtonEventArgs(BaseComponent* s, const RoutedEvent* e, MouseButton button,
+        MouseButtonState state, uint32_t clicks);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// MouseWheelEventArgs.
+/// Provides data for various events that report changes to the mouse wheel delta value of a mouse.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct NS_GUI_CORE_API MouseWheelEventArgs: public MouseEventArgs
 {
     int wheelRotation;
 
-    MouseWheelEventArgs(BaseComponent* s, const RoutedEvent* e, const MouseState& mouseState,
-        int delta);
+    MouseWheelEventArgs(BaseComponent* s, const RoutedEvent* e, int delta);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// TouchEventArgs.
+/// Provides data for touch related routed events.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-struct NS_GUI_CORE_API TouchEventArgs: public RoutedEventArgs
+struct NS_GUI_CORE_API TouchEventArgs: public InputEventArgs
 {
     Point touchPoint;
     uint64_t touchDevice;
@@ -87,25 +95,25 @@ enum ManipulationModes
 {
     /// Manipulation events do not occur
     ManipulationModes_None = 0,
-    /// A manipulation can rotate an object
-    ManipulationModes_Rotate = 1,
-    /// A manipulation can scale an object
-    ManipulationModes_Scale = 2,
     /// A manipulation can translate an object horizontally
-    ManipulationModes_TranslateX = 4,
-    /// A manipulation can translate an object vertically.
-    ManipulationModes_TranslateY = 8,
-    /// A manipulation can translate an object.
+    ManipulationModes_TranslateX = 1,
+    /// A manipulation can translate an object vertically
+    ManipulationModes_TranslateY = 2,
+    /// A manipulation can translate an object
     ManipulationModes_Translate = ManipulationModes_TranslateX | ManipulationModes_TranslateY,
+    /// A manipulation can rotate an object
+    ManipulationModes_Rotate = 4,
+    /// A manipulation can scale an object
+    ManipulationModes_Scale = 8,
     /// A manipulation can scale, translate, or rotate an object
-    ManipulationModes_All = ManipulationModes_Rotate | ManipulationModes_Scale |
-        ManipulationModes_Translate
+    ManipulationModes_All = ManipulationModes_Translate | ManipulationModes_Rotate |
+        ManipulationModes_Scale
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Provides data for the ManipulationStarting event 
+/// Provides data for the ManipulationStarting event
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-struct NS_GUI_CORE_API ManipulationStartingEventArgs: public RoutedEventArgs
+struct NS_GUI_CORE_API ManipulationStartingEventArgs: public InputEventArgs
 {
     /// The container that all manipulation events and calculations are relative to
     mutable Visual* manipulationContainer;
@@ -121,7 +129,7 @@ struct NS_GUI_CORE_API ManipulationStartingEventArgs: public RoutedEventArgs
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Provides data for the ManipulationStarted event
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-struct NS_GUI_CORE_API ManipulationStartedEventArgs: public RoutedEventArgs
+struct NS_GUI_CORE_API ManipulationStartedEventArgs: public InputEventArgs
 {
     /// The container that the manipulationOrigin member is relative to
     Visual* manipulationContainer;
@@ -167,7 +175,7 @@ struct ManipulationVelocities
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Provides data for the ManipulationDelta event
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-struct NS_GUI_CORE_API ManipulationDeltaEventArgs: public RoutedEventArgs
+struct NS_GUI_CORE_API ManipulationDeltaEventArgs: public InputEventArgs
 {
     /// The container that defines the coordinates for the manipulation
     Visual* manipulationContainer;
@@ -185,7 +193,7 @@ struct NS_GUI_CORE_API ManipulationDeltaEventArgs: public RoutedEventArgs
     mutable bool cancel;
     /// Completes the manipulation without inertia
     mutable bool complete;
-    
+
     ManipulationDeltaEventArgs(BaseComponent* s, const RoutedEvent* e,
         Visual* manipulationContainer, const Point& manipulationOrigin,
         const ManipulationDelta& deltaManipulation, const ManipulationDelta& cumulativeManipulation,
@@ -222,7 +230,7 @@ struct InertiaTranslationBehavior
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Provides data for the ManipulationInertiaStarting event
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-struct NS_GUI_CORE_API ManipulationInertiaStartingEventArgs: public RoutedEventArgs
+struct NS_GUI_CORE_API ManipulationInertiaStartingEventArgs: public InputEventArgs
 {
     /// The container that the ManipulationOrigin property is relative to
     Visual* manipulationContainer;
@@ -238,7 +246,7 @@ struct NS_GUI_CORE_API ManipulationInertiaStartingEventArgs: public RoutedEventA
     mutable InertiaTranslationBehavior translationBehavior;
     /// Cancels the manipulation
     mutable bool cancel;
-    
+
     ManipulationInertiaStartingEventArgs(BaseComponent* s, const RoutedEvent* e,
         Visual* manipulationContainer, const Point& manipulationOrigin,
         const ManipulationVelocities& initialVelocities);
@@ -247,7 +255,7 @@ struct NS_GUI_CORE_API ManipulationInertiaStartingEventArgs: public RoutedEventA
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Provides data for the ManipulationCompleted event
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-struct NS_GUI_CORE_API ManipulationCompletedEventArgs: public RoutedEventArgs
+struct NS_GUI_CORE_API ManipulationCompletedEventArgs: public InputEventArgs
 {
     /// The container that defines the coordinates for the manipulation
     Visual* manipulationContainer;
@@ -261,7 +269,7 @@ struct NS_GUI_CORE_API ManipulationCompletedEventArgs: public RoutedEventArgs
     bool isInertial;
     /// Cancels the manipulation
     mutable bool cancel;
-    
+
     ManipulationCompletedEventArgs(BaseComponent* s, const RoutedEvent* e,
         Visual* manipulationContainer, const Point& manipulationOrigin,
         const ManipulationVelocities& finalVelocities, const ManipulationDelta& totalManipulation,
@@ -281,10 +289,18 @@ struct NS_GUI_CORE_API AccessKeyEventArgs: public EventArgs
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Provides data for LostKeyboardFocus and GotKeyboardFocus routed events, as well as related 
+/// Provides data for keyboard-related events.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+struct NS_GUI_CORE_API KeyboardEventArgs: public InputEventArgs
+{
+    KeyboardEventArgs(BaseComponent* s, const RoutedEvent* e);
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Provides data for LostKeyboardFocus and GotKeyboardFocus routed events, as well as related
 /// attached and Preview events.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-struct NS_GUI_CORE_API KeyboardFocusChangedEventArgs: public RoutedEventArgs
+struct NS_GUI_CORE_API KeyboardFocusChangedEventArgs: public KeyboardEventArgs
 {
     /// Gets the element that previously had focus.
     UIElement* oldFocus;
@@ -292,25 +308,16 @@ struct NS_GUI_CORE_API KeyboardFocusChangedEventArgs: public RoutedEventArgs
     /// Gets the element that focus has moved to.
     UIElement* newFocus;
 
-    /// Constructor
     KeyboardFocusChangedEventArgs(BaseComponent* s, const RoutedEvent* e, UIElement* o,
         UIElement* n);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Provides data for the KeyUp and KeyDown routed events, as well as related attached and Preview 
+/// Provides data for the KeyUp and KeyDown routed events, as well as related attached and Preview
 /// events.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-struct NS_GUI_CORE_API KeyEventArgs: public RoutedEventArgs
+struct NS_GUI_CORE_API KeyEventArgs: public KeyboardEventArgs
 {
-    // TODO
-    Key deadCharProcessedKey;
-
-    /// Gets the keyboard key referenced by the event, if the key will be processed by an Input 
-    /// Method Editor (IME).
-    // TODO
-    Key imeProcessedKey;
-
     /// Gets the keyboard key associated with the event.
     Key key;
 
@@ -318,79 +325,63 @@ struct NS_GUI_CORE_API KeyEventArgs: public RoutedEventArgs
     Key originalKey;
 
     /// Gets the state of the keyboard key associated with this event.
-    uint32_t keyStates;
+    KeyStates keyStates;
 
-    /// Gets the keyboard key referenced by the event, if the key will be processed by the system.
-    // TODO
-    Key systemKey;
-
-    /// Constructor
-    KeyEventArgs(BaseComponent* s, const RoutedEvent* e, Key key, uint32_t keyStates);
-
-    /// Gets a value that indicates whether the key referenced by the event is in the down state.
+    /// Gets a value that indicates whether the key referenced by the event is in the down state
     bool GetIsDown() const;
 
-    /// Gets a value that indicates whether the keyboard key referenced by the event is a 
-    /// repeated key.
+    /// Gets a value that indicates whether the keyboard key referenced by the event is a
+    /// repeated key
     bool GetIsRepeat() const;
 
-    /// Gets a value that indicates whether the key referenced by the event is in the toggled state.
+    /// Gets a value that indicates whether the key referenced by the event is in the toggled state
     bool GetIsToggled() const;
 
-    /// Gets a value that indicates whether the key referenced by the event is in the up state.
+    /// Gets a value that indicates whether the key referenced by the event is in the up state
     bool GetIsUp() const;
+
+    KeyEventArgs(BaseComponent* s, const RoutedEvent* e, Key key, KeyStates keyStates);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Contains arguments associated with changes to a TextComposition.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-struct NS_GUI_CORE_API TextCompositionEventArgs: public RoutedEventArgs
+struct NS_GUI_CORE_API TextCompositionEventArgs: public InputEventArgs
 {
-    /// Gets control text associated with a TextComposition event.
-    //NsString controlText;
-
-    /// Gets system text associated with a TextComposition event.
-    //NsString systemText;
-
     /// Gets input text associated with a TextComposition event.
-    //NsString text;
-
-    /// Gets the System.Windows.Input.TextComposition associated with a TextComposition event.
-    //TextComposition textComposition;
     uint32_t ch;
 
-    /// Constructor
     TextCompositionEventArgs(BaseComponent* s, const RoutedEvent* e, uint32_t ch);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Specifies the direction within a user interface (UI) in which a desired focus change request is 
+/// Specifies the direction within a user interface (UI) in which a desired focus change request is
 /// attempted. The direction is either based on tab order or by relative direction in layout.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 enum FocusNavigationDirection
 {
-    /// Move focus to the next focusable element in tab order. Not supported for PredictFocus. 
+    /// Move focus to the next focusable element in tab order. Not supported for PredictFocus.
     FocusNavigationDirection_Next,
 
-    /// Move focus to the previous focusable element in tab order. Not supported for PredictFocus. 
+    /// Move focus to the previous focusable element in tab order. Not supported for PredictFocus.
     FocusNavigationDirection_Previous,
 
-    /// Move focus to the first focusable element in tab order. Not supported for PredictFocus. 
+    /// Move focus to the first focusable element in tab order. Not supported for PredictFocus.
     FocusNavigationDirection_First,
 
-    /// Move focus to the last focusable element in tab order. Not supported for PredictFocus. 
+    /// Move focus to the last focusable element in tab order. Not supported for PredictFocus.
     FocusNavigationDirection_Last,
 
-    /// Move focus to another focusable element to the left of the currently focused element. 
+    /// Move focus to another focusable element to the left of the currently focused element.
     FocusNavigationDirection_Left,
 
-    /// Move focus to another focusable element to the right of the currently focused element. 
+    /// Move focus to another focusable element to the right of the currently focused element.
     FocusNavigationDirection_Right,
 
-    /// Move focus to another focusable element upwards from the currently focused element. 
+    /// Move focus to another focusable element upwards from the currently focused element.
     FocusNavigationDirection_Up,
 
-    /// Move focus to another focusable element downwards from the currently focused element. 
+    /// Move focus to another focusable element downwards from the currently focused element.
     FocusNavigationDirection_Down
 };
 
@@ -399,11 +390,11 @@ enum FocusNavigationDirection
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct TraversalRequest
 {
-    /// Gets the traversal direction.
+    /// Gets the traversal direction
     FocusNavigationDirection focusNavigationDirection;
 
-    /// Gets or sets a value that indicates whether focus traversal has reached the end of child 
-    /// elements that can have focus.
+    /// Gets or sets a value that indicates whether focus traversal has reached the end of child
+    /// elements that can have focus
     bool wrapped;
 };
 
@@ -415,11 +406,14 @@ struct NS_GUI_CORE_API QueryCursorEventArgs: public MouseEventArgs
     /// The cursor to set
     mutable Cursor cursor;
 
-    QueryCursorEventArgs(BaseComponent* s, const RoutedEvent* e, const MouseState& state);
+    QueryCursorEventArgs(BaseComponent* s, const RoutedEvent* e);
 };
 
 NS_WARNING_POP
 
 }
+
+NS_DECLARE_REFLECTION_ENUM_EXPORT(NS_GUI_CORE_API, Noesis::ManipulationModes)
+
 
 #endif

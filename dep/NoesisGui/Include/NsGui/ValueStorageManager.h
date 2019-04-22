@@ -25,7 +25,7 @@ class DependencyData;
 class PropertyMetadata;
 template<class T> class Ptr;
 struct StoredValue;
-NS_INTERFACE IExpression;
+class Expression;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,10 +58,10 @@ public:
     virtual bool IsSame(const void* left, const void* right) const = 0;
     virtual bool IsSame(const void* left, BaseComponent* right) const = 0;
     virtual void SetValue(DependencyObject* dob, const DependencyProperty* dp, const void* value,
-        uint8_t priority, IExpression* expression, const PropertyMetadata* metadata,
+        uint8_t priority, Expression* expression, const PropertyMetadata* metadata,
         Value::Destination destination) const = 0;
     void SetValueObject(DependencyObject* dob, const DependencyProperty* dp,
-        BaseComponent* value, uint8_t priority, IExpression* expression,
+        BaseComponent* value, uint8_t priority, Expression* expression,
         const PropertyMetadata* metadata, Value::Destination destination) const;
     virtual void ClearAnimation(DependencyObject* dob, const DependencyProperty* dp) const = 0;
     virtual void CoerceValue(DependencyObject* dob, const DependencyProperty* dp,
@@ -72,7 +72,7 @@ public:
 
 protected:
     virtual void SetValue(DependencyObject* dob, const DependencyProperty* dp,
-        BaseComponent* value, uint8_t priority, IExpression* expression,
+        BaseComponent* value, uint8_t priority, Expression* expression,
         const PropertyMetadata* metadata, Value::Destination destination) const = 0;
 };
 

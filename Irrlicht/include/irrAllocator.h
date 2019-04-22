@@ -47,6 +47,11 @@ public:
 		new ((void*)ptr) T(e);
 	}
 
+    void construct(T* ptr)
+    {
+        new ((void*)ptr) T();
+    }
+
 	//! Destruct an element
 	void destruct(T* ptr)
 	{

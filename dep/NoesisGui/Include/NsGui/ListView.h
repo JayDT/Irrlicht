@@ -28,8 +28,9 @@ class NS_GUI_CONTROLS_API ListView: public ListBox
 public:
     ListView();
     ~ListView();
-    
-    /// Gets or sets an object that defines how the data is styled and organized in a ListView control
+
+    /// Gets or sets an object that defines how the data is styled and organized in a ListView
+    /// control
     //@{
     BaseView* GetView() const;
     void SetView(BaseView* view);
@@ -44,16 +45,16 @@ public:
 protected:
     /// From ItemsControl
     //@{
-    Ptr<DependencyObject> GetContainerForItemOverride() const;
+    Ptr<DependencyObject> GetContainerForItemOverride() const override;
     void PrepareContainerForItemOverride(DependencyObject* element,
-        BaseComponent* item) const;
-    bool IsItemItsOwnContainerOverride(BaseComponent* item) const;
-    //void OnItemsChanged(const NotifyCollectionChangedEventArgs& args);
+        BaseComponent* item) const override;
+    bool IsItemItsOwnContainerOverride(BaseComponent* item) const override;
     //@}
 
     NS_DECLARE_REFLECTION(ListView, ListBox)
 };
 
 }
+
 
 #endif

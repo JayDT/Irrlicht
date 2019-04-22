@@ -17,15 +17,17 @@ namespace Noesis
 {
 
 class PropertyPath;
-class ListBoxTest;
 template<class T> class Nullable;
 struct PathElement;
+
+template<class T> class UICollection;
+typedef UICollection<BaseComponent> SelectedItemsCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// SelectionChanged event args
+/// Provides data for the Selector.SelectionChanged event.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct NS_GUI_CORE_API SelectionChangedEventArgs: public RoutedEventArgs
 {
@@ -40,37 +42,31 @@ typedef Noesis::Delegate<void (BaseComponent*, const SelectionChangedEventArgs&)
     SelectionChangedEventHandler;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents a control that allows a user to select items from among its child elements. 
+/// Represents a control that allows a user to select items from among its child elements.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.primitives.selector.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API Selector: public ItemsControl
 {
 public:
-    /// Constructor
     Selector();
-    
-    /// Destructor
     virtual ~Selector() = 0;
-    
-    /// Gets or sets a value that indicates whether an item is selected.
+
+    /// Gets or sets a value that indicates whether an item is selected
     //@{
     static bool GetIsSelected(DependencyObject* element);
     static void SetIsSelected(DependencyObject* element, bool value);
     //@}
 
-    /// Gets a value that indicates whether the keyboard focus is within the value returned by a 
-    /// Selector.
+    /// Gets a value that indicates whether the keyboard focus is within the Selector
     static bool GetIsSelectionActive(UIElement* element);
 
     /// Gets or sets a value that indicates whether a Selector should keep the SelectedItem 
     /// synchronized with the current item in the Items property.
-    /// \Remarks
-    ///     true if the SelectedItem is always synchronized with the current item in the 
-    ///     ItemCollection
-    ///     false if the SelectedItem is never synchronized with the current item
-    ///     null: if the SelectedItem is synchronized with the current item only if the Selector 
-    ///     uses a CollectionView. The default value is null
+    /// Returns true if the *SelectedItem* is always synchronized with the current item in the 
+    /// ItemCollection;  false if the *SelectedItem* is never synchronized with the current item;
+    /// or null if the *SelectedItem* is synchronized with the current item only if the Selector 
+    /// uses a CollectionView. The default value is null
     //@{
     const Nullable<bool>& GetIsSynchronizedWithCurrentItem() const;
     void SetIsSynchronizedWithCurrentItem(const Nullable<bool>& value);
@@ -90,13 +86,13 @@ public:
     void SetSelectedItem(Noesis::BaseComponent* item);
     //@}
 
-    /// Gets or sets the value of the SelectedItem, obtained by using SelectedValuePath
+    /// Gets or sets the value of the *SelectedItem*, obtained by using *SelectedValuePath*
     //@{
     Noesis::BaseComponent* GetSelectedValue() const;
     void SetSelectedValue(Noesis::BaseComponent* selectedValue);
     //@}
 
-    /// Gets or sets the path that is used to get the SelectedValue from the SelectedItem
+    /// Gets or sets the path that is used to get the *SelectedValue* from the *SelectedItem*
     //@{
     const char* GetSelectedValuePath() const;
     void SetSelectedValuePath(const char* selectedValuePath);
@@ -128,10 +124,9 @@ protected:
     // Called when the selection changes
     virtual void OnSelectionChanged(const SelectionChangedEventArgs& args);
 
-    // From ItemsControl
+    /// From ItemsControl
     //@{
-    void OnItemsSourceChanged(BaseComponent* oldSource,
-        BaseComponent* newSource) override;
+    void OnItemsSourceChanged(BaseComponent* oldSource, BaseComponent* newSource) override;
     void OnCurrentItemChanged() override;
     void OnItemsChanged(const NotifyCollectionChangedEventArgs& args) override;
     void OnContainersGenerated() override;
@@ -139,23 +134,23 @@ protected:
         BaseComponent* item) const override;
     //@}
 
-    // From Control
+    /// From Control
     //@{
     void OnIsFocusEngagedChanged(bool engaged) override;
     //@}
 
-    // From UIElement
+    /// From UIElement
     //@{
     void OnGotFocus(const RoutedEventArgs& e) override;
     void OnIsKeyboardFocusWithinChanged(const DependencyPropertyChangedEventArgs& e) override;
     //@}
 
-    // From DependencyObject
+    /// From DependencyObject
     //@{
     bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
-    IList* GetInternalSelectedItems() const;
+    SelectedItemsCollection* GetInternalSelectedItems() const;
 
     typedef NsVector<int32_t> IndicesVector;
     const IndicesVector& GetInternalSelectedIndices() const;
@@ -235,5 +230,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

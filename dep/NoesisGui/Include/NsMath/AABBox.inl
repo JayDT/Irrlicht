@@ -234,17 +234,9 @@ const AABBox2<T> operator*(const AABBox2<T>& box, const Transform2<T>& mtx)
         {
             T a = mtx[j][i] * box.mMin[j];
             T b = mtx[j][i] * box.mMax[j];
-            
-            if (a < b)
-            {
-                ret.mMin[i] += a;
-                ret.mMax[i] += b;
-            }
-            else
-            {
-                ret.mMin[i] += b;
-                ret.mMax[i] += a;
-            }
+
+            ret.mMin[i] += a < b ? a : b;
+            ret.mMax[i] += a < b ? b : a;
         }
     }
     

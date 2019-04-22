@@ -46,7 +46,7 @@ namespace
 		char out[512];
 		static const char* prefixes[] = { "E", "F" };
 		const char* prefix = prefixes[fatal ? 1 : 0];
-		Noesis::String::FormatBuffer(out, sizeof(out), "[NOESIS/%s] %s\n", prefix, message);
+		snprintf(out, sizeof(out), "[NOESIS/%s] %s\n", prefix, message);
 		System::Console()->WriteErrorLine(out);
 	};
 }
@@ -191,7 +191,7 @@ void WorldClient::App::LoggingHandler(const char* file, uint32_t line, uint32_t 
         char out[512];
         static const char* prefixes[] = { "T", "D", "I", "W", "E" };
         const char* prefix = level < NS_COUNTOF(prefixes) ? prefixes[level] : " ";
-        Noesis::String::FormatBuffer(out, sizeof(out), "[NOESIS/%s] %s\n", prefix, message);
+        snprintf(out, sizeof(out), "[NOESIS/%s] %s\n", prefix, message);
 
 		//if (level > 2)
 			System::Console()->WriteErrorLine(out);

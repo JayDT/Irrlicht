@@ -24,7 +24,6 @@ class DependencyObject;
 class DependencyProperty;
 class RoutedEvent;
 class UIElement;
-class ToolTip;
 struct EventArgs;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,11 +72,11 @@ struct NS_GUI_CORE_API ToolTipService
     static void SetHasDropShadow(DependencyObject* obj, bool shadow);
 
     /// Gets the offset from the left of the area that is specified for the tooltip by the
-    /// PlacementRectangle and PlacementTarget properties
+    /// *PlacementRectangle* and *PlacementTarget* properties
     static float GetHorizontalOffset(const DependencyObject* obj);
     
     /// Sets the offset from the left of the area that is specified for the tooltip by the
-    /// PlacementRectangle and PlacementTarget properties
+    /// *PlacementRectangle* and *PlacementTarget* properties
     static void SetHorizontalOffset(DependencyObject* obj, float offset);
 
     /// Gets the length of time before a tooltip opens
@@ -137,14 +136,14 @@ struct NS_GUI_CORE_API ToolTipService
     static void SetToolTip(DependencyObject* obj, BaseComponent* toolTip);
 
     /// Gets the distance from the top of the area that is specified for the tooltip by the
-    /// PlacementRectangle and PlacementTarget properties
+    /// *PlacementRectangle* and *PlacementTarget* properties
     static float GetVerticalOffset(const DependencyObject* obj);
     
     /// Sets the distance from the top of the area that is specified for the tooltip by the
-    /// PlacementRectangle and PlacementTarget properties
+    /// *PlacementRectangle* and *PlacementTarget* properties
     static void SetVerticalOffset(DependencyObject* obj, float offset);
 
-    /// Finds the first object in the tree from the specified element that can show a tool tip
+    /// Finds the first object in the tree from the specified element that can show a tooltip
     static UIElement* FindValidToolTipOwner(UIElement* obj);
 
 private:
@@ -161,5 +160,6 @@ private:
 };
 
 }
+
 
 #endif

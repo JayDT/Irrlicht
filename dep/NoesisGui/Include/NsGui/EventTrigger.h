@@ -28,8 +28,7 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents a trigger that applies a set of actions (animation storyboards)
-/// in response to an event.
+/// Represents a trigger that applies a set of actions in response to an event.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.eventtrigger.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////

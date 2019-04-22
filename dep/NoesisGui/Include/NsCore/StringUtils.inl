@@ -201,48 +201,15 @@ char* Replace(char* str, char oldValue, char newValue)
 {
     NS_ASSERT(str != 0);
 
-    char* s = str;
-
-    while (*s != 0)
+    while (*str != 0)
     {
-        if (*s == oldValue)
+        if (*str == oldValue)
         {
-            *s = newValue;
+            *str = newValue;
         }
 
-        ++s;
+        ++str;
     }
-
-    return str;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-char* FormatBuffer(char* str, uint32_t capacity, NS_FORMAT_PRINTF const char* format, ...)
-{
-    NS_ASSERT(str != 0);
-    NS_ASSERT(capacity != 0);
-    NS_ASSERT(format != 0);
-
-    va_list vaList;
-    va_start(vaList, format);
-    char* ret = FormatBufferVA(str, capacity, format, vaList);
-    va_end(vaList);
-
-    return ret;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-char* FormatBufferVA(char* str, uint32_t capacity, const char* format, va_list args)
-{
-    NS_ASSERT(str != 0);
-    NS_ASSERT(capacity != 0);
-    NS_ASSERT(format != 0);
-
-#ifdef NS_COMPILER_MSVC
-    vsnprintf_s(str, capacity, _TRUNCATE, format, args);
-#else
-    vsnprintf(str, capacity, format, args);
-#endif
 
     return str;
 }

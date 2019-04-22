@@ -42,14 +42,14 @@ public:
         return Noesis::ToString(mValue);
     }
 
-    bool Equals(BaseObject* object) const override
+    bool Equals(const BaseObject* object) const override
     {
         if (this == object)
         {
             return true;
         }
 
-        Boxed<T>* value = NsDynamicCast<Boxed<T>*>(object);
+        const Boxed<T>* value = DynamicCast<const Boxed<T>*>(object);
         if (value != 0)
         {
             return value->mValue == mValue;
@@ -115,21 +115,27 @@ public:
 
     static UnboxType Unbox(BaseComponent* object)
     {
-        Boxed<T>* boxed = NsStaticCast<Boxed<T>*>(object);
+        Boxed<T>* boxed = static_cast<Boxed<T>*>(object);
         return boxed->mValue;
     }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T, class> Ptr<BoxedValue> Box(T value)
+template<class T> EnableIf<IsBestByCopy<T>::Result, Ptr<BoxedValue>> Box(T value)
 {
     return Boxer<T>::Box(value);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T, class> Ptr<BoxedValue> Box(const T& value)
+template<class T> EnableIf<!IsBestByCopy<T>::Result, Ptr<BoxedValue>> Box(const T& value)
 {
     return Boxer<T>::Box(value);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+Ptr<BoxedValue> Box(bool value)
+{
+    return value ? TrueBoxed() : FalseBoxed();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -146,12 +152,6 @@ Ptr<BoxedValue> Box(char* text)
     Ptr<Boxed<NsString>> boxed = *new Boxed<NsString>;
     boxed->mValue = text;
     return boxed;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-template<> Ptr<BoxedValue> inline Box<bool>(bool value)
-{
-    return value ? TrueBoxed() : FalseBoxed();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

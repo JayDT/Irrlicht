@@ -23,12 +23,12 @@ namespace Noesis
 struct VisualStateChangedEventArgs;
 class FrameworkElement;
 class Storyboard;
-class VisualStateManager;
 class VisualState;
 class VisualTransition;
-template<class T> class TypedCollection;
-typedef Noesis::TypedCollection<Noesis::VisualState> VisualStateCollection;
-typedef Noesis::TypedCollection<Noesis::VisualTransition> VisualTransitionCollection;
+
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::VisualState> VisualStateCollection;
+typedef Noesis::UICollection<Noesis::VisualTransition> VisualTransitionCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -60,30 +60,25 @@ public:
     void SetCurrentState(FrameworkElement* fe, VisualState* state);
     //@}
 
-    /// Finds a matching state with the same name.
-    /// \note name can be null or empty
+    /// Finds a matching state with the same name (can be null or empty)
     VisualState* FindState(NsSymbol name) const;
 
+    /// Finds a matching transition for the provided *from* and "to* VisualState objects
     VisualTransition* FindTransition(VisualState* from, VisualState* to) const;
 
-    /// Occurs after a control transitions into a different state
-    //event EventHandler<VisualStateChangedEventArgs> CurrentStateChanged;
-    
-    /// Occurs when a control begins transitioning into a different state
-    //event EventHandler<VisualStateChangedEventArgs> CurrentStateChanging;
-
+    /// Updates element animations with the specified storyboards
     void UpdateAnimations(FrameworkElement* fe, Storyboard* storyboard1,
         Storyboard* storyboard2 = 0);
-    
-    Ptr<Storyboard> CreateTransitionStoryboard(FrameworkElement* root, 
-        VisualState* newState, VisualTransition* transition);
+
+    /// Creates a Storyboard that animates changes from current state to the specifed new state
+    Ptr<Storyboard> CreateTransitionStoryboard(FrameworkElement* root, VisualState* newState,
+        VisualTransition* transition);
 
     /// From IUITreeNode
     //@{
     IUITreeNode* GetNodeParent() const override;
     void SetNodeParent(IUITreeNode* parent) override;
-    BaseComponent* FindNodeResource(IResourceKey* key,
-        bool fullElementSearch) const override;
+    BaseComponent* FindNodeResource(IResourceKey* key, bool fullElementSearch) const override;
     BaseComponent* FindNodeName(const char* name) const override;
     ObjectWithNameScope FindNodeNameAndScope(const char* name) const override;
     //@}
@@ -125,5 +120,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

@@ -270,6 +270,7 @@ void irr::video::CVulkanDriver::initialize(void* param)
         nullptr, /** OS specific surface extension */
         VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
         nullptr, /** Debug Marker **/
+        //VK_KHR_DISPLAY_EXTENSION_NAME
     };
 
 #if VULKAN_DEBUG_MARKER
@@ -284,6 +285,7 @@ void irr::video::CVulkanDriver::initialize(void* param)
         nullptr, /** Surface extension */
         nullptr, /** OS specific surface extension */
         nullptr, /** Debug Marker **/
+        //VK_KHR_DISPLAY_EXTENSION_NAME
     };
 
 #if VULKAN_DEBUG_MARKER
@@ -408,6 +410,48 @@ void irr::video::CVulkanDriver::initialize(void* param)
     //GetVendorStringByID(_getPrimaryDevice()->getDeviceProperties().vendorID);
     DriverAndFeatureName = L"Vulkan Adapter: ";
     DriverAndFeatureName += converter.from_bytes(_getPrimaryDevice()->getDeviceProperties().deviceName);
+
+    //{
+    //    uint32_t planeIndex = 0;
+    //    uint32_t planeCount;
+    //    VkResult result = vkGetPhysicalDeviceDisplayPlanePropertiesKHR(mPrimaryDevices->getPhysical(), &planeCount, nullptr);
+    //
+    //    uint32_t displayCount;
+    //    result = vkGetDisplayPlaneSupportedDisplaysKHR(mPrimaryDevices->getPhysical(), planeIndex, &displayCount, nullptr);
+    //    assert(result == VK_SUCCESS);
+    //    VkDisplayKHR* displayList = new VkDisplayKHR[displayCount];
+    //    result = vkGetDisplayPlaneSupportedDisplaysKHR(mPrimaryDevices->getPhysical(), planeIndex, &displayCount, displayList);
+    //    assert(result == VK_SUCCESS);
+    //
+    //    for (uint32_t d = 0; d < displayCount; ++d)
+    //    {
+    //        uint32_t numFormats = 100;
+    //        result = vkGetDisplayModePropertiesKHR(mPrimaryDevices->getPhysical(), displayList[d], &numFormats, nullptr);
+    //        assert(result == VK_SUCCESS);
+    //        VkDisplayModePropertiesKHR* surfaceFormats = new VkDisplayModePropertiesKHR[numFormats];
+    //        result = vkGetDisplayModePropertiesKHR(mPrimaryDevices->getPhysical(), displayList[d], &numFormats, surfaceFormats);
+    //        assert(result == VK_SUCCESS);
+    //
+    //        m_displayModeList.set_used(numFormats);
+    //        for (uint8 i = 0; i < numFormats; ++i)
+    //        {
+    //            VkDisplayPlaneCapabilitiesKHR planeCapability;
+    //            result = vkGetDisplayPlaneCapabilitiesKHR(mPrimaryDevices->getPhysical(), surfaceFormats[i].displayMode, planeIndex, &planeCapability);
+    //            assert(result == VK_SUCCESS);
+    //
+    //            m_displayModeList[i].Resolution.Height = surfaceFormats[i].parameters.visibleRegion.height;
+    //            m_displayModeList[i].Resolution.Width = surfaceFormats[i].parameters.visibleRegion.width;
+    //            m_displayModeList[i].Format = irr::video::ECOLOR_FORMAT::ECF_A8R8G8B8; //VulkanUtility::getPixelFormat(surfaceFormats[i].);
+    //            m_displayModeList[i].RefreshRate = surfaceFormats[i].parameters.refreshRate;
+    //            m_displayModeList[i].param0 = 0;
+    //            m_displayModeList[i].param1 = 0;
+    //        }
+    //
+    //        delete[] surfaceFormats;
+    //    }
+    //
+    //    delete[] displayList;
+    //}
 }
 
 bool irr::video::CVulkanDriver::initDriver(void* param)
@@ -1667,7 +1711,7 @@ bool irr::video::CVulkanDriver::SyncShaderConstant(CVulkanHardwareBuffer* HWBuff
 
 IShader * irr::video::CVulkanDriver::createShader(ShaderInitializerEntry * shaderCreateInfo)
 {
-    irr::video::CVulkanGLSLProgram* gpuProgram = new irr::video::CVulkanGLSLProgram(this);
+    irr::video::CVulkanGLSLProgram* gpuProgram = shaderCreateInfo->mShader ? static_cast<irr::video::CVulkanGLSLProgram*>(shaderCreateInfo->mShader.GetPtr()) : new irr::video::CVulkanGLSLProgram(this);
 
     for (auto stage : shaderCreateInfo->mStages)
     {
@@ -1703,7 +1747,7 @@ IShader * irr::video::CVulkanDriver::createShader(ShaderInitializerEntry * shade
     }
 
     gpuProgram->Init();
-    shaderCreateInfo->mShaderId = AddShaderModul(gpuProgram, shaderCreateInfo->mShaderId);
+    shaderCreateInfo->mShaderId = gpuProgram->mId = AddShaderModul(gpuProgram, shaderCreateInfo->mShaderId);
     return gpuProgram;
 }
 

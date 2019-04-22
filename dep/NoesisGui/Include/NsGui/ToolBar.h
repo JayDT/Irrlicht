@@ -10,8 +10,8 @@
 
 #include <NsCore/Noesis.h>
 #include <NsGui/CoreApi.h>
-#include <NsCore/ReflectionDeclareEnum.h>
 #include <NsGui/HeaderedItemsControl.h>
+#include <NsGui/Enums.h>
 
 
 namespace Noesis
@@ -19,7 +19,6 @@ namespace Noesis
 
 class ToolBarPanel;
 class ToolBarOverflowPanel;
-enum Orientation;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -35,37 +34,37 @@ public:
     ToolBar();
     ~ToolBar();
 
-    /// Gets a value that indicates when an item should be placed in the overflow panel  instead of
+    /// Gets a value that indicates when an item should be placed in the overflow panel instead of
     /// in the main panel
     static OverflowMode GetOverflowMode(const DependencyObject* element);
 
-    /// Sets a value that indicates when an item should be placed in the overflow panel  instead of
+    /// Sets a value that indicates when an item should be placed in the overflow panel instead of
     /// in the main panel
     static void SetOverflowMode(DependencyObject* element, OverflowMode mode);
 
-    /// Gets a value that indicates whether the ToolBar item is an overflow item.
+    /// Gets a value that indicates whether the ToolBar item is an overflow item
     static bool GetIsOverflowItem(const DependencyObject* element);
 
-    /// Sets a value that indicates whether the ToolBar item is an overflow item.
-    // NOTE: Property is read-only, this is an internal function
+    // Sets a value that indicates whether the ToolBar item is an overflow item
+    // Note: Property is read-only, this is an internal function
     static void SetIsOverflowItem(DependencyObject* element, bool isOverflowItem);
 
-    /// Gets or sets the band index number that indicates the position of the toolbar on the band
+    /// Gets or sets the band index number that indicates the position of the ToolBar on the band
     //@{
     int32_t GetBandIndex() const;
     void SetBandIndex(int32_t value);
     //@}
 
-    /// Gets or sets a value that indicates where the toolbar should be located in the ToolBarTray
+    /// Gets or sets a value that indicates where the ToolBar should be located in the ToolBarTray
     //@{
     int32_t GetBand() const;
     void SetBand(int32_t value);
     //@}
 
-    /// Gets a value that indicates whether the toolbar has items that are not visible
+    /// Gets a value that indicates whether the ToolBar has items that are not visible
     bool GetHasOverflowItems() const;
 
-    /// Gets or sets a value that indicates whether the ToolBar overflow area is currently visible.
+    /// Gets or sets a value that indicates whether the ToolBar overflow area is currently visible
     //@{
     bool GetIsOverflowOpen() const;
     void SetIsOverflowOpen(bool value);
@@ -74,9 +73,13 @@ public:
     /// Gets the orientation of the ToolBar
     Orientation GetOrientation() const;
 
+    // Gets ToolBarPanel used to place this ToolBar's items
     ToolBarPanel* GetPanel() const;
+
+    // Gets ToolBarPanel used to place this ToolBar's overflow items
     ToolBarOverflowPanel* GetOverflowPanel() const;
 
+    // Updates *HasOverflowItems* property
     void UpdateHasOverflowItems(bool hasOverflowItems);
 
 public:
@@ -126,5 +129,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

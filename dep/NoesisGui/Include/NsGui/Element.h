@@ -20,7 +20,7 @@ namespace Noesis
 class DependencyProperty;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Adds projection capabilities to UI elements.
+/// Extends UI elements with properties that are not standard in WPF.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct NS_GUI_CORE_API Element
 {
@@ -29,6 +29,8 @@ struct NS_GUI_CORE_API Element
     static const DependencyProperty* ProjectionProperty;
     static const DependencyProperty* IsFocusEngagedProperty;
     static const DependencyProperty* IsFocusEngagementEnabledProperty;
+    static const DependencyProperty* SupportsFocusEngagementProperty;
+    static const DependencyProperty* PPAAModeProperty;
     //@}
 
     NS_DECLARE_REFLECTION(Element, NoParent)

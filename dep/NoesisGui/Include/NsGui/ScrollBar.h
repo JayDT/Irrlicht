@@ -11,15 +11,12 @@
 #include <NsCore/Noesis.h>
 #include <NsGui/CoreApi.h>
 #include <NsGui/RangeBase.h>
-
+#include <NsGui/Enums.h>
 
 namespace Noesis
 {
 
-enum Orientation;
 class Track;
-class BaseButton;
-class RepeatButton;
 class ScrollViewer;
 class RoutedCommand;
 struct DragStartedEventArgs;
@@ -28,6 +25,7 @@ struct DragCompletedEventArgs;
 struct CanExecuteRoutedEventArgs;
 struct ExecutedRoutedEventArgs;
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 enum ScrollEventType
 {
     /// The Thumb was dragged to a new position and is now no longer being dragged by the user. 
@@ -78,22 +76,21 @@ enum ScrollEventType
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// ScrollEventArgs
+/// Provides data for a scroll event that occurs when the Thumb of a ScrollBar moves.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct NS_GUI_CORE_API ScrollEventArgs: public RoutedEventArgs
 {
-    /// Gets a value that represents the new location of the Thumb in the ScrollBar. 
+    /// Gets a value that represents the new location of the Thumb in the ScrollBar
     float newValue;
-    
+
     /// Gets the ScrollEventType enumeration value that describes the change in the Thumb position 
-    /// that caused this event.
+    /// that caused this event
     ScrollEventType scrollEventType;
-    
+
     ScrollEventArgs(BaseComponent* s, float value, ScrollEventType type);
 };
 
-typedef Noesis::Delegate<void (BaseComponent*, const ScrollEventArgs&)> 
-    ScrollEventHandler;
+typedef Noesis::Delegate<void (BaseComponent*, const ScrollEventArgs&)> ScrollEventHandler;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -110,13 +107,13 @@ public:
     ScrollBar();
     ~ScrollBar();
 
-    /// Gets or sets whether the ScrollBar is displayed horizontally or vertically. 
+    /// Gets or sets whether the ScrollBar is displayed horizontally or vertically
     //@{
     Orientation GetOrientation() const;
     void SetOrientation(Orientation orientation);
     //@}
 
-    /// Gets or sets the amount of the scrollable content that is currently visible.
+    /// Gets or sets the amount of the scrollable content that is currently visible
     //@{
     float GetViewportSize() const;
     void SetViewportSize(float size);
@@ -168,18 +165,19 @@ protected:
     /// From Control
     //@{
     void OnTemplateChanged(FrameworkTemplate* oldTemplate, FrameworkElement* oldRoot,
-        FrameworkTemplate* newTemplate, FrameworkElement* newRoot);
+        FrameworkTemplate* newTemplate, FrameworkElement* newRoot) override;
     //@}
     
     /// From FrameworkElement
     //@{
-    void OnTemplatedParentChanged(FrameworkElement* oldParent, FrameworkElement* newParent);
+    void OnTemplatedParentChanged(FrameworkElement* oldParent,
+        FrameworkElement* newParent) override;
     //@}
 
     /// From UIElement
     //@{
-    bool IsEnabledCore() const;
-    void OnPreviewMouseLeftButtonDown(const MouseButtonEventArgs& e);
+    bool IsEnabledCore() const override;
+    void OnPreviewMouseLeftButtonDown(const MouseButtonEventArgs& e) override;
     //@}
 
 private:
@@ -227,5 +225,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

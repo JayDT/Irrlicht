@@ -9,28 +9,28 @@
 
 
 #include <NsCore/Noesis.h>
+#include <NsCore/Set.h>
+#include <NsCore/FixedVector.h>
 #include <NsGui/CoreApi.h>
 #include <NsGui/BaseTrigger.h>
 #include <NsGui/BindingListener.h>
-#include <NsCore/Set.h>
-#include <NsCore/Vector.h>
+
 
 namespace Noesis
 {
 
 class BaseSetter;
-class Setter;
 class Condition;
 
-template<class T> class TypedCollection;
-typedef Noesis::TypedCollection<Noesis::Condition> ConditionCollection;
-typedef Noesis::TypedCollection<Noesis::BaseSetter> BaseSetterCollection;
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::BaseSetter> BaseSetterCollection;
+typedef Noesis::UICollection<Noesis::Condition> ConditionCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents a trigger that applies property values or performs actions when the bound data meet
+/// Represents a trigger that applies property values or performs actions when the bound data meets
 /// a set of conditions.
 ///
 /// A MultiDataTrigger object is similar to a MultiTrigger, except that the conditions of a
@@ -44,10 +44,7 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 class NS_GUI_CORE_API MultiDataTrigger: public BaseTrigger
 {
 public:
-    /// Constructor
     MultiDataTrigger();
-
-    /// Destructor
     ~MultiDataTrigger();
 
     /// Gets a collection of Condition objects. Changes to property values are applied when all of
@@ -125,7 +122,7 @@ private:
             Condition* condition;
         };
 
-        NsVector<ConditionListener> conditions;
+        NsFixedVector<ConditionListener, 4> conditions;
     };
 
     typedef NsSet<Listener> Listeners;
@@ -137,5 +134,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

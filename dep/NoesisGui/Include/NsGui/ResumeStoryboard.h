@@ -23,14 +23,18 @@ namespace Noesis
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.resumestoryboard.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_ANIMATION_API ResumeStoryboard: public ControllableStoryboardAction
+class NS_GUI_ANIMATION_API ResumeStoryboard final: public ControllableStoryboardAction
 {
 protected:
-    void Invoke(FrameworkElement* target, Storyboard* storyboard);
+    /// ControllableStoryboardAction
+    //@{
+    void Invoke(FrameworkElement* target, Storyboard* storyboard) override;
+    //@}
 
     NS_DECLARE_REFLECTION(ResumeStoryboard, ControllableStoryboardAction)
 };
 
 }
+
 
 #endif

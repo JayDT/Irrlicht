@@ -21,6 +21,8 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Groups other Inline content elements.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.documents.span.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API Span: public Inline
 {
@@ -33,16 +35,16 @@ public:
     InlineCollection* GetInlines() const;
 
 protected:
-    // From DependencyObject
+    /// From DependencyObject
     //@{
     void OnInit() override;
     //@}
 
-    // From FrameworkElement
+    /// From FrameworkElement
     //@{
     void CloneOverride(FrameworkElement* clone, FrameworkTemplate* template_) const override;
     uint32_t GetLogicalChildrenCount() const override;
-    BaseComponent* GetLogicalChild(uint32_t index) const override;
+    Ptr<BaseComponent> GetLogicalChild(uint32_t index) const override;
     //@}
 
 private:
@@ -58,5 +60,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

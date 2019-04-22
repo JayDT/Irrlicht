@@ -56,15 +56,15 @@ namespace Noesis
 class NS_GUI_CORE_API RoutedUICommand: public RoutedCommand
 {
 public:
-    /// Constructor
-    /// \remarks Argument text must be a static string, because only pointer is stored
+    /// Initializes a RoutedUICommand. Note: *text* parameter must be a static string, because only
+    /// pointer is stored
     RoutedUICommand(const char* text, NsSymbol name, const TypeClass* owner,
         InputGestureCollection* inputGestures);
 
     /// Destructor
     ~RoutedUICommand();
 
-    /// Creates an UI routed command
+    // Creates an UI routed command
     //@{
     static Ptr<RoutedUICommand> Create(const char* name, const char* text,
         const TypeClass* owner);
@@ -87,5 +87,6 @@ private:
 };
 
 }
+
 
 #endif

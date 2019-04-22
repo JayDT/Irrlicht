@@ -35,4 +35,5 @@ struct NS_GUI_CORE_API Text
 
 }
 
+
 #endif

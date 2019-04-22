@@ -42,6 +42,9 @@ public:
     static void operator delete[](void* ptr, void* placementPtr);
     //@}
 
+    /// Determines whether the specified object instances are considered equal
+    static bool Equals(const BaseObject* left, const BaseObject* right);
+
     /// Gets the class type information
     virtual const TypeClass* GetClassType() const;
 
@@ -49,7 +52,7 @@ public:
     virtual NsString ToString() const;
 
     /// Determines whether the specified object is equal to the current object
-    virtual bool Equals(BaseObject* object) const;
+    virtual bool Equals(const BaseObject* object) const;
 
     /// Returns a hash code for the current object
     virtual uint32_t GetHashCode() const;

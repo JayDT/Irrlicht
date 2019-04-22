@@ -18,7 +18,6 @@ namespace Noesis
 {
 
 struct Rect;
-struct TileBrushProxy;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Describes a way to paint a region by using one or more tiles.
@@ -53,13 +52,13 @@ public:
     //@}
 
     /// Gets or sets a value that specifies how a TileBrush fills the area that you are painting if 
-    /// the base tile is smaller than the output area. 
+    /// the base tile is smaller than the output area
     //@{
     TileMode GetTileMode() const;
     void SetTileMode(TileMode value);
     //@}
 
-    /// Gets or sets the position and dimensions of the content in a TileBrush tile.
+    /// Gets or sets the position and dimensions of the content in a TileBrush tile
     //@{
     const Rect& GetViewbox() const;
     void SetViewbox(const Rect& rect);
@@ -72,21 +71,21 @@ public:
     void SetViewboxUnits(BrushMappingMode units);
     //@}
 
-    /// Gets or sets the position and dimensions of the base tile for a TileBrush. 
+    /// Gets or sets the position and dimensions of the base tile for a TileBrush
     //@{
     const Rect& GetViewport() const;
     void SetViewport(const Rect& rect);
     //@}
 
-    /// Gets or sets a BrushMappingMode enumeration that specifies whether the value of the 
-    /// Viewport, which indicates the size and position of the TileBrush base tile, is relative to 
-    /// the size of the output area.
+    /// Gets or sets a *BrushMappingMode* enumeration that specifies whether the value of the 
+    /// *Viewport*, which indicates the size and position of the TileBrush base tile, is relative to 
+    /// the size of the output area
     //@{
     BrushMappingMode GetViewportUnits() const;
     void SetViewportUnits(BrushMappingMode units);
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<TileBrush> Clone() const;
     Ptr<TileBrush> CloneCurrentValue() const;
@@ -136,5 +135,6 @@ private:
 };
 
 }
+
 
 #endif

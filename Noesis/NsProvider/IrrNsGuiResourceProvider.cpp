@@ -79,7 +79,7 @@ void NoesisApp::EmbeddedFontProvider::ScanFolder(const char* folder)
 Noesis::Ptr<Noesis::Stream> NoesisApp::EmbeddedFontProvider::OpenFont(const char* folder, const char* filename) const
 {
 	char buffer[1024];
-	Noesis::String::FormatBuffer(buffer, sizeof(buffer), "%s/%s", folder, filename);
+	snprintf(buffer, sizeof(buffer), "%s/%s", folder, filename);
 
 	System::URI uriAddress(buffer, false);
 	if (uriAddress.GetDescriptor().m_scheme == "pack")

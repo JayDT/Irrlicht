@@ -18,8 +18,8 @@ namespace Noesis
 {
 
 class BaseSetter;
-template<class T> class TypedCollection;
-typedef Noesis::TypedCollection<Noesis::BaseSetter> BaseSetterCollection;
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::BaseSetter> BaseSetterCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -32,14 +32,11 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 class NS_GUI_CORE_API Trigger: public BaseTrigger
 {
 public:
-    /// Constructor
     Trigger();
-
-    /// Destructor
     ~Trigger();
 
-    /// Gets or sets the property that returns the value that is compared with the Value property of
-    /// the trigger. The comparison is a reference equality check.
+    /// Gets or sets the property that returns the value that is compared with the *Value* property
+    /// of the trigger
     //@{
     const DependencyProperty* GetProperty() const;
     void SetProperty(const DependencyProperty* property);
@@ -102,5 +99,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

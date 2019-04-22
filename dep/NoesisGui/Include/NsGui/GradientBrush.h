@@ -23,7 +23,8 @@ class GradientStopCollection;
 struct GradientBrushProxy;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Defines an abstract class that describes a gradient, composed of gradient stops.
+/// Defines an abstract class that describes a gradient, composed of gradient stops. Classes that
+/// inherit from GradientBrush describe different ways of interpreting gradient stops.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.gradientbrush.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -34,7 +35,7 @@ public:
 
     GradientBrush();
     virtual ~GradientBrush() = 0;
-    
+
     /// Gets or sets a ColorInterpolationMode enumeration that specifies how the gradient's colors
     /// are interpolated.
     //@{
@@ -62,7 +63,7 @@ public:
     void SetSpreadMethod(GradientSpreadMethod spreadMethod);
     //@}
 
-    /// From Freezable
+    /// Hides Freezable methods for convenience
     //@{
     Ptr<GradientBrush> Clone() const;
     Ptr<GradientBrush> CloneCurrentValue() const;
@@ -70,7 +71,7 @@ public:
 
     /// From IRenderProxyCreator
     //@{
-    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
+    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
     //@}
 
 public:
@@ -85,13 +86,13 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
-    bool OnSubPropertyChanged(const DependencyProperty* dp);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
+    bool OnSubPropertyChanged(const DependencyProperty* dp) override;
     //@}
 
     /// From Brush
     //@{
-    bool IsTransparentOverride() const;
+    bool IsTransparentOverride() const override;
     //@}
 
 protected:
@@ -110,5 +111,6 @@ private:
 };
 
 }
+
 
 #endif

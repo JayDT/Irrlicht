@@ -43,8 +43,9 @@ namespace Boxing
 {
 
 /// Converts a value type to BaseComponent
-template<class T, class = EnableIfT<IsBestByCopy<T>::Result>> Ptr<BoxedValue> Box(T value);
-template<class T, class = EnableIfT<!IsBestByCopy<T>::Result>> Ptr<BoxedValue> Box(const T& value);
+template<class T> EnableIf<IsBestByCopy<T>::Result, Ptr<BoxedValue>> Box(T value);
+template<class T> EnableIf<!IsBestByCopy<T>::Result, Ptr<BoxedValue>> Box(const T& value);
+inline Ptr<BoxedValue> Box(bool value);
 inline Ptr<BoxedValue> Box(const char* text);
 inline Ptr<BoxedValue> Box(char* text);
 

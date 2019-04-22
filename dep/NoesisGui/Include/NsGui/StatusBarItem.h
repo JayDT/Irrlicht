@@ -16,7 +16,7 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents an item of a StatusBar control. 
+/// Represents an item of a StatusBar control.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.primitives.statusbaritem.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -26,5 +26,6 @@ class NS_GUI_CORE_API StatusBarItem: public ContentControl
 };
 
 }
+
 
 #endif

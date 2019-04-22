@@ -21,6 +21,9 @@ class Style;
 class DataTemplate;
 class DataTemplateSelector;
 class BaseBindingExpression;
+class GridViewColumn;
+
+typedef Delegate<void (GridViewColumn* sender)> ActualWidthChangedDelegate;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -36,13 +39,9 @@ public:
     GridViewColumn();
     ~GridViewColumn();
 
-    /// Gets the actual width of a GridViewColumn.
+    /// Gets the actual width of a GridViewColumn
     float GetActualWidth() const;
     void SetActualWidth(float width);
-
-    /// Event that is fired when ActualWidth changes
-    typedef Delegate<void (GridViewColumn* sender)> ActualWidthChangedDelegate;
-    ActualWidthChangedDelegate& ActualWidthChanged();
 
     /// Gets or sets the template to use to display the contents of a column cell
     //@{
@@ -67,7 +66,7 @@ public:
     //@{
     BaseComponent* GetHeader() const;
     void SetHeader(BaseComponent* header);
-    //@} 
+    //@}
  
     /// Gets or sets the style to use for the header of the GridViewColumn
     //@{
@@ -95,36 +94,20 @@ public:
     void SetHeaderTemplateSelector(DataTemplateSelector* selector);
     //@}
  
-    /// Gets or sets the width of the column. This is a dependency property.  
+    /// Gets or sets the width of the column
     //@{
     float GetWidth() const;
     void SetWidth(float width);
     //@}
 
-    float GetDesiredWidth() const;
-    float EnsureWidth(float width);
-
-    enum MeasureState
-    {
-        /// Measure has not been done yet on this column
-        MeasureState_None,
-        /// Header measure has been done
-        MeasureState_Header,
-        /// Items measure has been done
-        MeasureState_Items,
-        /// Header and items measure has been done, or fixed width was set
-        MeasureState_Fixed
-    };
-    
-    MeasureState GetMeasureState() const;
-    void SetMeasureState(MeasureState state); // To be used only from GridViewRowPresenterBase
+    /// Occurs when column *ActualWidth* changes
+    ActualWidthChangedDelegate& ActualWidthChanged();
 
     /// From IUITreeNode
     //@{
     IUITreeNode* GetNodeParent() const override;
     void SetNodeParent(IUITreeNode* parent) override;
-    BaseComponent* FindNodeResource(IResourceKey* key,
-        bool fullElementSearch) const override;
+    BaseComponent* FindNodeResource(IResourceKey* key, bool fullElementSearch) const override;
     BaseComponent* FindNodeName(const char* name) const override;
     ObjectWithNameScope FindNodeNameAndScope(const char* name) const override;
     //@}
@@ -152,16 +135,35 @@ protected:
     //@}
 
 private:
+    friend class GridViewHeaderRowPresenter;
+    friend class GridViewRowPresenter;
+
+    enum MeasureState
+    {
+        /// Measure has not been done yet on this column
+        MeasureState_None,
+        /// Header measure has been done
+        MeasureState_Header,
+        /// Items measure has been done
+        MeasureState_Items,
+        /// Header and items measure has been done, or fixed width was set
+        MeasureState_Fixed
+    };
+
+    void SetMeasureState(MeasureState state);
+
+    float GetDesiredWidth() const;
+    float EnsureWidth(float width);
+
+private:
     IUITreeNode* mOwner;
     float mActualWidth;
     ActualWidthChangedDelegate mActualWidthChanged;
-    
-    // TODO: This should be BaseBinding instead on BaseBindingExpression
+
     Ptr<BaseBindingExpression> mDisplayMemberBinding;
-    
-    MeasureState mMeasureStateInternal;
-    float mDesiredWidthInternal;
-    //int mIndex;
+
+    MeasureState mMeasureState;
+    float mColumnDesiredWidth;
 
     NS_DECLARE_REFLECTION(GridViewColumn, DependencyObject)
 };
@@ -169,5 +171,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

@@ -28,7 +28,7 @@ public:
     BounceEase();
     ~BounceEase();
 
-    /// Gets or sets the number of bounces. 
+    /// Gets or sets the number of bounces
     //@{
     int32_t GetBounces() const;
     void SetBounces(int32_t bounces);
@@ -36,13 +36,13 @@ public:
 
     /// Gets or sets a value that specifies how bouncy the bounce animation is. Low values of this 
     /// property result in bounces with little lose of height between bounces (more bouncy) while 
-    /// high values result in dampened bounces (less bouncy). 
+    /// high values result in dampened bounces (less bouncy)
     //@{
     float GetBounciness() const;
     void SetBounciness(float bounciness);
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<BounceEase> Clone() const;
     Ptr<BounceEase> CloneCurrentValue() const;
@@ -55,17 +55,18 @@ public:
 protected:
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
     /// From EasingFunctionBase
     //@{
-    float EaseInCore(float normalizedTime);
+    float EaseInCore(float normalizedTime) override;
     //@}
     
     NS_DECLARE_REFLECTION(BounceEase, EasingFunctionBase)
 };
 
 }
+
 
 #endif

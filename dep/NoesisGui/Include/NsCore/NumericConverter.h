@@ -152,27 +152,27 @@ private:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_CORE_TYPECONVERTER_API Float32Converter: public BaseNumericConverter
+class NS_CORE_TYPECONVERTER_API SingleConverter: public BaseNumericConverter
 {
 public:
-    Float32Converter();
+    SingleConverter();
 
 private:
     bool Parse(const char* str, Ptr<BaseComponent>& result) const override;
 
-    NS_DECLARE_REFLECTION(Float32Converter, BaseNumericConverter)
+    NS_DECLARE_REFLECTION(SingleConverter, BaseNumericConverter)
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_CORE_TYPECONVERTER_API Float64Converter: public BaseNumericConverter
+class NS_CORE_TYPECONVERTER_API DoubleConverter: public BaseNumericConverter
 {
 public:
-    Float64Converter();
+    DoubleConverter();
 
 private:
     bool Parse(const char* str, Ptr<BaseComponent>& result) const override;
 
-    NS_DECLARE_REFLECTION(Float64Converter, BaseNumericConverter)
+    NS_DECLARE_REFLECTION(DoubleConverter, BaseNumericConverter)
 };
 
 }

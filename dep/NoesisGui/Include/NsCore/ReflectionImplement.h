@@ -29,11 +29,11 @@
 /// Implements reflection for a class outside class definition
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #define NS_IMPLEMENT_REFLECTION(classType) \
-const Noesis::TypeClass* classType::StaticGetClassType(Noesis::T2T<classType>*)\
+const Noesis::TypeClass* classType::StaticGetClassType(Noesis::TypeTag<classType>*)\
 {\
     static const Noesis::TypeClass* type;\
 \
-    if (type == 0)\
+    if (NS_UNLIKELY(type == 0))\
     {\
         type = static_cast<const Noesis::TypeClass*>(Noesis::TypeCreate::Create(\
             NS_TYPEID(classType),\
@@ -46,7 +46,7 @@ const Noesis::TypeClass* classType::StaticGetClassType(Noesis::T2T<classType>*)\
 \
 const Noesis::TypeClass* classType::GetClassType() const\
 {\
-    return StaticGetClassType();\
+    return StaticGetClassType((Noesis::TypeTag<classType>*)nullptr);\
 }\
 \
 struct classType::Rebind_ \
@@ -57,18 +57,19 @@ struct classType::Rebind_ \
     Noesis::TypeClassCreator& helper; \
 }; \
 \
-template <class VOID_> void classType::StaticFillClassType(Noesis::TypeClassCreator& helper)
+template <class VOID_> \
+NS_COLD_FUNC void classType::StaticFillClassType(Noesis::TypeClassCreator& helper)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Implements reflection for a templated class with one template param outside class definition
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #define NS_IMPLEMENT_REFLECTION_T1(classType) \
 template<class T1>\
-const Noesis::TypeClass* classType<T1>::StaticGetClassType(Noesis::T2T<classType>*)\
+const Noesis::TypeClass* classType<T1>::StaticGetClassType(Noesis::TypeTag<classType>*)\
 {\
     static const Noesis::TypeClass* type;\
 \
-    if (type == 0)\
+    if (NS_UNLIKELY(type == 0))\
     {\
         type = static_cast<const Noesis::TypeClass*>(Noesis::TypeCreate::Create(\
             NS_TYPEID(classType<T1>),\
@@ -82,7 +83,7 @@ const Noesis::TypeClass* classType<T1>::StaticGetClassType(Noesis::T2T<classType
 template<class T1>\
 const Noesis::TypeClass* classType<T1>::GetClassType() const\
 {\
-    return StaticGetClassType();\
+    return StaticGetClassType((Noesis::TypeTag<classType>*)nullptr);\
 }\
 \
 template<class T1>\
@@ -95,18 +96,23 @@ struct classType<T1>::Rebind_ \
 }; \
 \
 template<class T1> template<class VOID_> \
-void classType<T1>::StaticFillClassType(Noesis::TypeClassCreator& helper)
+NS_COLD_FUNC void classType<T1>::StaticFillClassType(Noesis::TypeClassCreator& helper)
+
+// Supress clang "-Winconsistent-missing-override" this way because push/pop is not working
+#ifdef __clang__
+#pragma clang system_header
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Implements reflection for a class inside class definition (templates must use this one)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #define NS_IMPLEMENT_INLINE_REFLECTION(classType, parentType) \
 public:\
-    static const Noesis::TypeClass* StaticGetClassType(Noesis::T2T<classType>* = 0)\
+    static const Noesis::TypeClass* StaticGetClassType(Noesis::TypeTag<classType>*)\
     {\
         static const Noesis::TypeClass* type;\
 \
-        if (type == 0)\
+        if (NS_UNLIKELY(type == 0))\
         {\
             type = static_cast<const Noesis::TypeClass*>(Noesis::TypeCreate::Create(\
                 NS_TYPEID(classType),\
@@ -117,13 +123,10 @@ public:\
         return type;\
     }\
 \
-    NS_WARNING_PUSH \
-        NS_CLANG_WARNING_DISABLE("-Winconsistent-missing-override") \
-        const Noesis::TypeClass* GetClassType() const\
-        {\
-            return StaticGetClassType();\
-        }\
-    NS_WARNING_POP \
+    const Noesis::TypeClass* GetClassType() const\
+    {\
+        return StaticGetClassType((Noesis::TypeTag<classType>*)nullptr);\
+    }\
 \
 private:\
     typedef classType SelfClass;\
@@ -139,7 +142,8 @@ private:\
         Noesis::TypeClassCreator& helper; \
     }; \
 \
-    template <class VOID_> static void StaticFillClassType(Noesis::TypeClassCreator& helper)
+    template <class VOID_> \
+    NS_COLD_FUNC static void StaticFillClassType(Noesis::TypeClassCreator& helper)
 
 
 #include <NsCore/Noesis.h> 

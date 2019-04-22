@@ -26,13 +26,10 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.shapes.ellipse.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API Ellipse: public Shape
+class NS_GUI_CORE_API Ellipse final: public Shape
 {
 public:
-    /// Constructor
     Ellipse();
-
-    /// Destructor
     ~Ellipse();
 
 protected:
@@ -57,5 +54,6 @@ private:
 };
 
 }
+
 
 #endif

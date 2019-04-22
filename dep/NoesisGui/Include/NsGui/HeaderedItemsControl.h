@@ -26,10 +26,7 @@ class DataTemplate;
 class NS_GUI_CORE_API HeaderedItemsControl: public ItemsControl
 {
 public:
-    /// Constructor
     HeaderedItemsControl();
-
-    /// Destructor
     ~HeaderedItemsControl();
 
     /// Gets a value that indicates whether this HeaderedItemsControl has a header
@@ -49,14 +46,14 @@ public:
     void SetHeaderStringFormat(const char* headerStringFormat);
     //@}
 
-    /// Gets or sets the template used to display the contents of the control's header
+    /// Gets or sets the DataTemplate used to display the contents of the control's header
     //@{
     DataTemplate* GetHeaderTemplate() const;
     void SetHeaderTemplate(DataTemplate* value);
     //@}
 
-    /// Gets or sets the object that provides custom selection logic for a template used to display 
-    /// the header of each item. 
+    /// Gets or sets a DataTemplateSelector that provides custom logic for choosing the template
+    /// used to display the header
     //@{
     DataTemplateSelector* GetHeaderTemplateSelector() const;
     void SetHeaderTemplateSelector(DataTemplateSelector* value);
@@ -65,23 +62,23 @@ public:
 public:
     /// Dependency properties
     //@{
-    static const DependencyProperty* HasHeaderProperty; // [CommonDependencyProperty]
-    static const DependencyProperty* HeaderProperty; // [CommonDependencyProperty]
-    static const DependencyProperty* HeaderStringFormatProperty; // [CommonDependencyProperty]
-    static const DependencyProperty* HeaderTemplateProperty; // [CommonDependencyProperty]
-    static const DependencyProperty* HeaderTemplateSelectorProperty; // [CommonDependencyProperty]
+    static const DependencyProperty* HasHeaderProperty;
+    static const DependencyProperty* HeaderProperty;
+    static const DependencyProperty* HeaderStringFormatProperty;
+    static const DependencyProperty* HeaderTemplateProperty;
+    static const DependencyProperty* HeaderTemplateSelectorProperty;
     //@}
 
 protected:
-    /// From DependencyObject
+    // From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
-    /// From FrameworkElement
+    // From FrameworkElement
     //@{
-    uint32_t GetLogicalChildrenCount() const;
-    BaseComponent* GetLogicalChild(uint32_t index) const;
+    uint32_t GetLogicalChildrenCount() const override;
+    Ptr<BaseComponent> GetLogicalChild(uint32_t index) const override;
     //@}
 
 protected:
@@ -101,5 +98,6 @@ private:
 };
 
 }
+
 
 #endif

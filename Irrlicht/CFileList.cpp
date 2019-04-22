@@ -159,6 +159,11 @@ const io::path& CFileList::getPath() const
 	return Path;
 }
 
+bool CFileList::isIgnoreCase() const
+{
+    return IgnoreCase;
+}
+
 
 } // end namespace irr
 } // end namespace io

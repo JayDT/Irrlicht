@@ -16,20 +16,19 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents a control that creates a container that has a border and a header for user
-/// interface (UI) content.
+/// Represents a control that displays a frame around a group of controls with an optional caption.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.forms.groupbox.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API GroupBox: public HeaderedContentControl
 {
 public:
-    /// Constructor
     GroupBox();
 
     NS_DECLARE_REFLECTION(GroupBox, HeaderedContentControl)
 };
 
 }
+
 
 #endif

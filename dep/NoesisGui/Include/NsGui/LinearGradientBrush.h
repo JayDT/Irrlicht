@@ -23,10 +23,9 @@ struct Point;
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.lineargradientbrush.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API LinearGradientBrush: public GradientBrush
+class NS_GUI_CORE_API LinearGradientBrush final: public GradientBrush
 {
 public:
-    /// Constructor
     LinearGradientBrush();
 
     /// Gets or sets the starting coordinates of the linear gradient
@@ -41,7 +40,7 @@ public:
     void SetEndPoint(const Point& endPoint);
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<LinearGradientBrush> Clone() const;
     Ptr<LinearGradientBrush> CloneCurrentValue() const;
@@ -49,8 +48,8 @@ public:
 
     /// From IRenderProxyCreator
     //@{
-    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
+    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
     //@}
 
 public:
@@ -63,12 +62,12 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
 private:
@@ -82,5 +81,6 @@ private:
 };
 
 }
+
 
 #endif

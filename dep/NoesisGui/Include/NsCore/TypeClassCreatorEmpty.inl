@@ -13,8 +13,8 @@ namespace Noesis
 {
 
 class TypeInfo;
-typedef NullType NoParent;
-template<class T> struct T2T;
+typedef void NoParent;
+template<class T> struct TypeTag;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class ClassT, class BaseT>
@@ -44,10 +44,9 @@ template<class ClassT, class BaseT>
 template<class T>
 void TypeClassCreatorEmpty<ClassT, BaseT>::Base(Int2Type<0>)
 {
-    enum { isDerived = IsDerived<ClassT, T>::Result };
-    static_assert(isDerived, "class does not derive from specified base");
+    static_assert(IsDerived<ClassT, T>::Result, "class does not derive from specified base");
 
-    mTypeClass->AddBase(T::StaticGetClassType((T2T<T>*)0));
+    mTypeClass->AddBase(T::StaticGetClassType((TypeTag<T>*)nullptr));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

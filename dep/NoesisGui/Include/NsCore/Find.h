@@ -16,7 +16,7 @@ namespace Noesis
 
 struct FindData
 {
-    char filename[PATH_MAX];
+    char filename[512];
     char extension[16];
     void* handle;
 };

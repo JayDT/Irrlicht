@@ -835,7 +835,7 @@ IShader * COpenGLDriver::createShader(ShaderInitializerEntry * shaderCreateInfo)
         throw std::runtime_error("shader not found");
     }
 
-    GLSLGpuShader* gpuProgram = new GLSLGpuShader(this, programId);
+    GLSLGpuShader* gpuProgram = shaderCreateInfo->mShader ? static_cast<irr::video::GLSLGpuShader*>(shaderCreateInfo->mShader.GetPtr()) : new GLSLGpuShader(this, programId);
 
     for (auto stage : shaderCreateInfo->mStages)
     {
@@ -874,7 +874,7 @@ IShader * COpenGLDriver::createShader(ShaderInitializerEntry * shaderCreateInfo)
     }
 
     gpuProgram->Init();
-    shaderCreateInfo->mShaderId = AddShaderModul(gpuProgram, shaderCreateInfo->mShaderId);
+    shaderCreateInfo->mShaderId = gpuProgram->mId = AddShaderModul(gpuProgram, shaderCreateInfo->mShaderId);
     return gpuProgram;
 }
 

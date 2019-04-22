@@ -35,7 +35,7 @@ public:
     void SetAmplitude(float amplitude);
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<BackEase> Clone() const;
     Ptr<BackEase> CloneCurrentValue() const;
@@ -47,17 +47,18 @@ public:
 protected:
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
     /// From EasingFunctionBase
     //@{
-    float EaseInCore(float normalizedTime);
+    float EaseInCore(float normalizedTime) override;
     //@}
     
     NS_DECLARE_REFLECTION(BackEase, EasingFunctionBase)
 };
 
 }
+
 
 #endif

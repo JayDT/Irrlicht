@@ -18,8 +18,7 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents a single, constant set of pixels at a certain size and resolution. This is an
-/// abstract class.
+/// Represents a single, constant set of pixels at a certain size and resolution.
 ///
 /// https://msdn.microsoft.com/en-us/library/system.windows.media.imaging.bitmapsource.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -66,8 +65,8 @@ public:
 protected:
     /// From ImageSource
     //@{
-    float GetWidthCore() const;
-    float GetHeightCore() const;
+    float GetWidthCore() const override;
+    float GetHeightCore() const override;
     //@}
 
     /// Implemented by inheritors

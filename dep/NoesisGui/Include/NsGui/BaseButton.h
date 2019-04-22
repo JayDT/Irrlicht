@@ -17,11 +17,8 @@
 namespace Noesis
 {
 
-// Forward declaration
-//@{
 NS_INTERFACE ICommand;
 enum ClickMode;
-//@}
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -122,9 +119,6 @@ private:
     void UnregisterCommand(ICommand* command);
     void UpdateCanExecute(ICommand* command);
     void OnCanExecuteChanged(BaseComponent* sender, const EventArgs& e);
-
-    static bool StaticCoerceIsFocusEngagementEnabled(const DependencyObject* object,
-        const void* value, void* coercedValue);
 
 private:
     union

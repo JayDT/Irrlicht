@@ -9,15 +9,17 @@
 
 
 #include <NsCore/Noesis.h>
-#include <NsGui/Span.h>
 #include <NsCore/ReflectionDeclare.h>
+#include <NsGui/Span.h>
 
 
 namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// An inline-level flow content element which causes content to render with a bold font weight.
+/// An inline-level flow content element which causes content to render with a *bold* font weight.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.documents.bold.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API Bold: public Span
 {

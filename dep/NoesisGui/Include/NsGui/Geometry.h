@@ -29,7 +29,7 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Classes that derive from this abstract base class define geometric shapes. Geometry
-/// objects can be used for clipping, hit-testing, and rendering 2-D graphic data.
+/// objects can be used for clipping, hit-testing, and rendering 2D graphic data.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.geometry.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,8 +51,8 @@ public:
     /// \prop
     Rect GetBounds() const;
 
-    /// Returns an axis-aligned rectangle that is exactly large enough to contain the geometry after it
-    /// has been outlined with the specified Pen
+    /// Returns an axis-aligned rectangle that is exactly large enough to contain the geometry after
+    /// it has been outlined with the specified Pen
     Rect GetRenderBounds(Pen* pen) const;
 
     /// Indicates whether the geometry contains the specified Point
@@ -68,7 +68,7 @@ public:
     void SetTransform(Transform* transform);
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<Geometry> Clone() const;
     Ptr<Geometry> CloneCurrentValue() const;
@@ -121,5 +121,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

@@ -29,7 +29,9 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// TemplateBindingExpression. Expression created from TemplateBindingExtension::ProvideValue
+/// Describes a run-time instance of a TemplateBindingExtension.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.templatebindingexpression.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API TemplateBindingExpression: public Expression
 {
@@ -40,10 +42,10 @@ public:
     /// \prop
     TemplateBindingExtension* GetTemplateBindingExtension() const;
 
-    /// From IExpression
+    /// From Expression
     //@{
     Ptr<BaseComponent> Evaluate() const;
-    Ptr<IExpression> Reapply(DependencyObject* targetObject,
+    Ptr<Expression> Reapply(DependencyObject* targetObject,
         const DependencyProperty* targetProperty) const;
     //@}
 
@@ -75,5 +77,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

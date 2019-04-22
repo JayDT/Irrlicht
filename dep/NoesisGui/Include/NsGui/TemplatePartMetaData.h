@@ -22,13 +22,12 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// TemplatePartMetaData. Represents an attribute that is applied to the class definition to
-/// identify the types of the named parts that are used for templating.
+/// Represents an attribute that is applied to the class definition to identify the types of the
+/// named parts that are used for templating.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API TemplatePartMetaData: public TypeMetaData
 {
 public:
-    /// Constructor
     TemplatePartMetaData(const char* name, const TypeClass* type);
 
     /// Gets the pre-defined name of the part
@@ -47,5 +46,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

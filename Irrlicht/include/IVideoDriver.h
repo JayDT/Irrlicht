@@ -174,6 +174,15 @@ namespace video
         ERM_SHADOW_VOLUME_ZPASS // stencil volume draw mode
     };
 
+    struct DisplayModeEntry
+    {
+        irr::core::dimension2di Resolution;
+        u16 RefreshRate;
+        irr::video::ECOLOR_FORMAT Format;
+        u32 param0;         // Platform Specific 0
+        u32 param1;         // Platform Specific 1
+    };
+
     struct SOverrideMaterial
 	{
 		//! The Material values
@@ -1539,6 +1548,7 @@ namespace video
 
 		virtual void beginInstrumentEvent(const wchar_t* wlabel, const char* label, SColor color = SColor(255, 0, 0, 0)) {}
 		virtual void endInstrumentEvent() {}
+        virtual const irr::core::array<DisplayModeEntry>* getDisplayModeList() const { return nullptr; }
 	};
 
 } // end namespace video

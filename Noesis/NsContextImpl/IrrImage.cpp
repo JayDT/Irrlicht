@@ -5,7 +5,7 @@ using namespace NoesisApp;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-Image::Image(uint32_t width, uint32_t height): mData((uint8_t*)NsAlloc(width * height * 4)),
+Image::Image(uint32_t width, uint32_t height): mData((uint8_t*)Noesis::Alloc(width * height * 4)),
     mWidth(width), mHeight(height)
 {
 }
@@ -13,7 +13,7 @@ Image::Image(uint32_t width, uint32_t height): mData((uint8_t*)NsAlloc(width * h
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 Image::~Image()
 {
-    NsDealloc(mData);
+    Noesis::Dealloc(mData);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -19,9 +19,8 @@ namespace Noesis
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T> struct ValueStorageManagerHelper
 {
-    static bool CheckType(const Type* type, BaseComponent* value)
+    static bool CheckType(const Type*, BaseComponent* value)
     {
-        NS_ASSERT(TypeOf<T>()->IsAssignableFrom(type));
         return Boxing::CanUnbox<T>(value);
     }
 
@@ -40,7 +39,6 @@ template<class T> struct ValueStorageManagerHelper<Ptr<T>>
 {
     static bool CheckType(const Type* type, BaseComponent* value)
     {
-        NS_ASSERT(TypeOf<T>()->IsAssignableFrom(type));
         return value != 0 ? type->IsAssignableFrom(value->GetClassType()) : true;
     }
 
@@ -51,7 +49,7 @@ template<class T> struct ValueStorageManagerHelper<Ptr<T>>
 
     static Ptr<T> Unbox(BaseComponent* value)
     {
-        return Ptr<T>(NsStaticCast<T*>(value));
+        return Ptr<T>(static_cast<T*>(value));
     }
 };
 
@@ -73,8 +71,7 @@ uint32_t ValueStorageManagerImpl<T>::Size() const
 template<class T>
 bool ValueStorageManagerImpl<T>::CheckType(const Type* type) const
 {
-    typedef typename IsPtr<T>::PointedType TT;
-    return type->IsAssignableFrom(TypeOf<TT>());
+    return type->IsAssignableFrom(TypeOf<RemovePtr<T>>());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -108,7 +105,7 @@ void ValueStorageManagerImpl<T>::Construct(ValueStorage* storage, const void* va
         case false:
         {
             NS_PROFILE_MEM("Gui/DependencyObject");
-            void* storage_ = NsAlloc(sizeof(T));
+            void* storage_ = Alloc(sizeof(T));
             *storage = new(storage_) T(*static_cast<const T*>(value));
             break;
         }
@@ -130,7 +127,7 @@ void ValueStorageManagerImpl<T>::Destroy(ValueStorage* storage) const
         case false:
         {
             static_cast<T*>(static_cast<void*>(*storage))->~T();
-            NsDealloc(*storage);
+            Dealloc(*storage);
             break;
         }
         default: NS_ASSERT_UNREACHABLE;
@@ -215,7 +212,7 @@ bool ValueStorageManagerImpl<T>::IsSame(const void* left, BaseComponent* right) 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
 void ValueStorageManagerImpl<T>::SetValue(DependencyObject* dob, const DependencyProperty* dp,
-    const void* value, uint8_t priority, IExpression* expression, const PropertyMetadata* metadata,
+    const void* value, uint8_t priority, Expression* expression, const PropertyMetadata* metadata,
     Value::Destination destination) const
 {
     const T& value_ = *static_cast<const T*>(value);
@@ -228,7 +225,7 @@ void ValueStorageManagerImpl<T>::SetValue(DependencyObject* dob, const Dependenc
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
 void ValueStorageManagerImpl<T>::SetValue(DependencyObject* dob, const DependencyProperty* dp,
-    BaseComponent* value, uint8_t priority, IExpression* expression,
+    BaseComponent* value, uint8_t priority, Expression* expression,
     const PropertyMetadata* metadata, Value::Destination destination) const
 {
     const T& value_ = ValueStorageManagerHelper<T>::Unbox(value);

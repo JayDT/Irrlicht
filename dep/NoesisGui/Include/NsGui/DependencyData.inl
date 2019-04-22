@@ -47,9 +47,8 @@ template<class T>
 void DependencyData::AddOwner(const DependencyProperty*& dp, const char* name,
     const DependencyProperty*& source, PropertyMetadata* metadata)
 {
-    typedef typename IsPtr<T>::PointedType TT;
-    static_assert(!IsInterface<TT>::Result, "Interface not supported in DPs");
-    const Type* type = TypeOf<TT>();
+    static_assert(!IsInterface<RemovePtr<T>>::Result, "Interface not supported in DPs");
+    const Type* type = TypeOf<RemovePtr<T>>();
 
     NS_ASSERT(!String::IsNullOrEmpty(name));
     NS_ASSERT(dp == 0 || dp->GetName() == NsSymbol(name));
@@ -92,9 +91,8 @@ template<class T>
 void DependencyData::OverrideMetadata(const DependencyProperty*& dp, const char* name,
     PropertyMetadata* metadata)
 {
-    typedef typename IsPtr<T>::PointedType TT;
-    static_assert(!IsInterface<TT>::Result, "Interface not supported in DPs");
-    const Type* type = TypeOf<TT>();
+    static_assert(!IsInterface<RemovePtr<T>>::Result, "Interface not supported in DPs");
+    const Type* type = TypeOf<RemovePtr<T>>();
 
     if (CheckMetadata(name, metadata))
     {
@@ -127,9 +125,8 @@ template<class T>
 void DependencyData::RegisterProperty(const DependencyProperty*& dp, const char* name,
     PropertyMetadata* metadata, ValidateValueCallback validate, PropertyAccess access)
 {
-    typedef typename IsPtr<T>::PointedType TT;
-    static_assert(!IsInterface<TT>::Result, "Interface not supported in DPs");
-    const Type* type = TypeOf<TT>();
+    static_assert(!IsInterface<RemovePtr<T>>::Result, "Interface not supported in DPs");
+    const Type* type = TypeOf<RemovePtr<T>>();
 
     if (CheckMetadata(name, metadata, type))
     {

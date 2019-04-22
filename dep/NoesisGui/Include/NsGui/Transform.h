@@ -12,25 +12,22 @@
 #include <NsGui/CoreApi.h>
 #include <NsGui/Animatable.h>
 #include <NsGui/IRenderProxyCreator.h>
-#include <NsCore/BaseComponent.h>
 #include <NsCore/ReflectionDeclare.h>
-#include <NsCore/Ptr.h>
-#include <NsCore/TypeMetaData.h>
 #include <NsMath/TransformForward.h>
 
 
 namespace Noesis
 {
 
+template<class T> class Ptr;
+
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
-// TODO: [srodriguez] Transform must derive from GeneralTransform
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Transform. Defines functionality that enables transformations in a 2-D plane. Transformations
-/// include rotation (RotateTransform), 
-/// scale (ScaleTransform), 
+/// Defines functionality that enables transformations in a 2D plane.
+///
+/// Transformations include rotation (RotateTransform), scale (ScaleTransform),
 /// skew (SkewTransform), and translation (TranslateTransform).
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.transform.aspx
@@ -53,7 +50,7 @@ public:
     /// Gets the transformation matrix defined by a transform object
     virtual Transform2f GetTransform() const = 0;
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<Transform> Clone() const;
     Ptr<Transform> CloneCurrentValue() const;
@@ -68,5 +65,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

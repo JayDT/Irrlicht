@@ -22,47 +22,44 @@ struct CanExecuteRoutedEventArgs;
 struct ExecutedRoutedEventArgs;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// An abstract base class that provides functionality for text editing controls, including TextBox.
+/// An abstract base class that provides functionality for text editing controls.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.primitives.textboxbase.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API BaseTextBox: public Control
 {
 public:
-    /// Constructor
     BaseTextBox();
-    
-    /// Destructor
     virtual ~BaseTextBox() = 0;
-    
-    /// Gets or sets a value that indicates how the text editing control responds when the user 
-    /// presses the ENTER key.
+
+    /// Gets or sets a value that indicates how the text editing control responds when the user
+    /// presses the *ENTER* key.
     //@{
     bool GetAcceptsReturn() const;
     void SetAcceptsReturn(bool value);
     //@}
-    
-    /// Gets or sets a value that indicates how the text editing control responds when the user 
-    /// presses the TAB key.
+
+    /// Gets or sets a value that indicates how the text editing control responds when the user
+    /// presses the *TAB* key.
     //@{
     bool GetAcceptsTab() const;
     void SetAcceptsTab(bool value);
     //@}
-    
-    /// Gets or sets the brush that is used to paint the caret of the text box (WPF 4.0)
+
+    /// Gets or sets the brush that is used to paint the caret of the text box
     //@{
     Brush* GetCaretBrush() const;
     void SetCaretBrush(Brush* brush);
     //@}
-    
-    /// Gets or sets a value that indicates whether a horizontal scroll bar is shown.
+
+    /// Gets or sets a value that indicates whether a horizontal scroll bar is shown
     //@{
     ScrollBarVisibility GetHorizontalScrollBarVisibility() const;
     void SetHorizontalScrollBarVisibility(ScrollBarVisibility value);
     //@}
-    
+
     /// Gets or sets a value that indicates whether the text editing control is read-only to a user 
-    /// interacting with the control.
+    /// interacting with the control
     //@{
     bool GetIsReadOnly() const;
     void SetIsReadOnly(bool value);
@@ -77,10 +74,9 @@ public:
     void SetSelectionBrush(Brush* selectionBrush);
     //@}
 
-    /// Gets or sets the opacity of the SelectionBrush
-    /// \remarks If SelectionOpacity is set to 0, the SelectionBrush is transparent and is not
-    /// visible. If SelectionOpacity is set to 1.0 or greater, the SelectionBrush is opaque and the
-    /// selected text is not visible
+    /// Gets or sets the opacity of the *SelectionBrush*. If *SelectionOpacity* is set to 0, the
+    /// *SelectionBrush* is transparent and is not visible. If *SelectionOpacity* is set to 1.0 or
+    /// greater, the *SelectionBrush* is opaque and the selected text is not visible
     //@{
     float GetSelectionOpacity() const;
     void SetSelectionOpacity(float selectionOpacity);
@@ -91,6 +87,70 @@ public:
     ScrollBarVisibility GetVerticalScrollBarVisibility() const;
     void SetVerticalScrollBarVisibility(ScrollBarVisibility value);
     //@}
+
+    /// Horizontal size of scrollable content; 0.0 if TextBox is non-scrolling
+    /// \prop
+    float GetExtentWidth() const;
+
+    /// Vertical size of scrollable content; 0.0 if TextBox is non-scrolling
+    /// \prop
+    float GetExtentHeight() const;
+
+    /// Horizontal size of scroll area; 0.0 if TextBox is non-scrolling
+    /// \prop
+    float GetViewportWidth() const;
+
+    /// Vertical size of scroll area; 0.0 if TextBox is non-scrolling
+    /// \prop
+    float GetViewportHeight() const;
+
+    /// Actual HorizontalOffset contains the ScrollViewer's current horizontal offset.
+    /// This is a computed value, depending on the state of ScrollViewer, its Viewport, Extent
+    /// and previous scrolling commands.
+    /// \prop
+    float GetHorizontalOffset() const;
+
+    /// Actual VerticalOffset contains the ScrollViewer's current vertical offset.
+    /// This is a computed value, depending on the state of ScrollViewer, its Viewport, Extent
+    /// and previous scrolling commands.
+    /// \prop
+    float GetVerticalOffset() const;
+
+    /// Scroll content by one line to the left.
+    void LineLeft();
+
+    /// Scroll content by one line to the right.
+    void LineRight();
+
+    /// Scroll content by one page to the left.
+    void PageLeft();
+
+    /// Scroll content by one page to the right.
+    void PageRight();
+
+    /// Scroll content by one line to the top.
+    void LineUp();
+
+    /// Scroll content by one line to the bottom.
+    void LineDown();
+
+    /// Scroll content by one page to the top.
+    void PageUp();
+
+    /// Scroll content by one page to the bottom.
+    void PageDown();
+
+    /// Vertically scroll to the beginning of the content.
+    void ScrollToHome();
+
+    /// Vertically scroll to the end of the content.
+    void ScrollToEnd();
+
+    /// Scroll horizontally to the specified offset.
+    void ScrollToHorizontalOffset(float offset);
+
+    /// Scroll vertically to the specified offset.
+    void ScrollToVerticalOffset(float offset);
 
     /// Occurs when the text selection has changed
     UIElement::RoutedEvent_<RoutedEventHandler> SelectionChanged();
@@ -119,21 +179,6 @@ public:
     //@}
 
 protected:
-    /// Get starting character position of the next or previous text block. Text blocks are groups
-    /// of characters where all of them are alphanum or all are not alphanum. The space characters 
-    /// on the right side of a block (alphanum or not) are considered parts of the block.
-    /// These functions are useful when double-clicking on a textbox to select a block, or when 
-    /// moving cursor between blocks using CTRL+LEFT or CTRL+RIGHT combinations.
-    /// \param str String to look for grups in
-    /// \param current Current position of cursor
-    /// \param stayAtStart If current position is at start of a block, it doesn't move
-    //@{
-    static uint32_t GetNextBlock(const char* str, uint32_t numChars, uint32_t current, 
-        bool stayAtStart);
-    static uint32_t GetPrevBlock(const char* str, uint32_t numChars, uint32_t current, 
-        bool stayAtStart);
-    //@}
-
     void SetIsSelectionActive(bool isActive);
 
     void RaiseSelectionChanged();
@@ -142,24 +187,35 @@ protected:
     void RaiseTextChanged();
     virtual void OnTextChanged(const RoutedEventArgs& e);
 
-    /// Notifies inheritors of BaseTextBox property changes
+    // Notifies inheritors of BaseTextBox property changes
     //@{
     virtual void OnCaretBrushChanged(Brush* oldBrush, Brush* newBrush);
     virtual void OnSelectionBrushChanged(Brush* oldBrush, Brush* newBrush);
     virtual void OnSelectionOpacityChanged(float oldOpacity, float newOpacity);
     //@}
 
-    /// Gets the ScrollViewer that manages text scroll
+    // Do the work of line up. Can be overridden by subclass to implement true line up.
+    virtual void DoLineUp(ScrollViewer* scrollViewer);
+
+    // Do the work of line down. Can be overridden by subclass to implement true line down.
+    virtual void DoLineDown(ScrollViewer* scrollViewer);
+
+    // Gets the ScrollViewer that manages text scroll
     virtual ScrollViewer* GetScrollViewer() const;
 
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
+    //@}
+
+    /// From UIElement
+    //@{
+    void OnMouseWheel(const MouseWheelEventArgs& e) override;
     //@}
 
     /// From Control
     //@{
-    void UpdateVisualStates();
+    void UpdateVisualStates() override;
     //@}
 
     NS_DECLARE_REFLECTION(BaseTextBox, Control)

@@ -11,14 +11,13 @@
 #include <NsCore/CompilerSettings.h>
 
 
-#ifdef NS_CORE_NULLABLE_PRIVATE
+#if defined(NS_CORE_NULLABLE_PRIVATE)
     #define NS_CORE_NULLABLE_API
+#elif defined(NS_CORE_NULLABLE_EXPORTS)
+    #define NS_CORE_NULLABLE_API NS_DLL_EXPORT
 #else
-    #ifdef NS_CORE_NULLABLE_EXPORTS
-        #define NS_CORE_NULLABLE_API NS_DLL_EXPORT
-    #else
-        #define NS_CORE_NULLABLE_API NS_DLL_IMPORT
-    #endif
+    #define NS_CORE_NULLABLE_API NS_DLL_IMPORT
 #endif
+
 
 #endif

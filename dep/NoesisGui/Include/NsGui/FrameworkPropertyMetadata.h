@@ -18,96 +18,126 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// FrameworkOptions. Specifies the types of framework-level property behavior that pertain to a
-/// particular dependency property in the property system.
+/// Specifies the types of framework-level property behavior that pertain to a particular
+/// dependency property in the property system.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-enum FrameworkOptions
+enum FrameworkPropertyMetadataOptions
 {
-    FrameworkOptions_None = 1 << 0,
-    FrameworkOptions_AffectsMeasure = 1 << 1,
-    FrameworkOptions_AffectsArrange = 1 << 2,
-    FrameworkOptions_AffectsParentMeasure = 1 << 3,
-    FrameworkOptions_AffectsParentArrange = 1 << 4,
-    FrameworkOptions_AffectsRender = 1 << 5,
-    FrameworkOptions_Inherits = 1 << 6,
-    FrameworkOptions_OverridesInheritanceBehavior = 1 << 7,
-    FrameworkOptions_NotDataBindable = 1 << 8,
-    FrameworkOptions_BindsTwoWayByDefault = 1 << 9,
-    //FrameworkOptions_Journal = 1 << 10,
-    FrameworkOptions_SubPropertiesDoNotAffectRender = 1 << 11,
-    FrameworkOptions_UpdateSourceTriggerLostFocus = 1 << 12,
-    FrameworkOptions_UpdateSourceTriggerExplicit = 1 << 13
+    FrameworkPropertyMetadataOptions_None = 0x000,
+    FrameworkPropertyMetadataOptions_AffectsMeasure = 0x001,
+    FrameworkPropertyMetadataOptions_AffectsArrange = 0x002,
+    FrameworkPropertyMetadataOptions_AffectsParentMeasure = 0x004,
+    FrameworkPropertyMetadataOptions_AffectsParentArrange = 0x008,
+    FrameworkPropertyMetadataOptions_AffectsRender = 0x010,
+    FrameworkPropertyMetadataOptions_Inherits = 0x020,
+    FrameworkPropertyMetadataOptions_OverridesInheritanceBehavior = 0x040,
+    FrameworkPropertyMetadataOptions_NotDataBindable = 0x080,
+    FrameworkPropertyMetadataOptions_BindsTwoWayByDefault = 0x100,
+    FrameworkPropertyMetadataOptions_Journal = 0x400,
+    FrameworkPropertyMetadataOptions_SubPropertiesDoNotAffectRender = 0x800
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// FrameworkPropertyMetadata. Reports or applies metadata for a dependency property, specifically
-/// adding framework-specific property system characteristics.
+/// Reports or applies metadata for a dependency property, specifically adding framework-specific
+/// property system characteristics.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API FrameworkPropertyMetadata: public UIPropertyMetadata
 {
 public:
     /// Helper functions to create a new PropertyMetadata
     //@{
-    inline static Ptr<FrameworkPropertyMetadata> Create();
-    inline static Ptr<FrameworkPropertyMetadata> Create(int32_t options);
-    inline static Ptr<FrameworkPropertyMetadata> Create(PropertyChangedCallback changed);
-    inline static Ptr<FrameworkPropertyMetadata> Create(CoerceValueCallback coerce);
-    template<class T>
-    inline static Ptr<FrameworkPropertyMetadata> Create(const T& defaultValue, int32_t options);
-    template<class T>
-    inline static Ptr<FrameworkPropertyMetadata> Create(const T& defaultValue,
-        PropertyChangedCallback changed);
-    template<class T>
-    inline static Ptr<FrameworkPropertyMetadata> Create(const T& defaultValue,
-        CoerceValueCallback coerce);
-    template<class T>
-    inline static Ptr<FrameworkPropertyMetadata> Create(const T& defaultValue, int32_t options,
-        PropertyChangedCallback changed);
-    template<class T>
-    inline static Ptr<FrameworkPropertyMetadata> Create(const T& defaultValue, int32_t options,
-        CoerceValueCallback coerce);
-    template<class T>
-    inline static Ptr<FrameworkPropertyMetadata> Create(const T& defaultValue, int32_t options,
-        PropertyChangedCallback changed, CoerceValueCallback coerce);
-    //@}
+    static Ptr<FrameworkPropertyMetadata> Create();
 
-    void SetOptions(int32_t options);
+    static Ptr<FrameworkPropertyMetadata> Create(const PropertyChangedCallback& changed);
+
+    static Ptr<FrameworkPropertyMetadata> Create(const CoerceValueCallback& coerce);
+
+    template<class T>
+    inline static Ptr<FrameworkPropertyMetadata> Create(const T& defaultValue);
+
+    template<class T>
+    inline static Ptr<FrameworkPropertyMetadata> Create(const T& defaultValue,
+        const PropertyChangedCallback& changed);
+
+    template<class T>
+    inline static Ptr<FrameworkPropertyMetadata> Create(const T& defaultValue,
+        const CoerceValueCallback& coerce);
+
+    template<class T>
+    inline static Ptr<FrameworkPropertyMetadata> Create(const T& defaultValue, uint32_t options);
+
+    template<class T>
+    inline static Ptr<FrameworkPropertyMetadata> Create(const T& defaultValue, uint32_t options,
+        UpdateSourceTrigger defaultTrigger);
+
+    template<class T>
+    inline static Ptr<FrameworkPropertyMetadata> Create(const T& defaultValue, uint32_t options,
+        const PropertyChangedCallback& changed);
+
+    template<class T>
+    inline static Ptr<FrameworkPropertyMetadata> Create(const T& defaultValue, uint32_t options,
+        const CoerceValueCallback& coerce);
+
+    template<class T>
+    inline static Ptr<FrameworkPropertyMetadata> Create(const T& defaultValue, uint32_t options,
+        const PropertyChangedCallback& changed, const CoerceValueCallback& coerce);
+
+    template<class T>
+    inline static Ptr<FrameworkPropertyMetadata> Create(const T& defaultValue, uint32_t options,
+        const PropertyChangedCallback& changed, const CoerceValueCallback& coerce,
+        UpdateSourceTrigger defaultTrigger);
+    //@}
 
     /// Indicates if the property affects measure layout pass
     inline bool AffectsMeasure() const;
+    void SetAffectsMeasure(bool value);
 
     /// Indicates if the property affects arrange layout pass
     inline bool AffectsArrange() const;
+    void SetAffectsArrange(bool value);
 
     /// Indicates if the property affects parent measure layout pass
     inline bool AffectsParentMeasure() const;
+    void SetAffectsParentMeasure(bool value);
 
     /// Indicates if the property affects parent arrange layout pass
     inline bool AffectsParentArrange() const;
+    void SetAffectsParentArrange(bool value);
 
     /// Indicates if the property affects render pass
     inline bool AffectsRender() const;
+    void SetAffectsRender(bool value);
 
     /// Indicates if the property inherits its value from logical tree ancestors
     inline bool Inherits() const;
+    void SetInherits(bool value);
 
     /// Indicates whether the property value inheritance evaluation should span across certain
     /// content boundaries in the logical tree of elements
     inline bool OverridesInheritanceBehavior() const;
+    void SetOverridesInheritanceBehavior(bool value);
 
     /// Indicates whether the dependency property supports data binding
     inline bool IsNotDataBindable() const;
+    void SetIsNotDataBindable(bool value);
 
     /// Indicates whether the property binds two-way by default
     inline bool BindsTwoWayByDefault() const;
+    void SetBindsTwoWayByDefault(bool value);
 
-    /// Gets the default for UpdateSourceTrigger to use when bindings for the property with this 
-    /// metadata are applied, which have their UpdateSourceTrigger set to Default.
-    UpdateSourceTrigger DefaultUpdateSourceTrigger() const;
+    /// Indicates if the value of this property should be saved/restored when journaling by URI
+    inline bool Journal() const;
+    void SetJournal(bool value);
 
     /// Indicates whether sub-properties of the dependency property do not affect the rendering of
     /// the containing object
     inline bool SubPropertiesDoNotAffectRender() const;
+    void SetSubPropertiesDoNotAffectRender(bool value);
+
+    /// Gets or sets the default for UpdateSourceTrigger to use when bindings for the property with
+    ///  this metadata are applied, which have their UpdateSourceTrigger set to Default.
+    inline UpdateSourceTrigger DefaultUpdateSourceTrigger() const;
+    void SetDefaultUpdateSourceTrigger(UpdateSourceTrigger value);
 
     /// From PropertyMetadata
     //@{
@@ -119,26 +149,38 @@ protected:
     // Constructors
     //@{
     FrameworkPropertyMetadata();
-    FrameworkPropertyMetadata(int32_t options);
-    FrameworkPropertyMetadata(PropertyChangedCallback changed);
-    FrameworkPropertyMetadata(CoerceValueCallback coerce);
-    FrameworkPropertyMetadata(ValueStorageManager* defaultValueManager, const void* defaultValue,
-        PropertyChangedCallback changed);
-    FrameworkPropertyMetadata(ValueStorageManager* defaultValueManager, const void* defaultValue,
-        CoerceValueCallback coerce);
-    FrameworkPropertyMetadata(ValueStorageManager* defaultValueManager, const void* defaultValue,
-        int32_t options);
-    FrameworkPropertyMetadata(ValueStorageManager* defaultValueManager, const void* defaultValue,
-        int32_t options, PropertyChangedCallback changed);
-    FrameworkPropertyMetadata(ValueStorageManager* defaultValueManager, const void* defaultValue,
-        int32_t options, CoerceValueCallback coerce);
-    FrameworkPropertyMetadata(ValueStorageManager* defaultValueManager, const void* defaultValue,
-        int32_t options, PropertyChangedCallback changed, CoerceValueCallback coerce);
+    static Ptr<FrameworkPropertyMetadata> Create(ValueStorageManager* defaultValueManager,
+        const void* defaultValue);
+    static Ptr<FrameworkPropertyMetadata> Create(ValueStorageManager* defaultValueManager,
+        const void* defaultValue, const PropertyChangedCallback& changed);
+    static Ptr<FrameworkPropertyMetadata> Create(ValueStorageManager* defaultValueManager,
+        const void* defaultValue, const CoerceValueCallback& coerce);
+    static Ptr<FrameworkPropertyMetadata> Create(ValueStorageManager* defaultValueManager,
+        const void* defaultValue, uint32_t options);
+    static Ptr<FrameworkPropertyMetadata> Create(ValueStorageManager* defaultValueManager,
+        const void* defaultValue, uint32_t options, UpdateSourceTrigger defaultTrigger);
+    static Ptr<FrameworkPropertyMetadata> Create(ValueStorageManager* defaultValueManager,
+        const void* defaultValue, uint32_t options,
+        const PropertyChangedCallback& changed);
+    static Ptr<FrameworkPropertyMetadata> Create(ValueStorageManager* defaultValueManager,
+        const void* defaultValue, uint32_t options,
+        const CoerceValueCallback& coerce);
+    static Ptr<FrameworkPropertyMetadata> Create(ValueStorageManager* defaultValueManager,
+        const void* defaultValue, uint32_t options,
+        const PropertyChangedCallback& changed, const CoerceValueCallback& coerce);
+    static Ptr<FrameworkPropertyMetadata> Create(ValueStorageManager* defaultValueManager,
+        const void* defaultValue, uint32_t options,
+        const PropertyChangedCallback& changed, const CoerceValueCallback& coerce,
+        UpdateSourceTrigger defaultTrigger);
     //@}
 
 private:
-    int32_t mLocalOptions;
-    int32_t mFrameworkOptions;
+    void SetOptions(uint32_t options, UpdateSourceTrigger defaultTrigger);
+    void SetOptionValue(uint32_t flag, bool value);
+
+private:
+    uint32_t mLocalOptions;
+    uint32_t mOptions;
 
     NS_DECLARE_REFLECTION(FrameworkPropertyMetadata, UIPropertyMetadata)
 };

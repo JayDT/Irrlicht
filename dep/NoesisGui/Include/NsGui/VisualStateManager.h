@@ -21,12 +21,14 @@ class FrameworkElement;
 class VisualState;
 class VisualStateGroup;
 class VisualTransition;
-template<class T> class TypedCollection;
-typedef Noesis::TypedCollection<Noesis::VisualStateGroup> VisualStateGroupCollection;
+
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::VisualStateGroup> VisualStateGroupCollection;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Manages states and the logic for transitioning between states for controls. The
-/// VisualStateManager enables you to specify states for a control, the appearance of a control
+/// Manages states and the logic for transitioning between states for controls.
+///
+/// The VisualStateManager enables you to specify states for a control, the appearance of a control
 /// when it is in a certain state, and when a control changes states.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.visualstatemanager.aspx
@@ -115,5 +117,6 @@ private:
 };
 
 }
+
 
 #endif

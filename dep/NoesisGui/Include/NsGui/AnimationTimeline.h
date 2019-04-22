@@ -41,6 +41,10 @@ public:
     void Start(DependencyObject* target, const DependencyProperty* dp, ITimeManager* timeManager,
         HandoffBehavior handoff = HandoffBehavior_SnapshotAndReplace);
 
+    /// Returns the type of property that can be animated by this animation
+    /// \prop
+    virtual const Type* GetTargetPropertyType() const = 0;
+
     /// Identifies the IsAdditive dependency property.
     //@{
     bool GetIsAdditive() const;
@@ -59,7 +63,7 @@ public:
     virtual Ptr<AnimationTimeline> CreateTransitionTo() const = 0;
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<AnimationTimeline> Clone() const;
     Ptr<AnimationTimeline> CloneCurrentValue() const;
@@ -71,18 +75,19 @@ public:
     static const DependencyProperty* IsAdditiveProperty;
     static const DependencyProperty* IsCumulativeProperty;
     //@}
-    
+
 protected:
     /// From Timeline
     //@{
-    Ptr<Clock> CreateClockCore(TimeManager* timeManager, bool hasControllableRoot);
-    Duration GetNaturalDuration(Clock* clock) const;
-    Duration GetEffectiveDuration() const;
+    Ptr<Clock> CreateClockCore(TimeManager* timeManager, bool hasControllableRoot) override;
+    Duration GetNaturalDuration(Clock* clock) const override;
+    Duration GetEffectiveDuration() const override;
     //@}
 
     NS_DECLARE_REFLECTION(AnimationTimeline, Timeline)
 };
 
 }
+
 
 #endif

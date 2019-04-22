@@ -11,7 +11,7 @@
 namespace Noesis
 {
 
-template<class T> struct T2T;
+template<class T> struct TypeTag;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 inline uint32_t MetaData::Count() const
@@ -29,7 +29,7 @@ inline TypeMetaData* MetaData::Get(uint32_t index) const
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T> T* MetaData::Find() const
 {
-    return static_cast<T*>(Find(T::StaticGetClassType((T2T<T>*)0)));
+    return static_cast<T*>(Find(T::StaticGetClassType((TypeTag<T>*)nullptr)));
 }
 
 }

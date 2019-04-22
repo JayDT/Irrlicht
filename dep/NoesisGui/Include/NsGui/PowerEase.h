@@ -19,7 +19,7 @@ namespace Noesis
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Represents an easing function that creates an animation that accelerates and/or 
-/// decelerates using the formula f(t) = tp where p is equal to the Power property.
+/// decelerates using the formula f(t) = t\ :sup:`p` where p is equal to the *Power* property.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.powerease.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,7 +36,7 @@ public:
     void SetPower(float power);
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<PowerEase> Clone() const;
     Ptr<PowerEase> CloneCurrentValue() const;
@@ -48,17 +48,18 @@ public:
 protected:
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
     /// From EasingFunctionBase
     //@{
-    float EaseInCore(float normalizedTime);
+    float EaseInCore(float normalizedTime) override;
     //@}
-    
+
     NS_DECLARE_REFLECTION(PowerEase, EasingFunctionBase)
 };
 
 }
+
 
 #endif

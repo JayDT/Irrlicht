@@ -8,11 +8,6 @@
 #define __CORE_COMPILERSETTINGS_H__
 
 
-// Macro for generating unique variable names inside a cpp file.
-#define NS_UNIQUE_NAME(prefix) NS_UNIQUE_NAME_INTERNAL0(prefix, __COUNTER__)
-#define NS_UNIQUE_NAME_INTERNAL0(a, b) NS_UNIQUE_NAME_INTERNAL1(a, b)
-#define NS_UNIQUE_NAME_INTERNAL1(a, b) a##b
-
 #define NS_STRINGIFY(x) #x
 #define NS_TOSTRING(x) NS_STRINGIFY(x)
 #define NS_CONFIG_NAME NS_TOSTRING(NS_CONFIG)
@@ -31,14 +26,13 @@
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Compiler dependant settings. Unifies the differences between compilers
+/// Compiler dependant settings
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Microsoft VC++
 #if defined(_MSC_VER) && _MSC_VER >= 1400
     #define NS_COMPILER_MSVC
     #define NS_COMPILER_VERSION _MSC_VER
-    #define NS_COMPILER_NAME "Microsoft Visual C++"
 
     #define NS_MACRO_BEGIN \
         __pragma(warning(push)) \
@@ -48,27 +42,44 @@
         } while(false) \
         __pragma(warning(pop))
 
-    #ifdef NS_STATIC_LIBRARY
-        #define NS_DLL_EXPORT
-        #define NS_DLL_IMPORT
-    #else
-        #define NS_DLL_EXPORT __declspec(dllexport)
-        #define NS_DLL_IMPORT __declspec(dllimport)
+    #ifndef NS_DLL_EXPORT
+        #ifdef NS_STATIC_LIBRARY
+            #define NS_DLL_EXPORT
+        #else
+            #define NS_DLL_EXPORT __declspec(dllexport)
+        #endif
+    #endif
+    #ifndef NS_DLL_IMPORT
+        #ifdef NS_STATIC_LIBRARY
+            #define NS_DLL_IMPORT
+        #else
+            #define NS_DLL_IMPORT __declspec(dllimport)
+        #endif
     #endif
 
     #define NS_UNUSED(...) (void)(true ? (void)0 : ((void)(__VA_ARGS__)))
 
-    #define NS_NOOP __noop
+    #ifdef _DEBUG 
+        #define NS_BEGIN_COLD_REGION
+        #define NS_END_COLD_REGION
+    #else
+        #define NS_BEGIN_COLD_REGION __pragma(optimize("s", on))
+        #define NS_END_COLD_REGION __pragma(optimize("", on))
+    #endif
+
+    #define NS_COLD_FUNC
     #define NS_DEBUG_BREAK __debugbreak()
+    #define NS_NOOP __noop
     #define NS_FORCEINLINE __forceinline
     #define NS_NOINLINE __declspec(noinline)
     #define NS_UNUSED_FUNC
     #define NS_WARNING_PUSH __pragma(warning(push))
     #define NS_MSVC_WARNING_DISABLE(n) __pragma(warning(disable:n))
     #define NS_MSVC_WARNING_SUPPRESS(n) __pragma(warning(suppress:n))
+    #define NS_GCC_CLANG_WARNING_DISABLE(x)
     #define NS_GCC_WARNING_DISABLE(x)
-    #define NS_CLANG_HAS_WARNING(x) 0
     #define NS_CLANG_WARNING_DISABLE(x)
+    #define NS_CLANG_HAS_WARNING(x) 0
     #define NS_WARNING_POP __pragma(warning(pop))
     #define NS_ALIGN(_x) __declspec(align(_x))
     #define NS_INTERFACE struct __declspec(novtable)
@@ -86,18 +97,32 @@
         #define NS_FORMAT_PRINTF
     #endif
 
-// GNU Gcc C++ compiler
+// GCC - Clang
 #elif defined(__GNUG__) && __GNUG__ >= 4
     #define NS_COMPILER_GCC
     #define NS_COMPILER_VERSION (__GNUC__ * 1000 + __GNUC_MINOR__)
-    #define NS_COMPILER_NAME "GCC"
 
     #define NS_MACRO_BEGIN do {
     #define NS_MACRO_END } while (false)
 
-    // http://gcc.gnu.org/wiki/Visibility
-    #define NS_DLL_EXPORT __attribute__ ((visibility("default")))
-    #define NS_DLL_IMPORT __attribute__ ((visibility("default")))
+    #ifndef __has_declspec_attribute
+        #define __has_declspec_attribute(_x) 0
+    #endif
+
+    #ifndef NS_DLL_EXPORT
+        #if __has_declspec_attribute(dllexport)
+            #define NS_DLL_EXPORT __declspec(dllexport)
+        #else
+            #define NS_DLL_EXPORT __attribute__ ((visibility("default")))
+        #endif
+    #endif
+    #ifndef NS_DLL_IMPORT
+        #if __has_declspec_attribute(dllimport)
+            #define NS_DLL_IMPORT __declspec(dllimport)
+        #else
+            #define NS_DLL_IMPORT __attribute__ ((visibility("default")))
+        #endif
+    #endif
 
     // https://stackoverflow.com/questions/23235910/variadic-unused-function-macro
     #define NS_UNUSED_1(x1) (void)(true ? (void)0 : ((void)(x1)))
@@ -115,12 +140,17 @@
     #define NS_UNUSED_IMPL(nargs) NS_UNUSED_IMPL_(nargs)
     #define NS_UNUSED(...) NS_UNUSED_IMPL(VA_NUM_ARGS(__VA_ARGS__))(__VA_ARGS__ )
 
-    #define NS_NOOP (void)(sizeof(0))
+    #define NS_BEGIN_COLD_REGION
+    #define NS_END_COLD_REGION
+    #define NS_COLD_FUNC __attribute__((cold))
 
     #if defined(__ORBIS__)
         #define NS_DEBUG_BREAK __asm volatile ("int $0x41")
     #elif defined(__i386__) || defined(__x86_64__)
         #define NS_DEBUG_BREAK __asm__("int $0x03")
+    #elif defined(__EMSCRIPTEN__)
+        #include <emscripten.h>
+        #define NS_DEBUG_BREAK emscripten_debugger()
     #elif defined(__arm__)
         #include <unistd.h>
         #include <signal.h>
@@ -136,18 +166,21 @@
         #define NS_DEBUG_BREAK __builtin_trap()
     #endif
 
+    #define NS_NOOP (void)(sizeof(0))
     #define NS_FORCEINLINE __attribute__ ((always_inline)) inline
     #define NS_NOINLINE __attribute__ ((noinline))
     #define NS_UNUSED_FUNC __attribute__ ((unused))
     #define NS_WARNING_PUSH _Pragma("GCC diagnostic push")
     #define NS_MSVC_WARNING_DISABLE(n)
     #define NS_MSVC_WARNING_SUPPRESS(n)
-    #define NS_GCC_WARNING_DISABLE(x) _Pragma(NS_STRINGIFY(GCC diagnostic ignored x))
+    #define NS_GCC_CLANG_WARNING_DISABLE(x) _Pragma(NS_STRINGIFY(GCC diagnostic ignored x))
 
     #ifdef __clang__
-        #define NS_CLANG_HAS_WARNING(x) __has_warning(x)
+        #define NS_GCC_WARNING_DISABLE(x)
         #define NS_CLANG_WARNING_DISABLE(x) _Pragma(NS_STRINGIFY(clang diagnostic ignored x))
+        #define NS_CLANG_HAS_WARNING(x) __has_warning(x)
     #else
+        #define NS_GCC_WARNING_DISABLE(x) _Pragma(NS_STRINGIFY(GCC diagnostic ignored x))
         #define NS_CLANG_HAS_WARNING(x) 0
         #define NS_CLANG_WARNING_DISABLE(x)
     #endif
@@ -170,28 +203,6 @@
 
 #else
     #error Compiler not supported
-#endif
-
-// Only bindings are exported in Unity/NET API
-#if defined(NS_UNITY3D) || defined(NS_NETSDK)
-    #undef NS_DLL_EXPORT
-    #define NS_DLL_EXPORT
-    #undef NS_DLL_IMPORT
-    #define NS_DLL_IMPORT
-#endif
-
-#if defined(__GXX_ABI_VERSION) && defined(__GXX_RTTI)
-    #define NS_COMPILER_RTTI
-#elif defined(_MSC_VER) && defined(_CPPRTTI)
-    #define NS_COMPILER_RTTI
-#endif
-
-#ifndef NS_INSTRUMENTED_ENABLED
-    #define NS_INSTRUMENTED_ENABLED 0
-#endif
-
-#ifndef PATH_MAX
-    #define PATH_MAX 260
 #endif
 
 #endif

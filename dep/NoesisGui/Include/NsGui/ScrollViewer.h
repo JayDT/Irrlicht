@@ -26,39 +26,41 @@ struct CanExecuteRoutedEventArgs;
 struct ExecutedRoutedEventArgs;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// ScrollChangedEventArgs
+/// Describes a change in the scrolling state for a ScrollViewer.ScrollChanged event.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct NS_GUI_CORE_API ScrollChangedEventArgs: public RoutedEventArgs
 {
-    /// Gets the updated height of the ScrollViewerextent.
+    /// Gets the updated *height* of the ScrollViewer *extent*
     float extentHeight;
-    /// Gets a value that indicates the change in height of the ScrollViewerextent.
+    /// Gets a value that indicates the change in *height* of the ScrollViewer *extent*
     float extentHeightChange;
-    /// Gets the updated width of the ScrollViewerextent.
+    /// Gets the updated *width* of the ScrollViewer *extent*
     float extentWidth;
-    /// Gets a value that indicates the change in width of the ScrollViewerextent.
+    /// Gets a value that indicates the change in *width* of the ScrollViewer *extent*
     float extentWidthChange;
-    /// Gets a value that indicates the change in horizontal offset for a ScrollViewer.
+    /// Gets a value that indicates the change in *horizontal offset* for a ScrollViewer
     float horizontalChange;
-    /// Gets the updated horizontal offset value for a ScrollViewer.
+    /// Gets the updated *horizontal offset* value for a ScrollViewer
     float horizontalOffset;
-    /// Gets a value that indicates the change in vertical offset of a ScrollViewer.
+    /// Gets a value that indicates the change in *vertical offset* of a ScrollViewer
     float verticalChange;
-    /// Gets the updated value of the vertical offset for a ScrollViewer.
+    /// Gets the updated value of the *vertical offset* for a ScrollViewer
     float verticalOffset;
-    /// Gets the updated value of the viewport height for a ScrollViewer
+    /// Gets the updated *height* for a ScrollViewer *viewport*
     float viewportHeight;
-    /// Gets a value that indicates the change in value of the viewport height for ScrollViewer
+    /// Gets a value that indicates the change in *height* for ScrollViewer *viewport*
     float viewportHeightChange;
-    /// Gets the updated value of the viewport width for a ScrollViewer.
+    /// Gets the updated *width* for a ScrollViewer *viewport*
     float viewportWidth;
-    /// Gets a value that indicates the change in viewport width of a ScrollViewer.
+    /// Gets a value that indicates the change in *width* of a ScrollViewer *viewport*
     float viewportWidthChange;
 
     ScrollChangedEventArgs(BaseComponent* s);
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Specifies how ScrollViewer reacts to touch manipulation
+////////////////////////////////////////////////////////////////////////////////////////////////////
 enum PanningMode
 {
     /// The ScrollViewer scrolls horizontally and vertically
@@ -79,7 +81,6 @@ enum PanningMode
     PanningMode_VerticalOnly
 };
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
 typedef Noesis::Delegate<void (BaseComponent*, const ScrollChangedEventArgs&)> 
     ScrollChangedEventHandler;
 
@@ -94,10 +95,7 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 class NS_GUI_CORE_API ScrollViewer: public ContentControl
 {
 public:
-    /// Constructor
     ScrollViewer();
-    
-    /// Destructor
     ~ScrollViewer();
 
     /// Gets a value that indicates whether elements that support the IScrollInfo interface are
@@ -141,7 +139,7 @@ public:
     /// Sets the ratio of scrolling offset to translate manipulation offset
     static void SetPanningRatio(DependencyObject* element, float panningRatio);
 
-    /// Gets or sets a value that indicates whether elements that support the IScrollInfo interface
+    /// Gets or sets a value that indicates whether content that support the IScrollInfo interface
     /// are allowed to scroll
     //@}
     bool GetCanContentScroll() const;
@@ -316,6 +314,7 @@ protected:
 
     /// From UIElement
     //@{
+    void OnMouseLeftButtonDown(const MouseButtonEventArgs& e);
     void OnMouseWheel(const MouseWheelEventArgs& e);
     void OnManipulationStarting(const ManipulationStartingEventArgs& e);
     void OnManipulationDelta(const ManipulationDeltaEventArgs& e);
@@ -332,6 +331,7 @@ private:
     friend class ScrollContentPresenter;
     friend class TextContainer;
     friend class TextBox;
+    friend class BaseTextBox;
     friend class ScrollViewerTest;
 
     // Gets or sets the element that implements the IScrollInfo interface and provides values for
@@ -362,10 +362,11 @@ private:
     {
         struct
         {
-            bool measureInvalidated:1;
-            bool launchScrollEvent:1;
-            bool isTouchPanning:1;
-            bool completeManipulation:1;
+            bool measureInvalidated : 1;
+            bool launchScrollEvent : 1;
+            bool isTouchPanning : 1;
+            bool completeManipulation : 1;
+            bool disableWheelScrolling : 1;
         } mFlags;
 
         // To quickly set all flags to 0
@@ -380,5 +381,6 @@ NS_WARNING_POP
 }
 
 NS_DECLARE_REFLECTION_ENUM_EXPORT(NS_GUI_CORE_API, Noesis::PanningMode)
+
 
 #endif

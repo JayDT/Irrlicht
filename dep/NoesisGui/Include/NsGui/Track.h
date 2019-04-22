@@ -11,6 +11,7 @@
 #include <NsCore/Noesis.h>
 #include <NsGui/CoreApi.h>
 #include <NsGui/FrameworkElement.h>
+#include <NsGui/Enums.h>
 
 
 namespace Noesis
@@ -18,7 +19,6 @@ namespace Noesis
 
 class RepeatButton;
 class Thumb;
-enum Orientation;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -35,33 +35,33 @@ public:
     Track();
     ~Track();
 
-    /// Gets the RepeatButton that decreases the Value property of the Track
+    /// Gets the RepeatButton that decreases the *Value* property of the Track
     /// \prop
     //@{
     RepeatButton* GetDecreaseRepeatButton() const;
     void SetDecreaseRepeatButton(RepeatButton* decButton);
     //@}
 
-    /// Gets the RepeatButton that increases the Value property of the Track class
+    /// Gets the RepeatButton that increases the *Value* property of the Track class
     /// \prop
     //@{
     RepeatButton* GetIncreaseRepeatButton() const;
     void SetIncreaseRepeatButton(RepeatButton* incButton);
     //@}
 
-    /// Gets or sets if the direction of increasing Value is reversed from the default direction
+    /// Gets or sets if the direction of increasing *Value* is reversed from the default direction
     //@{
     bool GetIsDirectionReversed() const;
     void SetIsDirectionReversed(bool directionReversed);
     //@}
 
-    /// Gets or sets the maximum possible Value of the Track
+    /// Gets or sets the maximum possible *Value* of the Track
     //@{
     float GetMaximum() const;
     void SetMaximum(float maximum);
     //@}
 
-    /// Gets or sets the minimum possible Value of the Track
+    /// Gets or sets the minimum possible *Value* of the Track
     //@{
     float GetMinimum() const;
     void SetMinimum(float minimum);
@@ -73,7 +73,7 @@ public:
     void SetOrientation(Orientation orientation);
     //@}
 
-    /// Gets the Thumb control that is used to change the Value of a Track
+    /// Gets the Thumb control that is used to change the *Value* of a Track
     //@{
     Thumb* GetThumb() const;
     void SetThumb(Thumb* thumb);
@@ -91,7 +91,7 @@ public:
     void SetViewportSize(float size);
     //@}
     
-    /// Calculates the change in the Value of the Track when the Thumb moves.
+    /// Calculates the change in the *Value* of the Track when the Thumb moves
     float ValueFromDistance(float horizontal, float vertical) const;
     
     /// Calculates the distance value from a specified point along the Track
@@ -111,29 +111,32 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    void OnInit();
+    void OnInit() override;
     //@}
 
     /// From Visual
     //@{
-    uint32_t GetVisualChildrenCount() const;
-    Visual* GetVisualChild(uint32_t index) const;
+    uint32_t GetVisualChildrenCount() const override;
+    Visual* GetVisualChild(uint32_t index) const override;
     //@}
-    
+
     /// From FrameworkElement
     //@{
-    uint32_t GetLogicalChildrenCount() const;
-    BaseComponent* GetLogicalChild(uint32_t index) const;
-    void CloneOverride(FrameworkElement* clone, FrameworkTemplate* template_) const;
-    Size MeasureOverride(const Size& availableSize);
-    Size ArrangeOverride(const Size& finalSize);
+    uint32_t GetLogicalChildrenCount() const override;
+    Ptr<BaseComponent> GetLogicalChild(uint32_t index) const override;
+    void CloneOverride(FrameworkElement* clone, FrameworkTemplate* template_) const override;
+    Size MeasureOverride(const Size& availableSize) override;
+    Size ArrangeOverride(const Size& finalSize) override;
     //@}
 
 private:
-    void ArrangeHorizontal(const Size& finalSize, float trackSize,
-        float viewportSize, float thumbPos, RepeatButton* decBtn, RepeatButton* incBtn);
-    void ArrangeVertical(const Size& finalSize, float trackSize,
-        float viewportSize, float thumbPos, RepeatButton* decBtn, RepeatButton* incBtn);
+    void ArrangeHorizontal(const Size& finalSize, float trackSize, float thumbPos,
+        RepeatButton* decBtn, RepeatButton* incBtn);
+    void ArrangeVertical(const Size& finalSize, float trackSize, float thumbPos,
+        RepeatButton* decBtn, RepeatButton* incBtn);
+    float ThumbSize(float finalSize, float trackSize, float desiredSize);
+
+    static bool ValidateViewportSize(const void* value);
 
 private:
     Ptr<Thumb> mThumb;
@@ -146,5 +149,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

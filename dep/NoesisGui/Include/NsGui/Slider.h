@@ -19,15 +19,12 @@
 namespace Noesis
 {
 
-enum Orientation;
 class Track;
-class BaseButton;
-class RepeatButton;
+class RoutedCommand;
 struct DragStartedEventArgs;
 struct DragDeltaEventArgs;
 struct CanExecuteRoutedEventArgs;
 struct ExecutedRoutedEventArgs;
-class RoutedCommand;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -45,82 +42,83 @@ public:
     ~Slider();
 
     /// Gets or sets the amount of time in milliseconds that a RepeatButton waits, while it is 
-    /// pressed, before a command to move the Thumb executes, such as a DecreaseLarge command. 
+    /// pressed, before a command to move the Thumb executes, such as a *DecreaseLarge* command
     //@{
     int32_t GetDelay() const;
     void SetDelay(int32_t delay);
     //@}
-    
+
     /// Gets or sets the amount of time in milliseconds between increase or decrease commands when
-    /// a user clicks the RepeatButton of a Slider. 
+    /// a user clicks the RepeatButton of a Slider
     //@{
     int32_t GetInterval() const;
     void SetInterval(int32_t interval);
     //@}
-    
-    /// Gets or sets the direction of increasing value. 
+
+    /// Gets or sets the direction of increasing value
     //@{
     bool GetIsDirectionReversed() const;
     void SetIsDirectionReversed(bool value);
     //@}
-    
+
     /// Gets or sets a value that indicates whether the Thumb of a Slider moves immediately to the
-    /// location of the mouse click that occurs while the mouse pointer pauses on the Slider track. 
+    /// location of the mouse click that occurs while the mouse pointer pauses on the Slider track
     //@{
     bool GetIsMoveToPointEnabled() const;
     void SetIsMoveToPointEnabled(bool value);
     //@}
-    
+
     /// Gets or sets a value that indicates whether the Slider displays a selection range along the
-    /// Slider.
+    /// Slider
     //@{
     bool GetIsSelectionRangeEnabled() const;
     void SetIsSelectionRangeEnabled(bool value);
     //@}
-    
+
     /// Gets or sets a value that indicates whether the Slider automatically moves the Thumb to the
-    /// closest tick mark.
+    /// closest tick mark
     //@{
     bool GetIsSnapToTickEnabled() const;
     void SetIsSnapToTickEnabled(bool value);
     //@}
-    
-    /// Gets or sets the orientation of a Slider. 
+
+    /// Gets or sets the orientation of a Slider
     //@{
     Orientation GetOrientation() const;
     void SetOrientation(Orientation orientation);
     //@}
-    
-    /// Gets or sets the largest value of a specified selection for a Slider.
+
+    /// Gets or sets the largest value of a specified selection for a Slider
     //@{
     float GetSelectionEnd() const;
     void SetSelectionEnd(float value);
     //@}
-    
-    /// Gets or sets the smallest value of a specified selection for a Slider.
+
+    /// Gets or sets the smallest value of a specified selection for a Slider
     //@{
     float GetSelectionStart() const;
     void SetSelectionStart(float value);
     //@}
-    
-    /// Gets or sets the interval between tick marks. 
+
+    /// Gets or sets the interval between tick marks
     //@{
     float GetTickFrequency() const;
     void SetTickFrequency(float value);
     //@}
-    
-    /// Gets or sets the position of tick marks with respect to the Track of the Slider. 
+
+    /// Gets or sets the position of tick marks with respect to the Track of the Slider
     //@{
     TickPlacement GetTickPlacement() const;
     void SetTickPlacement(TickPlacement placement);
     //@}
-    
-    /// Gets or sets the positions of the tick marks to display for a Slider. 
+
+    /// Gets or sets the positions of the tick marks to display for a Slider
     //@{
     const char* GetTicks() const;
     void SetTicks(const char* value);
     //@}
 
+    /// Gets the Track for a Slider control
     Track* GetTrack() const;
 
 public:
@@ -163,24 +161,23 @@ protected:
 
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
     /// From UIElement
     //@{
-    void OnPreviewMouseLeftButtonDown(const MouseButtonEventArgs& e);
-    void OnMouseLeftButtonDown(const MouseButtonEventArgs& e);
+    void OnPreviewMouseLeftButtonDown(const MouseButtonEventArgs& e) override;
     //@}
 
     /// From Control
     //@{
     void OnTemplateChanged(FrameworkTemplate* oldTemplate, FrameworkElement* oldRoot,
-        FrameworkTemplate* newTemplate, FrameworkElement* newRoot);
+        FrameworkTemplate* newTemplate, FrameworkElement* newRoot) override;
     //@}
 
     /// From Slider
     //@{
-    void OnValueChanged(float oldValue, float newValue);
+    void OnValueChanged(float oldValue, float newValue) override;
     //@}
 
 private:
@@ -223,5 +220,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

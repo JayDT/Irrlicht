@@ -28,14 +28,14 @@ namespace NoesisApp
 	public:
 		static void RemoveChild(Noesis::DependencyObject* parent, Noesis::UIElement* child)
 		{
-			auto panel = NsDynamicCast<Noesis::Panel*>(parent);
+			auto panel = Noesis::DynamicCast<Noesis::Panel*>(parent);
 			if (panel != nullptr)
 			{
 				panel->GetChildren()->Remove(child);
 				return;
 			}
 
-			auto decorator = NsDynamicCast<Noesis::Decorator*>(parent);
+			auto decorator = Noesis::DynamicCast<Noesis::Decorator*>(parent);
 			if (decorator != nullptr)
 			{
 				if (decorator->GetChild() == child)
@@ -45,7 +45,7 @@ namespace NoesisApp
 				return;
 			}
 
-			auto contentPresenter = NsDynamicCast<Noesis::ContentPresenter*>(parent);
+			auto contentPresenter = Noesis::DynamicCast<Noesis::ContentPresenter*>(parent);
 			if (contentPresenter != nullptr)
 			{
 				if (contentPresenter->GetContent() == child)
@@ -55,7 +55,7 @@ namespace NoesisApp
 				return;
 			}
 
-			auto contentControl = NsDynamicCast<Noesis::ContentControl*>(parent);
+			auto contentControl = Noesis::DynamicCast<Noesis::ContentControl*>(parent);
 			if (contentControl != nullptr)
 			{
 				if (contentControl->GetContent() == child)

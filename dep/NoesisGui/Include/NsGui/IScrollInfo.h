@@ -119,12 +119,13 @@ NS_INTERFACE IScrollInfo: public Interface
     /// Sets the amount of vertical offset
     virtual void SetVerticalOffset(float offset) = 0;
 
-    /// Forces content to scroll until the coordinate space of a Visual object is visible.
+    /// Forces content to scroll until the coordinate space of a Visual object is visible
     virtual Rect MakeVisible(Visual* visual, const Rect& rectangle) = 0;
 
     NS_IMPLEMENT_INLINE_REFLECTION_(IScrollInfo, Interface)
 };
 
 }
+
 
 #endif

@@ -24,7 +24,7 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents a control that contains multiple items that share the same space on the screen. 
+/// Represents a control that contains multiple items that share the same space on the screen.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.tabcontrol.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -75,26 +75,27 @@ public:
     //@}
 
 protected:
-    // From UIElement
+    /// From UIElement
     //@{
+    Size MeasureOverride(const Size& availableSize) override;
     void OnKeyDown(const KeyEventArgs& args) override;
+    void OnPreviewGotKeyboardFocus(const KeyboardFocusChangedEventArgs& args) override;
     //@}
 
-    // From Control
+    /// From Control
     //@{
     void OnTemplateChanged(FrameworkTemplate* oldTemplate, FrameworkElement* oldRoot,
         FrameworkTemplate* newTemplate, FrameworkElement* newRoot) override;
     void UpdateVisualStates() override;
     //@}
 
-    // From ItemsControl
+    /// From ItemsControl
     //@{
     Ptr<DependencyObject> GetContainerForItemOverride() const override;
     bool IsItemItsOwnContainerOverride(BaseComponent* item) const override;
-    void OnContainersGenerated() override;
     //@}
 
-    // From Selector
+    /// From Selector
     //@{
     void OnSelectionChanged(const SelectionChangedEventArgs& args) override;
     //@}
@@ -119,5 +120,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

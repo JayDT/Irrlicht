@@ -16,18 +16,15 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents a control that raises its Click event repeatedly from the time it is
-/// pressed until it is released.
+/// Represents a control that raises its *Click* event repeatedly from the time it is pressed until
+/// it is released.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.primitives.repeatbutton.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API RepeatButton: public BaseButton
 {
 public:
-    /// Constructor
     RepeatButton();
-
-    /// Destructor
     ~RepeatButton();
 
     /// Gets or sets the amount of time, in milliseconds, the RepeatButton waits while it is
@@ -44,6 +41,7 @@ public:
     void SetInterval(int32_t interval);
     //@}
 
+public:
     /// Dependency properties
     //@{
     static const DependencyProperty* DelayProperty;
@@ -51,14 +49,13 @@ public:
     //@}
 
 protected:
-    // From BaseButton
+    /// From BaseButton
     //@{
     void OnClick();
     //@}
 
-    // From UIElement
+    /// From UIElement
     //@{
-    //protected override AutomationPeer OnCreateAutomationPeer();
     void OnKeyDown(const KeyEventArgs& e);
     void OnKeyUp(const KeyEventArgs& e);
     void OnLostMouseCapture(const MouseEventArgs& e);
@@ -67,13 +64,13 @@ protected:
     void OnMouseLeftButtonDown(const MouseButtonEventArgs& e);
     void OnMouseLeftButtonUp(const MouseButtonEventArgs& e);
     //@}
-    
+
+private:
     void StartTimer();
     void StopTimer();
 
-    uint32_t OnTimerElapsed(void*);
+    uint32_t OnTimerElapsed();
 
-private:
     static bool ValidateDelay(const void* value);
     static bool ValidateInterval(const void* value);
 
@@ -84,5 +81,6 @@ private:
 };
 
 }
+
 
 #endif

@@ -19,32 +19,31 @@ namespace Noesis
 
 struct NotifyCollectionChangedEventArgs;
 
-template<class T> class TypedFreezableCollection;
-typedef Noesis::TypedFreezableCollection<Noesis::Geometry> GeometryCollection;
+template<class T> class FreezableCollection;
+typedef Noesis::FreezableCollection<Noesis::Geometry> GeometryCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents a composite geometry, composed of other Geometry objects. 
+/// Represents a composite geometry, composed of other Geometry objects.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.geometrygroup.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API GeometryGroup: public Geometry
+class NS_GUI_CORE_API GeometryGroup final: public Geometry
 {
 public:
     GeometryGroup();
     ~GeometryGroup();
 
     /// Gets or sets the GeometryCollection that contains the objects that define this GeometryGroup
-    // TODO [srodriguez] Create a GeometryCollection
     //@{
     GeometryCollection* GetChildren() const;
     void SetChildren(GeometryCollection* collection);
     //@}
 
-    /// Gets or sets how the intersecting areas of the objects contained in this GeometryGroup are 
-    /// combined.
+    /// Gets or sets how the intersecting areas of the objects contained in this GeometryGroup are
+    /// combined
     //@{
     FillRule GetFillRule() const;
     void SetFillRule(FillRule rule);
@@ -52,10 +51,10 @@ public:
 
     /// From Geometry
     //@{
-    bool IsEmpty() const;
+    bool IsEmpty() const override;
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<GeometryGroup> Clone() const;
     Ptr<GeometryGroup> CloneCurrentValue() const;
@@ -63,8 +62,8 @@ public:
 
     /// From IRenderProxyCreator
     //@{
-    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
+    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
     //@}
 
 public:
@@ -77,30 +76,29 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
     /// From Freezable
     //@{
-    bool FreezeCore(bool isChecking);
-    Ptr<Freezable> CreateInstanceCore() const;
+    bool FreezeCore(bool isChecking) override;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
 
     /// From Geometry
     //@{
-    Rect GetRenderBoundsOverride(Pen* pen) const;
-    bool FillContainsOverride(const Point& point) const;
-    bool StrokeContainsOverride(Pen* pen, const Point& point) const;
+    Rect GetRenderBoundsOverride(Pen* pen) const override;
+    bool FillContainsOverride(const Point& point) const override;
+    bool StrokeContainsOverride(Pen* pen, const Point& point) const override;
     //@}
 
 private:
-    void OnChildrenChanged(BaseComponent* sender,
-        const NotifyCollectionChangedEventArgs& args);
+    void OnChildrenChanged(BaseComponent* sender, const NotifyCollectionChangedEventArgs& args);
     void RegisterChildren(GeometryCollection* children);
-    void RegisterChild(BaseComponent* child);
+    void RegisterChild(Geometry* child);
     void UnregisterChildren(GeometryCollection* children);
-    void UnregisterChild(BaseComponent* child);
+    void UnregisterChild(Geometry* child);
 
     void OnChildChanged(Freezable* obj, FreezableEventReason reason);
 
@@ -119,5 +117,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

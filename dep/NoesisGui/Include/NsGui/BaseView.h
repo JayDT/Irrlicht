@@ -32,19 +32,18 @@ class NS_GUI_CONTROLS_API BaseView: public DependencyObject, public IUITreeNode
 public:
     BaseView();
     ~BaseView();
-    
+
     /// Removes all bindings and styling that are set for an item
     virtual void ClearItem(ListViewItem* item);
-    
+
     /// Prepares an item in the view for display, by setting bindings and styles
     virtual void PrepareItem(ListViewItem* item);
-    
+
     /// From IUITreeNode
     //@{
     IUITreeNode* GetNodeParent() const override;
     void SetNodeParent(IUITreeNode* parent) override;
-    BaseComponent* FindNodeResource(IResourceKey* key,
-        bool fullElementSearch) const override;
+    BaseComponent* FindNodeResource(IResourceKey* key, bool fullElementSearch) const override;
     BaseComponent* FindNodeName(const char* name) const override;
     ObjectWithNameScope FindNodeNameAndScope(const char* name) const override;
     //@}
@@ -59,12 +58,13 @@ protected:
 
 private:
     IUITreeNode* mOwner;
-    
+
     NS_DECLARE_REFLECTION(BaseView, DependencyObject)
 };
 
 NS_WARNING_POP
 
 }
+
 
 #endif

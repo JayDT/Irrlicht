@@ -26,8 +26,6 @@ class Panel;
 class ResourceKeyString;
 class ItemsControlTest;
 struct NotifyCollectionChangedEventArgs;
-NS_INTERFACE IList;
-NS_INTERFACE INotifyCollectionChanged;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -40,11 +38,23 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 class NS_GUI_CORE_API ItemsControl: public Control
 {
 public:
-    /// Constructor
     ItemsControl();
-    
-    /// Destructor
     ~ItemsControl();
+
+    /// Gets or sets a value that controls the range of values assigned to the AlternationIndex
+    /// property attached to each generated container.
+    ///  * The default value 0 means "do not set AlternationIndex"
+    ///  * A positive value means "assign AlternationIndex in the range [0, AlternationCount) so
+    ///    that adjacent containers receive different values"
+    //@{
+    int GetAlternationCount() const;
+    void SetAlternationCount(int value);
+    //@}
+
+    /// Gets the index set on generated containers, when the ItemsControl's AlternationCount
+    /// property is positive. The AlternationIndex lies in the range [0, AlternationCount), and
+    /// adjacent containers always get assigned different values
+    static int GetAlternationIndex(const DependencyObject* element);
 
     /// Gets or sets a path to a value on the source object to serve as the visual representation 
     /// of the object
@@ -65,7 +75,7 @@ public:
     void SetItemContainerStyle(Style* style);
     //@}
 
-    /// Gets or sets the template that defines the panel that controls the layout of items
+    /// Gets or sets the ItemsPanelTemplate that defines the Panel that controls the layout of items
     //@{
     ItemsPanelTemplate* GetItemsPanel() const;
     void SetItemsPanel(ItemsPanelTemplate* value);
@@ -80,14 +90,15 @@ public:
     BaseComponent* GetItemsSource() const;
     void SetItemsSource(BaseComponent* items);
     //@}
-    
+
     /// Gets or sets the DataTemplate used to display each item.
     //@{
     DataTemplate* GetItemTemplate() const;
     void SetItemTemplate(DataTemplate* value);
     //@}
-    
-    /// Gets or sets the custom logic for choosing a template used to display each item.
+
+    /// Gets or sets a DataTemplateSelector that provides custom logic for choosing the template
+    /// used to display the header
     //@{
     DataTemplateSelector* GetItemTemplateSelector() const;
     void SetItemTemplateSelector(DataTemplateSelector* selector);
@@ -100,14 +111,14 @@ public:
     /// Returns the ItemsControl that owns the specified container element.
     static ItemsControl* ItemsControlFromItemContainer(DependencyObject* container);
 
-    /// Return the container that owns the given element. If itemsControl is not null, return a
-    /// container that belongs to the given ItemsControl. If itemsControl is null, return the
-    /// closest container belonging to any ItemsControl. Return null if no such container exists
+    /// Returns the container that owns the given element. If *itemsControl* is not null, returns a
+    /// container that belongs to the given ItemsControl. If *itemsControl* is null, returns the
+    /// closest container belonging to any ItemsControl. Returns null if no such container exists
     static DependencyObject* ContainerFromElement(ItemsControl* itemsControl,
         DependencyObject* element);
 
-    /// Return the container belonging to the current ItemsControl that owns the given container
-    /// element. Return null if no such container exists
+    /// Returns the container belonging to the current ItemsControl that owns the given container
+    /// element. Returns null if no such container exists
     DependencyObject* ContainerFromElement(DependencyObject* element);
 
     /// Returns the ItemsControl that the specified element hosts items for. If IsItemsHost is set 
@@ -121,6 +132,8 @@ public:
 public:
     /// Dependency properties
     //@{
+    static const DependencyProperty* AlternationCountProperty;
+    static const DependencyProperty* AlternationIndexProperty; // attached property
     static const DependencyProperty* DisplayMemberPathProperty;
     static const DependencyProperty* HasItemsProperty;
     static const DependencyProperty* ItemContainerStyleProperty;
@@ -131,6 +144,9 @@ public:
     //@}
     
 protected:
+    // Updates items presenter and items host
+    void RefreshItems();
+
     // Gets the panel which is marked by the template to visually host the items
     Panel* GetItemsHost() const;
 
@@ -169,7 +185,7 @@ protected:
         DataTemplateSelector* newSelector);
 
     // Tries to bring item into view
-    void BringIntoView(BaseComponent* item);
+    void OnBringItemIntoView(BaseComponent* item);
 
     // From DependencyObject
     //@{
@@ -186,7 +202,7 @@ protected:
     //@{
     void CloneOverride(FrameworkElement* clone, FrameworkTemplate* template_) const override;
     uint32_t GetLogicalChildrenCount() const override;
-    BaseComponent* GetLogicalChild(uint32_t index) const override;
+    Ptr<BaseComponent> GetLogicalChild(uint32_t index) const override;
     void OnTemplateChanged(FrameworkTemplate* oldTemplate, FrameworkElement* oldRoot,
         FrameworkTemplate* newTemplate, FrameworkElement* newRoot) override;
     Size MeasureOverride(const Size& availableSize) override;
@@ -268,9 +284,15 @@ private:
 
     void InvalidateItemsPresenter();
     void InvalidateItems();
-    void RefreshItems();
 
     bool CheckTemplateProperties();
+
+    static void SetAlternationIndex(DependencyObject* element, int value);
+    static void ClearAlternationIndex(DependencyObject* element);
+
+    static void OnAlternationCountChanged(DependencyObject* d,
+        const DependencyPropertyChangedEventArgs& e);
+    virtual void OnAlternationCountChanged(int oldValue, int newValue);
 
 private:
     Ptr<ItemCollection> mItems;
@@ -287,5 +309,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

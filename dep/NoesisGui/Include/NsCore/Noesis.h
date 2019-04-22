@@ -12,7 +12,6 @@
 
 #include <NsCore/CompilerSettings.h>
 #include <NsCore/PlatformSettings.h>
-#include <NsCore/Memory.h>
 
 
 #endif

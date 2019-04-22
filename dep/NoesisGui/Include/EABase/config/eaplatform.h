@@ -184,6 +184,9 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     #if defined(__arm__)
         #define EA_PROCESSOR_ARM
         #define EA_PLATFORM_DESCRIPTION "Android on ARM"
+    #elif defined(__aarch64__)
+		#define EA_PROCESSOR_ARM64 1
+        #define EA_PLATFORM_DESCRIPTION "Android on ARM64"
     #elif defined(__i386__)
         #define EA_PROCESSOR_X86
         #define EA_PLATFORM_DESCRIPTION "Android on X86"
@@ -295,10 +298,10 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             #define EA_SYSTEM_LITTLE_ENDIAN
             #define EA_PLATFORM_DESCRIPTION "iPhone simulator on x86"
         #elif defined(__x86_64)
-            #define NS_PLATFORM_IPHONE_SIMULATOR
-            #define NS_PROCESSOR_X86_64
-            #define NS_LITTLE_ENDIAN
-            #define NS_PLATFORM_DESCRIPTION "iPhone simulator on x86-64"
+            #define EA_PLATFORM_IPHONE_SIMULATOR
+            #define EA_PROCESSOR_X86_64
+            #define EA_LITTLE_ENDIAN
+            #define EA_PLATFORM_DESCRIPTION "iPhone simulator on x86-64"
         #else
             #error Unknown processor
         #endif
@@ -351,6 +354,28 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     #else
         #error Unknown Apple Platform
     #endif
+
+#elif defined(__EMSCRIPTEN__)
+    #undef  EA_PLATFORM_LINUX
+    #define EA_PLATFORM_LINUX 1
+    #define EA_PLATFORM_UNIX 1
+    #define EA_PLATFORM_NAME "Linux"
+    #define EA_PROCESSOR_X86
+    #define EA_SYSTEM_LITTLE_ENDIAN
+    #define EA_PLATFORM_DESCRIPTION "Emscripten"
+    #if defined(__GNUC__)
+        #define EA_ASM_STYLE_ATT
+    #endif
+    #define EA_PLATFORM_DESKTOP
+
+#elif defined(NN_NINTENDO_SDK)
+    #undef  EA_PLATFORM_NX
+    #define EA_PLATFORM_NX 1
+    #define EA_PLATFORM_NAME "Nintendo Switch"
+    #define EA_PROCESSOR_ARM_64
+    #define EA_SYSTEM_LITTLE_ENDIAN
+    #define EA_PLATFORM_DESCRIPTION "Nintendo Switch on ARM-64"
+    #define EA_PLATFORM_CONSOLE
 
 // Linux
 // __linux and __linux__ are defined by the GCC and Borland compiler.

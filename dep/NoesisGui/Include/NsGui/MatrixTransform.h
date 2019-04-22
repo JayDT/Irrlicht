@@ -16,8 +16,8 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Creates an arbitrary affine matrix transformation that is used to manipulate
-/// objects or coordinate systems in a 2-D plane.
+/// Creates an arbitrary affine matrix transformation that is used to manipulate objects or
+/// coordinate systems in a 2D plane.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.matrixtransform.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,7 +31,7 @@ public:
     /// Parses a string value to create an instance of a MatrixTransform
     static bool TryParse(const char* str, Ptr<MatrixTransform>& result);
 
-    /// Gets or sets matrix
+    /// Gets or sets the 2D matrix that represents this MatrixTransform
     //@{
     const Transform2f& GetMatrix() const;
     void SetMatrix(const Transform2f& matrix);
@@ -39,10 +39,10 @@ public:
 
     /// From Transform
     //@{
-    Transform2f GetTransform() const;
+    Transform2f GetTransform() const override;
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<MatrixTransform> Clone() const;
     Ptr<MatrixTransform> CloneCurrentValue() const;
@@ -50,9 +50,9 @@ public:
 
     /// From IRenderProxyCreator
     //@{
-    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UnregisterRenderer(ViewId viewId);
+    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UnregisterRenderer(ViewId viewId) override;
     //@}
 
 public:
@@ -64,12 +64,12 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& e);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& e) override;
     //@}
 
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
 private:
@@ -84,5 +84,6 @@ private:
 };
 
 }
+
 
 #endif

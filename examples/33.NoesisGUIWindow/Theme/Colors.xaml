@@ -1,0 +1,200 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options">
+
+  <ResourceDictionary.MergedDictionaries>
+    <ResourceDictionary Source="BaseStyle.xaml" />
+  </ResourceDictionary.MergedDictionaries>
+  
+    <!--<Color x:Key="TransparentWhiteColor5">#0CFFFFFF</Color>
+
+
+  <SolidColorBrush x:Key="TransparentWhiteBrush50" Color="{StaticResource TransparentWhiteColor30}"/>
+
+  <LinearGradientBrush x:Key="HorizontalLineBg" EndPoint="1,0" StartPoint="0,0">
+    <GradientStop Color="{StaticResource TransparentWhiteColor5}" Offset="0"/>
+    <GradientStop Color="{StaticResource TransparentWhiteColor30}" Offset="0.01"/>
+    <GradientStop Color="{StaticResource TransparentWhiteColor30}" Offset="0.99"/>
+    <GradientStop Color="{StaticResource TransparentWhiteColor5}" Offset="1"/>
+  </LinearGradientBrush>
+
+  <Geometry x:Key="NoesisLogoGeometry">
+    M64.552314,61.408115 L90.473059,64.639252 65.938536,97.224111 96.858771,170.22477 151.36087,176.44062 176.65871,144.70187 186.30899,167.69955 161.59547,200.607 80.812194,191.57223 39.827483,94.941438 z
+    M48.254649,23.461594 L152.39867,36.273918 169.09616,74.476677 153.32091,95.305482 137.28592,57.748096 58.689337,48.038651 58.673125,48.036747 26.085236,92.157874 40.901858,129.9017 16.161385,126.74894 0.032970434,88.96424 z
+    M136.8885,0 L177.71051,4.9764633 210.32399,79.460176 147.07187,163.27949 105.70369,158.62394 95.540381,134.55325 136.09376,139.68585 183.81151,76.187043 161.88087,25.886173 121.79224,19.86055 z
+  </Geometry>-->
+
+    <Geometry x:Key="CircledArrowGeometry">M28,14 C28,21.731986 21.731986,28 14,28 C6.2680135,28 0,21.731986 0,14 C0,6.2680135 6.2680135,0 14,0 C21.731986,0 28,6.2680135 28,14 z M14.929275,5.1930316 C15.711196,5.1892318 16.550394,5.5276265 17.209368,6.186623 L22.865916,11.843366 C22.99405,11.971505 23.110062,12.106457 23.213795,12.246478 L23.258229,12.308828 23.307655,12.361349 C23.47743,12.553123 23.607453,12.770321 23.69852,13.004146 L23.721193,13.067543 23.725551,13.07624 C23.861988,13.362011 23.937,13.673705 23.937,14 23.937,14.302024 23.872732,14.59154 23.754971,14.859567 L23.723389,14.92632 23.69852,14.995853 C23.605553,15.234549 23.471994,15.455919 23.296991,15.650602 L23.259771,15.689855 23.2575,15.693207 C23.142962,15.854845 23.012354,16.010189 22.865916,16.156633 L17.209368,21.813376 C16.037859,22.984926 14.296749,23.143215 13.320491,22.166923 12.344233,21.190631 12.502516,19.449461 13.674026,18.277912 L15.451926,16.499951 7.0628376,16.499951 C5.406073,16.499951 4.063,15.380684 4.063,14 4.063,12.619315 5.406073,11.500049 7.0628376,11.500049 L15.451926,11.500049 13.674026,9.7220875 C12.502516,8.5505376 12.344233,6.8093682 13.320491,5.8330767 13.747604,5.4059491 14.321114,5.195987 14.929275,5.1930316 z</Geometry>
+
+    <Color x:Key="Primary50">#eceff1</Color>
+    <Color x:Key="Primary50Foreground">#DD000000</Color>
+    <Color x:Key="Primary100">#cfd8dc</Color>
+    <Color x:Key="Primary100Foreground">#DD000000</Color>
+    <Color x:Key="Primary200">#b0bec5</Color>
+    <Color x:Key="Primary200Foreground">#DD000000</Color>
+    <Color x:Key="Primary300">#90a4ae</Color>
+    <Color x:Key="Primary300Foreground">#DD000000</Color>
+    <Color x:Key="Primary400">#78909c</Color>
+    <Color x:Key="Primary400Foreground">#FFFFFFFF</Color>
+    <Color x:Key="Primary500">#607d8b</Color>
+    <Color x:Key="Primary500Foreground">#DDFFFFFF</Color>
+    <Color x:Key="Primary600">#546e7a</Color>
+    <Color x:Key="Primary600Foreground">#DDFFFFFF</Color>
+    <Color x:Key="Primary700">#455a64</Color>
+    <Color x:Key="Primary700Foreground">#DDFFFFFF</Color>
+    <Color x:Key="Primary800">#37474f</Color>
+    <Color x:Key="Primary800Foreground">#DDFFFFFF</Color>
+    <Color x:Key="Primary900">#263238</Color>
+    <Color x:Key="Primary900Foreground">#DDFFFFFF</Color>
+
+    <SolidColorBrush x:Key="MetroWindowButtonBgHovered" Color="#FF505557" />
+    <SolidColorBrush x:Key="MetroWindowButtonBgPressed" Color="#FF4B6EAF" />
+    <SolidColorBrush x:Key="MetroWindowButtonBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="MetroWindowButtonBorder" Color="#FF707070" />
+    <SolidColorBrush x:Key="MetroWindowButtonForecolor" Color="#FFBBBBBB" />
+
+    <SolidColorBrush x:Key="PrimaryHueLightBrush" Color="{StaticResource Primary200}"/>
+    <SolidColorBrush x:Key="PrimaryHueLightForegroundBrush" Color="{StaticResource Primary200Foreground}"/>
+    <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="{StaticResource Primary500}"/>
+    <SolidColorBrush x:Key="PrimaryHueMidForegroundBrush" Color="{StaticResource Primary500Foreground}"/>
+    <SolidColorBrush x:Key="PrimaryHueDarkBrush" Color="{StaticResource Primary700}"/>
+    <SolidColorBrush x:Key="PrimaryHueDarkForegroundBrush" Color="{StaticResource Primary700Foreground}"/>
+
+    <Color x:Key="ValidationErrorColor">#f44336</Color>
+    <SolidColorBrush x:Key="ValidationErrorBrush" Color="{StaticResource ValidationErrorColor}"/>
+
+    <SolidColorBrush x:Key="MaterialDesignBackground" Color="#FF000000"/>
+    <SolidColorBrush x:Key="MaterialDesignPaper" Color="#FF303030"/>
+    <SolidColorBrush x:Key="MaterialDesignCardBackground" Color="#FF424242"/>
+    <SolidColorBrush x:Key="MaterialDesignToolBarBackground" Color="#FF212121"/>
+    <SolidColorBrush x:Key="MaterialDesignBody" Color="#DDFFFFFF"/>
+    <SolidColorBrush x:Key="MaterialDesignBodyLight" Color="#89FFFFFF"/>
+    <SolidColorBrush x:Key="MaterialDesignColumnHeader" Color="#BCFFFFFF"/>
+    <!-- 74% -->
+
+    <SolidColorBrush x:Key="MaterialDesignCheckBoxOff" Color="#89FFFFFF"/>
+    <SolidColorBrush x:Key="MaterialDesignCheckBoxDisabled" Color="#FF647076"/>
+
+    <SolidColorBrush x:Key="MaterialDesignTextBoxBorder" Color="#89FFFFFF"/>
+    <SolidColorBrush x:Key="MaterialDesignDivider" Color="#1FFFFFFF"/>
+    <!-- 12% -->
+    <SolidColorBrush x:Key="MaterialDesignSelection" Color="#757575"/>
+
+    <SolidColorBrush x:Key="MaterialDesignToolForeground" Color="#616161"/>
+    <SolidColorBrush x:Key="MaterialDesignToolBackground" Color="#e0e0e0"/>
+
+    <SolidColorBrush x:Key="MaterialDesignFlatButtonClick" Color="#19757575"/>
+    <!-- 25% -->
+    <SolidColorBrush x:Key="MaterialDesignFlatButtonRipple" Color="#FFB6B6B6"/>
+
+    <SolidColorBrush x:Key="MaterialDesignToolTipBackground" Color="#eeeeee"/>
+    <SolidColorBrush x:Key="MaterialDesignChipBackground" Color="#FF2E3C43"/>
+    <SolidColorBrush x:Key="MaterialDesignSnackbarBackground" Color="#FFCDCDCD"/>
+    <SolidColorBrush x:Key="MaterialDesignSnackbarMouseOver" Color="#FFB9B9BD"/>
+    <SolidColorBrush x:Key="MaterialDesignSnackbarRipple" Color="#FF494949"/>
+
+    <SolidColorBrush x:Key="MaterialDesignTextFieldBoxBackground" Color="#1AFFFFFF"/>
+    <!-- 10% white -->
+    <SolidColorBrush x:Key="MaterialDesignTextFieldBoxHoverBackground" Color="#1FFFFFFF"/>
+    <!-- 12% white -->
+    <SolidColorBrush x:Key="MaterialDesignTextFieldBoxDisabledBackground" Color="#0DFFFFFF"/>
+    <!-- 5% white -->
+    <SolidColorBrush x:Key="MaterialDesignTextAreaBorder" Color="#BCFFFFFF"/>
+    <!-- 74% white -->
+    <SolidColorBrush x:Key="MaterialDesignTextAreaInactiveBorder" Color="#1AFFFFFF"/>
+    <!-- 10% white -->
+
+    <!--  Background  -->
+    <SolidColorBrush x:Key="Background" Color="#1C1C1C" />
+    <SolidColorBrush x:Key="LightBackground" Color="#2D2D30" />
+
+    <Color x:Key="AccentColor">#2D2D30</Color>
+    <Color x:Key="BlackColor">#FFFFFFFF</Color>
+    <Color x:Key="WhiteColor">#2D2D30</Color>
+
+    <!--  re-set brushes too  -->
+    <SolidColorBrush x:Key="HighlightBrush" Color="{StaticResource HighlightColor}" />
+    <SolidColorBrush x:Key="AccentColorBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="AccentColorBrush2" Color="{StaticResource AccentColor2}" />
+    <SolidColorBrush x:Key="AccentColorBrush3" Color="{StaticResource AccentColor3}" />
+    <SolidColorBrush x:Key="AccentColorBrush4" Color="{StaticResource AccentColor4}" />
+
+    <SolidColorBrush x:Key="WindowTitleColorBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="NonActiveWindowTitleColorBrush" Color="#808080" />
+    <SolidColorBrush x:Key="NonActiveBorderColorBrush" Color="#808080" />
+
+    <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="LabelTextBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="BlackColorBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="TextBoxMouseOverInnerBorderBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="TextBoxFocusBorderBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="ButtonMouseOverBorderBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="ButtonMouseOverInnerBorderBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="ComboBoxMouseOverBorderBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="ComboBoxMouseOverInnerBorderBrush" Color="{StaticResource BlackColor}" />
+
+    <SolidColorBrush x:Key="ControlBackgroundBrush" Color="{StaticResource WhiteColor}" />
+    <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource WhiteColor}" />
+    <SolidColorBrush x:Key="WhiteColorBrush" Color="{StaticResource WhiteColor}" />
+    <SolidColorBrush x:Key="DisabledWhiteBrush" Color="{StaticResource WhiteColor}" />
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WhiteColor}" />
+
+    <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="{StaticResource WhiteColor}" />
+    <SolidColorBrush x:Key="{x:Static SystemColors.ControlTextBrushKey}" Color="{StaticResource BlackColor}" />
+
+    <LinearGradientBrush x:Key="CheckBoxBackgroundBrush" StartPoint="0.5,0" EndPoint="0.5,1" >
+        <GradientStop Offset="0" Color="{StaticResource Gray7}" />
+        <GradientStop Offset="1" Color="{StaticResource WhiteColor}" />
+    </LinearGradientBrush>
+
+    <!--  Foreground  -->
+    <SolidColorBrush x:Key="Foreground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="WindowTitleForeground" Color="#999988" />
+
+    <!--  General  -->
+    <SolidColorBrush x:Key="BackgroundHighlighted" Color="#54545C" />
+    <SolidColorBrush x:Key="BorderBrushHighlighted" Color="#6A6A75" />
+    <SolidColorBrush x:Key="BackgroundSelected" Color="#007ACC" />
+    <SolidColorBrush x:Key="BorderBrushSelected" Color="#1C97EA" />
+    <SolidColorBrush x:Key="BackgroundNormal" Color="#3F3F46" />
+    <SolidColorBrush x:Key="BorderBrushNormal" Color="#54545C" />
+    <SolidColorBrush x:Key="WindowGlowBrush" Color="#017ACC" />
+
+    <!--  Text Box  -->
+    <SolidColorBrush x:Key="TextBoxBackground" Color="#333337" />
+    <SolidColorBrush x:Key="TextBoxBackgroundSelected" Color="#3F3F46" />
+
+    <!--  Search Text Box  -->
+    <SolidColorBrush x:Key="SearchTextForeground" Color="#999999" />
+
+    <!--  Link Button  -->
+    <SolidColorBrush x:Key="LinkButtonForeground" Color="#1297FB" />
+    <SolidColorBrush x:Key="LinkButtonForegroundHighlighted" Color="#55AAFF" />
+
+    <!--  Close Button  -->
+    <SolidColorBrush x:Key="CloseButtonBackgroundHighlighted" Color="#39ADFB" />
+    <SolidColorBrush x:Key="CloseButtonBackgroundPressed" Color="#084E7D" />
+    <SolidColorBrush x:Key="CloseButtonStroke" Color="#AAFFFFFF" />
+    <SolidColorBrush x:Key="CloseButtonStrokeHighlighted" Color="#FFFFFF" />
+
+    <!--  Menu  -->
+    <SolidColorBrush x:Key="MenuSeparatorBorderBrush" Color="#333337" />
+    <SolidColorBrush x:Key="MenuItemHighlightedBackground" Color="#3E3E40" />
+    <SolidColorBrush x:Key="SubmenuItemBackground" Color="#1B1B1C" />
+    <SolidColorBrush x:Key="SubmenuItemBackgroundHighlighted" Color="#333334" />
+    <SolidColorBrush x:Key="MenuDisabledForeground" Color="#656565" />
+
+    <!--  Scroll Bar  -->
+    <SolidColorBrush x:Key="ScrollBarPageButtonBackgroundHighlighted" Color="#05FFFFFF" />
+
+    <!--  Notification Button  -->
+    <SolidColorBrush x:Key="NotificationButtonForegroundBrush" Color="#000000" />
+    <SolidColorBrush x:Key="NotificationButtonBackgroundBrush" Color="#FFCC00" />
+    <SolidColorBrush x:Key="NotificationButtonBackgroundOverBrush" Color="#FFDF66" />
+    <SolidColorBrush x:Key="NotificationButtonBackgroundPressedBrush" Color="#C59E00" />
+
+    <!--  Quick Launch TextBox  -->
+    <SolidColorBrush x:Key="QuickLaunchTextBoxBorderBrush" Color="#3F3F46" />
+    <SolidColorBrush x:Key="QuickLaunchTextBoxFocusedBorderBrush" Color="#007ACC" />
+</ResourceDictionary>

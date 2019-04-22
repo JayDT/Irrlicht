@@ -15,20 +15,17 @@
 #include <NsCore/TypeClassCreatorEmpty.h>
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// This type should be used as a null type when a class has no parent.
-////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace Noesis
 {
-typedef NullType NoParent;
-template<class T> struct T2T;
+typedef void NoParent;
+template<class T> struct TypeTag;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Implements reflection for a class outside class definition
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #define NS_IMPLEMENT_REFLECTION_(classType) \
-const Noesis::TypeClass* classType::StaticGetClassType(Noesis::T2T<classType>*)\
+const Noesis::TypeClass* classType::StaticGetClassType(Noesis::TypeTag<classType>*)\
 {\
     static const Noesis::TypeClass* type;\
 \
@@ -45,7 +42,7 @@ const Noesis::TypeClass* classType::StaticGetClassType(Noesis::T2T<classType>*)\
 \
 const Noesis::TypeClass* classType::GetClassType() const\
 {\
-    return StaticGetClassType();\
+    return StaticGetClassType((Noesis::TypeTag<classType>*)nullptr);\
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -53,7 +50,7 @@ const Noesis::TypeClass* classType::GetClassType() const\
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #define NS_IMPLEMENT_INLINE_STATIC_REFLECTION_(classType, parentType) \
 public:\
-    static const Noesis::TypeClass* StaticGetClassType(Noesis::T2T<classType>* = 0)\
+    static const Noesis::TypeClass* StaticGetClassType(Noesis::TypeTag<classType>*)\
     {\
         static const Noesis::TypeClass* type;\
 \
@@ -72,18 +69,20 @@ private:\
     typedef classType SelfClass;\
     typedef parentType ParentClass;
 
+// Supress clang "-Winconsistent-missing-override" this way because push/pop is not working
+#ifdef __clang__
+#pragma clang system_header
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Implements reflection for a class inside class definition (templates must use this one)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #define NS_IMPLEMENT_INLINE_REFLECTION_(classType, parentType) \
 public:\
-    NS_WARNING_PUSH \
-    NS_CLANG_WARNING_DISABLE("-Winconsistent-missing-override") \
-        const Noesis::TypeClass* GetClassType() const\
-        {\
-            return StaticGetClassType();\
-        } \
-    NS_WARNING_POP \
+    const Noesis::TypeClass* GetClassType() const\
+    {\
+        return StaticGetClassType((Noesis::TypeTag<classType>*)nullptr);\
+    } \
     NS_IMPLEMENT_INLINE_STATIC_REFLECTION_(classType, parentType)
 
 #endif

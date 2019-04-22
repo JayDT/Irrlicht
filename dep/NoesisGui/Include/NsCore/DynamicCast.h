@@ -11,27 +11,28 @@
 #include <NsCore/Noesis.h>
 
 
-namespace Noesis { template<class T> class Ptr; }
+namespace Noesis
+{
 
+template<class T> class Ptr;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Functions for dynamic casting between pointers:
+/// Safely converts pointers along the inheritance hierarchy
 ///
 ///  FrameworkElement* element = view->GetContent();
-///  Button* button = NsDynamicCast<Button*>(element);
-///
-/// There are equivalent funtions for Ptr<>, taking and returning Ptr<>:
-///
-///  Ptr<FrameworkElement> xaml = GUI::LoadXaml<FrameworkElement>("Settings.xaml");
-///  Ptr<Grid> grid = NsDynamicCast<Ptr<Grid>>(xaml);
-///
-/// NsStaticCast performs a NsDynamicCast in 'Debug' and just a static_cast in 'Release'
+///  Button* button = DynamicCast<Button*>(element);
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class CastT, class SourceT> CastT NsDynamicCast(SourceT ptr);
-template<class CastT, class SourceT> CastT NsStaticCast(SourceT ptr);
-template<class CastT, class SourceT> CastT NsDynamicCast(const Noesis::Ptr<SourceT>& ptr);
-template<class CastT, class SourceT> CastT NsStaticCast(const Noesis::Ptr<SourceT>& ptr);
+template<class To, class From> To DynamicCast(From from);
 
+/// Returns new Ptr whose stored pointer is obtained doing a DynamicCast
+template<class To, class From> Ptr<To> DynamicPtrCast(const Ptr<From>& from);
+template<class To, class From> Ptr<To> DynamicPtrCast(Ptr<From>&& from);
+
+/// Returns new Ptr whose stored pointer is obtained doing a static_cast
+template<class To, class From> Ptr<To> StaticPtrCast(const Ptr<From>& from);
+template<class To, class From> Ptr<To> StaticPtrCast(Ptr<From>&& from);
+
+}
 
 #include <NsCore/DynamicCast.inl>
 

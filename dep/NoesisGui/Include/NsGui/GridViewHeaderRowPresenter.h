@@ -38,51 +38,51 @@ class NS_GUI_CONTROLS_API GridViewHeaderRowPresenter: public BaseGridViewRowPres
 public:
     GridViewHeaderRowPresenter();
     ~GridViewHeaderRowPresenter();
-    
-    /// Gets or sets a value that indicates whether columns can change positions.
+
+    /// Gets or sets a value that indicates whether columns can change positions
     //@{
     bool GetAllowsColumnReorder() const;
     void SetAllowsColumnReorder(bool value);
     //@}
-    
+
     /// Gets or sets the Style to use for the column headers
     //@{
     Style* GetColumnHeaderContainerStyle() const;
     void SetColumnHeaderContainerStyle(Style* style);
     //@}
-    
+
     /// Gets or sets a ContextMenu for the column headers
     //@{
     ContextMenu* GetColumnHeaderContextMenu() const;
     void SetColumnHeaderContextMenu(ContextMenu* menu);
     //@}
-    
+
     /// Gets or sets a composite string that specifies how to format the column headers if they are 
     /// displayed as strings
     //@{
     const char* GetColumnHeaderStringFormat() const;
     void SetColumnHeaderStringFormat(const char* format);
     //@}
-    
+
     /// Gets or sets the template to use to display the column headers
     //@{
     DataTemplate* GetColumnHeaderTemplate() const;
     void SetColumnHeaderTemplate(DataTemplate* dataTemplate);
     //@}
-    
+
     /// Gets or sets a DataTemplateSelector that provides logic that selects the data template to 
     /// use to display a column header
     //@{
     DataTemplateSelector* GetColumnHeaderTemplateSelector() const;
     void SetColumnHeaderTemplateSelector(DataTemplateSelector* selector);
     //@}
-    
+
     /// Gets or sets the content for a tooltip for the column header row
     //@{
     BaseComponent* GetColumnHeaderToolTip() const;
     void SetColumnHeaderToolTip(BaseComponent* tooltip);
     //@}
-    
+
 public:
     /// Dependency properties
     //@{
@@ -98,23 +98,16 @@ public:
 protected:
     /// From UIElement
     //@{
-    void OnMouseLeftButtonDown(const MouseButtonEventArgs& e);
-    void OnMouseLeftButtonUp(const MouseButtonEventArgs& e);
-    void OnMouseMove(const MouseEventArgs& e);
+    void OnMouseLeftButtonDown(const MouseButtonEventArgs& e) override;
+    void OnMouseLeftButtonUp(const MouseButtonEventArgs& e) override;
+    void OnMouseMove(const MouseEventArgs& e) override;
     //@}
 
     /// From FrameworkElement
     //@{
-    void CloneOverride(FrameworkElement* clone, FrameworkTemplate* template_) const;
-    Size MeasureOverride(const Size& availableSize);
-    Size ArrangeOverride(const Size& finalSize);
-    //@}
-
-    /// From BaseGridViewRowPresenter
-    //@{
-    void OnColumnsChanged(GridViewColumnCollection* oldColumns,
-        GridViewColumnCollection* newColumns);
-    void OnColumnsCollectionChanged();
+    void CloneOverride(FrameworkElement* clone, FrameworkTemplate* template_) const override;
+    Size MeasureOverride(const Size& availableSize) override;
+    Size ArrangeOverride(const Size& finalSize) override;
     //@}
 
 private:
@@ -144,5 +137,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

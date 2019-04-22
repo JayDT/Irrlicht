@@ -15,7 +15,6 @@
 namespace Noesis
 {
 
-class BaseComponent;
 class RenderDevice;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -33,8 +32,9 @@ NS_INTERFACE IRenderer: public Interface
     /// Determines the visible region. By default it is set to cover the view dimensions
     virtual void SetRenderRegion(float x, float y, float width, float height) = 0;
 
-    /// Applies last changes happened in the view. This function does not interacts with the
-    /// render device. Returns whether the render tree really changed
+    /// Applies last changes happened in the view. This function does not interact with the
+    /// render device. Returns 'false' to indicate that no changes were applied and subsequent
+    /// RenderOffscreen() and Render() calls could be avoided if last render was preserved
     virtual bool UpdateRenderTree() = 0;
 
     /// Indicates if offscreen textures are needed at the current render tree state. When this

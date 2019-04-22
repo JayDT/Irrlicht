@@ -17,22 +17,13 @@ namespace Noesis
 {
 
 class BaseComponent;
-class Symbol;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Defines a command
+/// Defines a command. Provide the commanding behavior for UI elements such as Button and MenuItem.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 NS_INTERFACE ICommand: public Interface
 {
-    /// Gets the name of the command as it is registered in the CommandManager
-    /// \prop
-    virtual Symbol GetName() const = 0;
-
-    /// Gets the class type of the object that defines the command
-    /// \prop
-    virtual const TypeClass* GetOwnerType() const = 0;
-
-    /// Occurs when changes occur that affect whether or not the command should execute
+    /// Occurs when something changes that affects whether or not the command should execute
     virtual EventHandler& CanExecuteChanged() = 0;
 
     /// Determines whether the command can execute in its current state
@@ -45,5 +36,6 @@ NS_INTERFACE ICommand: public Interface
 };
 
 }
+
 
 #endif

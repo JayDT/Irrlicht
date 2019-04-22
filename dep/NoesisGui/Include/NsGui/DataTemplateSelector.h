@@ -33,20 +33,18 @@ class NS_GUI_CORE_API DataTemplateSelector: public BaseComponent, public IUITree
 {
 public:
     DataTemplateSelector();
-    virtual ~DataTemplateSelector() = 0;
+    virtual ~DataTemplateSelector();
 
     /// When overridden in a derived class, returns a DataTemplate based on custom logic
-    virtual DataTemplate* SelectTemplate(BaseComponent* item,
-        DependencyObject* container) = 0;
+    virtual DataTemplate* SelectTemplate(BaseComponent* item, DependencyObject* container);
 
     /// From IUITreeNode
     //@{
-    IUITreeNode* GetNodeParent() const override;
-    void SetNodeParent(IUITreeNode* parent) override;
-    BaseComponent* FindNodeResource(IResourceKey* key,
-        bool fullElementSearch) const override;
-    BaseComponent* FindNodeName(const char* name) const override;
-    ObjectWithNameScope FindNodeNameAndScope(const char* name) const override;
+    IUITreeNode* GetNodeParent() const final;
+    void SetNodeParent(IUITreeNode* parent) final;
+    BaseComponent* FindNodeResource(IResourceKey* key, bool fullElementSearch) const final;
+    BaseComponent* FindNodeName(const char* name) const final;
+    ObjectWithNameScope FindNodeNameAndScope(const char* name) const final;
     //@}
 
     NS_IMPLEMENT_INTERFACE_FIXUP

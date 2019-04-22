@@ -31,21 +31,20 @@ enum DurationType
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents the duration of time that a Timeline is active
+/// Represents the duration of time that a Timeline is active.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.duration.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_ANIMATION_API Duration
 {
 public:
-    /// Default constructor
     Duration();
-
-    /// Constructor for timespan type
     Duration(const TimeSpan& timeSpan);
 
-    /// Creates a new Duration of Automatic type
+    /// Creates a new Duration of *Automatic* type
     static Duration Automatic();
 
-    /// Creates a new Duration of Forever type
+    /// Creates a new Duration of *Forever* type
     static Duration Forever();
 
     /// Tries to parse a Duration from a string
@@ -63,7 +62,7 @@ public:
     /// Returns a hash code
     uint32_t GetHashCode() const;
 
-    /// Operators
+    // Operators
     //@{
     Duration& operator=(const TimeSpan& other);
     bool operator==(const Duration& other) const;
@@ -80,5 +79,6 @@ private:
 }
 
 #include <NsGui/Duration.inl>
+
 
 #endif

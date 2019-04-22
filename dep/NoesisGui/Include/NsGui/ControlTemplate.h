@@ -22,8 +22,8 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Specifies the visual structure and behavioral aspects of a Control that can be
-/// shared across multiple instances of the control.
+/// Specifies the visual structure and behavioral aspects of a Control that can be shared across
+/// multiple instances of the control.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.controltemplate.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -63,5 +63,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

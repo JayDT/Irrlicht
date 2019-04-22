@@ -32,10 +32,7 @@ class ImageSource;
 class NS_GUI_CORE_API Image: public FrameworkElement
 {
 public:
-    /// Constructor
     Image();
-
-    /// Destructor
     ~Image();
 
     /// Gets or sets image source
@@ -63,8 +60,6 @@ public:
 protected:
     /// From FrameworkElement
     //@{
-    uint32_t GetLogicalChildrenCount() const;
-    BaseComponent* GetLogicalChild(uint32_t index) const;
     Size MeasureOverride(const Size& availableSize);
     Size ArrangeOverride(const Size& finalSize);
     void OnRender(DrawingContext* context);
@@ -85,5 +80,6 @@ public:
 };
 
 }
+
 
 #endif

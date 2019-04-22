@@ -43,11 +43,8 @@ struct NS_GUI_CORE_API CanExecuteRoutedEventArgs: public RoutedEventArgs
     /// through the element tree
     mutable bool continueRouting;
 
-    /// Constructor
     CanExecuteRoutedEventArgs(BaseComponent* s, const RoutedEvent* e, const ICommand* c,
         BaseComponent* p);
-
-    /// Destructor
     ~CanExecuteRoutedEventArgs();
 };
 
@@ -66,11 +63,8 @@ struct NS_GUI_CORE_API ExecutedRoutedEventArgs: public RoutedEventArgs
     /// The command specific data
     Ptr<BaseComponent> parameter;
 
-    /// Constructor
     ExecutedRoutedEventArgs(BaseComponent* s, const RoutedEvent* e, const ICommand* c,
         BaseComponent* p);
-
-    /// Destructor
     ~ExecutedRoutedEventArgs();
 };
 
@@ -79,7 +73,7 @@ typedef Noesis::Delegate<void (BaseComponent*, const ExecutedRoutedEventArgs&)>
     ExecutedRoutedEventHandler;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Defines a command that implements ICommand and is routed through the element tree.
+/// Provides command related events and is responsible for managing routed commands execution.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct NS_GUI_CORE_API CommandManager
 {
@@ -91,7 +85,7 @@ struct NS_GUI_CORE_API CommandManager
     static const RoutedEvent* ExecutedEvent;
     //@}
 
-    /// Process keyboard input (for internal use only)
+    // Process keyboard input (for internal use only)
     static void ProcessKeyboardInput(UIElement* target, const KeyEventArgs& args);
 
 private:
@@ -109,5 +103,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

@@ -21,17 +21,14 @@ namespace Noesis
 class EasingFunctionBase;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Base class for Animation classes. It stores the easing function that can be applied
+/// Base class for Animation classes. It stores the easing function that can be applied.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_ANIMATION_API BaseAnimation: public AnimationTimeline
 {
 public:
-    /// Constructor
     BaseAnimation();
-
-    /// Destructor
     virtual ~BaseAnimation() = 0;
-    
+
     /// Gets or sets the easing function applied to this animation
     //@{
     EasingFunctionBase* GetEasingFunction() const;
@@ -43,10 +40,11 @@ public:
     //@{
     static const DependencyProperty* EasingFunctionProperty;
     //@}
-   
+
     NS_DECLARE_REFLECTION(BaseAnimation, AnimationTimeline)
 };
 
 }
+
 
 #endif

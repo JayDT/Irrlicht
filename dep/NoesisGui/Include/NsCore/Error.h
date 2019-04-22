@@ -12,10 +12,6 @@
 #include <NsCore/KernelApi.h>
 
 
-#ifndef NS_ASSERTS_ENABLED
-    #define NS_ASSERTS_ENABLED 0
-#endif
-
 #define NS_INTERNAL_ASSERT(expr) \
     NS_MACRO_BEGIN \
         if (NS_UNLIKELY(!(expr))) \
@@ -35,7 +31,7 @@
         #include <assert.h>
         #define NS_ASSERT(expr) assert(expr)
 
-    #elif NS_ASSERTS_ENABLED
+    #elif defined(NS_DEBUG)
         #define NS_ASSERT(expr) NS_INTERNAL_ASSERT(expr)
 
     #else

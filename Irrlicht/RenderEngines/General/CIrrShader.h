@@ -36,6 +36,7 @@ namespace irr
                 std::vector<ShaderMacro> Macros;
             };
 
+            irr::Ptr<irr::video::IShader> mShader;
             std::map<std::string/*buffer name*/, IShaderConstantSetCallBack*> Callback;
             std::vector<StageDesc*> mStages;
             s32 mShaderId = -1;
@@ -322,17 +323,19 @@ namespace irr
             typedef core::array<irr::Ptr<IShaderScalarVariable>> VariableArray;
             typedef core::array<irr::Ptr<SShaderSampler>> SamplerArray;
 
+            u32 mId = 0;
             ConstantBufferArray mBuffers;
             SamplerArray mTextures;
             VariableArray mVertexInput;
 
-            video::IVideoDriver* mContext;
+            video::IVideoDriver* mContext = nullptr;
             E_SHADER_LANG mShaderLang;
             bool mBinded : 1;
 
             explicit CNullShader(video::IVideoDriver* context, E_SHADER_LANG type);
             virtual ~CNullShader();
 
+            u32 getId() const override final { return mId; }
             E_SHADER_LANG getShaderType() const { return mShaderLang; }
             video::IVideoDriver* getVideoDriver() { return mContext; }
 

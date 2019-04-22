@@ -18,8 +18,6 @@ namespace Noesis
 {
 
 class BaseComponent;
-class Symbol;
-template<class T> class Ptr;
 template<class T> class Delegate;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -30,8 +28,6 @@ struct PropertyChangedEventArgs: public EventArgs
     NsSymbol propertyName;
 
     PropertyChangedEventArgs(NsSymbol name): propertyName(name) { }
-
-    NS_IMPLEMENT_INLINE_REFLECTION_(PropertyChangedEventArgs, EventArgs)
 };
 
 typedef Delegate<void (BaseComponent*, const PropertyChangedEventArgs&)>
@@ -43,13 +39,12 @@ typedef Delegate<void (BaseComponent*, const PropertyChangedEventArgs&)>
 NS_INTERFACE INotifyPropertyChanged: public Interface
 {
     /// Occurs when a property value changes
-    //@{
     virtual PropertyChangedEventHandler& PropertyChanged() = 0;
-    //@}
 
     NS_IMPLEMENT_INLINE_REFLECTION_(INotifyPropertyChanged, Interface)
 };
 
 }
+
 
 #endif

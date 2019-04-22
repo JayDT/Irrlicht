@@ -147,7 +147,10 @@ private:
     void OnReset();
 
     void AttachContainerItem(DependencyObject* container, BaseComponent* item);
-    void DetachContainerItem(DependencyObject* container, BaseComponent* item);
+    void DetachContainerItem(DependencyObject* container, BaseComponent* item,
+        bool setDisconnected);
+
+    void UpdateAlternationCount(int oldValue, int newValue);
 
 private:
     friend class ItemContainerGeneratorHelperTest;
@@ -261,5 +264,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

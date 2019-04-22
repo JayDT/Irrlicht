@@ -848,8 +848,8 @@ namespace eastl
         {
             // Most of our members can be exchaged by a basic swap:
             // We leave mAllocator as-is.
-            eastl::swap(mnSize,              x.mnSize);
-            eastl::swap(base_type::mCompare, x.mCompare);
+            eastl::swap_(mnSize,              x.mnSize);
+            eastl::swap_(base_type::mCompare, x.mCompare);
 
             // However, because our anchor node is a part of our class instance and not 
             // dynamically allocated, we can't do a swap of it but must do a more elaborate
@@ -860,9 +860,9 @@ namespace eastl
             // We optimize for the expected most common case: both pointers being non-null.
             if(mAnchor.mpNodeParent && x.mAnchor.mpNodeParent) // If both pointers are non-null...
             {
-                eastl::swap(mAnchor.mpNodeRight,  x.mAnchor.mpNodeRight);
-                eastl::swap(mAnchor.mpNodeLeft,   x.mAnchor.mpNodeLeft);
-                eastl::swap(mAnchor.mpNodeParent, x.mAnchor.mpNodeParent);
+                eastl::swap_(mAnchor.mpNodeRight,  x.mAnchor.mpNodeRight);
+                eastl::swap_(mAnchor.mpNodeLeft,   x.mAnchor.mpNodeLeft);
+                eastl::swap_(mAnchor.mpNodeParent, x.mAnchor.mpNodeParent);
 
                 // We need to fix up the anchors to point to themselves (we can't just swap them).
                 mAnchor.mpNodeParent->mpNodeParent   = &mAnchor;
@@ -895,7 +895,7 @@ namespace eastl
         }
         else
         {
-            const this_type temp(*this); // Can't call eastl::swap because that would
+            const this_type temp(*this); // Can't call eastl::swap_ because that would
             *this = x;                   // itself call this member swap function.
             x     = temp;
         }

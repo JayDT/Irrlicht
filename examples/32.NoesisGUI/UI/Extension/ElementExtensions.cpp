@@ -85,7 +85,7 @@ void ElementExtensions::SetSelectAllOnFocus(DependencyObject* d, bool value)
 void ElementExtensions::OnFocusOnLoadedChanged(DependencyObject* d,
         const DependencyPropertyChangedEventArgs& e)
 {
-    FrameworkElement* element = NsDynamicCast<FrameworkElement*>(d);
+    FrameworkElement* element = Noesis::DynamicCast<FrameworkElement*>(d);
     if (element != 0 && *(bool*)e.newValue)
     {
         element->Loaded() += [](BaseComponent* sender, const RoutedEventArgs&)
@@ -100,7 +100,7 @@ void ElementExtensions::OnFocusOnLoadedChanged(DependencyObject* d,
 void ElementExtensions::OnFocusOnHoverChanged(DependencyObject* d,
         const DependencyPropertyChangedEventArgs& e)
 {
-    FrameworkElement* element = NsDynamicCast<FrameworkElement*>(d);
+    FrameworkElement* element = Noesis::DynamicCast<FrameworkElement*>(d);
     if (element != 0 && *(bool*)e.newValue)
     {
         element->Focus();
@@ -111,10 +111,10 @@ void ElementExtensions::OnFocusOnHoverChanged(DependencyObject* d,
 void ElementExtensions::OnFocusContentOnHoverChanged(DependencyObject* d,
     const Noesis::DependencyPropertyChangedEventArgs& e)
 {
-    ContentControl* control = NsDynamicCast<ContentControl*>(d);
+    ContentControl* control = Noesis::DynamicCast<ContentControl*>(d);
     if (control != 0 && *(bool*)e.newValue)
     {
-        UIElement* element = NsDynamicCast<UIElement*>(control->GetContent());
+        UIElement* element = Noesis::DynamicCast<UIElement*>(control->GetContent());
         if (element != 0)
         {
             element->Focus();
@@ -126,7 +126,7 @@ void ElementExtensions::OnFocusContentOnHoverChanged(DependencyObject* d,
 void ElementExtensions::OnSelectOnHoverChanged(DependencyObject* d,
         const DependencyPropertyChangedEventArgs& e)
 {
-    FrameworkElement* element = NsDynamicCast<FrameworkElement*>(d);
+    FrameworkElement* element = Noesis::DynamicCast<FrameworkElement*>(d);
     if (element != 0 && *(bool*)e.newValue)
     {
         Selector::SetIsSelected(element, true);
@@ -137,19 +137,19 @@ void ElementExtensions::OnSelectOnHoverChanged(DependencyObject* d,
 void ElementExtensions::OnSelectAllOnFocusChanged(DependencyObject* d,
     const DependencyPropertyChangedEventArgs& e)
 {
-    UIElement* element = NsDynamicCast<UIElement*>(d);
+    UIElement* element = Noesis::DynamicCast<UIElement*>(d);
     if (element != 0 && *(bool*)e.newValue)
     {
         element->GotFocus() += [](BaseComponent* sender, const RoutedEventArgs&)
         {
-            PasswordBox* passwordBox = NsDynamicCast<PasswordBox*>(sender);
+            PasswordBox* passwordBox = Noesis::DynamicCast<PasswordBox*>(sender);
             if (passwordBox != 0)
             {
                 passwordBox->SelectAll();
                 return;
             }
 
-            TextBox* textBox = NsDynamicCast<TextBox*>(sender);
+            TextBox* textBox = Noesis::DynamicCast<TextBox*>(sender);
             if (textBox != 0)
             {
                 textBox->SelectAll();
@@ -164,17 +164,17 @@ NS_IMPLEMENT_REFLECTION(WorldClient::ElementExtensions)
 {
     NsMeta<TypeId>("WorldClient.ElementExtensions");
 
-    Ptr<UIElementData> data = NsMeta<UIElementData>(TypeOf<SelfClass>());
+    UIElementData* data = NsMeta<UIElementData>(TypeOf<SelfClass>());
     data->RegisterProperty<bool>(FocusOnLoadedProperty, "FocusOnLoaded",
-        PropertyMetadata::Create(false, &ElementExtensions::OnFocusOnLoadedChanged));
+        PropertyMetadata::Create(false, Noesis::PropertyChangedCallback(&ElementExtensions::OnFocusOnLoadedChanged)));
     data->RegisterProperty<bool>(FocusOnHoverProperty, "FocusOnHover",
-        PropertyMetadata::Create(false, &ElementExtensions::OnFocusOnHoverChanged));
+        PropertyMetadata::Create(false, Noesis::PropertyChangedCallback(&ElementExtensions::OnFocusOnHoverChanged)));
     data->RegisterProperty<bool>(FocusContentOnHoverProperty, "FocusContentOnHover",
-        PropertyMetadata::Create(false, &ElementExtensions::OnFocusContentOnHoverChanged));
+        PropertyMetadata::Create(false, Noesis::PropertyChangedCallback(&ElementExtensions::OnFocusContentOnHoverChanged)));
     data->RegisterProperty<bool>(SelectOnHoverProperty, "SelectOnHover",
-        PropertyMetadata::Create(false, &ElementExtensions::OnSelectOnHoverChanged));
+        PropertyMetadata::Create(false, Noesis::PropertyChangedCallback(&ElementExtensions::OnSelectOnHoverChanged)));
     data->RegisterProperty<bool>(SelectAllOnFocusProperty, "SelectAllOnFocus",
-        PropertyMetadata::Create(false, &ElementExtensions::OnSelectAllOnFocusChanged));
+        PropertyMetadata::Create(false, Noesis::PropertyChangedCallback(&ElementExtensions::OnSelectAllOnFocusChanged)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

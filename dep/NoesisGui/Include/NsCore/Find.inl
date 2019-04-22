@@ -23,23 +23,22 @@ namespace Noesis
 bool FindFirst(const char* directory, const char* extension, FindData& findData)
 {
 #if defined(NS_PLATFORM_WINDOWS)
-    char fullPath[PATH_MAX];
+    char fullPath[sizeof(findData.filename)];
     String::Copy(fullPath, sizeof(fullPath), directory);
     String::Append(fullPath, sizeof(fullPath), "/*");
     String::Append(fullPath, sizeof(fullPath), extension);
 
-    uint16_t u16str[PATH_MAX];
-    uint32_t numChars = UTF8::UTF8To16(fullPath, u16str, PATH_MAX);
-    NS_ASSERT(numChars <= PATH_MAX);
+    uint16_t u16str[sizeof(fullPath)];
+    uint32_t numChars = UTF8::UTF8To16(fullPath, u16str, sizeof(fullPath));
+    NS_ASSERT(numChars <= sizeof(fullPath));
 
-    WIN32_FIND_DATAW w32FindData;
-    HANDLE h = FindFirstFileExW((LPCWSTR)u16str, FindExInfoBasic, &w32FindData,
-        FindExSearchNameMatch, 0, 0);
+    WIN32_FIND_DATAW fd;
+    HANDLE h = FindFirstFileExW((LPCWSTR)u16str, FindExInfoBasic, &fd, FindExSearchNameMatch, 0, 0);
     if (h != INVALID_HANDLE_VALUE)
     {
-        numChars = UTF8::UTF16To8((uint16_t*)w32FindData.cFileName, findData.filename, PATH_MAX);
-        NS_ASSERT(numChars <= PATH_MAX);
-        String::Copy(findData.extension, sizeof(extension), extension);
+        numChars = UTF8::UTF16To8((uint16_t*)fd.cFileName, findData.filename, sizeof(fullPath));
+        NS_ASSERT(numChars <= sizeof(fullPath));
+        String::Copy(findData.extension, sizeof(findData.extension), extension);
         findData.handle = h;
         return true;
     }
@@ -51,8 +50,8 @@ bool FindFirst(const char* directory, const char* extension, FindData& findData)
 
     if (dir != 0)
     {
-       String::Copy(findData.extension, sizeof(extension), extension);
-       findData.handle = dir;
+        String::Copy(findData.extension, sizeof(findData.extension), extension);
+        findData.handle = dir;
 
         if (FindNext(findData))
         {
@@ -73,13 +72,14 @@ bool FindFirst(const char* directory, const char* extension, FindData& findData)
 bool FindNext(FindData& findData)
 {
 #if defined(NS_PLATFORM_WINDOWS)
-    WIN32_FIND_DATAW w32FindData;
-    BOOL res = FindNextFileW(findData.handle, &w32FindData);
+    WIN32_FIND_DATAW fd;
+    BOOL res = FindNextFileW(findData.handle, &fd);
     
     if (res)
     {
-        uint32_t n = UTF8::UTF16To8((uint16_t*)w32FindData.cFileName, findData.filename, PATH_MAX);
-        NS_ASSERT(n <= PATH_MAX);
+        const int MaxFilename = sizeof(findData.filename);
+        uint32_t n = UTF8::UTF16To8((uint16_t*)fd.cFileName, findData.filename, MaxFilename);
+        NS_ASSERT(n <= MaxFilename);
         return true;
     }
 

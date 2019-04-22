@@ -16,21 +16,18 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents a perspective transform (a 3D-like effect) on an object.
+/// Represents a perspective transform on an object.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.planeprojection.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API PlaneProjection: public Projection
+class NS_GUI_CORE_API PlaneProjection final: public Projection
 {
 public:
-    /// Constructor
     PlaneProjection();
-
-    /// Destructor
     ~PlaneProjection();
 
-    static Matrix4f ConstructProjectionMatrix(
-        const Size& surface, const Size& size,
+    /// Constructs a 3D projection matrix from the PlaneProjection property values
+    static Matrix4f ConstructProjectionMatrix(const Size& surface, const Size& size,
         float centerX, float centerY, float centerZ,
         float globalOffX, float globalOffY, float globalOffZ,
         float localOffX, float localOffY, float localOffZ,
@@ -92,7 +89,7 @@ public:
     void SetLocalOffsetZ(float offsetZ);
     //@}
 
-    /// Gets the projection matrix on the PlaneProjection
+    /// Gets the projection matrix of this PlaneProjection
     const Matrix4f& GetProjectionMatrix() const;
 
     /// Gets or sets the number of degrees to rotate the object around the x-axis of rotation
@@ -113,7 +110,7 @@ public:
     void SetRotationZ(float rotationZ);
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<PlaneProjection> Clone() const;
     Ptr<PlaneProjection> CloneCurrentValue() const;
@@ -121,15 +118,15 @@ public:
 
     /// From Projection
     //@{
-    bool IsIdentity() const;
-    Matrix4f GetProjection(const Size& surface, const Size& size) const;
+    bool IsIdentity() const override;
+    Matrix4f GetProjection(const Size& surface, const Size& size) const override;
     //@}
 
     /// From IRenderProxyCreator
     //@{
-    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UnregisterRenderer(ViewId viewId);
+    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UnregisterRenderer(ViewId viewId) override;
     //@}
 
 public:
@@ -153,12 +150,12 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
 private:
@@ -192,5 +189,6 @@ private:
 };
 
 }
+
 
 #endif

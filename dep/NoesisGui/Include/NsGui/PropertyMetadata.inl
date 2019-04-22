@@ -12,29 +12,11 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-inline Ptr<PropertyMetadata> PropertyMetadata::Create()
-{
-    return *new PropertyMetadata();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
 inline Ptr<PropertyMetadata> PropertyMetadata::Create(const T& defaultValue)
 {
     ValueStorageManagerImpl<T>* defaultValueManager = new ValueStorageManagerImpl<T>();
-    return *new PropertyMetadata(defaultValueManager, &defaultValue);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-inline Ptr<PropertyMetadata> PropertyMetadata::Create(const PropertyChangedCallback& changed)
-{
-    return *new PropertyMetadata(changed);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-inline Ptr<PropertyMetadata> PropertyMetadata::Create(CoerceValueCallback coerce)
-{
-    return *new PropertyMetadata(coerce);
+    return Create(defaultValueManager, &defaultValue);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,25 +25,33 @@ inline Ptr<PropertyMetadata> PropertyMetadata::Create(const T& defaultValue,
     const PropertyChangedCallback& changed)
 {
     ValueStorageManagerImpl<T>* defaultValueManager = new ValueStorageManagerImpl<T>();
-    return *new PropertyMetadata(defaultValueManager, &defaultValue, changed);
+    return Create(defaultValueManager, &defaultValue, changed);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
 inline Ptr<PropertyMetadata> PropertyMetadata::Create(const T& defaultValue,
-    CoerceValueCallback coerce)
+    const CoerceValueCallback& coerce)
 {
     ValueStorageManagerImpl<T>* defaultValueManager = new ValueStorageManagerImpl<T>();
-    return *new PropertyMetadata(defaultValueManager, &defaultValue, coerce);
+    return Create(defaultValueManager, &defaultValue, coerce);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
 inline Ptr<PropertyMetadata> PropertyMetadata::Create(const T& defaultValue,
-    const PropertyChangedCallback& changed, CoerceValueCallback coerce)
+    const PropertyChangedCallback& changed, const CoerceValueCallback& coerce)
 {
     ValueStorageManagerImpl<T>* defaultValueManager = new ValueStorageManagerImpl<T>();
-    return *new PropertyMetadata(defaultValueManager, &defaultValue, changed, coerce);
+    return Create(defaultValueManager, &defaultValue, changed, coerce);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+template<class T>
+void PropertyMetadata::SetDefaultValue(const T& defaultValue)
+{
+    ValueStorageManagerImpl<T>* defaultValueManager = new ValueStorageManagerImpl<T>();
+    SetDefaultValue(defaultValueManager, &defaultValue);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,15 +63,13 @@ inline bool PropertyMetadata::HasDefaultValue() const
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 inline const void* PropertyMetadata::GetDefaultValue() const
 {
-    NS_ASSERT(mDefaultValueManager != 0);
-    return mDefaultValueManager ? mDefaultValueManager->ToValue(&mDefaultValue) : nullptr;
+    return mDefaultValueManager != 0 ? mDefaultValueManager->ToValue(&mDefaultValue) : nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 inline Ptr<BaseComponent> PropertyMetadata::GetDefaultValueObject() const
 {
-    NS_ASSERT(mDefaultValueManager != 0);
-    return mDefaultValueManager ? mDefaultValueManager->Box(GetDefaultValue()) : nullptr;
+    return mDefaultValueManager != 0 ? mDefaultValueManager->Box(GetDefaultValue()) : nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -109,7 +97,7 @@ inline bool PropertyMetadata::HasCoerceValueCallback() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-inline CoerceValueCallback PropertyMetadata::GetCoerceValueCallback() const
+inline const CoerceValueCallback& PropertyMetadata::GetCoerceValueCallback() const
 {
     return mCoerce;
 }
@@ -121,7 +109,7 @@ inline bool PropertyMetadata::IsUncached() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-inline bool PropertyMetadata::Uncached() const
+inline bool PropertyMetadata::GetUncached() const
 {
     return mUncached;
 }

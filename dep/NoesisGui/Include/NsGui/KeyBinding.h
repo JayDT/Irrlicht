@@ -29,7 +29,7 @@ class NS_GUI_CORE_API KeyBinding: public InputBinding
 public:
     KeyBinding();
     KeyBinding(ICommand* command, KeyGesture* gesture);
-    KeyBinding(ICommand* command, Key key, uint32_t modifiers);
+    KeyBinding(ICommand* command, Key key, ModifierKeys modifiers);
     ~KeyBinding();
 
     /// Gets or sets the Key of the KeyGesture associated with this KeyBinding
@@ -40,11 +40,11 @@ public:
 
     /// Gets the modifier keys (one or more Alt, Ctrl, Shift) of the associated KeyGesture
     //@{
-    uint32_t GetModifiers() const;
-    void SetModifiers(uint32_t modifiers);
+    ModifierKeys GetModifiers() const;
+    void SetModifiers(ModifierKeys modifiers);
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<KeyBinding> Clone() const;
     Ptr<KeyBinding> CloneCurrentValue() const;
@@ -57,17 +57,17 @@ public:
 protected:
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
     /// From InputBinding
     //@{
-    void OnGestureChanged(InputGesture* oldGesture, InputGesture* newGesture);
+    void OnGestureChanged(InputGesture* oldGesture, InputGesture* newGesture) override;
     //@}
 
 private:
     void UpdateKeyAndModifers(KeyGesture* keyGesture);
-    void UpdateGesture(Key key, uint32_t modifiers);
+    void UpdateGesture(Key key, ModifierKeys modifiers);
 
     static void OnKeyChanged(DependencyObject* d, const DependencyPropertyChangedEventArgs& e);
     static void OnModifiersChanged(DependencyObject* d,
@@ -77,5 +77,6 @@ private:
 };
 
 }
+
 
 #endif

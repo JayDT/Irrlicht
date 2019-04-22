@@ -27,20 +27,15 @@ namespace Noesis
 class NS_GUI_CORE_API KeyGesture: public InputGesture
 {
 public:
-    /// Constructor
     KeyGesture();
-
-    /// Constructor for code
-    KeyGesture(Key key, uint32_t modifiers = 0);
-
-    /// Destructor
+    KeyGesture(Key key, ModifierKeys modifiers = ModifierKeys_None);
     ~KeyGesture();
 
     /// Gets the key associated with this KeyGesture
     Key GetKey() const;
 
     /// Gets the modifier keys associated with this KeyGesture
-    uint32_t GetModifiers() const;
+    ModifierKeys GetModifiers() const;
 
     /// Gets a string to be displayed in UI
     /// \prop
@@ -48,7 +43,7 @@ public:
 
     /// From InputGesture
     //@{
-    bool Matches(BaseComponent* target, const RoutedEventArgs& args);
+    bool Matches(BaseComponent* target, const RoutedEventArgs& args) override;
     //@}
 
 private:
@@ -56,11 +51,12 @@ private:
 
 private:
     Key mKey;
-    uint32_t mModifiers;
+    ModifierKeys mModifiers;
 
     NS_DECLARE_REFLECTION(KeyGesture, InputGesture)
 };
 
 }
+
 
 #endif

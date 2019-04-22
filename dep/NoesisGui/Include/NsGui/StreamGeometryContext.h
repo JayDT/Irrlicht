@@ -9,8 +9,8 @@
 
 
 #include <NsCore/Noesis.h>
-#include <NsGui/CoreApi.h>
 #include <NsCore/Ptr.h>
+#include <NsGui/CoreApi.h>
 #include <NsDrawing/SVGPath.h>
 
 
@@ -42,22 +42,18 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 class NS_GUI_CORE_API StreamGeometryContext
 {
 public:
-    /// Destructor
-    ~StreamGeometryContext();
-
     /// Specifies the starting point for a new figure
     void BeginFigure(const Point& startPoint, bool isClosed) const;
 
     /// Draws a straight line to the specified Point
     void LineTo(const Point& point) const;
-    
+
     /// Draws a cubic Bezier curve to the specified point
-    void CubicTo(const Point& point1, const Point& point2,
-        const Point& point3) const;
+    void CubicTo(const Point& point1, const Point& point2, const Point& point3) const;
 
     /// Draws a quadratic Bezier curve to the specified point
     void QuadraticTo(const Point& point1, const Point& point2) const;
-    
+
     /// Draws a G1 smooth cubic Bezier curve to the specified point
     void SmoothCubicTo(const Point& point1, const Point& point2) const;
 
@@ -65,21 +61,22 @@ public:
     void SmoothQuadraticTo(const Point& point) const;
 
     /// Draws an arc to the specified point
-    void ArcTo(const Point& point, const Size& size, float rotationAngleDeg,
-        bool isLargeArc, SweepDirection sweepDirection) const;
+    void ArcTo(const Point& point, const Size& size, float rotationAngleDeg, bool isLargeArc,
+        SweepDirection sweepDirection) const;
 
-    /// Closes this context and flushes its content so that it can be rendered. 
+    /// Closes this context and flushes its content so that it can be rendered. Afterwards the
+    /// stream context can not be used anymore. If Close() is not called then the associated
+    /// geometry remains unaltered
     void Close() const;
 
 private:
     friend class StreamGeometry;
     StreamGeometryContext(StreamGeometry* geometry);
-    StreamGeometryContext& operator=(const StreamGeometryContext&);
 
     void CloseFigure() const;
 
 private:
-    Ptr<StreamGeometry> mGeometry;
+    mutable Ptr<StreamGeometry> mGeometry;
     mutable PathContext mPathContext;
     mutable bool mCurrentFigureClosed;
 };
@@ -87,5 +84,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

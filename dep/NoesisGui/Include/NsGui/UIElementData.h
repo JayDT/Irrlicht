@@ -15,13 +15,10 @@
 #include <NsGui/CoreApi.h>
 #include <NsGui/RoutedEvent.h>
 #include <NsGui/DependencyData.h>
-#include <NsCore/Vector.h>
 
 
 namespace Noesis
 {
-
-class UIElementDataTest;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -34,12 +31,11 @@ struct EventHandlerInfo
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// UIElementData. Used to register routed events for a UIElement type.
+/// Used to register routed events for a UIElement type.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API UIElementData: public DependencyData
 {
 public:
-    /// Constructor
     UIElementData(const TypeClass* ownerType);
 
     /// Registers a routed event for a type
@@ -70,7 +66,7 @@ private:
 private:
     friend class UIElementDataTest;
 
-    typedef NsHashMap<NsSymbol, Ptr<const RoutedEvent> > EventMap;
+    typedef NsHashMap<NsSymbol, Ptr<const RoutedEvent>> EventMap;
     EventMap mEvents;
 
     typedef NsHashMap<const RoutedEvent*, EventHandlerInfo> EventHandlerMap;
@@ -86,5 +82,6 @@ NS_GUI_CORE_API const EventHandlerInfo* FindRoutedEventHandler(const TypeClass* 
     const RoutedEvent* routed);
 
 }
+
 
 #endif

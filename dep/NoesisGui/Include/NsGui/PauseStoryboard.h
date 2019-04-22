@@ -11,8 +11,6 @@
 #include <NsCore/Noesis.h>
 #include <NsGui/AnimationApi.h>
 #include <NsGui/ControllableStoryboardAction.h>
-#include <NsCore/ReflectionDeclare.h>
-#include <NsCore/String.h>
 
 
 namespace Noesis
@@ -26,11 +24,15 @@ namespace Noesis
 class NS_GUI_ANIMATION_API PauseStoryboard: public ControllableStoryboardAction
 {
 protected:
-    void Invoke(FrameworkElement* target, Storyboard* storyboard);
+    /// From ControllableStoryboardAction
+    //@{
+    void Invoke(FrameworkElement* target, Storyboard* storyboard) override;
+    //@}
 
     NS_DECLARE_REFLECTION(PauseStoryboard, ControllableStoryboardAction)
 };
 
 }
+
 
 #endif

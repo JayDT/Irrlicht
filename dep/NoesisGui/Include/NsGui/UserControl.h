@@ -25,12 +25,13 @@ class NS_GUI_CORE_API UserControl: public ContentControl
 protected:
     /// From FrameworkElement
     //@{
-    FrameworkElement* GetStateGroupsRoot() const;
+    FrameworkElement* GetStateGroupsRoot() const override;
     //@}
 
     NS_DECLARE_REFLECTION(UserControl, ContentControl)
 };
 
 }
+
 
 #endif

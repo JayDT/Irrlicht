@@ -23,24 +23,22 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Base class for types that control its lifetime with a reference counter. Instances of this class 
-/// are usually stored inside a Ptr smart pointer. See Ptr class for more information.
+/// Base class for types that control their lifetime with a reference counter. Instances of this
+/// class are usually stored inside a *Ptr* smart pointer. See *Ptr* class for more information.
 ///
-/// The reference counter is initialized to 1. This means that the initial creation of the instance
-/// counts as a reference. 
+/// The reference counter is initialized to 1 and can be incremented or decremented by using 
+/// AddReference() or Release() respectively. When the reference counter reaches the value zero
+/// the instance is destroyed by invoking its destructor.
 ///
-/// The management of the references is transparent if you use the kernel factory + Ptr, but if you
-/// use a BaseRefCounted outside a Ptr, you need to manually release the pointer with Release().
-/// Do not delete BaseRefCounted object with the operator delete because additional references 
-/// to the instance may still be alive.
+/// As the lifetime is automatically managed, using *delete* on this instances is not recommended.
 ///
-/// Example:
+/// .. code-block:: c++
 ///
-///     Mesh* mesh = new StaticMesh();
-///     // ...
+///     Mesh* mesh = new Mesh();
 ///     mesh->Release();
-///     // delete mesh;     // Don't do this!
 ///
+/// Note that BaseRefCounted instances can be created in the stack. In this scenario the destructor
+/// will assert if there are extra references pending at destruction time.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_CORE_KERNEL_API BaseRefCounted: public BaseObject
 {
@@ -73,7 +71,7 @@ protected:
     inline virtual int32_t InternalRelease() const;
 
 private:
-    mutable Atomic<int32_t> mRefCount;
+    mutable AtomicInteger mRefCount;
 
     NS_DECLARE_REFLECTION(BaseRefCounted, BaseObject)
 };
@@ -82,7 +80,6 @@ NS_WARNING_POP
 
 }
 
-/// Inline include
 #include <NsCore/BaseRefCounted.inl>
 
 #endif

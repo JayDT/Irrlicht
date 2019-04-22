@@ -9,10 +9,9 @@
 
 
 #include <NsCore/Noesis.h>
-#include <NsCore/BaseComponent.h>
 #include <NsCore/Ptr.h>
 #include <NsGui/CoreApi.h>
-#include <NsGui/IMarkupExtension.h>
+#include <NsGui/MarkupExtension.h>
 
 
 namespace Noesis
@@ -24,157 +23,142 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Class representing bool values in xaml
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API SystemBoolean: public BaseComponent, public IMarkupExtension
+class NS_GUI_CORE_API SystemBoolean: public MarkupExtension
 {
 public:
-    /// From IMarkupExtension
+    /// From MarkupExtension
     //@{
-    Ptr<BaseComponent> ProvideValue(const void* context) override;
+    Ptr<BaseComponent> ProvideValue(const ValueTargetProvider* provider) override;
     //@}
-
-    NS_IMPLEMENT_INTERFACE_FIXUP
 
 private:
     Ptr<BaseComponent> mValue;
-    
-    NS_DECLARE_REFLECTION(SystemBoolean, BaseComponent)
+
+    NS_DECLARE_REFLECTION(SystemBoolean, MarkupExtension)
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Class representing int values in xaml
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API SystemInt16: public BaseComponent, public IMarkupExtension
+class NS_GUI_CORE_API SystemInt16: public MarkupExtension
 {
 public:
-    /// From IMarkupExtension
+    /// From MarkupExtension
     //@{
-    Ptr<BaseComponent> ProvideValue(const void* context) override;
+    Ptr<BaseComponent> ProvideValue(const ValueTargetProvider* provider) override;
     //@}
-
-    NS_IMPLEMENT_INTERFACE_FIXUP
 
 private:
     Ptr<BaseComponent> mValue;
 
-    NS_DECLARE_REFLECTION(SystemInt16, BaseComponent)
+    NS_DECLARE_REFLECTION(SystemInt16, MarkupExtension)
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Class representing int values in xaml
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API SystemInt32: public BaseComponent, public IMarkupExtension
+class NS_GUI_CORE_API SystemInt32: public MarkupExtension
 {
 public:
-    /// From IMarkupExtension
+    /// From MarkupExtension
     //@{
-    Ptr<BaseComponent> ProvideValue(const void* context) override;
+    Ptr<BaseComponent> ProvideValue(const ValueTargetProvider* provider) override;
     //@}
-
-    NS_IMPLEMENT_INTERFACE_FIXUP
 
 private:
     Ptr<BaseComponent> mValue;
 
-    NS_DECLARE_REFLECTION(SystemInt32, BaseComponent)
+    NS_DECLARE_REFLECTION(SystemInt32, MarkupExtension)
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Class representing int values in xaml
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API SystemUInt16: public BaseComponent, public IMarkupExtension
+class NS_GUI_CORE_API SystemUInt16: public MarkupExtension
 {
 public:
-    /// From IMarkupExtension
+    /// From MarkupExtension
     //@{
-    Ptr<BaseComponent> ProvideValue(const void* context) override;
+    Ptr<BaseComponent> ProvideValue(const ValueTargetProvider* provider) override;
     //@}
-
-    NS_IMPLEMENT_INTERFACE_FIXUP
 
 private:
     Ptr<BaseComponent> mValue;
 
-    NS_DECLARE_REFLECTION(SystemUInt16, BaseComponent)
+    NS_DECLARE_REFLECTION(SystemUInt16, MarkupExtension)
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Class representing int values in xaml
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API SystemUInt32: public BaseComponent, public IMarkupExtension
+class NS_GUI_CORE_API SystemUInt32: public MarkupExtension
 {
 public:
-    /// From IMarkupExtension
+    /// From MarkupExtension
     //@{
-    Ptr<BaseComponent> ProvideValue(const void* context) override;
+    Ptr<BaseComponent> ProvideValue(const ValueTargetProvider* provider) override;
     //@}
-
-    NS_IMPLEMENT_INTERFACE_FIXUP
 
 private:
     Ptr<BaseComponent> mValue;
 
-    NS_DECLARE_REFLECTION(SystemUInt32, BaseComponent)
+    NS_DECLARE_REFLECTION(SystemUInt32, MarkupExtension)
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Class representing float values in xaml
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API SystemSingle: public BaseComponent, public IMarkupExtension
+class NS_GUI_CORE_API SystemSingle: public MarkupExtension
 {
 public:
-    /// From IMarkupExtension
+    /// From MarkupExtension
     //@{
-    Ptr<BaseComponent> ProvideValue(const void* context) override;
+    Ptr<BaseComponent> ProvideValue(const ValueTargetProvider* provider) override;
     //@}
-
-    NS_IMPLEMENT_INTERFACE_FIXUP
 
 private:
     Ptr<BaseComponent> mValue;
 
-    NS_DECLARE_REFLECTION(SystemSingle, BaseComponent)
+    NS_DECLARE_REFLECTION(SystemSingle, MarkupExtension)
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Class representing double values in xaml
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API SystemDouble: public BaseComponent, public IMarkupExtension
+class NS_GUI_CORE_API SystemDouble: public MarkupExtension
 {
 public:
-    /// From IMarkupExtension
+    /// From MarkupExtension
     //@{
-    Ptr<BaseComponent> ProvideValue(const void* context) override;
+    Ptr<BaseComponent> ProvideValue(const ValueTargetProvider* provider) override;
     //@}
-
-    NS_IMPLEMENT_INTERFACE_FIXUP
 
 private:
     Ptr<BaseComponent> mValue;
 
-    NS_DECLARE_REFLECTION(SystemDouble, BaseComponent)
+    NS_DECLARE_REFLECTION(SystemDouble, MarkupExtension)
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Class representing a string object in xaml
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API SystemString: public BaseComponent, public IMarkupExtension
+class NS_GUI_CORE_API SystemString: public MarkupExtension
 {
 public:
-    /// From IMarkupExtension
+    /// From MarkupExtension
     //@{
-    Ptr<BaseComponent> ProvideValue(const void* context) override;
+    Ptr<BaseComponent> ProvideValue(const ValueTargetProvider* provider) override;
     //@}
-
-    NS_IMPLEMENT_INTERFACE_FIXUP
 
 private:
     Ptr<BaseComponent> mValue;
 
-    NS_DECLARE_REFLECTION(SystemString, BaseComponent)
+    NS_DECLARE_REFLECTION(SystemString, MarkupExtension)
 };
 
 NS_WARNING_POP
 
 }
+
 
 #endif

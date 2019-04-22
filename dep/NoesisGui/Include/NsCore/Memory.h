@@ -1,8 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // NoesisGUI - http://www.noesisengine.com
 // Copyright (c) 2013 Noesis Technologies S.L. All Rights Reserved.
-// [CR #715]
-// [CR #750]
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -14,46 +12,9 @@
 #include <NsCore/KernelApi.h>
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// NoesisEngine memory management functions. These functions are shortcuts to the equivalents in 
-/// the memory manager. For example:
-///
-///     void* ptr = NsGetKernel()->GetMemoryManager()->Alloc(128);
-///
-/// is equivalent to
-///
-///     void* ptr = NsAlloc(128);
-///
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//@{
-NS_CORE_KERNEL_API void* NsAlloc(size_t size);
-NS_CORE_KERNEL_API void* NsRealloc(void* ptr, size_t size);
-NS_CORE_KERNEL_API void NsDealloc(void* ptr);
-//@}
-
-/// These functions are normally redirected to (NsAlloc/NsDealloc) but if the kernel has not been
-/// initialized they are redirected back to standard ANSI functions (AnsiMalloc/AnsiFree)
-//@{ 
-NS_CORE_KERNEL_API void* NsSafeAlloc(size_t size);
-NS_CORE_KERNEL_API void NsSafeDealloc(void* ptr);
-//@}
-
 namespace Noesis
 {
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Standard C memory functions
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//@{
-NS_CORE_KERNEL_API void* AnsiMalloc(size_t size);
-NS_CORE_KERNEL_API void* AnsiCalloc(size_t numElements, size_t elementSize);
-NS_CORE_KERNEL_API void* AnsiRealloc(void* ptr, size_t size);
-NS_CORE_KERNEL_API void AnsiFree(void* ptr);
-//@}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Utility class to align size to the specified type boundaries
-////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T> struct Alignment
 {
     enum { Mask = sizeof(T) - 1 };
@@ -61,6 +22,26 @@ template<class T> struct Alignment
     static bool IsAligned(uint32_t size) { return (size & Mask) == 0; }
     static bool IsAlignedPtr(const void* ptr) { return (uintptr_t(ptr) & Mask) == 0; }
 };
+
+struct MemoryCallbacks
+{
+    void* user;
+    void* (*alloc)(void* user, size_t size);
+    void* (*realloc)(void* user, void* ptr, size_t size);
+    void (*dealloc)(void* user, void* ptr);
+    size_t (*allocSize)(void* user, void* ptr);
+};
+
+
+NS_CORE_KERNEL_API void SetMemoryCallbacks(const MemoryCallbacks& callbacks);
+
+NS_CORE_KERNEL_API void* Alloc(size_t size);
+NS_CORE_KERNEL_API void* Realloc(void* ptr, size_t size);
+NS_CORE_KERNEL_API void Dealloc(void* ptr);
+
+NS_CORE_KERNEL_API uint32_t GetAllocatedMemory();
+NS_CORE_KERNEL_API uint32_t GetAllocatedMemoryAccum();
+NS_CORE_KERNEL_API uint32_t GetAllocationsCount();
 
 }
 

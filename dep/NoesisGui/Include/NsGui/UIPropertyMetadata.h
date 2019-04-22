@@ -18,46 +18,49 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// UIPropertyMetadata. Provides property metadata for non-framework properties that do have
-/// rendering/user interface impact at the core level.
-///
-/// WPF UIPropertyMetadata fields:
-///  - IsAnimationProhibited
+/// Provides property metadata for non-framework properties that do have rendering/user interface
+/// impact at the core level.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API UIPropertyMetadata: public PropertyMetadata
 {
 public:
-    /// Helper functions to create a new PropertyMetadata
+    // Helper functions to create a new PropertyMetadata
     //@{
-    inline static Ptr<UIPropertyMetadata> Create();
+    static Ptr<UIPropertyMetadata> Create();
+
+    static Ptr<UIPropertyMetadata> Create(const PropertyChangedCallback& changed);
+
+    static Ptr<UIPropertyMetadata> Create(const CoerceValueCallback& coerce);
+
     template<class T>
     inline static Ptr<UIPropertyMetadata> Create(const T& defaultValue);
-    inline static Ptr<UIPropertyMetadata> Create(PropertyChangedCallback changed);
-    inline static Ptr<UIPropertyMetadata> Create(CoerceValueCallback coerce);
+
     template<class T>
     inline static Ptr<UIPropertyMetadata> Create(const T& defaultValue,
-        PropertyChangedCallback changed);
+        const PropertyChangedCallback& changed);
+
     template<class T>
     inline static Ptr<UIPropertyMetadata> Create(const T& defaultValue,
-        CoerceValueCallback coerce);
+        const CoerceValueCallback& coerce);
+
     template<class T>
     inline static Ptr<UIPropertyMetadata> Create(const T& defaultValue,
-        PropertyChangedCallback changed, CoerceValueCallback coerce);
+        const PropertyChangedCallback& changed, const CoerceValueCallback& coerce);
     //@}
 
 protected:
     // Constructors
     //@{
     UIPropertyMetadata();
-    UIPropertyMetadata(ValueStorageManager* defaultValueManager, const void* defaultValue);
-    UIPropertyMetadata(PropertyChangedCallback changed);
-    UIPropertyMetadata(CoerceValueCallback coerce);
-    UIPropertyMetadata(ValueStorageManager* defaultValueManager, const void* defaultValue,
-        PropertyChangedCallback changed);
-    UIPropertyMetadata(ValueStorageManager* defaultValueManager, const void* defaultValue,
-        CoerceValueCallback coerce);
-    UIPropertyMetadata(ValueStorageManager* defaultValueManager, const void* defaultValue,
-        PropertyChangedCallback changed, CoerceValueCallback coerce);
+    static Ptr<UIPropertyMetadata> Create(ValueStorageManager* defaultValueManager,
+        const void* defaultValue);
+    static Ptr<UIPropertyMetadata> Create(ValueStorageManager* defaultValueManager,
+        const void* defaultValue, const PropertyChangedCallback& changed);
+    static Ptr<UIPropertyMetadata> Create(ValueStorageManager* defaultValueManager,
+        const void* defaultValue, const CoerceValueCallback& coerce);
+    static Ptr<UIPropertyMetadata> Create(ValueStorageManager* defaultValueManager,
+        const void* defaultValue, const PropertyChangedCallback& changed,
+        const CoerceValueCallback& coerce);
     //@}
 
     NS_DECLARE_REFLECTION(UIPropertyMetadata, PropertyMetadata)
@@ -65,7 +68,8 @@ protected:
 
 }
 
-/// Inline Include
+// Inline Include
 #include <NsGui/UIPropertyMetadata.inl>
+
 
 #endif

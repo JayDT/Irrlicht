@@ -19,6 +19,8 @@ namespace Noesis
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// An inline-level flow content element which causes content to render with an underlined text
 /// decoration.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.documents.underline.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API Underline: public Span
 {
@@ -30,5 +32,6 @@ public:
 };
 
 }
+
 
 #endif

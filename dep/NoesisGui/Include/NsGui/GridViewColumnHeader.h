@@ -25,6 +25,7 @@ struct DragCompletedEventArgs;
 struct DragDeltaEventArgs;
 struct MouseButtonEventArgs;
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 enum GridViewColumnHeaderRole
 {
     /// The column header displays above its associated column
@@ -48,7 +49,7 @@ class NS_GUI_CONTROLS_API GridViewColumnHeader: public BaseButton
 public:
     GridViewColumnHeader();
     ~GridViewColumnHeader();
-    
+
     /// Gets the GridViewColumn that is associated with the GridViewColumnHeader
     GridViewColumn* GetColumn() const;
 
@@ -65,20 +66,20 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
     /// From UIElement
     //@{
-    void OnMouseLeftButtonDown(const MouseButtonEventArgs& e);
-    void OnMouseLeftButtonUp(const MouseButtonEventArgs& e);
-    void OnMouseMove(const MouseEventArgs& e);
+    void OnMouseLeftButtonDown(const MouseButtonEventArgs& e) override;
+    void OnMouseLeftButtonUp(const MouseButtonEventArgs& e) override;
+    void OnMouseMove(const MouseEventArgs& e) override;
     //@}
 
     /// From FrameworkElement
     //@{
     void OnTemplateChanged(FrameworkTemplate* oldTemplate, FrameworkElement* oldRoot,
-        FrameworkTemplate* newTemplate, FrameworkElement* newRoot);
+        FrameworkTemplate* newTemplate, FrameworkElement* newRoot) override;
     //@}
 
 private:
@@ -89,16 +90,16 @@ private:
     void OnGripperDragCompleted(BaseComponent*, const DragCompletedEventArgs&);
     void OnGripperDragDelta(BaseComponent*, const DragDeltaEventArgs&);
     void OnGripperDoubleClick(BaseComponent*, const MouseButtonEventArgs&);
-    
+
     void RegisterGripperEvents();
     void UnregisterGripperEvents();
-    
+
 private:
     friend class GridViewHeaderRowPresenter;
-    
+
     Ptr<Thumb> mHeaderGripper;
     Ptr<Canvas> mFloatingHeaderCanvas;
-    
+
     float mStartDragWidth;
 
     NS_DECLARE_REFLECTION(GridViewColumnHeader, BaseButton)
@@ -109,5 +110,6 @@ NS_WARNING_POP
 }
 
 NS_DECLARE_REFLECTION_ENUM_EXPORT(NS_GUI_CONTROLS_API, Noesis::GridViewColumnHeaderRole)
+
 
 #endif

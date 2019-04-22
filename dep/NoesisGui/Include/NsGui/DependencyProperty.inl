@@ -21,10 +21,8 @@ Ptr<DependencyProperty> DependencyProperty::Create(const char* name)
     // because this constructor is intended to be used from DependencyData to partially create
     // the class and later be fulfilled (example: when using AddOwner or OverrideMetadata
     // before RegisterProperty)
-
-    typedef typename IsPtr<T>::PointedType TT;
     ValueStorageManager* valueManager = new ValueStorageManagerImpl<T>();
-    return *new DependencyProperty(NsSymbol(name), valueManager, TypeOf<TT>());
+    return *new DependencyProperty(NsSymbol(name), valueManager, TypeOf<RemovePtr<T>>());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,10 +43,9 @@ template<class T>
 Ptr<DependencyProperty> DependencyProperty::Create(const char* name, const TypeClass* ownerType,
     PropertyMetadata* metadata, ValidateValueCallback validate, PropertyAccess access)
 {
-    typedef typename IsPtr<T>::PointedType TT;
     ValueStorageManager* valueManager = new ValueStorageManagerImpl<T>();
-    return *new DependencyProperty(NsSymbol(name), valueManager, TypeOf<TT>(), ownerType, metadata,
-        validate, access);
+    return *new DependencyProperty(NsSymbol(name), valueManager, TypeOf<RemovePtr<T>>(),
+        ownerType, metadata, validate, access);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -199,14 +196,14 @@ inline Ptr<BaseComponent> DependencyProperty::GetBaseValueObject(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 inline void DependencyProperty::SetValue(DependencyObject* obj, const void* value, uint8_t priority,
-    IExpression* expression, const PropertyMetadata* metadata, Value::Destination destination) const
+    Expression* expression, const PropertyMetadata* metadata, Value::Destination destination) const
 {
     mValueManager->SetValue(obj, this, value, priority, expression, metadata, destination);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 inline void DependencyProperty::SetValueObject(DependencyObject* obj, BaseComponent* value,
-    uint8_t priority, IExpression* expression, const PropertyMetadata* metadata,
+    uint8_t priority, Expression* expression, const PropertyMetadata* metadata,
     Value::Destination destination) const
 {
     mValueManager->SetValueObject(obj, this, value, priority, expression, metadata, destination);

@@ -6,7 +6,6 @@
 
 #include "OptionSelector.xaml.h"
 
-#include <NsCore/ReflectionImplement.h>
 #include <NsGui/IntegrationAPI.h>
 #include <NsGui/RepeatButton.h>
 #include <NsGui/UIElement.h>
@@ -14,6 +13,7 @@
 #include <NsGui/KeyboardNavigation.h>
 #include <NsGui/ObservableCollection.h>
 #include <NsGui/INotifyCollectionChanged.h>
+#include <NsCore/ReflectionImplement.h>
 
 
 using namespace WorldClient;
@@ -162,7 +162,7 @@ void OptionSelector::OnOptionsChanged(BaseComponent*, const NotifyCollectionChan
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void OptionSelector::OnIndexChanged(DependencyObject* d, const DependencyPropertyChangedEventArgs&)
 {
-    OptionSelector* selector = NsDynamicCast<OptionSelector*>(d);
+    OptionSelector* selector = Noesis::DynamicCast<OptionSelector*>(d);
     if (selector != 0)
     {
         selector->UpdateSelectedOption();
@@ -232,7 +232,7 @@ NS_IMPLEMENT_REFLECTION(WorldClient::OptionSelector)
     NsProp("LastIndex", &OptionSelector::GetLastIndex);
     NsProp("Index", &OptionSelector::GetIndex);
 
-    Ptr<UIElementData> data = NsMeta<UIElementData>(TypeOf<SelfClass>());
+    UIElementData* data = NsMeta<UIElementData>(TypeOf<SelfClass>());
     data->RegisterProperty<int>(SelectedIndexProperty, "SelectedIndex",
         PropertyMetadata::Create(-1, &OptionSelector::OnIndexChanged));
     data->RegisterProperty<Ptr<BaseComponent>>(SelectedOptionProperty, "SelectedOption",

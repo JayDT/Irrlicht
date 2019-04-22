@@ -21,7 +21,6 @@
 namespace Noesis
 {
 
-class UIElement;
 class Brush;
 class DrawingContext;
 class Geometry;
@@ -32,7 +31,6 @@ class InputBinding;
 class Mouse;
 class TouchScreen;
 class Keyboard;
-class UIElementTest;
 struct EventArgs;
 struct RoutedEventArgs;
 struct DependencyPropertyChangedEventArgs;
@@ -40,11 +38,13 @@ struct KeyboardFocusChangedEventArgs;
 struct KeyEventArgs;
 struct MouseButtonEventArgs;
 struct MouseEventArgs;
-struct MouseState;
 struct MouseWheelEventArgs;
 struct SizeChangedInfo;
 struct TextCompositionEventArgs;
 struct TraversalRequest;
+struct QueryContinueDragEventArgs;
+struct GiveFeedbackEventArgs;
+struct DragEventArgs;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 typedef Noesis::Delegate<void (BaseComponent*,
@@ -75,17 +75,27 @@ typedef Noesis::Delegate<void (BaseComponent*, const QueryCursorEventArgs&)>
     QueryCursorEventHandler;
 typedef Noesis::Delegate<void (BaseComponent*, const TextCompositionEventArgs&)> 
     TextCompositionEventHandler;
+typedef Noesis::Delegate<void (BaseComponent*, const QueryContinueDragEventArgs&)>
+    QueryContinueDragEventHandler;
+typedef Noesis::Delegate<void (BaseComponent*, const GiveFeedbackEventArgs&)>
+    GiveFeedbackEventHandler;
+typedef Noesis::Delegate<void (BaseComponent*, const DragEventArgs&)>
+    DragEventHandler;
 
-template <class T> class TypedCollection;
-typedef Noesis::TypedCollection<Noesis::CommandBinding> CommandBindingCollection;
-typedef Noesis::TypedCollection<Noesis::InputBinding> InputBindingCollection;
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::CommandBinding> CommandBindingCollection;
+typedef Noesis::UICollection<Noesis::InputBinding> InputBindingCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Base class for core level implementations building on elements and basic
-/// presentation characteristics. 
+/// Provides a starting point for element layout characteristics, and also exposes virtual methods
+/// that derived classes can override, which can influence the layout rendering behavior of the
+/// element and its child elements.
+///
+/// Much of the input (keyboard, mouse and touch) and focusing behavior for elements in general is
+/// also defined in the UIElement class.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.uielement.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -102,7 +112,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     /// Gets or sets a value indicating whether this element can be used as the target of a 
-    /// drag-and-drop operation. 
+    /// drag-and-drop operation
     //@{
     bool GetAllowDrop() const;
     void SetAllowDrop(bool value);
@@ -122,7 +132,7 @@ public:
     void SetClipToBounds(bool clipToBounds);
     //@}
 
-    /// Gets or sets a value that indicates whether the element can receive focus.
+    /// Gets or sets a value that indicates whether the element can receive focus
     //@{
     bool GetFocusable() const;
     void SetFocusable(bool value);
@@ -138,7 +148,7 @@ public:
     bool GetIsFocused() const;
 
     /// Gets or sets a value that declares whether this element can possibly be returned as a hit 
-    /// test result from some portion of its rendered content. 
+    /// test result from some portion of its rendered content
     //@{
     bool GetIsHitTestVisible() const;
     void SetIsHitTestVisible(bool value);
@@ -155,7 +165,7 @@ public:
     bool GetIsMouseCaptured() const;
 
     /// Gets a value that determines whether mouse capture is held by this element or by child 
-    /// elements in its visual tree.
+    /// elements in its visual tree
     bool GetIsMouseCaptureWithin() const;
 
     /// Gets a value that indicates whether the position of the mouse pointer corresponds to hit 
@@ -163,7 +173,7 @@ public:
     bool GetIsMouseDirectlyOver() const;
 
     /// Gets a value indicating whether the mouse pointer is located over this element (including 
-    /// child elements in the visual tree).
+    /// child elements in the visual tree)
     bool GetIsMouseOver() const;
 
     /// Indicates whether this element is visible in the user interface
@@ -188,8 +198,8 @@ public:
     void SetProjection(Projection* projection);
     //@}
 
-    /// Gets or sets the center point of any possible render transform declared by RenderTransform, 
-    /// relative to the bounds of the element. 
+    /// Gets or sets the center point of any possible render transform declared by
+    /// *RenderTransform*, relative to the bounds of the element
     //@{
     const Point& GetRenderTransformOrigin() const;
     void SetRenderTransformOrigin(const Point& origin);
@@ -207,8 +217,7 @@ public:
     void SetVisibility(Noesis::Visibility visibility);
     //@}
 
-    /// Finds the View where this element is connected to traversing visual or logical ancestors,
-    /// because visual tree might not be generated yet
+    /// Finds the View where this element is connected to traversing visual or logical ancestors
     IView* GetUIView() const;
 
     /// Gets the logical or visual parent for this element
@@ -254,46 +263,45 @@ public:
     /// Gets keyboard input manager
     Keyboard* GetKeyboard() const;
 
-    /// Attempts to set focus to this element.
+    /// Attempts to set focus to this element
     bool Focus();
 
-    /// Gets control's desired size (calculated after measure process)
+    /// Gets control's desired size (calculated after *Measure* process)
     const Size& GetDesiredSize() const;
      
-    /// Gets calculated (during arrange) render size
+    /// Gets calculated (during *Arrange*) render size
     const Size& GetRenderSize() const;
 
-    /// Invalidates the measurement state (layout) for the element.
+    /// Invalidates the measurement state (layout) for the element
     void InvalidateMeasure();
 
     /// Indicates if measured size is valid
     bool IsMeasureValid() const;
     
-    /// Updates the DesiredSize of a UIElement. Parent elements call this method from their own
-    /// MeasureCore implementations to form a recursive layout update. Calling this method
+    /// Updates the *DesiredSize* of a UIElement. Parent elements call this method from their own
+    /// *MeasureCore* implementations to form a recursive layout update. Calling this method
     /// constitutes the first pass of a layout update in the layout system
     void Measure(const Size& availableSize);
 
     /// Invalidates the arrange state (layout) for the element. After the invalidation,
     /// the element will have its layout updated, which will occur asynchronously
-    /// unless subsequently forced by UIElement.UpdateLayout().
+    /// unless subsequently forced by *UpdateLayout*
     void InvalidateArrange();
 
     /// Indicates if arrange is valid
     bool IsArrangeValid() const;
 
     /// Positions child elements and determines a size for a UIElement. Parent elements call this
-    /// method from their ArrangeCore implementation to form a recursive layout update. This method
-    /// constitutes the second pass of a layout update
+    /// method from their *ArrangeCore* implementation to form a recursive layout update. This
+    /// method constitutes the second pass of a layout update
     void Arrange(const Rect& finalRect);
 
-    /// Invalidates the rendering of the element, and forces a complete new layout
-    /// pass. UIElement.OnRender(DrawingContext) is called after the layout cycle is completed.
+    /// Invalidates the rendering of the element, and forces a complete new layout pass. *OnRender*
+    /// is called after the layout cycle is completed
     void InvalidateVisual();
 
     /// Ensures that all visual child elements of this element are properly updated for layout
     void UpdateLayout();
-
 
     /// Request to move the focus from this element to another element. Returns true if focus is
     /// moved successfully, returns false if there is no next element
@@ -437,6 +445,40 @@ public:
     RoutedEvent_<QueryCursorEventHandler> QueryCursor();
     /// Occurs when this element gets text in a device-independent manner
     RoutedEvent_<TextCompositionEventHandler> TextInput();
+    /// Notifies source object of a dragging operation
+    RoutedEvent_<QueryContinueDragEventHandler> PreviewQueryContinueDrag();
+    /// Notifies source object of a dragging operation
+    RoutedEvent_<QueryContinueDragEventHandler> QueryContinueDrag();
+    /// Notifies source object of a dragging operation to provide feedback to the user
+    RoutedEvent_<GiveFeedbackEventHandler> PreviewGiveFeedback();
+    /// Notifies source object of a dragging operation to provide feedback to the user
+    RoutedEvent_<GiveFeedbackEventHandler> GiveFeedback();
+    /// Occurs when mouse enters the target of a dragging operation
+    RoutedEvent_<DragEventHandler> PreviewDragEnter();
+    /// Occurs when mouse enters the target of a dragging operation
+    RoutedEvent_<DragEventHandler> DragEnter();
+    /// Occurs when mouse is moved over the target of a dragging operation
+    RoutedEvent_<DragEventHandler> PreviewDragOver();
+    /// Occurs when mouse is moved over the target of a dragging operation
+    RoutedEvent_<DragEventHandler> DragOver();
+    /// Occurs when mouse leaves the target of a dragging operation
+    RoutedEvent_<DragEventHandler> PreviewDragLeave();
+    /// Occurs when mouse leaves the target of a dragging operation
+    RoutedEvent_<DragEventHandler> DragLeave();
+    /// Notifies target object of a dragging operation that data is being dropped
+    RoutedEvent_<DragEventHandler> PreviewDrop();
+    /// Notifies target object of a dragging operation that data is being dropped
+    RoutedEvent_<DragEventHandler> Drop();
+
+    /// Adds a handler to the specified routed event
+    void AddHandler(const RoutedEvent* ev, const RoutedEventHandler& handler);
+
+    /// Removes a handler from the specified routed event
+    void RemoveHandler(const RoutedEvent* ev, const RoutedEventHandler& handler);
+
+    /// Raises a specific routed event. The RoutedEvent to be raised is identified within the 
+    /// RoutedEventArgs instance that is provided (as the RoutedEvent property of that event data)
+    void RaiseEvent(const RoutedEventArgs& e);
 
     // Events: A function to register handlers must be specified for each event of a class. The
     // function must have the same name as the event and return an 'Event_' object to allow users
@@ -486,16 +528,6 @@ public:
     /// Occurs when the value of the IsKeyboardFocusWithinChanged property changes on this element
     Event_<DependencyPropertyChangedEventHandler> IsKeyboardFocusWithinChanged();
 
-    /// Adds a handler to the specified routed event
-    void AddHandler(const RoutedEvent* ev, const RoutedEventHandler& handler);
-
-    /// Removes a handler from the specified routed event
-    void RemoveHandler(const RoutedEvent* ev, const RoutedEventHandler& handler);
-
-    /// Raises a specific routed event. The RoutedEvent to be raised is identified within the 
-    /// RoutedEventArgs instance that is provided (as the RoutedEvent property of that event data)
-    void RaiseEvent(const RoutedEventArgs& e);
-
 public:
     /// Dependency properties
     //@{
@@ -519,7 +551,6 @@ public:
     static const DependencyProperty* ProjectionProperty;
     static const DependencyProperty* RenderTransformOriginProperty;
     static const DependencyProperty* RenderTransformProperty;
-    //static const DependencyProperty* SnapsToDevicePixelsProperty; // DEPRECATED: UseLayoutRounding
     static const DependencyProperty* VisibilityProperty;
     //@}
 
@@ -573,6 +604,18 @@ public:
     static const RoutedEvent* PreviewTextInputEvent;
     static const RoutedEvent* QueryCursorEvent;
     static const RoutedEvent* TextInputEvent;
+    static const RoutedEvent* PreviewQueryContinueDragEvent;
+    static const RoutedEvent* QueryContinueDragEvent;
+    static const RoutedEvent* PreviewGiveFeedbackEvent;
+    static const RoutedEvent* GiveFeedbackEvent;
+    static const RoutedEvent* PreviewDragEnterEvent;
+    static const RoutedEvent* DragEnterEvent;
+    static const RoutedEvent* PreviewDragOverEvent;
+    static const RoutedEvent* DragOverEvent;
+    static const RoutedEvent* PreviewDragLeaveEvent;
+    static const RoutedEvent* DragLeaveEvent;
+    static const RoutedEvent* PreviewDropEvent;
+    static const RoutedEvent* DropEvent;
     //@}
 
 protected:
@@ -582,11 +625,11 @@ protected:
     /// Removes a handler from the specified non-routed event
     void RemoveEventHandler(NsSymbol key, const EventHandler& handler);
 
+    /// Raises a specific non-routed event
+    void RaiseEvent(NsSymbol key, const EventArgs& args);
+
     /// Returns the delegate corresponding to the given non-routed event
     EventHandler& GetEventHandler(NsSymbol key);
-
-    /// Raises a specific event
-    void RaiseEvent(NsSymbol key, const EventArgs& args);
 
     /// Indicates if the element has ever been measured or arranged
     //@{
@@ -652,7 +695,7 @@ protected:
 
     /// Property changed handlers
     //@{
-    virtual void OnVisibilityChanged(Visibility visibility);
+    virtual void OnVisibilityChanged(Visibility oldVisibility, Visibility newVisibility);
     virtual void OnRenderTransformChanged(Transform* oldTransform, Transform* newTransform);
     //@}
 
@@ -713,6 +756,18 @@ protected:
     virtual void OnPreviewTextInput(const TextCompositionEventArgs& e);
     virtual void OnTextInput(const TextCompositionEventArgs& e);
     virtual void OnQueryCursor(const QueryCursorEventArgs& e);
+    virtual void OnPreviewQueryContinueDrag(const QueryContinueDragEventArgs& e);
+    virtual void OnQueryContinueDrag(const QueryContinueDragEventArgs& e);
+    virtual void OnPreviewGiveFeedback(const GiveFeedbackEventArgs& e);
+    virtual void OnGiveFeedback(const GiveFeedbackEventArgs& e);
+    virtual void OnPreviewDragEnter(const DragEventArgs& e);
+    virtual void OnDragEnter(const DragEventArgs& e);
+    virtual void OnPreviewDragOver(const DragEventArgs& e);
+    virtual void OnDragOver(const DragEventArgs& e);
+    virtual void OnPreviewDragLeave(const DragEventArgs& e);
+    virtual void OnDragLeave(const DragEventArgs& e);
+    virtual void OnPreviewDrop(const DragEventArgs& e);
+    virtual void OnDrop(const DragEventArgs& e);
 
     /// When overridden in a derived class, participates in rendering operations that are directed
     /// by the layout system. The rendering instructions for this element are not used directly
@@ -720,25 +775,22 @@ protected:
     /// and drawing
     virtual void OnRender(DrawingContext* drawingContext);
 
-
     virtual void OnRenderSizeChanged(const SizeChangedInfo& info);
 
     /// From DependencyObject
     //@{
-    void OnInit();
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    void OnInit() override;
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
     /// From Visual
     //@{
-    Rect GetContentBoundsCore() const;
-    DrawingCommands* GetDrawingCommands() const;
-    void OnConnectToView(IView* view);
-    void OnDisconnectFromView();
-    void OnVisualParentChanged(Visual* oldParent);
-    HitTestResult HitTestCore(const Point& point);
-    // protected override GeometryHitTestResult HitTestCore(GeometryHitTestParameters 
-    //     hitTestParameters);
+    Rect GetContentBoundsCore() const override;
+    DrawingCommands* GetDrawingCommands() const override;
+    void OnConnectToView(IView* view) override;
+    void OnDisconnectFromView() override;
+    void OnVisualParentChanged(Visual* oldParent) override;
+    HitTestResult HitTestCore(const Point& point) override;
     //@}
 
 protected:
@@ -754,9 +806,13 @@ private:
     friend class Mouse;
     friend class Keyboard;
     friend class UIElementTest;
+    friend class SymEventBind;
 
     /// Notifies event handlers
     void NotifyHandlers(const RoutedEventArgs& args);
+
+    /// Notifies type event handlers
+    void NotifyTypeHandlers(const TypeClass* type, const RoutedEventArgs& args);
 
     /// Begins a tunneling route for an event
     void TunnelingEvent(const RoutedEventArgs& args);
@@ -798,6 +854,9 @@ private:
     void UpdateCachedProperties();
     void UpdateCachedProperties(const DependencyPropertyChangedEventArgs& e);
     bool GetIsEnabledCached() const;
+    bool GetIsHitTestVisibleCached() const;
+    bool GetIsKeyboardFocusedCached() const;
+    bool GetIsKeyboardFocusWithinCached() const;
     bool GetClipToBoundsCached() const;
     Visibility GetVisibilityCached() const;
 
@@ -823,6 +882,10 @@ private:
     EventHandler& GetIsMouseDirectlyOverChangedEvent();
     EventHandler& GetIsKeyboardFocusedChangedEvent();
     EventHandler& GetIsKeyboardFocusWithinChangedEvent();
+
+    /// Promotes MouseDown/Up events to the corresponding Left/Right mouse button events
+    void PromoteMouseButtonEvent(const MouseButtonEventArgs& e,
+        const RoutedEvent* leftEvent, const RoutedEvent* rightEvent);
 
     /// Class event handlers
     //@{
@@ -872,6 +935,18 @@ private:
     static void StaticOnPreviewTextInput(BaseComponent* obj, const EventArgs& e);
     static void StaticOnTextInput(BaseComponent* obj, const EventArgs& e);
     static void StaticOnQueryCursor(BaseComponent* obj, const EventArgs& e);
+    static void StaticOnPreviewQueryContinueDrag(BaseComponent* obj, const EventArgs& e);
+    static void StaticOnQueryContinueDrag(BaseComponent* obj, const EventArgs& e);
+    static void StaticOnPreviewGiveFeedback(BaseComponent* obj, const EventArgs& e);
+    static void StaticOnGiveFeedback(BaseComponent* obj, const EventArgs& e);
+    static void StaticOnPreviewDragEnter(BaseComponent* obj, const EventArgs& e);
+    static void StaticOnDragEnter(BaseComponent* obj, const EventArgs& e);
+    static void StaticOnPreviewDragOver(BaseComponent* obj, const EventArgs& e);
+    static void StaticOnDragOver(BaseComponent* obj, const EventArgs& e);
+    static void StaticOnPreviewDragLeave(BaseComponent* obj, const EventArgs& e);
+    static void StaticOnDragLeave(BaseComponent* obj, const EventArgs& e);
+    static void StaticOnPreviewDrop(BaseComponent* obj, const EventArgs& e);
+    static void StaticOnDrop(BaseComponent* obj, const EventArgs& e);
     //@}
 
     static bool CoerceIsEnabled(const DependencyObject* object, const void* value, 
@@ -910,5 +985,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

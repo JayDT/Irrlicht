@@ -198,8 +198,8 @@ public:
     }
     static Transform2 Rot(T radians)
     {
-        T cs = Cos(radians);
-        T sn = Sin(radians);
+        T cs = cosf(radians);
+        T sn = sinf(radians);
         
         return Transform2<T>(Vector2<T>(cs, sn), Vector2<T>(-sn, cs), Vector2<T>(T(0.0), T(0.0)));
     }
@@ -488,8 +488,8 @@ public:
     }
     static Transform3 RotX(T radians)
     {
-        T cs = Cos(radians);
-        T sn = Sin(radians);
+        T cs = cosf(radians);
+        T sn = sinf(radians);
         
         return Transform3<T>(Vector3<T>(T(1.0), T(0.0), T(0.0)),
             Vector3<T>(T(0.0), cs, sn),
@@ -498,8 +498,8 @@ public:
     }
     static Transform3 RotY(T radians)
     {
-        T cs = Cos(radians);
-        T sn = Sin(radians);
+        T cs = cosf(radians);
+        T sn = sinf(radians);
         
         return Transform3<T>(Vector3<T>(cs, T(0.0), sn), 
             Vector3<T>(T(0.0), T(1.0), T(0.0)),
@@ -508,8 +508,8 @@ public:
     }
     static Transform3 RotZ(T radians)
     {
-        T cs = Cos(radians);
-        T sn = Sin(radians);
+        T cs = cosf(radians);
+        T sn = sinf(radians);
         
         return Transform3<T>(Vector3<T>(cs, sn, T(0.0)), 
             Vector3<T>(-sn, cs, T(0.0)),
@@ -600,11 +600,11 @@ typedef Transform3<float> Transform3f;
 NS_TEMPLATE bool Transform2f::TryParse(const char*, Transform2&);
 NS_TEMPLATE NsString Transform2f::ToString() const;
 NS_TEMPLATE uint32_t Transform2f::GetHashCode() const;
-NS_TEMPLATE const TypeClass* Transform2f::StaticGetClassType(T2T<Transform2f>*);
+NS_TEMPLATE const TypeClass* Transform2f::StaticGetClassType(TypeTag<Transform2f>*);
 
 NS_TEMPLATE NsString Transform3f::ToString() const;
 NS_TEMPLATE uint32_t Transform3f::GetHashCode() const;
-NS_TEMPLATE const TypeClass* Transform3f::StaticGetClassType(T2T<Transform3f>*);
+NS_TEMPLATE const TypeClass* Transform3f::StaticGetClassType(TypeTag<Transform3f>*);
 
 #undef NS_TEMPLATE
 

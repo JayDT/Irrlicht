@@ -34,6 +34,8 @@ class RoutedEvent;
 struct RoutedEventArgs;
 struct DependencyPropertyChangedEventArgs;
 
+typedef Noesis::Delegate<void(UIElement*)> DirectlyOverChangedEvent;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 enum CaptureMode
 {
@@ -49,14 +51,13 @@ enum CaptureMode
     CaptureMode_SubTree
 };
 
-typedef Noesis::Delegate<void (UIElement*)> DirectlyOverChangedEvent;
-typedef NsVector< Ptr<UIElement> > ParentElementList;
-
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Represents the mouse device.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.input.mouse.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API Mouse: public BaseComponent
 {
@@ -111,24 +112,25 @@ private:
     friend class FrameworkElement;
 
     void ResetDirectlyOver();
+    void InvalidateHitTest();
 
     /// Indicates if mouse requires to refresh over/captured element state
     bool NeedsUpdate() const;
     void Update();
 
-    void UpdateCursor();
+    bool UpdateCursor();
 
-    void RaiseButtonDownEvents(UIElement* element, MouseButton button);
-    void ButtonDown(int x, int y, MouseButton button);
-    void ButtonUp(int x, int y, MouseButton button);
-    void DoubleClick(int x, int y, MouseButton button);
-    void Move(int x, int y);
-    void Wheel(int x, int y, int wheelRotation);
-    void HWheel(int x, int y, int wheelRotation);
-    void Scroll(float value);
-    void HScroll(float value);
+    bool RaiseButtonDownEvents(UIElement* element, MouseButton button, uint32_t clickCount);
+    bool ButtonDown(int x, int y, MouseButton button);
+    bool ButtonUp(int x, int y, MouseButton button);
+    bool DoubleClick(int x, int y, MouseButton button);
+    bool Move(int x, int y);
+    bool Wheel(int x, int y, int wheelRotation);
+    bool HWheel(int x, int y, int wheelRotation);
+    bool Scroll(float value);
+    bool HScroll(float value);
 
-    void RaiseWheel(UIElement* element, int wheelRotation);
+    bool RaiseWheel(UIElement* element, int wheelRotation);
 
     struct HitInfo
     {
@@ -136,7 +138,7 @@ private:
         Ptr<UIElement> hitVisibleElement;
     };
 
-    void SetOver(const HitInfo& hit);
+    bool SetOver(const HitInfo& hit);
 
     void OnLastPressedControlDestroyed(DependencyObject* dob);
 
@@ -144,6 +146,7 @@ private:
         const DependencyPropertyChangedEventArgs& args);
     void UpdateOver();
 
+    void UpdateCaptureWithin(UIElement* newCapture);
     void OnCapturedIsEnabledChanged(BaseComponent* sender,
         const DependencyPropertyChangedEventArgs& args);
     void OnCapturedIsVisibleChanged(BaseComponent* sender,
@@ -152,15 +155,15 @@ private:
         const DependencyPropertyChangedEventArgs& args);
     void UpdateCaptured();
 
-    void RegisterCaptured();
-    void UnregisterCaptured();
+    void RegisterCaptured(UIElement* element);
+    void UnregisterCaptured(UIElement* element);
 
-    void OpenContextMenu(UIElement* element, const Point& mousePosition);
+    bool OpenContextMenu(UIElement* element, const Point& mousePosition);
     void OnContextMenuClosed(BaseComponent* sender, const RoutedEventArgs& args);
 
-    void OpenToolTip(UIElement* element);
+    bool OpenToolTip(UIElement* element);
     void TryOpenToolTip();
-    void TryCloseToolTip();
+    bool TryCloseToolTip();
     void OnToolTipClosed(BaseComponent* sender, const RoutedEventArgs& args);
     void CancelToolTipTimer();
     void ResetToolTip();
@@ -171,9 +174,9 @@ private:
         const DependencyPropertyChangedEventArgs& args);
     void OnToolTipOwnerDestroyed(DependencyObject* obj);
 
-    uint32_t OnToolTipInitialTimeElapsed(void* state = 0);
-    uint32_t OnToolTipDurationTimeElapsed(void* state = 0);
-    uint32_t OnToolTipBetweenTimeElapsed(void* state = 0);
+    uint32_t OnToolTipInitialTimeElapsed();
+    uint32_t OnToolTipDurationTimeElapsed();
+    uint32_t OnToolTipBetweenTimeElapsed();
 
     HitInfo HitTest(const Point& point) const;
     HitInfo HitTest(View* view, const Point& point) const;
@@ -187,7 +190,7 @@ private:
 
     // Last mouse state
     Point mPosition;
-    
+
     static const uint32_t NumButtons = 5;
     MouseButtonState mButtonStates[NumButtons];
 
@@ -206,9 +209,7 @@ private:
     // Current cursor icon
     Cursor mCursor;
 
-    // Filled by ButtonDown() and reused by DoubleClick()
-    UIElement* mLastPressedControl;
-
+    // Active context menu and its owner
     ContextMenu* mContextMenu;
     IUITreeNode* mContextMenuOwner;
 
@@ -242,5 +243,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

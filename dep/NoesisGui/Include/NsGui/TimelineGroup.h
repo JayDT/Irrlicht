@@ -16,12 +16,12 @@
 namespace Noesis
 {
 
-template<class T> class TypedFreezableCollection;
-typedef Noesis::TypedFreezableCollection<Noesis::Timeline> TimelineCollection;
+template<class T> class FreezableCollection;
+typedef Noesis::FreezableCollection<Noesis::Timeline> TimelineCollection;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Abstract class that, when implemented represents a Timeline
-/// that may contain a collection of child Timeline objects.
+/// Abstract class that, when implemented represents a Timeline that may contain a collection of
+/// child Timeline objects.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.timelinegroup.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -30,14 +30,14 @@ class NS_GUI_ANIMATION_API TimelineGroup: public Timeline
 public:
     TimelineGroup();
     virtual ~TimelineGroup() = 0;
-    
+
     /// Gets or sets the collection of child Timeline objects
     //@{
     TimelineCollection* GetChildren() const;
     void SetChildren(TimelineCollection* timelines);
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<TimelineGroup> Clone() const;
     Ptr<TimelineGroup> CloneCurrentValue() const;
@@ -52,12 +52,13 @@ public:
 protected:
     /// From Timeline
     //@{
-    Ptr<Clock> CreateClockCore(TimeManager* timeManager, bool hasControllableRoot);
+    Ptr<Clock> CreateClockCore(TimeManager* timeManager, bool hasControllableRoot) override;
     //@}
 
     NS_DECLARE_REFLECTION(TimelineGroup, Timeline)
 };
 
 }
+
 
 #endif

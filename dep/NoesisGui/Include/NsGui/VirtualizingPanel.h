@@ -102,8 +102,8 @@ protected:
 
     // From Panel
     //@{
-    void GenerateChildren();
-    void OnItemsChangedOverride(BaseComponent* sender, const ItemsChangedEventArgs& e);
+    void GenerateChildren() override;
+    void OnItemsChangedOverride(BaseComponent* sender, const ItemsChangedEventArgs& e) override;
     //@}
 
 private:
@@ -121,5 +121,6 @@ NS_WARNING_POP
 
 NS_DECLARE_REFLECTION_ENUM_EXPORT(NS_GUI_CORE_API, Noesis::VirtualizationMode)
 NS_DECLARE_REFLECTION_ENUM_EXPORT(NS_GUI_CORE_API, Noesis::ScrollUnit)
+
 
 #endif

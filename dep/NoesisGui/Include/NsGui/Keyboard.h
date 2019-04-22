@@ -24,13 +24,15 @@ class View;
 class UIElement;
 class RoutedEvent;
 class KeyboardNavigation;
-typedef NsVector< Ptr<UIElement> > ParentElementList;
+struct DependencyPropertyChangedEventArgs;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Represents the keyboard device.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.input.keyboard.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API Keyboard: public BaseComponent
 {
@@ -42,10 +44,10 @@ public:
     void ResetState();
 
     /// Gets the set of ModifierKeys that are currently pressed
-    uint32_t GetModifiers() const;
+    ModifierKeys GetModifiers() const;
 
     /// Gets the set of key states for the specified key
-    uint32_t GetKeyStates(Key key) const;
+    KeyStates GetKeyStates(Key key) const;
 
     /// Determines whether the specified key is pressed
     bool IsKeyDown(Key key) const;
@@ -59,10 +61,13 @@ public:
     /// Gets the element that has keyboard focus
     UIElement* GetFocused() const;
 
-    /// Sets keyboard focus on the specified element
-    /// \return The element that has focus after calling the function. May be an element other than
+    /// Sets keyboard focus on the specified element.
+    /// Returns the element that has focus after calling the function; may be an element other than
     /// that specified, even a null element
     UIElement* Focus(UIElement* element);
+
+    /// Clears focus
+    void ClearFocus();
 
 public:
     /// Attached routed events
@@ -79,28 +84,64 @@ public:
 
 private:
     friend class View;
+    friend class ViewLayout;
 
-    void Char(uint32_t ch);
-    void KeyDown(Key key);
-    void KeyUp(Key key);
+    /// Indicates if keyboard requires to refresh focused element state
+    bool NeedsUpdate() const;
+    void Update();
+
+    bool Char(uint32_t ch);
+    bool KeyDown(Key key);
+    bool KeyUp(Key key);
 
     void UpdateKey(Key key, bool isKeyDown);
+
+    bool IsFocusable(UIElement* element) const;
+    void Focus(UIElement* element, bool askOld, bool askNew, bool canBeNull);
+    void ReevaluateFocus();
+
+    void Activate();
+    void Deactivate();
+
+    void RegisterFocused();
+    void UnregisterFocused();
+    void OnFocusedAncestorChanged(FrameworkElement* element);
+    void OnFocusedIsVisibleChanged(BaseComponent* sender,
+        const DependencyPropertyChangedEventArgs& e);
+    void OnFocusedIsEnabledChanged(BaseComponent* sender,
+        const DependencyPropertyChangedEventArgs& e);
+    void OnFocusedFocusableChanged(BaseComponent* sender,
+        const DependencyPropertyChangedEventArgs& e);
 
     friend class FrameworkElement;
     KeyboardNavigation* GetKeyboardNavigation() const;
 
 private:
     // Last keyboard key states
-    uint32_t mKeyStates[Key_Count];
+    KeyStates mKeyStates[Key_Count];
+
+    View* mView;
 
     Ptr<UIElement> mFocusedElement;
+    Ptr<UIElement> mRestoreFocusedElement;
 
-    typedef NsVector<Ptr<UIElement> > Elements;
+    typedef NsVector<Ptr<UIElement>> Elements;
     Elements mFocusWithinElements;
 
     Ptr<KeyboardNavigation> mKeyboardNavigation;
 
-    bool mKeyDownHandled;
+    union
+    {
+        struct
+        {
+            bool inactive : 1;
+            bool keyDownHandled : 1;
+            bool reevaluateFocus : 1;
+        } mFlags;
+
+        // To quickly set all flags to 0
+        uint32_t mAllFlags;
+    };
 
     NS_DECLARE_REFLECTION(Keyboard, BaseComponent)
 };
@@ -108,5 +149,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

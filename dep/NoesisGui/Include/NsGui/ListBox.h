@@ -19,11 +19,10 @@ namespace Noesis
 
 class ListBoxItem;
 class ListBoxTest;
-NS_INTERFACE IList;
 struct NotifyCollectionChangedEventArgs;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Contains a list of selectable items. 
+/// Contains a list of selectable items.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.listbox.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,9 +30,9 @@ class NS_GUI_CORE_API ListBox: public Selector
 {
 public:
     ListBox();
-    
-    /// Gets the currently selected items
-    IList* GetSelectedItems() const;
+
+    /// Gets a list of the currently selected items
+    SelectedItemsCollection* GetSelectedItems() const;
 
     /// Gets or sets the selection behavior for a ListBox
     //@{
@@ -41,13 +40,13 @@ public:
     void SetSelectionMode(SelectionMode mode);
     //@}
 
-    /// Select all the items
+    /// Selects all the items
     void SelectAll();
 
     /// Clears all of the selected items
     void UnselectAll();
 
-    /// Causes the object to scroll into view. If it is not visible, it is aligned either at the
+    /// Causes the item to scroll into view. If it is not visible, it is aligned either at the
     /// top or bottom of the viewport
     void ScrollIntoView(BaseComponent* item);
 
@@ -107,5 +106,6 @@ private:
 };
 
 }
+
 
 #endif

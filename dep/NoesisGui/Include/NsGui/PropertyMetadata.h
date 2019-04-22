@@ -29,35 +29,29 @@ typedef Delegate<void (DependencyObject* d, const DependencyPropertyChangedEvent
     PropertyChangedCallback;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-typedef bool (*CoerceValueCallback)(const DependencyObject* d, const void* value,
-    void* coercedValue);
+typedef Delegate<bool (const DependencyObject* d, const void* baseValue, void* coercedValue)>
+    CoerceValueCallback;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// PropertyMetadata. Defines certain behavior aspects of a dependency property as it is applied to
-/// a specific type, including conditions it was registered with.
-///
-/// WPF PropertyMetadata fields:
-///  - DefaultValue
-///  - PropertyChangedCallback
-///  - CoerceValueCallback
-///  - IsSealed
+/// Defines certain behavior aspects of a dependency property as it is applied to a specific type,
+/// including conditions it was registered with.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_DEPENDENCYSYSTEM_API PropertyMetadata: public BaseComponent
 {
 public:
-    /// Helper functions to create a new PropertyMetadata
+    // Helper functions to create a new PropertyMetadata
     //@{
-    inline static Ptr<PropertyMetadata> Create();
+    static Ptr<PropertyMetadata> Create();
+
+    static Ptr<PropertyMetadata> Create(const PropertyChangedCallback& changed);
+
+    static Ptr<PropertyMetadata> Create(const CoerceValueCallback& coerce);
 
     template<class T>
     inline static Ptr<PropertyMetadata> Create(const T& defaultValue);
-
-    inline static Ptr<PropertyMetadata> Create(const PropertyChangedCallback& changed);
-
-    inline static Ptr<PropertyMetadata> Create(CoerceValueCallback coerce);
 
     template<class T>
     inline static Ptr<PropertyMetadata> Create(const T& defaultValue,
@@ -65,34 +59,61 @@ public:
 
     template<class T>
     inline static Ptr<PropertyMetadata> Create(const T& defaultValue,
-        CoerceValueCallback coerce);
+        const CoerceValueCallback& coerce);
 
     template<class T>
     inline static Ptr<PropertyMetadata> Create(const T& defaultValue,
-        const PropertyChangedCallback& changed, CoerceValueCallback coerce);
+        const PropertyChangedCallback& changed, const CoerceValueCallback& coerce);
     //@}
 
     ~PropertyMetadata();
 
-    inline bool HasDefaultValue() const;
+    /// Gets or sets the default value of the dependency property
+    //@{
     inline const void* GetDefaultValue() const;
-    inline Ptr<BaseComponent> GetDefaultValueObject() const;
     void SetDefaultValue(ValueStorageManager* defaultValueManager, const void* defaultValue);
 
+    template<class T>
+    void SetDefaultValue(const T& defaultValue);
+    //@}
+
+    /// Gets default value as a boxed object
+    inline Ptr<BaseComponent> GetDefaultValueObject() const;
+
+    /// Gets *DefaultValue* memory manager
     inline ValueStorageManager* GetValueManager() const;
 
-    inline bool HasPropertyChangedCallback() const;
+    /// Indicates if this metadata has a DefaultValue set
+    inline bool HasDefaultValue() const;
+
+    /// Gets or sets a PropertyChangedCallback implementation specified in this metadata
+    /// \prop
+    //@{
     inline const PropertyChangedCallback& GetPropertyChangedCallback() const;
     void SetPropertyChangedCallback(const PropertyChangedCallback& changed);
 
+    /// Indicates if this metadata has a PropertyChangedCallback set
+    inline bool HasPropertyChangedCallback() const;
+
+    /// Gets or sets a CoerceValueCallback implementation specified in this metadata
+    /// \prop
+    //@{
+    inline const CoerceValueCallback& GetCoerceValueCallback() const;
+    void SetCoerceValueCallback(const CoerceValueCallback& coerce);
+    //@}
+
+    /// Indicates if this metadata has a CoerceValueCallback set
     inline bool HasCoerceValueCallback() const;
-    inline CoerceValueCallback GetCoerceValueCallback() const;
-    void SetCoerceValueCallback(CoerceValueCallback coerce);
 
+    /// Determines if the values of the property using this metadata should not be cached
+    /// prop
+    //@{
+    inline bool GetUncached() const;
+    void SetUncached(bool value);
+    //@}
+
+    /// Indicates if this metadata has a the Uncached flag set
     inline bool IsUncached() const;
-    inline bool Uncached() const;
-
-    void SetAsUncached();
 
     /// Remove inherited values from ancestors
     virtual void ClearInheritedValues();
@@ -108,21 +129,23 @@ protected:
     /// Constructors
     //@{
     PropertyMetadata();
-    PropertyMetadata(ValueStorageManager* defaultValueManager, const void* defaultValue);
-    PropertyMetadata(const PropertyChangedCallback& changed);
-    PropertyMetadata(CoerceValueCallback coerce);
-    PropertyMetadata(ValueStorageManager* defaultValueManager, const void* defaultValue,
-        const PropertyChangedCallback& changed);
-    PropertyMetadata(ValueStorageManager* defaultValueManager, const void* defaultValue,
-        CoerceValueCallback coerce);
-    PropertyMetadata(ValueStorageManager* defaultValueManager, const void* defaultValue,
-        const PropertyChangedCallback& changed, CoerceValueCallback coerce);
+    static Ptr<PropertyMetadata> Create(ValueStorageManager* defaultValueManager,
+        const void* defaultValue);
+    static Ptr<PropertyMetadata> Create(ValueStorageManager* defaultValueManager,
+        const void* defaultValue, const PropertyChangedCallback& changed);
+    static Ptr<PropertyMetadata> Create(ValueStorageManager* defaultValueManager,
+        const void* defaultValue, const CoerceValueCallback& coerce);
+    static Ptr<PropertyMetadata> Create(ValueStorageManager* defaultValueManager,
+        const void* defaultValue, const PropertyChangedCallback& changed,
+        const CoerceValueCallback& coerce);
     //@}
 
     /// From BaseComponent
     //@{
     int32_t OnDestroy() const;
     //@}
+
+    bool CheckSealed() const;
 
 private:
     void ResetDefaultValue();
@@ -145,11 +168,15 @@ private:
         PropertyFlags_Uncached = 1 << 4
     };
 
-    /// Flag to control if properties value are local or inherited
+    // Flag to control if properties value are local or inherited
     uint32_t mLocalFlags;
 
-    /// Tells if the property must not be cached in the DependencyObject internal hash
+    // Tells if the property must not be cached in the DependencyObject internal hash
+    bool mLocalUncached;
     bool mUncached;
+
+    friend class DependencyProperty;
+    bool mSealed;
 
     NS_DECLARE_REFLECTION(PropertyMetadata, BaseComponent)
 };
@@ -158,7 +185,8 @@ NS_WARNING_POP
 
 }
 
-/// Inline Include
+// Inline Include
 #include <NsGui/PropertyMetadata.inl>
+
 
 #endif

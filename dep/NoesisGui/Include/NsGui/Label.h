@@ -28,4 +28,5 @@ class NS_GUI_CORE_API Label: public ContentControl
 
 }
 
+
 #endif

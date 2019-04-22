@@ -26,45 +26,15 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Animates from the value of the previous key frame to its own value using splined interpolation.
 ///
-/// SplineDoubleKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.splinedoublekeyframe.aspx
-///
-///
-/// SplineInt16KeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.splineint16keyframe.aspx
-///
-///
-/// SplineInt32KeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.splineint32keyframe.aspx
-///
-///
-/// SplineColorKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.splinecolorkeyframe.aspx
-///
-///
-/// SplinePointKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.splinepointkeyframe.aspx
-///
-///
-/// SplineRectKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.splinerectkeyframe.aspx
-///
-///
-/// SplineSizeKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.splinesizekeyframe.aspx
-///
-///
-/// SplineThicknessKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.splinethicknesskeyframe.aspx
-///
+/// Existing types are:
+/// `SplineDoubleKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.splinedoublekeyframe.aspx>`_,
+/// `SplineInt16KeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.splineint16keyframe.aspx>`_,
+/// `SplineInt32KeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.splineint32keyframe.aspx>`_,
+/// `SplineColorKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.splinecolorkeyframe.aspx>`_,
+/// `SplinePointKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.splinepointkeyframe.aspx>`_,
+/// `SplineRectKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.splinerectkeyframe.aspx>`_,
+/// `SplineSizeKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.splinesizekeyframe.aspx>`_ and
+/// `SplineThicknessKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.splinethicknesskeyframe.aspx>`_.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
 class NS_GUI_ANIMATION_API SplineKeyFrame: public KeyFrame<T>
@@ -79,7 +49,7 @@ public:
     void SetKeySpline(KeySpline* spline);
     //@}
 
-    /// From Freezable
+    // Hides Freezable for convenience
     //@{
     Ptr<SplineKeyFrame<T>> Clone() const;
     Ptr<SplineKeyFrame<T>> CloneCurrentValue() const;
@@ -94,13 +64,13 @@ public:
 protected:
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
     /// From KeyFrame
     //@{
     typedef typename Noesis::Param<T>::Type ParamType;
-    T InterpolateValueCore(ParamType baseValue, float keyFrameProgress);
+    T InterpolateValueCore(ParamType baseValue, float keyFrameProgress) override;
     //@}
     
     NS_DECLARE_REFLECTION(SplineKeyFrame, KeyFrame<T>)
@@ -137,5 +107,6 @@ inline const char* SplineKeyFrameIdOf<ThicknessKeyFrame>() { return "SplineThick
 NS_WARNING_POP
 
 }
+
 
 #endif

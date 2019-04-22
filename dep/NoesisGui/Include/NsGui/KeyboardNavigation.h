@@ -36,12 +36,15 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.input.keyboardnavigation.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API KeyboardNavigation: public BaseComponent
+class NS_GUI_CORE_API KeyboardNavigation final: public BaseComponent
 {
 public:
     KeyboardNavigation();
     KeyboardNavigation(Keyboard* keyboard, Visual* root);
     ~KeyboardNavigation();
+
+    /// Gets View root
+    Visual* GetRoot() const;
 
     /// Gets or sets the logical tab navigation behavior for the children of the element that this 
     /// property is set on.
@@ -56,7 +59,7 @@ public:
     static KeyboardNavigationMode GetControlTabNavigation(const DependencyObject* element);
     static void SetControlTabNavigation(DependencyObject* element, KeyboardNavigationMode mode);
     //@}
-    
+
     /// Gets or sets the directional navigation behavior for the children of the element that this
     /// property is set on. 
     //@{
@@ -76,14 +79,21 @@ public:
     static bool GetIsTabStop(const DependencyObject* element);
     static void SetIsTabStop(DependencyObject* element, bool value);
     //@}
-    
+
     /// Gets or sets the tab index for the element that this property is set on. 
     //@{
     static int32_t GetTabIndex(const DependencyObject* element);
     static void SetTabIndex(DependencyObject* element, int32_t value);
     //@}
 
+    /// Request to move the focus from source element in the specified direction. Returns true if
+    /// focus is moved successfully, returns false if there is no next element.
+    /// Note: Internally used by FrameworkElement to implement *MoveFocus()*
     bool MoveFocus(FrameworkElement* source, const TraversalRequest& request);
+
+    /// Returns the element that would receive focus for a specified focus traversal direction,
+    /// without actually moving focus to that element.
+    /// Note: Internally used by FrameworkElement to implement *PredictFocus()*
     FrameworkElement* PredictFocus(FrameworkElement* source, FocusNavigationDirection direction);
 
 public:
@@ -96,7 +106,7 @@ public:
 
 private:
     friend class Keyboard;
-    void OnKeyDown(Key key);
+    bool OnKeyDown(Key key);
     void OnFocused(UIElement* focusedElement);
 
     void UpdateFocus(FrameworkElement* newFocused);
@@ -119,5 +129,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

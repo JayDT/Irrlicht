@@ -25,7 +25,7 @@ class RenderTreeUpdater;
 typedef void* ViewId;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// IRenderProxyCreator. Creates the proxy used in render thread.
+/// Creates and updates the proxy used in render thread.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 NS_INTERFACE IRenderProxyCreator: public Interface
 {
@@ -82,5 +82,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

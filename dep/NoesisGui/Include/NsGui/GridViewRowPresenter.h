@@ -26,30 +26,32 @@ class NS_GUI_CONTROLS_API GridViewRowPresenter: public BaseGridViewRowPresenter
 public:
     GridViewRowPresenter();
     ~GridViewRowPresenter();
-    
+
     /// Gets or sets the data content to display in a row
     //@{
     BaseComponent* GetContent() const;
     void SetContent(BaseComponent* content);
     //@}
-    
+
 public:
-    /// Dependency properties
-    //@{
     static const DependencyProperty* ContentProperty;
-    //@}
-    
+
 protected:
-    /// From DependencyObject
+    // From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
-    /// From FrameworkElement
+    // From FrameworkElement
     //@{
-    Size MeasureOverride(const Size& availableSize);
-    Size ArrangeOverride(const Size& finalSize);
-    void CloneOverride(FrameworkElement* clone, FrameworkTemplate* template_) const;
+    Size MeasureOverride(const Size& availableSize) override;
+    Size ArrangeOverride(const Size& finalSize) override;
+    void CloneOverride(FrameworkElement* clone, FrameworkTemplate* template_) const override;
+    //@}
+
+    // From BaseGridViewRowPresenter
+    //@{
+    void OnInvalidateColumns() override;
     //@}
 
 private:
@@ -58,10 +60,12 @@ private:
     void UpdateContent(BaseComponent* content);
     void UpdateCellContent(FrameworkElement* cell, GridViewColumn* column,
         BaseComponent* content, bool& contentHasParent);
+    void DisconnectCells();
 
     NS_DECLARE_REFLECTION(GridViewRowPresenter, BaseGridViewRowPresenter)
 };
 
 }
+
 
 #endif

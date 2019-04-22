@@ -27,6 +27,8 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Represents the base class for all Binding Expressions.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.data.bindingexpressionbase.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API BaseBindingExpression: public Expression
 {
@@ -59,13 +61,13 @@ public:
     virtual void UpdateSource() const = 0;
 
 protected:
-    /// Base binding which originated the expression
+    // Base binding which originated the expression
     Ptr<BaseBinding> mBinding;
 
-    /// Dependency object where the expression is applied
+    // Dependency object where the expression is applied
     DependencyObject* mTargetObject;
 
-    /// Dependency property where the expression is applied
+    // Dependency property where the expression is applied
     const DependencyProperty* mTargetProperty;
 
     NS_DECLARE_REFLECTION(BaseBindingExpression, Expression)

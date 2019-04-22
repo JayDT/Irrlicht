@@ -20,19 +20,21 @@ namespace Noesis
 class Inline;
 struct NotifyCollectionChangedEventArgs;
 
-template<class T> class TypedCollection;
-typedef Noesis::TypedCollection<Noesis::Inline> InlineCollection;
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::Inline> InlineCollection;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// An abstract class that provides a base for all inline flow content elements.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.documents.inline.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API Inline: public TextElement
 {
 public:
     Inline();
 
-    /// A collection of Inlines containing this one in its sequential tree. May return null if an
-    /// element is not inserted into any tree.
+    /// A collection of Inlines that are siblings to this element. May return null if an element
+    /// is not inserted into any tree.
     InlineCollection* GetSiblingInlines() const;
 
     /// Returns an Inline immediately preceding this one on the same level of siblings
@@ -41,7 +43,7 @@ public:
     /// Returns an Inline immediately following this one on the same level of siblings
     Inline* GetNextInline() const;
 
-    /// Gets or sets the text decoration to apply to the text
+    /// Gets or sets the text decoration to apply to the element
     //@{
     TextDecorations GetTextDecorations() const;
     void SetTextDecorations(TextDecorations decorations);
@@ -71,5 +73,6 @@ private:
 };
 
 }
+
 
 #endif

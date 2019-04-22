@@ -7,9 +7,7 @@
 
 #include <NsCore/Boxing.h>
 #include <NsCore/Ptr.h>
-#include <NsCore/MemProfiler.h>
-#include <NsCore/CpuProfiler.h>
-#include <NsGui/IExpression.h>
+#include <NsGui/Expression.h>
 #include <NsGui/ProviderValue.h>
 
 
@@ -190,8 +188,7 @@ void DependencyObject::InternalCoerceValue(const DependencyProperty* dp, StoredV
     const void* defaultValue, const PropertyMetadata* metadata)
 {
     T oldValue, coercedValue;
-    InternalCoerceValue(dp, sv, defaultValue, &oldValue, &coercedValue, metadata,
-        IsPtr<T>::Result);
+    InternalCoerceValue(dp, sv, defaultValue, &oldValue, &coercedValue, metadata, IsPtr<T>::Result);
 }
 
 }

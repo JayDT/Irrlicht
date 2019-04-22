@@ -22,10 +22,8 @@ namespace Noesis
 
 class DependencyObject;
 class DependencyProperty;
-class UIElement;
 class Brush;
 class FontFamily;
-class Collection;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Defines text attached properties.
@@ -166,5 +164,6 @@ private:
 };
 
 }
+
 
 #endif

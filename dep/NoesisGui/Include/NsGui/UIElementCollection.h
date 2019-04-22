@@ -9,12 +9,10 @@
 
 
 #include <NsCore/Noesis.h>
-#include <NsGui/CoreApi.h>
-#include <NsGui/VisualCollection.h>
-#include <NsGui/UIElement.h>
-#include <NsCore/BaseComponent.h>
 #include <NsCore/ReflectionDeclare.h>
-#include <NsCore/Ptr.h>
+#include <NsGui/CoreApi.h>
+#include <NsGui/UICollection.h>
+#include <NsGui/UIElement.h>
 
 
 namespace Noesis
@@ -23,44 +21,45 @@ namespace Noesis
 class FrameworkElement;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// UIElementCollection. Represents a collection of UIElements.
+/// Represents an ordered collection of UIElement child elements.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.controls.uielementcollection.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API UIElementCollection: public VisualCollection
+class NS_GUI_CORE_API UIElementCollection: public UICollection<UIElement>
 {
 public:
-    /// Default constructor
-    UIElementCollection();
-
-    /// Constructor
-    UIElementCollection(Visual* visualParent, FrameworkElement* logicalParent);
-
-    /// Destructor
+    UIElementCollection(UIElement* visualParent, FrameworkElement* logicalParent);
     ~UIElementCollection();
 
-    /// Gets or sets logical parent
-    //@{
+    /// Gets visual parent of the items stored in this collection
+    UIElement* GetVisualParent() const;
+
+    /// Gets logical parent of the items stored in this collection
     FrameworkElement* GetLogicalParent() const;
-    void SetLogicalParent(FrameworkElement* logicalParent);
-    //@}
 
 protected:
-    /// From Collection
+    /// From BaseUICollection
     //@{
-    void OnItemAdded(BaseComponent* item, uint32_t index) override;
-    void OnItemRemoved(BaseComponent* item, uint32_t index) override;
-    bool CheckItem(BaseComponent* item) const override;
+    void OnItemAdded(BaseComponent* item) override;
+    void OnItemRemoved(BaseComponent* item) override;
+    void OnItemsRemoved() override;
     //@}
 
 private:
+    void AddChild(UIElement* child);
+    void RemoveChild(UIElement* child);
+    void RemoveChildren();
+
     void InvalidateVisualParentMeasure();
-    void ResetChildren();
 
 private:
+    UIElement* mVisualParent;
     FrameworkElement* mLogicalParent;
 
-    NS_DECLARE_REFLECTION(UIElementCollection, VisualCollection)
+    NS_DECLARE_REFLECTION(UIElementCollection, BaseUICollection)
 };
 
 }
+
 
 #endif

@@ -26,55 +26,20 @@ namespace Noesis
 template<class T> class Nullable;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Animates the value of a T property between two 'target values' using linear interpolation (it
-/// can be modulated by the easing function specified in the base class) over a specified Duration.
+/// Animates the value of a T property between two 'target values' using linear interpolation over
+/// a specified Duration.
+///
 /// See `SingleTimelines <Gui.Animation.SingleTimelines.html>`_ for an explanation of target values.
+///
 /// Existing types are:
-///
-/// DoubleAnimation:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.doubleanimation.aspx
-///
-///
-/// Int16Animation:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.int16animation.aspx
-///
-///
-/// Int32Animation:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.int32animation.aspx
-///
-///
-/// Int64Animation:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.int64animation.aspx
-///
-///
-/// ColorAnimation:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.coloranimation.aspx
-///
-///
-/// PointAnimation:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.pointanimation.aspx
-///
-///
-/// RectAnimation:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.rectanimation.aspx
-///
-///
-/// SizeAnimation:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.sizeanimation.aspx
-///
-///
-/// ThicknessAnimation:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.thicknessanimation.aspx
-///
+/// `DoubleAnimation <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.doubleanimation.aspx>`_,
+/// `Int16Animation <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.int16animation.aspx>`_,
+/// `Int32Animation <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.int32animation.aspx>`_,
+/// `ColorAnimation <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.coloranimation.aspx>`_,
+/// `PointAnimation <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.pointanimation.aspx>`_,
+/// `RectAnimation <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.rectanimation.aspx>`_,
+/// `SizeAnimation <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.sizeanimation.aspx>`_ and
+/// `ThicknessAnimation <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.thicknessanimation.aspx>`_
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
 class NS_GUI_ANIMATION_API Animation: public BaseAnimation
@@ -82,6 +47,9 @@ class NS_GUI_ANIMATION_API Animation: public BaseAnimation
 public:
     Animation();
     ~Animation();
+
+    /// Gets the type of value this animation generates
+    const Type* GetTargetPropertyType() const override;
 
     /// Gets or sets the total amount by which the animation changes its starting value
     //@{
@@ -180,5 +148,6 @@ template<> inline const char* AnimationIdOf<SizeAnimation>() { return "SizeAnima
 template<> inline const char* AnimationIdOf<ThicknessAnimation>() { return "ThicknessAnimation";}
 
 }
+
 
 #endif

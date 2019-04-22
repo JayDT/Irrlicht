@@ -40,7 +40,7 @@ struct SNamedPath
 	void setPath(const path& p)
 	{
 		Path = p;
-		InternalName = PathToName(p);
+		InternalName = std::move(PathToName(p));
 	}
 
 	//! Get the path.

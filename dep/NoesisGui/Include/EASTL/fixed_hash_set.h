@@ -205,7 +205,7 @@ namespace eastl
             // size of the container is too large for the stack.
             EASTL_ASSERT(sizeof(x) < EASTL_MAX_STACK_USAGE); // It is dangerous to try to create objects that are too big for the stack.
 
-            const this_type temp(*this); // Can't call eastl::swap because that would
+            const this_type temp(*this); // Can't call eastl::swap_ because that would
             *this = x;                   // itself call this member swap function.
             x     = temp;
         }

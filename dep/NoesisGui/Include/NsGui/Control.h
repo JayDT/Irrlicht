@@ -28,31 +28,28 @@ class FontFamily;
 class NS_GUI_CORE_API Control: public FrameworkElement
 {
 public:
-    /// Constructor
     Control();
-
-    /// Destructor
     ~Control();
 
-    /// Gets or sets a brush that describes the background of a control
+    /// Gets or sets a Brush that describes the background of a control
     //@{
     Brush* GetBackground() const;
     void SetBackground(Brush* brush);
     //@}
 
-    /// Gets or sets a brush that describes the border of a control
+    /// Gets or sets a Brush that describes the border of a control
     //@{
     Brush* GetBorderBrush() const;
     void SetBorderBrush(Brush* brush);
     //@}
 
-    /// Gets or sets the border thickness of a control
+    /// Gets or sets the border Thickness of a control
     //@{
     const Thickness& GetBorderThickness() const;
     void SetBorderThickness(const Thickness& thickness);
     //@}
 
-    /// Gets or sets the font family of the control
+    /// Gets or sets the FontFamily of the control
     //@{
     FontFamily* GetFontFamily() const;
     void SetFontFamily(FontFamily* fontFamily);
@@ -64,31 +61,31 @@ public:
     void SetFontSize(float size);
     //@}
 
-    /// Gets or sets the font stretch
+    /// Gets or sets the FontStretch
     //@{
     FontStretch GetFontStretch() const;
     void SetFontStretch(FontStretch stretch);
     //@}
 
-    /// Gets or sets the font style
+    /// Gets or sets the FontStyle
     //@{
     FontStyle GetFontStyle() const;
     void SetFontStyle(FontStyle style);
     //@}
 
-    /// Gets or sets the weight or thickness of the specified font
+    /// Gets or sets the FontWeight or thickness of the specified font
     //@{
     FontWeight GetFontWeight() const;
     void SetFontWeight(FontWeight weight);
     //@}
 
-    /// Gets or sets a brush that describes the foreground color
+    /// Gets or sets a Brush that describes the foreground color
     //@{
     Brush* GetForeground() const;
     void SetForeground(Brush* foreground);
     //@}
 
-    /// Gets or sets the horizontal alignment of a control's content
+    /// Gets or sets the HorizontalAlignment of a control's content
     //@{
     HorizontalAlignment GetHorizontalContentAlignment() const;
     void SetHorizontalContentAlignment(HorizontalAlignment halign);
@@ -113,13 +110,13 @@ public:
     void SetTabIndex(int32_t value);
     //@}
 
-    /// Gets or sets control template
+    /// Gets or sets ControlTemplate for this element
     //@{
     ControlTemplate* GetTemplate() const;
     void SetTemplate(ControlTemplate* controlTemplate);
     //@}
 
-    /// Gets or sets the vertical alignment of a control's content
+    /// Gets or sets the VerticalAlignment of a control's content
     //@{
     VerticalAlignment GetVerticalContentAlignment() const;
     void SetVerticalContentAlignment(VerticalAlignment valign);
@@ -137,6 +134,12 @@ public:
     //@{
     bool GetIsFocusEngagementEnabled() const;
     void SetIsFocusEngagementEnabled(bool enable);
+    //@}
+
+    /// Get or sets a value that indicates whether this control supports focus engagement
+    //@{
+    bool GetSupportsFocusEngagement() const;
+    void SetSupportsFocusEngagement(bool value);
     //@}
 
     /// Occurs when a mouse button is clicked two or more times
@@ -166,6 +169,7 @@ public:
 
     static const DependencyProperty* IsFocusEngagedProperty;
     static const DependencyProperty* IsFocusEngagementEnabledProperty;
+    static const DependencyProperty* SupportsFocusEngagementProperty;
     //@}
 
     /// Dependency events
@@ -204,6 +208,7 @@ protected:
 
     /// From UIElement
     //@{
+    void OnPreviewMouseDown(const MouseButtonEventArgs& e) override;
     void OnPreviewKeyDown(const KeyEventArgs& e) override;
     void OnPreviewLostKeyboardFocus(const KeyboardFocusChangedEventArgs& e) override;
     //@}
@@ -214,12 +219,11 @@ protected:
     //@}
 
 private:
+    static void StaticOnPreviewMouseDown(BaseComponent* obj, const EventArgs& e);
+    static void StaticOnMouseDown(BaseComponent* obj, const EventArgs& e);
 
-    /// Class event handlers
-    //@{
-    static void StaticOnPreviewMouseDoubleClick(BaseComponent* obj, const EventArgs& e);
-    static void StaticOnMouseDoubleClick(BaseComponent* obj, const EventArgs& e);
-    //@}
+    static bool StaticCoerceIsFocusEngagementEnabled(const DependencyObject* d, const void* value,
+        void* coercedValue);
 
     NS_DECLARE_REFLECTION(Control, FrameworkElement)
 };

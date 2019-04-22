@@ -18,11 +18,11 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Describes the location and color of a transition point in a gradient. 
+/// Describes the location and color of a transition point in a gradient.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.gradientstop.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API GradientStop: public Animatable
+class NS_GUI_CORE_API GradientStop final: public Animatable
 {
 public:
     GradientStop();
@@ -40,10 +40,15 @@ public:
     void SetOffset(float offset);
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<GradientStop> Clone() const;
     Ptr<GradientStop> CloneCurrentValue() const;
+    //@}
+
+    /// From BaseObject
+    //@{
+    NsString ToString() const override;
     //@}
 
 public:
@@ -56,12 +61,13 @@ public:
 protected:
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
     NS_DECLARE_REFLECTION(GradientStop, Animatable)
 };
 
 }
+
 
 #endif

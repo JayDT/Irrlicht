@@ -570,7 +570,22 @@ bool CFileSystem::changeWorkingDirectoryTo(const io::path& newDirectory)
 
 	if (FileSystemType != FILESYSTEM_NATIVE)
 	{
-		WorkingDirectory[FILESYSTEM_VIRTUAL] = newDirectory;
+        if (newDirectory == ".")
+            return true;
+
+        if (newDirectory == "..")
+        {
+            s32 pos = WorkingDirectory[FILESYSTEM_VIRTUAL].findLast('/', WorkingDirectory[FILESYSTEM_VIRTUAL].size() - 2);
+            if (pos > 0)
+                WorkingDirectory[FILESYSTEM_VIRTUAL] = WorkingDirectory[FILESYSTEM_VIRTUAL].subString(0, pos);
+            else
+                WorkingDirectory[FILESYSTEM_VIRTUAL] = "/";
+        }
+        else
+        {
+            WorkingDirectory[FILESYSTEM_VIRTUAL] = newDirectory;
+        }
+
 		// is this empty string constant really intended?
 		flattenFilename(WorkingDirectory[FILESYSTEM_VIRTUAL], _IRR_TEXT(""));
 		success = true;
@@ -811,7 +826,7 @@ EFileSystemType CFileSystem::setFileListSystem(EFileSystemType listType)
 
 
 //! Creates a list of files and directories in the current working directory
-IFileList* CFileSystem::createFileList()
+IFileList* CFileSystem::createFileList(const char* filter, bool onlySubdir)
 {
 	CFileList* r = 0;
 	io::path Path = getWorkingDirectory();
@@ -836,11 +851,15 @@ IFileList* CFileSystem::createFileList()
 		intptr_t hFile;
 #endif
 
+        // ToDo filter
 		struct _tfinddata_t c_file;
 		if( (hFile = _tfindfirst( _T("*"), &c_file )) != -1L )
 		{
 			do
 			{
+                if (onlySubdir && _A_SUBDIR & ~c_file.attrib)
+                    continue;
+
 				r->addItem(Path + c_file.name, 0, c_file.size, (_A_SUBDIR & c_file.attrib) != 0, 0);
 			}
 			while( _tfindnext( hFile, &c_file ) == 0 );
@@ -893,6 +912,11 @@ IFileList* CFileSystem::createFileList()
 				}
 				#endif
 
+                // ToDo filter
+
+                if (onlySubdir && !isDirectory)
+                    continue;
+
 				r->addItem(Path + dirEntry->d_name, 0, size, isDirectory, 0);
 			}
 			closedir(dirHandle);
@@ -908,11 +932,23 @@ IFileList* CFileSystem::createFileList()
 		SFileListEntry e2;
 		SFileListEntry e3;
 
-		//! PWD
-		r->addItem(Path + _IRR_TEXT("."), 0, 0, true, 0);
+        s32 subA = 0;
+        s32 pos  = 0;
 
-		//! parent
-		r->addItem(Path + _IRR_TEXT(".."), 0, 0, true, 0);
+        while ((pos = Path.findNext('/', pos)) >= 0)
+        {
+            subA += 1;
+            pos += 1;
+        }
+
+        if (subA > 1)
+        {
+            //! PWD
+            r->addItem(Path + _IRR_TEXT("."), 0, 0, true, 0);
+
+            //! parent
+            r->addItem(Path + _IRR_TEXT(".."), 0, 0, true, 0);
+        }
 
 		//! merge archives
 		for (u32 i=0; i < FileArchives.size(); ++i)
@@ -921,10 +957,11 @@ IFileList* CFileSystem::createFileList()
 
 			for (u32 j=0; j < merge->getFileCount(); ++j)
 			{
-				if (core::isInSameDirectory(Path, merge->getFullFileName(j)) == 0)
-				{
-					r->addItem(merge->getFullFileName(j), merge->getFileOffset(j), merge->getFileSize(j), merge->isDirectory(j), 0);
-				}
+                if (onlySubdir && !merge->isDirectory(j))
+                    break;
+
+                if (core::isContainDirectory(Path, merge->getFullFileName(j), subA))
+                    r->addItem(merge->getFullFileName(j), merge->getFileOffset(j), merge->getFileSize(j), merge->isDirectory(j), 0);
 			}
 		}
 	}

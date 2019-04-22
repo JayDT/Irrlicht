@@ -10,7 +10,6 @@
 
 #include <NsCore/Noesis.h>
 #include <NsCore/FixedAllocator.h>
-#include <NsCore/MemoryAllocator.h>
 
 
 namespace eastl
@@ -32,15 +31,11 @@ public:
     inline PoolAllocator(const PoolAllocator& allocator);
 
     inline PoolAllocator& operator=(const PoolAllocator& allocator);
-
-    inline void Init(Noesis::MemoryAllocator* allocator, uint32_t nodeSize, uint32_t nodeCount);
     inline void Init(uint32_t nodeSize, uint32_t nodeCount);
 
     inline void* allocate(size_t n, int flags = 0);
     inline void* allocate(size_t n, size_t alignment, size_t offset, int flags = 0);
     inline void deallocate(void* p, size_t n);
-
-    inline Noesis::MemoryAllocator* GetMemoryAllocator() const;
 
 private:
     Noesis::FixedAllocator mFixedAllocator;

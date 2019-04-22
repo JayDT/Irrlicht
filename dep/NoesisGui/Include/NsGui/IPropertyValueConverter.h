@@ -18,15 +18,17 @@ namespace Noesis
 class DependencyProperty;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// This type of converters use a DependencyProperty to specify the target type
+/// Converters that implement this interface use a DependencyProperty to specify the target type.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 NS_INTERFACE IPropertyValueConverter: public Interface
 {
+    /// Gets the property used to specify the target type
     virtual const DependencyProperty* GetProperty() const = 0;
 
     NS_IMPLEMENT_INLINE_REFLECTION_(IPropertyValueConverter, Interface)
 };
 
 }
+
 
 #endif

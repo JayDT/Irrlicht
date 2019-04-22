@@ -42,31 +42,31 @@ public:
     NsSymbol GetFrom() const;
     void SetFrom(NsSymbol from);
     //@}
-    
+
     /// Gets or sets the name of the VisualState to transition to
     //@{
     NsSymbol GetTo() const;
     void SetTo(NsSymbol to);
     //@}
-    
+
     /// Gets or sets the amount of time it takes to move from one state to another
     //@{
     const Duration& GetGeneratedDuration() const;
     void SetGeneratedDuration(const Duration& duration);
     //@}
-    
+
     /// Gets or sets the easing function applied to the generated animations
     //@{
     EasingFunctionBase* GetGeneratedEasingFunction() const;
     void SetGeneratedEasingFunction(EasingFunctionBase* function);
     //@}
-    
+
     /// Gets or sets the Storyboard that occurs when the transition occurs
     //@{
     Storyboard* GetStoryboard() const;
     void SetStoryboard(Storyboard* storyboard);
     //@}
-    
+
     /// If the transition has no From or To, is a default transition
     bool IsDefault() const;
 
@@ -74,8 +74,7 @@ public:
     //@{
     IUITreeNode* GetNodeParent() const override;
     void SetNodeParent(IUITreeNode* parent) override;
-    BaseComponent* FindNodeResource(IResourceKey* key,
-        bool fullElementSearch) const override;
+    BaseComponent* FindNodeResource(IResourceKey* key, bool fullElementSearch) const override;
     BaseComponent* FindNodeName(const char* name) const override;
     ObjectWithNameScope FindNodeNameAndScope(const char* name) const override;
     //@}
@@ -104,5 +103,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

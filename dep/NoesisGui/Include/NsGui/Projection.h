@@ -48,13 +48,10 @@ public:
     /// Indicates if current projection is identity
     virtual bool IsIdentity() const = 0;
 
-    /// Gets the transformation matrix defined by a transform object
-    /// \param surface Defines the size of the surface where this projection is being applied
-    /// \param size Determines the size of the object being projected
-    virtual Matrix4f GetProjection(const Size& surface,
-        const Size& size) const = 0;
+    /// Gets the transformation matrix for the given surface size and object size
+    virtual Matrix4f GetProjection(const Size& surface, const Size& size) const = 0;
 
-    /// From Freezable
+    // Hide Freezable methods for convenience
     //@{
     Ptr<Projection> Clone() const;
     Ptr<Projection> CloneCurrentValue() const;
@@ -69,5 +66,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

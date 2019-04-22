@@ -1,0 +1,89 @@
+<IrrWindow x:Class="WorldClient.MainWindow"
+           xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+           xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d"
+           xmlns:local="clr-namespace:WorldClient"
+           Style="{DynamicResource MetroWindowStyle}"
+           FontFamily="../Fonts/#Rounded Mgen+ 1c"
+           Title="Maintenance" Height="450" Width="525" VerticalAlignment="Top" HorizontalAlignment="Left" ResizeMode="CanResize" ClipToBounds="False" GotFocus="">
+  <IrrWindow.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/Theme/Default/DefaultButton.xaml" />
+        <ResourceDictionary Source="/Theme/Default/DefaultExpander.xaml" />
+        <ResourceDictionary Source="/Theme/Default/DefaultMenu.xaml" />
+        <ResourceDictionary Source="/Theme/Default/DefaultTextBox.xaml" />
+        <ResourceDictionary Source="/Theme/Default/DefaultListBox.xaml" />
+        <ResourceDictionary Source="/Theme/Default/Controls.ProgressBar.xaml" />
+        <ResourceDictionary Source="/Theme/Default/Controls.TextBlock.xaml" />
+        <ResourceDictionary Source="/Theme/Default/Controls.TreeView.xaml" />
+        <ResourceDictionary Source="/Theme/Default/Controls.CheckBox.xaml" />
+        <ResourceDictionary Source="/Theme/Default/Controls.ComboBox.xaml" />          
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </IrrWindow.Resources>
+  <IrrWindow.Background>
+    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+      <GradientStop Color="#CF1A1B1D" Offset="0.212"/>
+      <GradientStop Color="#CF3C3D44" Offset="0.856"/>
+    </LinearGradientBrush>
+  </IrrWindow.Background>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+    <Menu Grid.Row="0">
+      <MenuItem Header="File">
+        <MenuItem x:Name="miOpenWoWContent" Header="Open WoW Content" Click="OnOpenWoWClientContent" />
+      </MenuItem>
+      <MenuItem Header="Tools">
+        <MenuItem x:Name="miWoWDataContent" Header="Load WoW Data" IsCheckable="true" Click="OnLoadWoWClientContent" />
+        <MenuItem Header="Settings" IsCheckable="true" Click="OnWoWSettings" />
+      </MenuItem>
+    </Menu>
+    <Grid Grid.Row="1">
+      <Grid x:Name="InitSettings">
+        <Grid.RowDefinitions>
+          <RowDefinition/>
+          <RowDefinition Height="20"/>
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Vertical">
+          <Expander x:Name="WoWClientFileHistory" Header="History">
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+              <ListBox x:Name="lbHistoryList" Width="500" Height="200" HorizontalAlignment="Center" Grid.Row="1">
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding String}"/>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+              <Button Content="Load" Grid.Row="2" Click="OnHistoryStartClient"/>
+            </Grid>
+          </Expander>
+          <Expander x:Name="WoWClientMap" Header="Map Coord" IsExpanded="True">
+            <Grid>
+              <TextBox x:Name="tbMapCoord" HorizontalAlignment="Left" Margin="69,0,0,0" Text="" VerticalAlignment="Top" Width="386"/>
+              <TextBlock HorizontalAlignment="Left" Margin="10,1,0,0" VerticalAlignment="Top" >Coord:</TextBlock>
+            </Grid>
+          </Expander>
+          <Button Content="Start" Click="OnStartClient"/>
+          <Button Content="Client Mode" Click="OnClientMode"/>
+        </StackPanel>
+        <Grid Grid.Row="1">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <TextBlock x:Name="tbProgressStatus" Text="Idle" VerticalAlignment="Center" Padding="2"/>
+          <ProgressBar Style="{StaticResource MahApps.Metro.Styles.ProgressBar}" x:Name="pbProgress" Grid.Column="1" Width="200" Height="15" Maximum="100" Value="50" Orientation="Horizontal"/>
+        </Grid>
+      </Grid>
+    </Grid>
+  </Grid>
+</IrrWindow>

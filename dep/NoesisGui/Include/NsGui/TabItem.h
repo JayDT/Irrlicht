@@ -10,13 +10,12 @@
 
 #include <NsCore/Noesis.h>
 #include <NsGui/HeaderedContentControl.h>
+#include <NsGui/Enums.h>
 
 
 namespace Noesis
 {
 
-// Forward declaration
-enum Dock;
 class TabControl;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,7 +26,6 @@ class TabControl;
 class NS_GUI_CORE_API TabItem: public HeaderedContentControl
 {
 public:
-    /// Constructor
     TabItem();
 
     /// Gets or sets a value that indicates whether the TabItem is selected
@@ -81,5 +79,6 @@ private:
 };
 
 }
+
 
 #endif

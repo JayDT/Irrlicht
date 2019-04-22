@@ -19,7 +19,6 @@ namespace Noesis
 {
 
 class ItemsControl;
-class VirtualizingStackPanelTest;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -90,8 +89,7 @@ protected:
 
     // From Panel
     //@{
-    void OnItemsChangedOverride(BaseComponent* sender,
-        const ItemsChangedEventArgs& e) override;
+    void OnItemsChangedOverride(BaseComponent* sender, const ItemsChangedEventArgs& e) override;
     void GenerateChildren() override;
     void OnConnectToGenerator(ItemsControl* itemsControl) override;
     void OnDisconnectFromGenerator() override;
@@ -116,11 +114,9 @@ private:
     float OffsetToIndex(ItemContainerGenerator* generator, UIElementCollection* children,
         int numItems, const Size& constraint, bool isHorizontal, bool itemScrolling,
         bool isRecycling, float& direction);
-    void AccumDesiredSize(Size& desiredSize, DependencyObject* container,
-        bool isHorizontal);
+    void AccumDesiredSize(Size& desiredSize, DependencyObject* container, bool isHorizontal);
     void RemoveDesiredSize(Size& desiredSize, float size, bool isHorizontal);
-    int CachedItems(int viewportItems, float cacheLength,
-        VirtualizationCacheLengthUnit cacheUnit);
+    int CachedItems(int viewportItems, float cacheLength, VirtualizationCacheLengthUnit cacheUnit);
     void EnsureEstimatedSize(ItemContainerGenerator* generator, UIElementCollection* children,
         const Size& constraint, bool isHorizontal, bool isRecycling);
     void UpdateItemSize(int index, float itemSize);
@@ -146,12 +142,10 @@ private:
     void AdjustOffset(float deltaSize, bool isHorizontal);
 
     Point ArrangeOffset(bool isHorizontal, bool itemScrolling);
-    Size ArrangeSize(const Size& finalSize, const Size& childSize,
-        bool isHorizontal);
+    Size ArrangeSize(const Size& finalSize, const Size& childSize, bool isHorizontal);
     void AccumArrangeOffset(Point& offset, int start, int end, float averageSize,
         bool isHorizontal);
-    void AccumArrangeOffset(Point& offset, const Size& arrangeSize,
-        bool isHorizontal);
+    void AccumArrangeOffset(Point& offset, const Size& arrangeSize, bool isHorizontal);
 
     Ptr<DependencyObject> GenerateContainer(ItemContainerGenerator* generator,
         UIElementCollection* children, int index, bool isRecycling);
@@ -185,6 +179,8 @@ private:
 
     void UpdateSizes(BaseComponent* sender, const NotifyCollectionChangedEventArgs& e);
 
+    void CheckVirtualization(BaseComponent* sender, const RoutedEventArgs& e);
+
     static void OnOrientationChanged(DependencyObject* d,
         const DependencyPropertyChangedEventArgs& e);
 
@@ -198,5 +194,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

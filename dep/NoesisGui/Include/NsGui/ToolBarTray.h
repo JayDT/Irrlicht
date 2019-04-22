@@ -20,7 +20,7 @@ namespace Noesis
 class Brush;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents the container that handles the layout of a ToolBar. 
+/// Represents the container that handles the layout of a ToolBar.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.toolbartray.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,7 +42,7 @@ public:
     void SetBackground(Brush* brush);
     //@}
 
-    /// Gets or sets a value that indicates whether the ToolBarTray overflow area is currently visible.
+    /// Specifies the orientation of a ToolBarTray
     //@{
     Orientation GetOrientation() const;
     void SetOrientation(Orientation orientation);
@@ -60,5 +60,6 @@ public:
 };
 
 }
+
 
 #endif

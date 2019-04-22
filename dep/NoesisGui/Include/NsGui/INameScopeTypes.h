@@ -15,6 +15,7 @@
 namespace Noesis
 {
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 enum NameScopeChangedAction
 {
     NameScopeChangedAction_Register,
@@ -23,6 +24,7 @@ enum NameScopeChangedAction
     NameScopeChangedAction_Destroy
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 struct NameScopeChangedArgs
 {
     NameScopeChangedAction action;
@@ -34,5 +36,6 @@ struct NameScopeChangedArgs
 };
 
 }
+
 
 #endif

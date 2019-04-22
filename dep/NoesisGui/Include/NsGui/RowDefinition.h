@@ -16,7 +16,6 @@
 namespace Noesis
 {
 
-// Forward declaration
 class GridLength;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,24 +26,21 @@ class GridLength;
 class NS_GUI_CORE_API RowDefinition: public BaseDefinition
 {
 public:
-    /// Constructor
     RowDefinition();
 
-    /// Gets or sets column height
-    /// \remarks Positive values indicates pixel units
-    ///          Negative values indicates percentage of available space (where -1.0 is 100%)
+    /// Gets or sets column height defined by a GridLength value. Default is 1*
     //@{
     const GridLength& GetHeight() const;
     void SetHeight(const GridLength& height);
     //@}
 
-    /// Gets or sets column minimum height
+    /// Gets or sets column minimum height in pixels. Default value is 0
     //@{
     float GetMinHeight() const;
     void SetMinHeight(float minHeight);
     //@}
 
-    /// Gets or sets column maximum height
+    /// Gets or sets column maximum height in pixels. Default value is positive Infinity
     //@{
     float GetMaxHeight() const;
     void SetMaxHeight(float maxHeight);
@@ -63,5 +59,6 @@ private:
 };
 
 }
+
 
 #endif

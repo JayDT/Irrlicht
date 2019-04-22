@@ -10,7 +10,6 @@
 
 #include <NsCore/Noesis.h>
 #include <NsGui/Shape.h>
-#include <NsDrawing/Rect.h>
 
 
 namespace Noesis
@@ -18,6 +17,7 @@ namespace Noesis
 
 class RectangleGeometry;
 class RectangleTest;
+struct Size;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -27,13 +27,10 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.shapes.rectangle.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API Rectangle: public Shape
+class NS_GUI_CORE_API Rectangle final: public Shape
 {
 public:
-    /// Constructor
     Rectangle();
-
-    /// Destructor
     ~Rectangle();
 
     /// Gets or sets the x-axis radius of the ellipse that is used to round the corners of the
@@ -88,5 +85,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

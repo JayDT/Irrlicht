@@ -10,6 +10,8 @@
     #include <windows.h>
 #elif defined(NS_PLATFORM_APPLE)
     #include <mach/mach_time.h>
+#elif defined(NS_PLATFORM_EMSCRIPTEN)
+    #include <emscripten.h>
 #else
     #include <sys/time.h>
 #endif
@@ -31,6 +33,9 @@ inline uint64_t Ticks()
 #elif defined(NS_PLATFORM_APPLE)
     return mach_absolute_time();
 
+#elif defined(NS_PLATFORM_EMSCRIPTEN)
+    return (uint64_t)(emscripten_get_now() * 1000.0);
+
 #else
     timeval tv;
     int error = gettimeofday(&tv, 0);
@@ -44,7 +49,7 @@ inline double Seconds(uint64_t ticks)
 {
 #if defined(NS_PLATFORM_WINDOWS)
     static uint64_t frequency;
-    if (frequency == 0)
+    if (NS_UNLIKELY(frequency == 0))
     {
         LARGE_INTEGER f;
         QueryPerformanceFrequency(&f); // will always succeed
@@ -55,7 +60,7 @@ inline double Seconds(uint64_t ticks)
 
 #elif defined(NS_PLATFORM_APPLE)
     static mach_timebase_info_data_t tbi;
-    if (tbi.denom == 0)
+    if (NS_UNLIKELY(tbi.denom == 0))
     {
         (void)mach_timebase_info(&tbi);
     }

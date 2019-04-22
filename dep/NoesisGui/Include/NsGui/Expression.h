@@ -10,7 +10,6 @@
 
 #include <NsCore/Noesis.h>
 #include <NsGui/DependencySystemApi.h>
-#include <NsGui/IExpression.h>
 #include <NsCore/BaseComponent.h>
 #include <NsCore/ReflectionDeclare.h>
 
@@ -18,33 +17,49 @@
 namespace Noesis
 {
 
+template<class T> class Ptr;
+class DependencyObject;
+class DependencyProperty;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+enum BeforeSetAction
+{
+    /// Execute method and delete expression (updating cached value). This is the common return
+    /// value for expressions that do not require the BeforeSet call
+    BeforeSetAction_Delete = 0,
+    BeforeSetAction_Default = 0,
+    /// Execute method and update cached value (keep expression)
+    BeforeSetAction_Maintain = 1
+};
+
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Base implementation for all expressions.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.expression.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_DEPENDENCYSYSTEM_API Expression: public BaseComponent, public IExpression
+class NS_GUI_DEPENDENCYSYSTEM_API Expression: public BaseComponent
 {
 public:
-    /// Constructor
     Expression();
+    virtual ~Expression();
 
-    /// Destructor
-    virtual ~Expression() = 0;
+    /// Evaluates expression when applied to the specified target object
+    virtual Ptr<BaseComponent> Evaluate() const;
 
-    /// From IExpression
-    //@{
-    Ptr<BaseComponent> Evaluate() const override;
-    Ptr<IExpression> Reapply(DependencyObject* targetObject,
-        const DependencyProperty* targetProperty) const override;
-    BeforeSetAction BeforeSet(DependencyObject* obj, const DependencyProperty* prop,
-        const void* value, bool valueHasChanged) override;
-    void AfterSet(DependencyObject* obj, const DependencyProperty* prop, const void* value,
-        bool valueHasChanged) override;
-    //@}
+    /// Applies expression to a new target, cloning the expression itself if necessary
+    virtual Ptr<Expression> Reapply(DependencyObject* targetObject,
+        const DependencyProperty* targetProperty) const;
 
-    NS_IMPLEMENT_INTERFACE_FIXUP
+    /// Executes the set
+    virtual BeforeSetAction BeforeSet(DependencyObject* obj, const DependencyProperty* dp,
+        const void* value, bool valueHasChanged);
+
+    /// Executed after set is completed and the property changed has been notified
+    virtual void AfterSet(DependencyObject* obj, const DependencyProperty* dp,
+        const void* value, bool valueHasChanged);
 
     NS_DECLARE_REFLECTION(Expression, BaseComponent)
 };
@@ -52,5 +67,6 @@ public:
 NS_WARNING_POP
 
 }
+
 
 #endif

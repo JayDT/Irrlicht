@@ -9,64 +9,89 @@
 
 
 #include <NsCore/Noesis.h>
-#include <NsGui/CoreApi.h>
-#include <NsGui/Freezable.h>
-#include <NsGui/IRenderProxyCreator.h>
-#include <NsGui/Enums.h>
 #include <NsCore/BaseComponent.h>
-#include <NsCore/ReflectionDeclare.h>
 #include <NsCore/Ptr.h>
 #include <NsCore/String.h>
 #include <NsCore/Vector.h>
 #include <NsCore/Set.h>
 #include <NsCore/NSTLPoolAllocator.h>
+#include <NsCore/ReflectionDeclare.h>
+#include <NsGui/CoreApi.h>
+#include <NsGui/Freezable.h>
+#include <NsGui/IRenderProxyCreator.h>
+#include <NsGui/Enums.h>
 #include <NsDrawing/Rect.h>
 
 
 namespace Noesis
 {
 
+class UIElement;
 class Inline;
 class Brush;
 class FontFamily;
 class Font;
+class VGLFontFace;
+class VGLTextLayout;
 struct TextRun;
-struct IVGLFontFace;
-struct IVGLTextLayout;
-template<class T> class TypedCollection;
-typedef Noesis::TypedCollection<Noesis::Inline> InlineCollection;
+
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::Inline> InlineCollection;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+struct LineInfo
+{
+    uint32_t numGlyphs;
+    float height;
+    float baseline;
+};
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// FormattedText. Draws an ellipse.
+/// Provides low-level control for drawing text.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.media.formattedtext.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API FormattedText: public BaseComponent, public IRenderProxyCreator
 {
 public:
-    /// Constructor
     FormattedText();
-
-    /// Destructor
     ~FormattedText();
 
+    /// Generates and keeps a collection of runs from the supplied InlineCollection and for the
+    /// specified font properties
     void BuildTextRuns(const char* text, InlineCollection* inlines, FontFamily* fontFamily,
         FontWeight fontWeight, FontStretch fontStretch, FontStyle fontStyle, float fontSize,
         float strokeThickness, Brush* background, Brush* foreground, Brush* stroke,
         TextDecorations textDecorations);
 
+    /// Obtains the size of the stored runs for the given constraints
     Size Measure(TextAlignment alignment, TextWrapping wrapping, TextTrimming trimming,
-        float maxWidth, float maxHeight);
+        float maxWidth, float maxHeight, float lineHeight, LineStackingStrategy lineStacking);
 
+    /// Layouts and prepares text for rendering for the given constraints
     void Layout(TextAlignment alignment, TextWrapping wrapping, TextTrimming trimming,
-        float maxWidth, float maxHeight);
-    void ResetLayout();
+        float maxWidth, float maxHeight, float lineHeight, LineStackingStrategy lineStacking);
 
+    /// Gets text bounds
     Rect GetBounds() const;
-    void GetGlyphPosition(uint32_t chIndex, bool afterChar, float& x, float& y) const;
-    uint32_t HitTest(float x, float y) const;
 
+    /// Gets x/y coordinates at where the specified glyph is positioned
+    void GetGlyphPosition(uint32_t chIndex, bool afterChar, float& x, float& y) const;
+
+    /// Obtains the glyph index under the specified x/y coordinates, indicating if the point is
+    /// inside the glyph bounds
+    uint32_t HitTest(float x, float y, bool& isInside, bool& isTrailing) const;
+
+    /// Gets the number of lines based on the last layout
+    uint32_t GetNumLines() const;
+
+    /// Gets information about the specified line
+    const LineInfo& GetLineInfo(uint32_t index) const;
+
+    /// Indicates if this FormattedText has no text
     bool IsEmpty() const;
 
     /// From IRenderProxyCreator
@@ -80,20 +105,27 @@ public:
 
 private:
     friend class TextBlock;
-    friend class TextSelector;
     friend class TextContainer;
 
-    void AddRuns(InlineCollection* inlines, FontFamily* fontFamily, FontWeight fontWeight,
-        FontStretch fontStretch, FontStyle fontStyle, IVGLFontFace* fontFace,
+    struct FontFaces
+    {
+        uint32_t start;
+        uint32_t numFaces;
+    };
+
+    uint32_t AddRuns(InlineCollection* inlines, FontFamily* fontFamily, FontWeight fontWeight,
+        FontStretch fontStretch, FontStyle fontStyle, const FontFaces& fontFaces,
         float fontSize, float strokeThickness, int32_t backgroundIndex,
-        int32_t foregroundIndex, int32_t strokeIndex, TextDecorations textDecorations);
-    void AddRun(const char* text, IVGLFontFace* fontFace, float fontSize,
-        float strokeThickness, int32_t foregroundIndex, int32_t strokeIndex,
-        int32_t backgroundIndex, TextDecorations textDecorations);
-    IVGLFontFace* AddFontFace(FontFamily* family, FontWeight weight, FontStretch stretch,
+        int32_t foregroundIndex, int32_t strokeIndex, TextDecorations textDecorations,
+        uint32_t numGlyphs);
+    uint32_t AddRun(const char* text, const FontFaces& faces, float size, float strokeThickness,
+        int32_t foregroundIndex, int32_t strokeIndex, int32_t backgroundIndex,
+        TextDecorations textDecorations);
+    uint32_t AddRun(UIElement* container, uint32_t numGlyphs);
+    FontFaces AddFontFace(FontFamily* family, FontWeight weight, FontStretch stretch,
         FontStyle style);
-    IVGLFontFace* InlineFace(Inline* inl, IVGLFontFace* currentFace,
-        FontFamily*& family, FontWeight& weight, FontStretch& stretch, FontStyle& style);
+    FontFaces InlineFace(Inline* inl, const FontFaces& currentFaces, FontFamily*& family,
+        FontWeight& weight, FontStretch& stretch, FontStyle& style);
     TextDecorations InlineDecorations(TextDecorations currentDecorations, Inline* inl);
     float InlineSize(float currentSize, Inline* inl, const DependencyProperty* dp);
     int32_t InlineBrushIndex(int32_t currentBrushIndex, Inline* inl, const DependencyProperty* dp);
@@ -105,6 +137,11 @@ private:
     void UnregisterBrush(Brush* brush);
     void OnBrushChanged(Freezable* sender, FreezableEventReason reason);
 
+    bool MeasureContainers(float width, float height);
+    void ArrangeContainers(float layoutHeight);
+
+    void AddLine(uint32_t numGlyphs, float height, float baseline);
+
 private:
     RenderProxyCreatorFlags mUpdateFlags;
 
@@ -115,13 +152,24 @@ private:
     };
 
     NsVector<TextRun> mTextRuns;
-    NsVector<Ptr<IVGLFontFace> > mFontFaces;
-    NsVector<Ptr<Brush> > mBrushes;
+    NsVector<Ptr<VGLFontFace>> mFontFaces;
+    NsVector<Ptr<Brush>> mBrushes;
 
     typedef NsSet<Brush*, eastl::less<Brush*>, eastl::PoolAllocator> RegisteredBrushes;
     RegisteredBrushes mRegisteredBrushes;
 
-    Ptr<IVGLTextLayout> mTextLayout;
+    struct ContainerInfo
+    {
+        Ptr<UIElement> container;
+        uint32_t runIndex;
+        uint32_t glyphPosition;
+    };
+
+    NsVector<ContainerInfo> mContainers;
+
+    Ptr<VGLTextLayout> mTextLayout;
+    NsVector<LineInfo> mLines;
+    bool mUseMeasureRuns;
 
     NS_DECLARE_REFLECTION(FormattedText, BaseComponent)
 };
@@ -129,5 +177,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

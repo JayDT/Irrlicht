@@ -22,17 +22,17 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Represents a collection of GradientStop objects that can be individually accessed by index.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.media.gradientstopcollection.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API GradientStopCollection: public FreezableCollection, public IRenderProxyCreator
+class NS_GUI_CORE_API GradientStopCollection final: public FreezableCollection<GradientStop>,
+    public IRenderProxyCreator
 {
 public:
-    /// Constructor
     GradientStopCollection();
-
-    /// Destructor
     ~GradientStopCollection();
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<GradientStopCollection> Clone() const;
     Ptr<GradientStopCollection> CloneCurrentValue() const;
@@ -55,15 +55,17 @@ protected:
 
     /// From FreezableCollection
     //@{
-    bool CheckItem(BaseComponent* item) const override;
-    void OnItemAdded(BaseComponent* item, uint32_t index) override;
-    void OnItemRemoved(BaseComponent* item, uint32_t index) override;
+    void InsertItem(uint32_t index, BaseComponent* item) override;
+    void SetItem(uint32_t index, BaseComponent* item) override;
+    void RemoveItem(uint32_t index) override;
+    void ClearItems() override;
     //@}
 
 private:
-    void RegisterChild(BaseComponent* item);
-    void UnregisterChild(BaseComponent* item);
-    void OnChildChanged(Freezable* obj, FreezableEventReason reason);
+    void RegisterStop(GradientStop* stop);
+    void UnregisterStop(GradientStop* stop);
+    void UnregisterStops();
+    void OnStopChanged(Freezable* freezable, FreezableEventReason reason);
 
 private:
     RenderProxyCreatorFlags mUpdateFlags;
@@ -73,11 +75,12 @@ private:
         UpdateFlags_Stops
     };
 
-    NS_DECLARE_REFLECTION(GradientStopCollection, FreezableCollection)
+    NS_DECLARE_REFLECTION(GradientStopCollection, BaseFreezableCollection)
 };
 
 NS_WARNING_POP
 
 }
+
 
 #endif

@@ -23,14 +23,9 @@ namespace Noesis
 class DependencyProperty;
 class BaseBinding;
 class Condition;
-template<class T> class TypedCollection;
-typedef Noesis::TypedCollection<Noesis::Condition> ConditionCollection;
 
-enum ConditionType
-{
-    ConditionType_Property,
-    ConditionType_Binding
-};
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::Condition> ConditionCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -41,7 +36,7 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.condition.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API Condition: public BaseComponent, public IUITreeNode
+class NS_GUI_CORE_API Condition final: public BaseComponent, public IUITreeNode
 {
 public:
     Condition();
@@ -74,15 +69,14 @@ public:
     void SetValue(BaseComponent* object);
     //@}
 
-    /// Seals the conditions
+    /// Seals this condition
     void Seal();
 
     /// From IUITreeNode
     //@{
     IUITreeNode* GetNodeParent() const override;
     void SetNodeParent(IUITreeNode* parent) override;
-    BaseComponent* FindNodeResource(IResourceKey* key,
-        bool fullElementSearch) const override;
+    BaseComponent* FindNodeResource(IResourceKey* key, bool fullElementSearch) const override;
     BaseComponent* FindNodeName(const char* name) const override;
     ObjectWithNameScope FindNodeNameAndScope(const char* name) const override;
     //@}
@@ -105,5 +99,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

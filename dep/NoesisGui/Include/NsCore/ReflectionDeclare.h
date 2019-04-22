@@ -16,14 +16,16 @@ namespace Noesis
 
 class TypeClass;
 class TypeClassCreator;
-typedef NullType NoParent;
-template<class T> struct T2T;
+typedef void NoParent;
+template<class T> struct TypeTag;
 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #define NS_DECLARE_STATIC_REFLECTION(classType, parentType) \
-    static const Noesis::TypeClass* StaticGetClassType(Noesis::T2T<classType>* = 0);\
+    /* Note that this function is overloaded with self type to avoid incorrectly using the \
+       version of the parent in case the child does not have reflection macros */ \
+    static const Noesis::TypeClass* StaticGetClassType(Noesis::TypeTag<classType>*);\
 \
 private:\
     typedef classType SelfClass;\
@@ -35,17 +37,17 @@ private:\
     /* This is templatized on purpose to avoid this function being exported */ \
     template<class VOID_> static void StaticFillClassType(Noesis::TypeClassCreator& helper);
 
+// Supress clang "-Winconsistent-missing-override" this way because push/pop is not working
+#ifdef __clang__
+#pragma clang system_header
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Declares reflection for a class (interface, component or simple class/struct)
-/// Note: StaticFillClassType is templatized but always instanced with the type void. This way
-/// we can use always the .template keyword in gcc when T is indistinctly dependent or not
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #define NS_DECLARE_REFLECTION(classType, parentType) \
 public:\
-    NS_WARNING_PUSH \
-        NS_CLANG_WARNING_DISABLE("-Winconsistent-missing-override") \
-        const Noesis::TypeClass* GetClassType() const;\
-    NS_WARNING_POP \
+    const Noesis::TypeClass* GetClassType() const;\
     NS_DECLARE_STATIC_REFLECTION(classType, parentType)
 
 

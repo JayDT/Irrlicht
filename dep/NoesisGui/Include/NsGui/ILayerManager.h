@@ -19,7 +19,7 @@ namespace Noesis
 class Visual;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// ILayerManager. Mantains a list of visual layers.
+/// Manages a list of visual elements that will be rendered over the tree.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 NS_INTERFACE ILayerManager: public Interface
 {
@@ -33,5 +33,6 @@ NS_INTERFACE ILayerManager: public Interface
 };
 
 }
+
 
 #endif

@@ -581,6 +581,15 @@ namespace irr
         return *new T(std::forward<Args>(args)...);
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    Ptr<T> MakePtr(T* ptr)
+    {
+        if (ptr)
+            return *ptr;
+        return {};
+    }
+
 } // end namespace irr
 
 #endif

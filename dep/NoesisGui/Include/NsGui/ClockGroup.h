@@ -9,9 +9,8 @@
 
 
 #include <NsCore/Noesis.h>
-#include <NsGui/Clock.h>
-
 #include <NsCore/Vector.h>
+#include <NsGui/Clock.h>
 
 
 namespace Noesis
@@ -33,28 +32,28 @@ public:
     ClockGroup(TimelineGroup* timelineGroup, bool controllable);
     ~ClockGroup();
 
-    /// Gets the children collection of this ClockGroup.
+    /// Gets the children collection of this ClockGroup
     void Add(Clock* clock);
-    
+
     /// Gets the TimelineGroup object that dictates the behavior of this ClockGroup instance.
-    //Ptr<TimelineGroup> GetTimeline() const;
-    
+    TimelineGroup* GetTimeline() const;
+
     /// Get number of children
     uint32_t GetChildrenCount() const;
-    
+
     /// Get child at index position
     Clock* GetChild(uint32_t index) const;
-    
+
     /// From Clock
     //@{
-    bool Tick(double time, ClockState parentState);
+    bool Tick(double time, ClockState parentState) override;
     //@}
-    
+
 private:
     /// From Clock
     //@{
-    void SetOwner(TimeManager* owner);
-    void Recycle(TimeManager* owner);
+    void SetOwner(TimeManager* owner) override;
+    void Recycle(TimeManager* owner) override;
     //@}
 
 private:
@@ -66,5 +65,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

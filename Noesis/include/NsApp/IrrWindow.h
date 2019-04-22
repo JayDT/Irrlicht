@@ -30,7 +30,7 @@ namespace NoesisApp
 		{
 			// moving the selected element
 			EAMF_MOVE		= 0x00000001,   
-			// resizing the selected elementõúiu7á
+			// resizing the selected element
 			EAMF_RESIZE_TL	= 0x00000002,
 			EAMF_RESIZE_T	= 0x00000004,
 			EAMF_RESIZE_TR	= 0x00000008,
@@ -95,21 +95,22 @@ namespace NoesisApp
 		/// <summary>
 		/// Closes the window.
 		/// </summary>
-		void Close();
+		virtual void Close();
 
 		/// <summary>
 		/// Hides the window but does not close it.
 		/// </summary>
-		void Hide();
+        virtual void Hide();
 
 		/// <summary>
 		/// Shows the window.
 		/// </summary>
-		void Show();
+        virtual void Show();
 
 		void DragMove();
 
 		virtual void OnGotFocus(const Noesis::RoutedEventArgs& e) override;
+        virtual void OnLostFocus(const Noesis::RoutedEventArgs& e) override;
 		virtual void OnMouseLeftButtonDown(const Noesis::MouseButtonEventArgs& e) override;
 		virtual void OnMouseLeftButtonUp(const Noesis::MouseButtonEventArgs& e) override;
 		virtual void OnMouseMove(const Noesis::MouseEventArgs& e) override;
@@ -133,6 +134,8 @@ namespace NoesisApp
 
 	private:
 
+        bool ChangeCanResizeState(uint32_t flag);
+
 		bool HasActionModeFlags(uint32_t flag) const
 		{
 			return (mActionModeFlags & flag) != 0;
@@ -140,9 +143,12 @@ namespace NoesisApp
 
 	private:
 
+        Noesis::Vector2<float> mOriginalLastPosition;
+        Noesis::Vector2<float> mOriginalDimension;
 		Noesis::Vector2<float> mLastPointerPosition;
 		uint32_t mActionModeFlags;
-		bool mOnDragMove;
+        bool mIsMaximized;
+        bool mOnDragMove;
 		bool mOnResize;
 
 		NS_DECLARE_REFLECTION(IrrWindow, ContentControl)

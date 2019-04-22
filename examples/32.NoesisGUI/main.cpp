@@ -149,7 +149,7 @@ int main(int argc, char** argv)
 
 	WorldClient::App::StaticInitializeComponents();
 
-	auto _Application = NsDynamicCast<Noesis::Ptr<WorldClient::App>>(Noesis::GUI::LoadXaml("pack://application:,,,/32.NoesisGUI;/App.xaml"));
+	auto _Application = Noesis::DynamicPtrCast<WorldClient::App>(Noesis::GUI::LoadXaml("pack://application:,,,/32.NoesisGUI;/App.xaml"));
 	if (_Application == nullptr)
 	{
 		NS_FATAL("File '%s' does not define a valid application file.", "App.xaml");

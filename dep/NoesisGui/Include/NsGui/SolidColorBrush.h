@@ -10,46 +10,39 @@
 
 #include <NsCore/Noesis.h>
 #include <NsGui/Brush.h>
-#include <NsGui/IRenderProxyCreator.h>
 
 
 namespace Noesis
 {
 
-// Forward declaration
-//@{
 class Color;
-//@}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Paints an area with a solid color.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.solidcolorbrush.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API SolidColorBrush: public Brush
+class NS_GUI_CORE_API SolidColorBrush final: public Brush
 {
 public:
-    /// Constructor
     SolidColorBrush();
-
-    /// Constructor with color
     SolidColorBrush(const Color& color);
 
-    /// Gets or sets the string content of a ContentControl
+    /// Gets or sets the color of this SolidColorBrush
     //@{
     const Color& GetColor() const;
     void SetColor(const Color& color);
     //@}
 
-    /// Parses a string value to create an instance of a solid color brush
+    /// Parses a string value to create an instance of a SolidColorBrush
     static bool TryParse(const char* str, Ptr<SolidColorBrush>& result);
 
     /// From BaseObject
     //@{
-    NsString ToString() const;
+    NsString ToString() const override;
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<SolidColorBrush> Clone() const;
     Ptr<SolidColorBrush> CloneCurrentValue() const;
@@ -57,8 +50,8 @@ public:
 
     /// From IRenderProxyCreator
     //@{
-    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
+    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
     //@}
 
 public:
@@ -70,17 +63,17 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
     /// From Brush
     //@{
-    bool IsTransparentOverride() const;
+    bool IsTransparentOverride() const override;
     //@}
 
 private:
@@ -93,5 +86,6 @@ private:
 };
 
 }
+
 
 #endif

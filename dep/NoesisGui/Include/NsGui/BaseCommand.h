@@ -23,22 +23,22 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Base class for commands. *Commands* allows you to define actions in one place and then refer to
-/// them from all your user interface controls like menu items, toolbar or buttons. Examples of
-/// commands are the *Copy*, *Cut*, and *Paste* operations found on many applications. Applications
-/// often expose these actions through many mechanisms simultaneously: *MenuItems* in a Menu,
-/// *MenuItems* on a ContextMenu, *Buttons* on a ToolBar, *keyboard shortcuts* and so on.
+/// Base class for commands.
+///
+/// *Commands* allows you to define actions in one place and then refer to them from all your user
+/// interface controls like menu items, toolbar or buttons. Examples of commands are the *Copy*,
+/// *Cut*, and *Paste* operations found on many applications. Applications often expose these
+/// actions through many mechanisms simultaneously: *MenuItems* in a Menu, *MenuItems* on a
+/// ContextMenu, *Buttons* on a ToolBar, *keyboard shortcuts* and so on.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API BaseCommand: public BaseComponent, public ICommand
 {
 public:
-    BaseCommand(NsSymbol name = NsSymbol::Null(), const TypeClass* owner = 0);
+    BaseCommand();
     virtual ~BaseCommand() = 0;
 
     // From ICommand
     //@{
-    Symbol GetName() const override;
-    const TypeClass* GetOwnerType() const override;
     EventHandler& CanExecuteChanged() override;
     bool CanExecute(BaseComponent* param) const override;
     void Execute(BaseComponent* param) const override;
@@ -49,9 +49,6 @@ public:
     NS_IMPLEMENT_INTERFACE_FIXUP
 
 private:
-    NsSymbol mName;
-    const TypeClass* mOwnerType;
-
     EventHandler mCanExecuteChanged;
 
     NS_DECLARE_REFLECTION(BaseCommand, BaseComponent)

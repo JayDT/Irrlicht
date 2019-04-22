@@ -23,7 +23,7 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Defines an image source constructed from a texture.
+/// Defines an ImageSource constructed from a Texture.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API TextureSource: public ImageSource
 {
@@ -49,7 +49,7 @@ public:
     /// \prop
     int32_t GetPixelHeight() const;
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<TextureSource> Clone() const;
     Ptr<TextureSource> CloneCurrentValue() const;
@@ -68,7 +68,6 @@ protected:
     void CloneCommonCore(const Freezable* source);
     Ptr<Freezable> CreateInstanceCore() const;
     //@}
-
 
     /// From ImageSource
     //@{
@@ -92,5 +91,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

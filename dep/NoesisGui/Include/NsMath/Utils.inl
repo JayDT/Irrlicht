@@ -80,76 +80,69 @@ inline bool AreClose(float a, float b, float epsilon)
     return fabsf(a - b) < epsilon;
 }
 
-#define GET_FLOAT_WORD(ix, x) union F2I { float f; uint32_t i; } f2i = { x }; ix = f2i.i;
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 inline bool IsNaN(float val)
 {
-    // std::isnan and similars cannot be used here because they can be optimized out by the
-    // compiler when FAST_MATH is enabled. Even if the code is compiled with FAST_MATH we need
-    // to use NAN floats because they are used internally by WPF as unitialized floats
-
-    uint32_t i;
-    GET_FLOAT_WORD(i, val);
-    i &= 0x7fffffff;
-    i = 0x7f800000 - i;
-    uint32_t r = ((uint32_t)(i)) >> 31;
-    return r == 1;
+    // Cannot use isnan() because with fast-math, GCC optimizes it out (seems to be fixed in GCC 6+)
+    union { float f; uint32_t u; } ieee754 = { val };
+    return ((ieee754.u & 0x7fffffff) > 0x7f800000);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-inline bool IsNaN(double x)
+inline bool IsNaN(double val)
 {
-    union { double f; uint64_t u; } ieee754 = { x };
-    return ((uint32_t)(ieee754.u >> 32) & 0x7fffffff) + ((uint32_t)ieee754.u != 0) > 0x7ff00000;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-inline bool IsFinite(float val)
-{
-    uint32_t i;
-    GET_FLOAT_WORD(i, val);
-    uint32_t r = (uint32_t)((i & 0x7f800000) - 0x7f800000) >> 31;
-    return r == 1;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-inline bool IsPositiveInfinity(float val)
-{
-    int32_t i, t;
-    GET_FLOAT_WORD(i, val);
-    t = i & 0x7fffffff;
-    t ^= 0x7f800000;
-    t |= -t;
-    int32_t r = ~(t >> 31) & (i >> 30);
-    return r == 1;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-inline bool IsNegativeInfinity(float val)
-{
-    int32_t i, t;
-    GET_FLOAT_WORD(i, val);
-    t = i & 0x7fffffff;
-    t ^= 0x7f800000;
-    t |= -t;
-    int32_t r = ~(t >> 31) & (i >> 30);
-    return r == -1;
+    // Cannot use isnan() because with fast-math, GCC optimizes it out (seems to be fixed in GCC 6+)
+    union { double f; uint64_t u; } ieee754 = { val };
+    return ((ieee754.u & 0x7fffffffffffffff) > 0x7ff0000000000000);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 inline bool IsInfinity(float val)
 {
-    int32_t i, t;
-    GET_FLOAT_WORD(i, val);
-    t = i & 0x7fffffff;
-    t ^= 0x7f800000;
-    t |= -t;
-    int32_t r = ~(t >> 31) & (i >> 30);
-    return r == 1 || r == -1;
+    // Cannot use isinf() because with fast-math, GCC optimizes it out (seems to be fixed in GCC 6+)
+    union { float f; uint32_t u; } ieee754 = { val };
+    return ((ieee754.u & 0x7fffffff) == 0x7f800000);
 }
 
-#undef GET_FLOAT_WORD
+////////////////////////////////////////////////////////////////////////////////////////////////////
+inline bool IsInfinity(double val)
+{
+    // Cannot use isinf() because with fast-math, GCC optimizes it out (seems to be fixed in GCC 6+)
+    union { double f; uint64_t u; } ieee754 = { val };
+    return ((ieee754.u & 0x7fffffffffffffff) == 0x7ff0000000000000);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+inline bool IsPositiveInfinity(float val)
+{
+    // Cannot use isinf() because with fast-math, GCC optimizes it out (seems to be fixed in GCC 6+)
+    union { float f; uint32_t u; } ieee754 = { val };
+    return ieee754.u == 0x7f800000;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+inline bool IsPositiveInfinity(double val)
+{
+    // Cannot use isinf() because with fast-math, GCC optimizes it out (seems to be fixed in GCC 6+)
+    union { double f; uint64_t u; } ieee754 = { val };
+    return ieee754.u == 0x7ff0000000000000;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+inline bool IsNegativeInfinity(float val)
+{
+    // Cannot use isinf() because with fast-math, GCC optimizes it out (seems to be fixed in GCC 6+)
+    union { float f; uint32_t u; } ieee754 = { val };
+    return ieee754.u == 0xff800000;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+inline bool IsNegativeInfinity(double val)
+{
+    // Cannot use isinf() because with fast-math, GCC optimizes it out (seems to be fixed in GCC 6+)
+    union { double f; uint64_t u; } ieee754 = { val };
+    return ieee754.u == 0xfff0000000000000;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 inline int Trunc(float val)
@@ -201,72 +194,6 @@ template<class T> T Clip(T val, T min, T max)
 float Lerp(float x, float y, float t)
 {
     return x + t * (y - x);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-inline float Pow(float base, float exponent)
-{
-    return powf(base, exponent);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-inline float Sqr(float v)
-{
-    return v * v;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-inline float Sqrt(float v)
-{
-    return sqrtf(v);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-inline float Sin(float v)
-{
-    return sinf(v);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-inline float Cos(float v)
-{
-    return cosf(v);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-inline float ASin(float v)
-{
-    return asinf(v);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-inline float ACos(float v)
-{
-    return acosf(v);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-inline float Tan(float v)
-{
-    return tanf(v);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-inline float ATan2(float v0, float v1)
-{
-    return atan2f(v0, v1);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-inline int32_t Abs(int32_t v)
-{
-    return abs(v);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-inline float Abs(float v)
-{
-    return fabsf(v);
 }
 
 }

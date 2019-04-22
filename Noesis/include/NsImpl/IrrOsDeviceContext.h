@@ -12,6 +12,8 @@
 #include "include/IEventReceiver.h"
 #include "include/irrlicht.h"
 
+#undef PlaySound
+
 namespace irr
 {
     class IrrlichtDevice;
@@ -163,6 +165,18 @@ namespace NoesisApp
         /// Destroys window
         void Close();
 
+        /// Opens on-screen keyboard
+        void OpenSoftwareKeyboard(Noesis::UIElement* focused);
+
+        /// Closes on-screen keyboard
+        void CloseSoftwareKeyboard();
+
+        /// Updates mouse cursor icon
+        void SetCursor(Noesis::Cursor cursor);
+
+        /// Opens URL in a browser
+        void OpenUrl(const char* url);
+
         /// Gets system window handle
         void* GetNativeHandle() const;
 
@@ -171,6 +185,15 @@ namespace NoesisApp
 
         /// Returns the height of the window client area
         uint32_t GetClientHeight() const;
+
+        /// Plays audio file
+        void PlaySound(const char* filename, float volume);
+
+        /// Halts the currently playing audio
+        void PauseAudio();
+
+        /// Resumes playback
+        void ResumeAudio();
 
         /// Occurs when the window's location changes
         typedef void LocationChangedT(IrrNsDeviceStub* display, int x, int y);
@@ -256,6 +279,15 @@ namespace NoesisApp
         typedef void TouchUpT(IrrNsDeviceStub* display, int x, int y, uint64_t id);
         Noesis::Delegate<TouchUpT>& TouchUp();
 
+        /// Occurs when a window becomes a background window
+        typedef void ClosingT(IrrNsDeviceStub* display);
+        Noesis::Delegate<ClosingT>& Closing();
+
+        /// Occurs when a window becomes a background window
+        typedef void ClosedT(IrrNsDeviceStub* display);
+        Noesis::Delegate<ClosedT>& Closed();
+
+
     protected:
 
         // Inherited via IEventReceiver
@@ -283,6 +315,8 @@ namespace NoesisApp
         Noesis::Delegate<TouchDownT> mTouchDown;
         Noesis::Delegate<TouchMoveT> mTouchMove;
         Noesis::Delegate<TouchUpT> mTouchUp;
+        Noesis::Delegate<ClosingT> mClosing;
+        Noesis::Delegate<ClosedT> mClosed;
 
     private:
         irr::Ptr<irr::IrrlichtDevice> mContextDevice;

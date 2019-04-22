@@ -34,7 +34,7 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents the measurements for the VirtualizingPanel.CacheLength attached property.
+/// Displays the content of a ScrollViewer control.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.scrollcontentpresenter.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,7 +45,8 @@ public:
     ScrollContentPresenter();
     ~ScrollContentPresenter();
 
-    /// Indicates whether the content, if IScrollInfo, should be allowed to control scrolling.
+    /// Indicates whether the content, if it supports IScrollInfo, should be allowed to control
+    /// scrolling
     //@{
     bool GetCanContentScroll() const;
     void SetCanContentScroll(bool value);
@@ -120,8 +121,7 @@ protected:
 
     /// From ContentPresenter
     //@{
-    void OnContentChanged(BaseComponent* oldContent,
-        BaseComponent* newContent) override;
+    void OnContentChanged(BaseComponent* oldContent, BaseComponent* newContent) override;
     //@}
 
 private:
@@ -151,5 +151,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

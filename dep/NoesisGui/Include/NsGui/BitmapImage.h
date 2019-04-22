@@ -9,36 +9,34 @@
 
 
 #include <NsCore/Noesis.h>
+#include <NsCore/ReflectionDeclare.h>
 #include <NsGui/CoreApi.h>
 #include <NsGui/BitmapSource.h>
-#include <NsCore/ReflectionDeclare.h>
-#include <NsCore/String.h>
+#include <NsGui/Uri.h>
 
 
 namespace Noesis
 {
 
-class BitmapImageTest;
-
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Provides a BitmapSource created from an image file located at the specifed URI.
+/// Provides a BitmapSource created from an image file located at the specifed *URI*.
 ///
 /// https://msdn.microsoft.com/en-us/library/system.windows.media.imaging.bitmapimage.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API BitmapImage: public BitmapSource
+class NS_GUI_CORE_API BitmapImage final: public BitmapSource
 {
 public:
     BitmapImage();
-    BitmapImage(const char* uriSource);
+    BitmapImage(const Uri& uriSource);
     ~BitmapImage();
 
     /// Gets or sets the image URI source
     //@{
-    const char* GetUriSource() const;
-    void SetUriSource(const char* uriSource);
+    const Uri& GetUriSource() const;
+    void SetUriSource(const Uri& uriSource);
     //@}
 
     /// From Freezable
@@ -47,32 +45,37 @@ public:
     Ptr<BitmapImage> CloneCurrentValue() const;
     //@}
 
+public:
+    static const DependencyProperty* UriSourceProperty;
+
 private:
     /// From IRenderProxyCreator
     //@{
-    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UnregisterRenderer(ViewId viewId);
+    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UnregisterRenderer(ViewId viewId) override;
     //@}
 
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
-    void CloneCommonCore(const Freezable* source);
+    Ptr<Freezable> CreateInstanceCore() const override;
+    void CloneCommonCore(const Freezable* source) override;
     //@}
 
     /// From BitmapSource
     //@{
-    float GetDpiXCore() const;
-    float GetDpiYCore() const;
-    int32_t GetPixelWidthCore() const;
-    int32_t GetPixelHeightCore() const;
+    float GetDpiXCore() const override;
+    float GetDpiYCore() const override;
+    int32_t GetPixelWidthCore() const override;
+    int32_t GetPixelHeightCore() const override;
     //@}
 
-    void UpdateImageInfo();
+    static void OnUriSourceChanged(DependencyObject* d,
+        const DependencyPropertyChangedEventArgs& e);
+    void UpdateImageInfo(const char* uri);
 
 private:
-    friend BitmapImageTest;
+    friend class BitmapImageTest;
 
     RenderProxyCreatorFlags mUpdateFlags;
 
@@ -81,7 +84,6 @@ private:
         UpdateFlags_Source
     };
 
-    NsString mUriSource;
     float mDpiX;
     float mDpiY;
     int32_t mPixelWidth;
@@ -93,5 +95,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

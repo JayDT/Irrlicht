@@ -56,6 +56,10 @@ protected:
     //@}
 
 private:
+    void RegisterFace(const char* folder, const char* filename, uint32_t index, const char* family,
+        FontWeight weight, FontStretch stretch, FontStyle style);
+
+private:
     typedef eastl::fixed_string<char, 128> Filename;
 
     struct Face
@@ -85,10 +89,9 @@ private:
 
     Folders::iterator GetFolder(const char* folder);
     Ptr<Stream> InternalOpenFont(const char* folder, const char* filename) const;
-    void ScanSystemFonts();
+    void ScanSystemFonts(const char* root = "");
 
-    typedef eastl::fixed_vector<Face, 8> Family_;
-    FontSource FindBestMatch(const char* baseUri, Family_& family, FontWeight weight,
+    FontSource FindBestMatch(const char* baseUri, const Family& faces, FontWeight weight,
         FontStretch stretch, FontStyle style) const;
 };
 

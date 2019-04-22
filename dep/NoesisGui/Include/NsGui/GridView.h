@@ -22,9 +22,9 @@ class DataTemplateSelector;
 class GridViewColumn;
 class Style;
 struct NotifyCollectionChangedEventArgs;
-template<class T> class TypedCollection;
 
-typedef Noesis::TypedCollection<Noesis::GridViewColumn> GridViewColumnCollection;
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::GridViewColumn> GridViewColumnCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -39,45 +39,45 @@ class NS_GUI_CONTROLS_API GridView: public BaseView
 public:
     GridView();
     ~GridView();
-    
+
     /// Gets or sets whether columns in a GridView can be reordered by a drag-and-drop operation
     //@{
     bool GetAllowsColumnReorder() const;
     void SetAllowsColumnReorder(bool value);
     //@}
-    
+
     /// Gets or sets the style to apply to column headers
     //@{
     Style* GetColumnHeaderContainerStyle() const;
     void SetColumnHeaderContainerStyle(Style* style);
     //@}
-    
+
     /// Gets or sets a ContextMenu for the GridView
     //@{
     ContextMenu* GetColumnHeaderContextMenu() const;
     void SetColumnHeaderContextMenu(ContextMenu* menu);
     //@}
-    
+
     /// Gets or sets a composite string that specifies how to format the column headers of the 
     /// GridView if they are displayed as strings
     //@{
     const char* GetColumnHeaderStringFormat() const;
     void SetColumnHeaderStringFormat(const char* format);
     //@}
-    
+
     /// Gets or sets a template to use to display the column headers
     //@{
     DataTemplate* GetColumnHeaderTemplate() const;
     void SetColumnHeaderTemplate(DataTemplate* dataTemplate);
     //@}
-    
+
     /// Gets or sets the selector object that provides logic for selecting a template to use for 
     /// each column header
     //@{
     DataTemplateSelector* GetColumnHeaderTemplateSelector() const;
     void SetColumnHeaderTemplateSelector(DataTemplateSelector* selector);
     //@}
-    
+
     /// Gets or sets the content of a tooltip that appears when the mouse pointer pauses over one 
     /// of the column headers
     //@{
@@ -87,11 +87,11 @@ public:
     
     /// Gets the collection of GridViewColumn objects that is defined for this GridView
     GridViewColumnCollection* GetColumns() const;
-    
+
     /// Gets or sets the attached property that contains the GridViewColumnCollection
     //@{
-    //GetColumnCollection();
-    //SetColumnCollection();
+    static GridViewColumnCollection* GetColumnCollection(const DependencyObject* element);
+    static void SetColumnCollection(DependencyObject* element, GridViewColumnCollection* value);
     //@}
 
 public:
@@ -109,18 +109,17 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    void OnInit();
+    void OnInit() override;
     //@}
     
     /// From BaseView
     //@{
-    void ClearItem(ListViewItem* item);
-    void PrepareItem(ListViewItem* item);
+    void ClearItem(ListViewItem* item) override;
+    void PrepareItem(ListViewItem* item) override;
     //@}
     
 private:
-    void ColumnsChanged(BaseComponent* sender,
-        const NotifyCollectionChangedEventArgs& args);
+    void ColumnsChanged(BaseComponent* sender, const NotifyCollectionChangedEventArgs& args);
     void EnsureColumns() const;
 
 private:
@@ -132,5 +131,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

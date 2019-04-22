@@ -46,14 +46,14 @@ public:
     void SetOpacity(float opacity);
     //@}
 
-    /// Gets or sets the transformation that is applied to the brush using relative coordinates. 
+    /// Gets or sets the transformation that is applied to the brush using relative coordinates
     //@{
     Transform* GetRelativeTransform() const;
     void SetRelativeTransform(Transform* transform);
     //@}
 
     /// Gets or sets the transformation that is applied to the brush. This transformation is 
-    /// applied after the brush's output has been mapped and positioned. 
+    /// applied after the brush's output has been mapped and positioned
     //@{
     Transform* GetTransform() const;
     void SetTransform(Transform* transform);

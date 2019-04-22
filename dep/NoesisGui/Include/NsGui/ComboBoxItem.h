@@ -26,13 +26,13 @@ class NS_GUI_CORE_API ComboBoxItem: public ListBoxItem
 {
 public:
     ComboBoxItem();
-    
-    /// Gets a value that indicates whether the item is highlighted.
+
+    /// Gets a value that indicates whether the item is highlighted
     bool GetIsHighlighted() const;
-    
-    /// Accesible from ComboBox
+
+    // Used internally by ComboBox
     void SetHighlighted(bool value);
-    
+
 public:
     static const DependencyProperty* IsHighlightedProperty;
 
@@ -45,7 +45,7 @@ protected:
     void OnKeyDown(const KeyEventArgs& e) override;
     void OnGotKeyboardFocus(const KeyboardFocusChangedEventArgs& e) override;
     //@}
-    
+
     /// From ListBoxItem
     //@{
     void OnSelected(const RoutedEventArgs& e) override;

@@ -10,22 +10,22 @@
 
 
 #include <NsCore/Noesis.h>
+#include <NsCore/ReflectionImplement.h>
+#include <NsCore/TypeId.h>
 #include <NsDrawing/TypesApi.h>
 #include <NsDrawing/Size.h>
 #include <NsMath/Vector.h>
-#include <NsCore/NSTLForwards.h>
 
 
 namespace Noesis
 {
 
-struct Point;
 struct Pointi;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Point. Represents an x- and y-coordinate pair in two-dimensional space.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-struct Point: public Noesis::Vector2f
+struct Point: public Vector2f
 {
     /// Default constructor that creates a (0,0) point
     inline Point();
@@ -54,12 +54,18 @@ struct Point: public Noesis::Vector2f
 
     /// Tries to parse a Point from a string
     NS_DRAWING_TYPES_API static bool TryParse(const char* str, Point& result);
+
+    /// TODO: Inline because inheriting from Vector does not allow exporting full class
+    NS_IMPLEMENT_INLINE_REFLECTION(Point, Vector2f)
+    {
+        NsMeta<TypeId>("Point");
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Pointi. Represents an x- and y-coordinate pair in integer two-dimensional space.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-struct Pointi: public Noesis::Vector2i
+struct Pointi: public Vector2i
 {
     /// Default constructor that creates a (0,0) point
     inline Pointi();
@@ -88,6 +94,9 @@ struct Pointi: public Noesis::Vector2i
 
     /// Tries to parse a Pointi from a string
     NS_DRAWING_TYPES_API static bool TryParse(const char* str, Pointi& result);
+
+    /// TODO: Inline because inheriting from Vector does not allow exporting full class
+    NS_IMPLEMENT_INLINE_REFLECTION_(Pointi, Vector2i)
 };
 
 }

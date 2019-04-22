@@ -11,49 +11,56 @@ namespace Noesis
 template<class T>
 T* ObservableCollection<T>::Get(uint32_t index) const
 {
-    return NsStaticCast<T*>(Collection::Get(index));
+    return (T*)BaseCollection::GetComponent(index).GetPtr();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
 void ObservableCollection<T>::Set(uint32_t index, T* item)
 {
-    Collection::Set(index, item);
+    BaseCollection::Set(index, item);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
-uint32_t ObservableCollection<T>::Add(T* item)
+int ObservableCollection<T>::Add(T* item)
 {
-    return Collection::Add(item);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T>
-bool ObservableCollection<T>::Contains(T* item) const
-{
-    return Collection::Contains(item);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T>
-int ObservableCollection<T>::IndexOf(T* item) const
-{
-    return Collection::IndexOf(item);
+    return BaseCollection::Add(item);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
 void ObservableCollection<T>::Insert(uint32_t index, T* item)
 {
-    Collection::Insert(index, item);
+    BaseCollection::Insert(index, item);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
-void ObservableCollection<T>::Remove(T* item)
+bool ObservableCollection<T>::Contains(T* item) const
 {
-    Collection::Remove(item);
+    return BaseCollection::IndexOfComponent(item) >= 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+template<class T>
+int ObservableCollection<T>::IndexOf(T* item) const
+{
+    return BaseCollection::IndexOfComponent(item);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+template<class T>
+bool ObservableCollection<T>::Remove(T* item)
+{
+    return BaseCollection::Remove(item);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+template<class T>
+const TypeClass* ObservableCollection<T>::GetItemType() const
+{
+    return TypeOf<T>();
 }
 
 }

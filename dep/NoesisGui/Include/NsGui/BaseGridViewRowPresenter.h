@@ -9,10 +9,9 @@
 
 
 #include <NsCore/Noesis.h>
+#include <NsCore/Vector.h>
 #include <NsGui/ControlsApi.h>
 #include <NsGui/FrameworkElement.h>
-
-#include <NsCore/Vector.h>
 
 
 namespace Noesis
@@ -23,9 +22,9 @@ class UIElementCollection;
 class ListView;
 struct DependencyPropertyChangedEventArgs;
 struct NotifyCollectionChangedEventArgs;
-template<class T> class TypedCollection;
 
-typedef Noesis::TypedCollection<Noesis::GridViewColumn> GridViewColumnCollection;
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::GridViewColumn> GridViewColumnCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -41,8 +40,8 @@ class NS_GUI_CONTROLS_API BaseGridViewRowPresenter: public FrameworkElement
 public:
     BaseGridViewRowPresenter();
     ~BaseGridViewRowPresenter();
-    
-    /// Gets or sets a GridViewColumnCollection
+
+    /// Gets or sets a GridViewColumnCollection that specifies the columns of the GridView
     //@{
     GridViewColumnCollection* GetColumns() const;
     void SetColumns(GridViewColumnCollection* columns);
@@ -53,26 +52,28 @@ public:
     //@{
     static const DependencyProperty* ColumnsProperty;
     //@}
-    
+
 protected:
+    virtual void OnInvalidateColumns();
+
     /// From DependencyObject
     //@{
-    void OnInit();
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    void OnInit() override;
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
     // From Visual
     //@{
-    uint32_t GetVisualChildrenCount() const;
-    Visual* GetVisualChild(uint32_t index) const;
+    uint32_t GetVisualChildrenCount() const override;
+    Visual* GetVisualChild(uint32_t index) const override;
     //@}
 
 protected:
     Ptr<UIElementCollection> mVisualChildren;
-    
-    // NOTE [srodriguez] This is used to force an InvalidateMeasure from GridViewHeaderRowPresenter
-    // or GridViewRowPresenter when trying to determine the automatic width of the columns. This
-    // probably could be optimized forcing the Invalidate only in the main scrollviewer
+
+    // This is used to force an InvalidateMeasure from GridViewHeaderRowPresenter or
+    // GridViewRowPresenter when trying to determine the automatic width of the columns. This
+    // probably could be optimized forcing the Invalidate only in the main ScrollViewer
     ListView* mListView;
 
     bool mColumnsChanged;
@@ -91,5 +92,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

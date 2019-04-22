@@ -37,13 +37,8 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 class NS_GUI_CORE_API InputBinding: public Freezable, public ICommandSource, public IUITreeNode
 {
 public:
-    /// Constructor
     InputBinding();
-
-    /// Constructor for code
     InputBinding(ICommand* command, InputGesture* gesture);
-
-    /// Destructor
     ~InputBinding();
 
     /// Gets or sets the ICommand associated with this InputBinding
@@ -70,7 +65,7 @@ public:
     void SetGesture(InputGesture* gesture);
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<InputBinding> Clone() const;
     Ptr<InputBinding> CloneCurrentValue() const;
@@ -78,12 +73,11 @@ public:
 
     /// From IUITreeNode
     //@{
-    IUITreeNode* GetNodeParent() const override;
-    void SetNodeParent(IUITreeNode* parent) override;
-    BaseComponent* FindNodeResource(IResourceKey* key,
-        bool fullElementSearch) const override;
-    BaseComponent* FindNodeName(const char* name) const override;
-    ObjectWithNameScope FindNodeNameAndScope(const char* name) const override;
+    IUITreeNode* GetNodeParent() const final;
+    void SetNodeParent(IUITreeNode* parent) final;
+    BaseComponent* FindNodeResource(IResourceKey* key, bool fullElementSearch) const final;
+    BaseComponent* FindNodeName(const char* name) const final;
+    ObjectWithNameScope FindNodeNameAndScope(const char* name) const final;
     //@}
 
     NS_IMPLEMENT_INTERFACE_FIXUP
@@ -125,5 +119,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

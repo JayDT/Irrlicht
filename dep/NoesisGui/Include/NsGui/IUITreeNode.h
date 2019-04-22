@@ -21,7 +21,7 @@ class FrameworkElement;
 NS_INTERFACE IResourceKey;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// IUITreeNode. Represents nodes in a UI tree.
+/// Represents nodes in a UI tree.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 NS_INTERFACE IUITreeNode: public Interface
 {
@@ -31,17 +31,16 @@ NS_INTERFACE IUITreeNode: public Interface
     virtual void SetNodeParent(IUITreeNode* parent) = 0;
     //@}
 
-    /// Looks for a UI resource upwards in the tree
-    /// \return Unset value if resource is not found
-    virtual BaseComponent* FindNodeResource(IResourceKey* key,
-        bool fullElementSearch) const = 0;
+    /// Looks for a UI resource upwards in the tree.
+    /// Returns *DependencyProperty.UnsetValue* if resource is not found
+    virtual BaseComponent* FindNodeResource(IResourceKey* key, bool fullElementSearch) const = 0;
 
-    /// Looks for a named node upwards in the tree
-    /// \return Null if node is not found
+    /// Looks for a named node upwards in the tree.
+    /// Returns null if node is not found
     virtual BaseComponent* FindNodeName(const char* name) const = 0;
     
-    /// Looks for a named node upwards in the tree, returning also the scope in which it was found
-    /// \return Null in both fields if node is not found
+    /// Looks for a named node upwards in the tree, returning also the scope in which it was found.
+    /// Returns null in both fields if node is not found
     virtual ObjectWithNameScope FindNodeNameAndScope(const char* name) const = 0;
 
     NS_IMPLEMENT_INLINE_REFLECTION_(IUITreeNode, Interface)
@@ -63,5 +62,6 @@ NS_GUI_CORE_API void DisconnectNode(IUITreeNode* node, const IUITreeNode* parent
 //@}
 
 }
+
 
 #endif

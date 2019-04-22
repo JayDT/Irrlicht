@@ -16,50 +16,47 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents an element that has a value within a specific range. 
+/// Represents an element that has a value within a specific range.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.primitives.rangebase.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API RangeBase: public Control
 {
 public:
-    /// Constructor
     RangeBase();
-    
-    /// Destructor
     virtual ~RangeBase() = 0;
-    
+
     /// Gets or sets a value to be added to or subtracted from the Value of a RangeBase control
     //@{
     float GetLargeChange() const;
     void SetLargeChange(float value);
     //@}
-    
-    /// Gets or sets the highest possible Value of the range element.
+
+    /// Gets or sets the highest possible Value of the range element
     //@{
     float GetMaximum() const;
     void SetMaximum(float value);
     //@}
-    
-    /// Gets or sets the Minimum possible Value of the range element. 
+
+    /// Gets or sets the Minimum possible Value of the range element
     //@{
     float GetMinimum() const;
     void SetMinimum(float value);
     //@}
-    
-    /// Gets or sets a Value to be added to or subtracted from the Value of a RangeBase control.
+
+    /// Gets or sets a value to be added to or subtracted from the Value of a RangeBase control
     //@{
     float GetSmallChange() const;
     void SetSmallChange(float value);
     //@}
-    
-    /// Gets or sets the current magnitude of the range control. 
+
+    /// Gets or sets the current magnitude of the range control
     //@{
     float GetValue() const;
     void SetValue(float value);
     //@}
 
-    /// Occurs when the range value changes. 
+    /// Occurs when the range value changes
     UIElement::RoutedEvent_<RoutedPropertyChangedEventHandler<float>::Handler> ValueChanged();
 
 public:
@@ -84,12 +81,12 @@ protected:
 
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
     
     /// From Control
     //@{
-    void UpdateVisualStates();
+    void UpdateVisualStates() override;
     //@}
 
 private:
@@ -102,5 +99,6 @@ private:
 };
 
 }
+
 
 #endif

@@ -38,9 +38,6 @@ public:
     // Creates a ResourceKeyType with the type passed as parameter
     static Ptr<ResourceKeyType> Create(const Type* key);
 
-    // Converter helper
-    static bool TryParse(const char* str, Ptr<ResourceKeyType>& result);
-
     /// Gets type key
     const Type* Get() const;
 

@@ -68,15 +68,13 @@ public:
     /// Gets repeat mode
     RepeatMode GetRepeatMode() const;
 
-    /// Gets repeat count
-    /// \remarks Only valid for repeat mode Count
+    /// Gets repeat count. Only valid for repeat mode *Count*
     float GetCount() const;
 
-    /// Gets repeat time duration
-    /// \remarks Only valid for repeat mode Duration
+    /// Gets repeat time duration. Only valid for repeat mode *Duration*
     const TimeSpan& GetDuration() const;
 
-    /// Compares two RepeatBehavior objects
+    // Comparison operators
     //@{
     bool operator==(const RepeatBehavior& other) const;
     bool operator!=(const RepeatBehavior& other) const;
@@ -91,5 +89,6 @@ private:
 };
 
 }
+
 
 #endif

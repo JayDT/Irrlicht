@@ -1,0 +1,231 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <!--  Matadata  -->
+    <system:String x:Key="Theme.Name">{{ThemeName}}</system:String>
+    <system:String x:Key="Theme.DisplayName">{{ThemeDisplayName}}</system:String>
+    <system:String x:Key="Theme.BaseColorScheme">{{BaseColorScheme}}</system:String>
+    <system:String x:Key="Theme.ColorScheme">{{ColorScheme}}</system:String>
+    <SolidColorBrush x:Key="Theme.ShowcaseBrush" Color="{{AccentBaseColor}}" />
+
+    <!--  *************COLORS START*************  -->
+
+    <!--  Theme Base Colors  -->
+
+    <!--  ACCENT COLORS  -->
+    <Color x:Key="HighlightColor">{{HighlightColor}}</Color>
+    <Color x:Key="AccentBaseColor">{{AccentBaseColor}}</Color>
+    <!--  80%  -->
+    <Color x:Key="AccentColor">{{AccentColor}}</Color>
+    <!--  60%  -->
+    <Color x:Key="AccentColor2">{{AccentColor2}}</Color>
+    <!--  40%  -->
+    <Color x:Key="AccentColor3">{{AccentColor3}}</Color>
+    <!--  20%  -->
+    <Color x:Key="AccentColor4">{{AccentColor4}}</Color>
+
+    <!--  BASE COLORS  -->
+    <Color x:Key="BlackColor">{{BlackColor}}</Color>
+    <Color x:Key="WhiteColor">{{WhiteColor}}</Color>
+    <Color x:Key="Gray1">{{Gray1}}</Color>
+    <Color x:Key="Gray2">{{Gray2}}</Color>
+    <Color x:Key="Gray3">{{Gray3}}</Color>
+    <Color x:Key="Gray4">{{Gray4}}</Color>
+    <Color x:Key="Gray5">{{Gray5}}</Color>
+    <Color x:Key="Gray6">{{Gray6}}</Color>
+    <Color x:Key="Gray7">{{Gray7}}</Color>
+    <Color x:Key="Gray8">{{Gray8}}</Color>
+    <Color x:Key="Gray9">{{Gray9}}</Color>
+    <Color x:Key="Gray10">{{Gray10}}</Color>
+
+    <Color x:Key="GrayNormal">{{GrayNormal}}</Color>
+    <Color x:Key="GrayHover">{{GrayHover}}</Color>
+
+    <Color x:Key="FlyoutColor">{{FlyoutColor}}</Color>
+
+    <!--  CORE CONTROL COLORS  -->
+    <Color x:Key="ProgressIndeterminateColor1">#33878787</Color>
+    <Color x:Key="ProgressIndeterminateColor2">#33959595</Color>
+    <Color x:Key="ProgressIndeterminateColor3">#4C000000</Color>
+    <Color x:Key="ProgressIndeterminateColor4">#4C000000</Color>
+
+    <!--  *************BRUSHES START*************  -->
+    <!--  PROJECT TEMPLATE BRUSHES  -->
+
+    <!--  UNIVERSAL CONTROL BRUSHES  -->
+    <SolidColorBrush x:Key="ControlBackgroundBrush" Color="{StaticResource WhiteColor}" />
+    <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource WhiteColor}" />
+    <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="LabelTextBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="WhiteColorBrush" Color="{StaticResource WhiteColor}" />
+    <SolidColorBrush x:Key="BlackColorBrush" Color="{StaticResource BlackColor}" />
+
+    <SolidColorBrush x:Key="WindowTitleColorBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="NonActiveWindowTitleColorBrush" Color="#808080" />
+    <SolidColorBrush x:Key="NonActiveBorderColorBrush" Color="#808080" />
+
+    <SolidColorBrush x:Key="HighlightBrush" Color="{StaticResource HighlightColor}" />
+    <SolidColorBrush x:Key="DisabledWhiteBrush" Color="{StaticResource WhiteColor}" />
+
+    <SolidColorBrush x:Key="TransparentWhiteBrush" Color="#00FFFFFF" />
+    <SolidColorBrush x:Key="SemiTransparentWhiteBrush" Color="#55FFFFFF" />
+    <SolidColorBrush x:Key="SemiTransparentGreyBrush" Color="#40808080" />
+    <SolidColorBrush x:Key="ControlsDisabledBrush" Color="#A5FFFFFF" />
+
+    <SolidColorBrush x:Key="AccentBaseColorBrush" Color="{StaticResource AccentBaseColor}" />
+    <SolidColorBrush x:Key="AccentColorBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="AccentColorBrush2" Color="{StaticResource AccentColor2}" />
+    <SolidColorBrush x:Key="AccentColorBrush3" Color="{StaticResource AccentColor3}" />
+    <SolidColorBrush x:Key="AccentColorBrush4" Color="{StaticResource AccentColor4}" />
+
+    <SolidColorBrush x:Key="GrayBrush1" Color="{StaticResource Gray1}" />
+    <SolidColorBrush x:Key="GrayBrush2" Color="{StaticResource Gray2}" />
+    <SolidColorBrush x:Key="GrayBrush3" Color="{StaticResource Gray3}" />
+    <SolidColorBrush x:Key="GrayBrush4" Color="{StaticResource Gray4}" />
+    <SolidColorBrush x:Key="GrayBrush5" Color="{StaticResource Gray5}" />
+    <SolidColorBrush x:Key="GrayBrush6" Color="{StaticResource Gray6}" />
+    <SolidColorBrush x:Key="GrayBrush7" Color="{StaticResource Gray7}" />
+    <SolidColorBrush x:Key="GrayBrush8" Color="{StaticResource Gray8}" />
+    <SolidColorBrush x:Key="GrayBrush9" Color="{StaticResource Gray9}" />
+    <SolidColorBrush x:Key="GrayBrush10" Color="{StaticResource Gray10}" />
+
+    <SolidColorBrush x:Key="GrayNormalBrush" Color="{StaticResource GrayNormal}" />
+    <SolidColorBrush x:Key="GrayHoverBrush" Color="{StaticResource GrayHover}" />
+
+    <SolidColorBrush x:Key="TextBoxBorderBrush" Color="{StaticResource Gray6}" />
+    <SolidColorBrush x:Key="ControlBorderBrush" Color="{StaticResource Gray6}" />
+    <SolidColorBrush x:Key="TextBoxMouseOverInnerBorderBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="TextBoxFocusBorderBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="TextBoxMouseOverBorderBrush" Color="{StaticResource Gray2}" />
+
+    <SolidColorBrush x:Key="ButtonMouseOverBorderBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="ButtonMouseOverInnerBorderBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="ComboBoxMouseOverBorderBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="ComboBoxMouseOverInnerBorderBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="ComboBoxPopupBorderBrush" Color="{StaticResource Gray4}" />
+
+    <SolidColorBrush x:Key="CheckBoxBrush" Color="{StaticResource Gray6}" />
+    <SolidColorBrush x:Key="CheckBoxMouseOverBrush" Color="{StaticResource Gray2}" />
+    <LinearGradientBrush x:Key="CheckBoxBackgroundBrush" StartPoint="0.5,0" EndPoint="0.5,1">
+        <GradientStop Offset="0" Color="{StaticResource Gray7}" />
+        <GradientStop Offset="1" Color="{StaticResource WhiteColor}" />
+    </LinearGradientBrush>
+
+    <SolidColorBrush x:Key="ThumbBrush" Color="{StaticResource Gray5}" />
+
+    <LinearGradientBrush x:Key="ProgressBrush" StartPoint="1.002,0.5" EndPoint="0.001,0.5">
+        <GradientStop Offset="0" Color="{StaticResource HighlightColor}" />
+        <GradientStop Offset="1" Color="{StaticResource AccentColor3}" />
+    </LinearGradientBrush>
+
+    <SolidColorBrush x:Key="SliderValueDisabled" Color="{{SliderValueDisabled}}" />
+    <SolidColorBrush x:Key="SliderTrackDisabled" Color="{{SliderTrackDisabled}}" />
+    <SolidColorBrush x:Key="SliderThumbDisabled" Color="{{SliderThumbDisabled}}" />
+    <SolidColorBrush x:Key="SliderTrackHover" Color="{{SliderTrackHover}}" />
+    <SolidColorBrush x:Key="SliderTrackNormal" Color="{{SliderTrackNormal}}" />
+
+    <SolidColorBrush x:Key="FlyoutBackgroundBrush" Color="{StaticResource FlyoutColor}" />
+    <SolidColorBrush x:Key="FlyoutForegroundBrush" Color="{StaticResource BlackColor}" />
+
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WhiteColor}" />
+    <SolidColorBrush x:Key="SeperatorBrush" Color="#FFC4C4C5" />
+
+    <SolidColorBrush x:Key="FlatButtonBackgroundBrush" Color="#D5D5D5" />
+    <SolidColorBrush x:Key="FlatButtonForegroundBrush" Color="#222222" />
+    <SolidColorBrush x:Key="FlatButtonPressedBackgroundBrush" Color="{{FlatButtonPressedBackgroundBrush}}" />
+    <SolidColorBrush x:Key="FlatButtonPressedForegroundBrush" Color="White" />
+
+    <SolidColorBrush x:Key="DarkIdealForegroundDisabledBrush" Color="#ADADAD" />
+    <SolidColorBrush x:Key="CleanWindowCloseButtonBackgroundBrush" Color="#EB2F2F" />
+    <SolidColorBrush x:Key="CleanWindowCloseButtonPressedBackgroundBrush" Color="#7C0000" />
+
+    <!--  CONTROL VALIDATION BRUSHES  -->
+    <SolidColorBrush x:Key="ControlsValidationBrush" Color="#FFDB000C" />
+    <SolidColorBrush x:Key="ValidationBrush1" Color="#052A2E31" />
+    <SolidColorBrush x:Key="ValidationBrush2" Color="#152A2E31" />
+    <SolidColorBrush x:Key="ValidationBrush3" Color="#252A2E31" />
+    <SolidColorBrush x:Key="ValidationBrush4" Color="#352A2E31" />
+    <SolidColorBrush x:Key="ValidationBrush5" Color="#FFDC000C" />
+    <!--  unused  -->
+    <SolidColorBrush x:Key="ValidationSummaryColor1" Color="#FFDC020D" />
+    <SolidColorBrush x:Key="ValidationSummaryColor2" Color="#FFCA000C" />
+    <SolidColorBrush x:Key="ValidationSummaryColor3" Color="#FFFF9298" />
+    <SolidColorBrush x:Key="ValidationSummaryColor4" Color="#FFFDC8C8" />
+    <SolidColorBrush x:Key="ValidationSummaryColor5" Color="#DDD43940" />
+    <SolidColorBrush x:Key="ValidationSummaryFillColor1" Color="#59F7D8DB" />
+    <SolidColorBrush x:Key="ValidationSummaryFillColor2" Color="#FFF7D8DB" />
+    <!--  validation text foreground always white  -->
+    <SolidColorBrush x:Key="ValidationTextBrush" Color="White" />
+
+    <!--  WPF default colors  -->
+    <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="{StaticResource WhiteColor}" />
+    <SolidColorBrush x:Key="{x:Static SystemColors.ControlTextBrushKey}" Color="{StaticResource BlackColor}" />
+
+    <!--  menu default colors  -->
+    <SolidColorBrush x:Key="MenuBackgroundBrush" Color="{StaticResource WhiteColor}" />
+    <SolidColorBrush x:Key="ContextMenuBackgroundBrush" Color="{StaticResource WhiteColor}" />
+    <SolidColorBrush x:Key="SubMenuBackgroundBrush" Color="{StaticResource WhiteColor}" />
+    <SolidColorBrush x:Key="MenuItemBackgroundBrush" Color="{StaticResource WhiteColor}" />
+
+    <SolidColorBrush x:Key="ContextMenuBorderBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="SubMenuBorderBrush" Color="{StaticResource BlackColor}" />
+
+    <SolidColorBrush x:Key="MenuItemSelectionFill" Color="{{MenuItemSelectionFill}}" />
+    <SolidColorBrush x:Key="MenuItemSelectionStroke" Color="{{MenuItemSelectionStroke}}" />
+
+    <SolidColorBrush x:Key="TopMenuItemPressedFill" Color="{{TopMenuItemPressedFill}}" />
+    <SolidColorBrush x:Key="TopMenuItemPressedStroke" Color="{{TopMenuItemPressedStroke}}" />
+    <SolidColorBrush x:Key="TopMenuItemSelectionStroke" Color="{{TopMenuItemSelectionStroke}}" />
+
+    <!--  original #FF9A9A9A"  -->
+    <SolidColorBrush x:Key="DisabledMenuItemForeground" Color="{{DisabledMenuItemForeground}}" />
+    <SolidColorBrush x:Key="DisabledMenuItemGlyphPanel" Color="#848589" />
+
+    <SolidColorBrush x:Key="{x:Static SystemColors.MenuTextBrushKey}" Color="{StaticResource BlackColor}" />
+
+    <SolidColorBrush x:Key="CheckmarkFill" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="RightArrowFill" Color="{StaticResource AccentColor}" />
+
+    <Color x:Key="MenuShadowColor">{{MenuShadowColor}}</Color>
+
+    <Color x:Key="IdealForegroundColor">{{IdealForegroundColor}}</Color>
+
+    <SolidColorBrush x:Key="IdealForegroundColorBrush" Color="{StaticResource IdealForegroundColor}" />
+    <SolidColorBrush x:Key="IdealForegroundDisabledBrush" Opacity="0.4" Color="{StaticResource IdealForegroundColor}" />
+    <SolidColorBrush x:Key="AccentSelectedColorBrush" Color="{StaticResource IdealForegroundColor}" />
+
+    <!--  DataGrid brushes  -->
+
+    <SolidColorBrush x:Key="MetroDataGrid.HighlightBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="MetroDataGrid.DisabledHighlightBrush" Color="{StaticResource Gray7}" />
+    <SolidColorBrush x:Key="MetroDataGrid.HighlightTextBrush" Color="{StaticResource IdealForegroundColor}" />
+    <SolidColorBrush x:Key="MetroDataGrid.MouseOverHighlightBrush" Color="{StaticResource AccentColor3}" />
+    <SolidColorBrush x:Key="MetroDataGrid.FocusBorderBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="MetroDataGrid.InactiveSelectionHighlightBrush" Color="{StaticResource AccentColor2}" />
+    <SolidColorBrush x:Key="MetroDataGrid.InactiveSelectionHighlightTextBrush" Color="{StaticResource IdealForegroundColor}" />
+
+    <SolidColorBrush x:Key="Brushes.ToggleSwitchButton.PressedBrush.Win10" Color="{{Brushes.ToggleSwitchButton.PressedBrush.Win10}}" />
+    <SolidColorBrush x:Key="Brushes.ToggleSwitchButton.OffBorderBrush.Win10" Color="{{Brushes.ToggleSwitchButton.OffBorderBrush.Win10}}" />
+    <SolidColorBrush x:Key="Brushes.ToggleSwitchButton.OffMouseOverBorderBrush.Win10" Color="{{Brushes.ToggleSwitchButton.OffMouseOverBorderBrush.Win10}}" />
+    <SolidColorBrush x:Key="Brushes.ToggleSwitchButton.OffDisabledBorderBrush.Win10" Color="{{Brushes.ToggleSwitchButton.OffDisabledBorderBrush.Win10}}" />
+    <SolidColorBrush x:Key="Brushes.ToggleSwitchButton.OffSwitchBrush.Win10" Color="Transparent" />
+    <SolidColorBrush x:Key="Brushes.ToggleSwitchButton.OnSwitchBrush.Win10" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="Brushes.ToggleSwitchButton.OnSwitchDisabledBrush.Win10" Color="{{Brushes.ToggleSwitchButton.OnSwitchDisabledBrush.Win10}}" />
+    <SolidColorBrush x:Key="Brushes.ToggleSwitchButton.OnSwitchMouseOverBrush.Win10" Color="{StaticResource AccentColor2}" />
+    <SolidColorBrush x:Key="Brushes.ToggleSwitchButton.ThumbIndicatorBrush.Win10" Color="{{Brushes.ToggleSwitchButton.ThumbIndicatorBrush.Win10}}" />
+    <SolidColorBrush x:Key="Brushes.ToggleSwitchButton.ThumbIndicatorMouseOverBrush.Win10" Color="{{Brushes.ToggleSwitchButton.ThumbIndicatorMouseOverBrush.Win10}}" />
+    <SolidColorBrush x:Key="Brushes.ToggleSwitchButton.ThumbIndicatorCheckedBrush.Win10" Color="{StaticResource IdealForegroundColor}" />
+    <SolidColorBrush x:Key="Brushes.ToggleSwitchButton.ThumbIndicatorPressedBrush.Win10" Color="{{Brushes.ToggleSwitchButton.ThumbIndicatorPressedBrush.Win10}}" />
+    <SolidColorBrush x:Key="Brushes.ToggleSwitchButton.ThumbIndicatorDisabledBrush.Win10" Color="{{Brushes.ToggleSwitchButton.ThumbIndicatorDisabledBrush.Win10}}" />
+
+    <SolidColorBrush x:Key="Brushes.Badged.DisabledBackgroundBrush" Color="{{Brushes.Badged.DisabledBackgroundBrush}}" />
+
+    <!--  HamburgerMenu  -->
+
+    <SolidColorBrush x:Key="HamburgerMenu.PaneBackgroundBrush" Color="#FF444444" />
+    <SolidColorBrush x:Key="HamburgerMenu.PaneForegroundBrush" Color="#FFFFFFFF" />
+
+</ResourceDictionary>

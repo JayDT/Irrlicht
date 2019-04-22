@@ -28,14 +28,14 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct NS_GUI_CORE_API ContextMenuEventArgs: public RoutedEventArgs
 {
-    // Gets the object that has the ContextMenu that will be opened
-    mutable Ptr<UIElement> owner;
+    /// Gets the object that has the ContextMenu that will be opened
+    mutable DependencyObject* targetElement;
 
-    // Gets mouse position
-    //@{
+    /// Gets the horizontal position of the mouse
     float cursorLeft;
+
+    /// Gets the vertical position of the mouse
     float cursorTop;
-    //@}
 
     ContextMenuEventArgs(BaseComponent* s, const RoutedEvent* e,
         float left = -1.0f, float top = -1.0f);
@@ -55,13 +55,12 @@ struct NS_GUI_CORE_API ToolTipEventArgs: public RoutedEventArgs
 struct NS_GUI_CORE_API RequestBringIntoViewEventArgs: public RoutedEventArgs
 {
     /// Gets the object that should be made visible in response to the event. 
-    Ptr<DependencyObject> targetObject;
+    DependencyObject* targetObject;
 
     /// Gets the rectangular region in the object's coordinate space which should be made visible. 
     Rect targetRect;
 
-    RequestBringIntoViewEventArgs(BaseComponent* s, DependencyObject* object,
-        const Rect& rect);
+    RequestBringIntoViewEventArgs(BaseComponent* s, DependencyObject* object, const Rect& rect);
 };
 
 NS_WARNING_POP

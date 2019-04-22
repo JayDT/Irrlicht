@@ -34,7 +34,7 @@ public:
     ControllableStoryboardAction();
     virtual ~ControllableStoryboardAction() = 0;
 
-    /// Gets or sets the Name of the BeginStoryboard that began the Storyboard you want to
+    /// Gets or sets the *Name* of the BeginStoryboard that began the Storyboard you want to
     /// interactively control
     //@{
     const char* GetBeginStoryboardName() const;
@@ -43,7 +43,7 @@ public:
 
     /// From TriggerAction
     //@{
-    void Invoke(FrameworkElement* target, FrameworkElement* nameScope = 0);
+    void Invoke(FrameworkElement* target, FrameworkElement* nameScope = 0) override;
     //@}
 
 protected:
@@ -61,5 +61,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

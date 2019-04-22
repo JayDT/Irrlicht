@@ -24,15 +24,15 @@ namespace Noesis
 template<class T> class Delegate;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// RoutingStrategy. Defines the routing strategy of the dependency event.
+/// Defines the routing strategy of the dependency event.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 enum RoutingStrategy
 {
-    /// Event is routed to the root of the element tree
-    RoutingStrategy_Bubbling,
-
     /// Event is routed to children elements of the tree
-    RoutingStrategy_Tunneling,
+    RoutingStrategy_Tunnel,
+
+    /// Event is routed to the root of the element tree
+    RoutingStrategy_Bubble,
 
     /// Event is routed directly to a specific element in the tree
     RoutingStrategy_Direct
@@ -42,11 +42,11 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// RoutedEvent. An event instance that propagates through a tree of related elements. There are
-/// three types of routing: bubbling, tunneling and direct. With bubbling, the event instance moves
-/// from the source of the event up to the top of the tree. With tunneling, the event instance
-/// starts at the top of the tree and moves down to the source of the event. With direct routing,
-/// the event instance behaves like a standard event.
+/// An event instance that propagates through a tree of related elements. There are three types of
+/// routing: bubbling, tunneling and direct. With bubbling, the event instance moves from the
+/// source of the event up to the top of the tree. With tunneling, the event instance starts at
+/// the top of the tree and moves down to the source of the event. With direct routing, the event
+/// instance behaves like a standard event.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API RoutedEvent: public BaseComponent
 {
@@ -93,19 +93,16 @@ public:
     const RoutedEvent* routedEvent;
     mutable bool handled;
 
-    /// Constructor
     RoutedEventArgs(BaseComponent* s, const RoutedEvent* e);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Represents the delegate for handlers that receive dependency events.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-typedef Noesis::Delegate<void (BaseComponent*, const RoutedEventArgs&)>
-    RoutedEventHandler;
+typedef Noesis::Delegate<void (BaseComponent*, const RoutedEventArgs&)> RoutedEventHandler;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// RoutedPropertyChangedEventArgs
-// TODO [srodriguez] WPF implementation is templatized. We must decide if this is necessary
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
 struct RoutedPropertyChangedEventArgs: public RoutedEventArgs
@@ -124,12 +121,12 @@ struct RoutedPropertyChangedEventArgs: public RoutedEventArgs
 template<class T>
 struct RoutedPropertyChangedEventHandler
 {
-    typedef Delegate<void (BaseComponent*, const RoutedPropertyChangedEventArgs<T>&)>
-        Handler;
+    typedef Delegate<void (BaseComponent*, const RoutedPropertyChangedEventArgs<T>&)> Handler;
 };
 
 }
 
 #include <NsGui/RoutedEvent.inl>
+
 
 #endif

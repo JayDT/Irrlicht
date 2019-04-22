@@ -12,6 +12,7 @@
 #include <NsGui/CoreApi.h>
 #include <NsGui/Panel.h>
 
+
 namespace Noesis
 {
 
@@ -28,13 +29,19 @@ public:
 protected:
     /// From FrameworkElement
     //@{
-    Size MeasureOverride(const Size& availableSize);
-    Size ArrangeOverride(const Size& finalSize);
+    Size MeasureOverride(const Size& availableSize) override;
+    Size ArrangeOverride(const Size& finalSize) override;
+    Ptr<Geometry> GetLayoutClip(const Size& layoutSize) const override;
     //@}
+
+private:
+    Dock GetTabStripPlacement() const;
+    Size GetDesiredSizeWithoutMargin(UIElement* element) const;
 
     NS_DECLARE_REFLECTION(TabPanel, Panel)
 };
 
 }
+
 
 #endif

@@ -20,7 +20,7 @@ namespace Noesis
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.rotatetransform.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API RotateTransform: public Transform
+class NS_GUI_CORE_API RotateTransform final: public Transform
 {
 public:
     RotateTransform();
@@ -47,10 +47,10 @@ public:
 
     /// From Transform
     //@{
-    Transform2f GetTransform() const;
+    Transform2f GetTransform() const override;
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<RotateTransform> Clone() const;
     Ptr<RotateTransform> CloneCurrentValue() const;
@@ -58,9 +58,9 @@ public:
 
     /// From IRenderProxyCreator
     //@{
-    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UnregisterRenderer(ViewId viewId);
+    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UnregisterRenderer(ViewId viewId) override;
     //@}
 
 public:
@@ -74,13 +74,13 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& e);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& e) override;
     //@}
 
 protected:
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
 private:
@@ -97,5 +97,6 @@ private:
 };
 
 }
+
 
 #endif

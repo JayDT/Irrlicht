@@ -73,17 +73,17 @@ public:
 
     /// Gets or sets the name of the element to use as the binding source object.
     /// Only one of the three properties, *ElementName*, *Source*, or *RelativeSource*, should be 
-    /// set for each binding, or a conflict can occur. Setting this property throws an exception 
-    /// if there is a binding source conflict
+    /// set for each binding, or a conflict can occur. Setting this property shows an error if
+    /// there is a binding source conflict
     //@{
     const char* GetElementName() const;
     void SetElementName(const char* elementName);
     //@}
-    
+
     /// Gets or sets the object to use as the binding source.
     /// Only one of the three properties, *ElementName*, *Source*, or *RelativeSource*, should be 
-    /// set for each binding, or a conflict can occur. Setting this property throws an exception 
-    /// if there is a binding source conflict
+    /// set for each binding, or a conflict can occur. Setting this property shows an error if
+    /// there is a binding source conflict
     //@{
     BaseComponent* GetSource() const;
     void SetSource(BaseComponent* source);
@@ -92,19 +92,19 @@ public:
     /// Gets or sets the binding source by specifying its location relative to the position of
     /// the binding target.
     /// Only one of the three properties, *ElementName*, *Source*, or *RelativeSource*, should be 
-    /// set for each binding, or a conflict can occur. Setting this property throws an exception 
-    /// if there is a binding source conflict
+    /// set for each binding, or a conflict can occur. Setting this property shows an error if
+    /// there is a binding source conflict
     //@{
     RelativeSource* GetRelativeSource() const;
     void SetRelativeSource(RelativeSource* source);
     //@}
-    
+
     /// Gets or sets the path to the binding source property
     //@{
     PropertyPath* GetPath() const;
     void SetPath(PropertyPath* path);
     //@}
-    
+
     /// Gets or sets the binding mode. It can be set to one of the following values of the
     /// *BindingMode* enumeration:
     ///
@@ -122,20 +122,20 @@ public:
     BindingMode GetMode() const;
     void SetMode(BindingMode mode);
     //@}
-    
+
     /// Gets or sets the converter to use. If you set the Converter and StringFormat properties,
     /// the converter is applied to the data value first, and then the StringFormat is applied
     //@{
     IValueConverter* GetConverter() const;
     void SetConverter(IValueConverter* converter);
     //@}
-    
+
     /// Gets or sets the parameter to pass to the Converter
     //@{
     BaseComponent* GetConverterParameter() const;
     void SetConverterParameter(BaseComponent* parameter);
     //@}
-    
+
     /// Gets or sets a value that determines the timing of binding source updates:
     ///
     /// * *Default*: The default UpdateSourceTrigger value of the binding target property. The 
@@ -158,10 +158,10 @@ public:
     ObjectWithNameScope GetSourceObject(BaseComponent* target,
         const DependencyProperty* targetProperty, bool resolveNamesInTemplate) const;
 
-    /// From IMarkupExtension
+    /// From MarkupExtension
     //@{
-    /// \remarks Can return 0 when the source object is not resolvable (doesn't throw exception)
-    Ptr<BaseComponent> ProvideValue(const void* context);
+    /// Can return 0 when the source object is not resolvable (doesn't throw exception)
+    Ptr<BaseComponent> ProvideValue(const ValueTargetProvider* provider) override;
     //@}
 
     // Item[] property is used to notify of changes on collections
@@ -170,8 +170,9 @@ public:
     // Placeholder item to keep bindings working when item containers are recycled
     static BaseComponent* DisconnectedItem();
 
-    /// A source property or a converter can return Binding.DoNothing to instruct the binding engine
-    /// to do nothing when binding gets evaluated
+    /// A source property or a converter can return *Binding.DoNothing* to instruct the binding
+    /// engine to do nothing when binding gets evaluated
+    /// \prop
     static BaseComponent* GetDoNothing();
 
 private:
@@ -183,29 +184,17 @@ private:
     void SetSourceImpl(BaseComponent* source);
 
 private:
-    /// Name of the element to use as the binding source object
     NsString mElementName;
-
-    /// Object to use as the binding source
     BaseComponent* mSource;
-
-    /// Gets or sets the binding source by specifying its location relative to the position of the
-    /// binding target
     Ptr<RelativeSource> mRelativeSource;
 
-    /// Path to the binding source property
     Ptr<PropertyPath> mPath;
 
-    /// Gets or sets a value that indicates the direction of the data flow in the binding
     BindingMode mMode;
 
-    /// Value converter
     Ptr<IValueConverter> mConverter;
-
-    /// Parameter to pass to mConverter
     Ptr<BaseComponent> mConverterParameter;
-    
-    /// Value to indicate the timing of the binding update
+
     UpdateSourceTrigger mUpdateSourceTrigger;
 
     NS_DECLARE_REFLECTION(Binding, BaseBinding)
@@ -214,5 +203,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

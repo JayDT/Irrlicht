@@ -14,10 +14,12 @@
 
 
 #ifndef EASTL_API
-    #ifndef NS_CORE_KERNEL_EXPORTS
-        #define EASTL_API NS_DLL_IMPORT
-    #else
+    #if defined(NS_CORE_KERNEL_PRIVATE)
+        #define EASTL_API
+    #elif defined(NS_CORE_KERNEL_EXPORTS)
         #define EASTL_API NS_DLL_EXPORT
+    #else
+        #define EASTL_API NS_DLL_IMPORT
     #endif
 #endif
 
@@ -42,9 +44,9 @@ class NsAllocator
 public:
     explicit NsAllocator(const char* = 0) {}
     NsAllocator(const NsAllocator&, const char*) {}
-    void* allocate(size_t n, int = 0) { return NsAlloc(n); }
-    void* allocate(size_t n, size_t, size_t, int = 0) { return NsAlloc(n); }
-    void deallocate(void* p, size_t) { NsDealloc(p); }
+    void* allocate(size_t n, int = 0) { return Noesis::Alloc(n); }
+    void* allocate(size_t n, size_t, size_t, int = 0) { return Noesis::Alloc(n); }
+    void deallocate(void* p, size_t) { Noesis::Dealloc(p); }
     const char* get_name() const { return ""; }
     void set_name(const char*) {}
     bool operator==(const NsAllocator&) { return true; }

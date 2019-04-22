@@ -23,17 +23,18 @@ class BaseComponent;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 NS_INTERFACE IDictionaryIndexer: public Interface
 {
-    /// Gets or sets the item associated with the specified key
-    /// \return False if index is out of bounds
-    //@{
-    virtual bool TryGet(const char* key, BaseComponent*& item) const = 0;
+    /// Gets the item associated with the specified key.
+    /// Returns false if key is not found in the dictionary
+    virtual bool TryGet(const char* key, Ptr<BaseComponent>& item) const = 0;
+
+    /// Sets the item associated with the specified key.
+    /// Returns false if key is not found in the dictionary
     virtual bool TrySet(const char* key, BaseComponent* item) = 0;
-    virtual bool TrySet(const char* key, const char* item) = 0;
-    //@}
 
     NS_IMPLEMENT_INLINE_REFLECTION_(IDictionaryIndexer, Interface)
 };
 
 }
+
 
 #endif

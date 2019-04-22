@@ -9,21 +9,19 @@
 
 
 #include <NsCore/Noesis.h>
+#include <NsCore/ReflectionDeclareEnum.h>
+#include <NsCore/Delegate.h>
 #include <NsGui/FrameworkElement.h>
 #include <NsGui/Enums.h>
-#include <NsCore/ReflectionDeclareEnum.h>
+
 
 namespace Noesis
 {
 
-struct Point;
 struct Size;
 struct Rect;
 class PopupLayer;
-class Transform;
 class DependencyProperty;
-class RoutedEvent;
-template<class T> class Delegate;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -36,10 +34,7 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 class NS_GUI_CORE_API Popup: public FrameworkElement
 {
 public:
-    /// Constructor
     Popup();
-
-    /// Destructor
     ~Popup();
 
     /// Gets or sets a value that indicates whether a Popup control can contain transparent content
@@ -66,27 +61,27 @@ public:
     void SetHorizontalOffset(float offset);
     //@}
 
-    /// Gets or sets a value that indicates whether a ToolTip is visible
+    /// Gets or sets a value that indicates whether is visible or not
     //@{
     bool GetIsOpen() const;
     void SetIsOpen(bool isOpen);
     //@}
 
-    /// Gets or sets the orientation of the ToolTip control when it opens, and specifies how the
-    /// ToolTip control behaves when it overlaps screen boundaries
+    /// Gets or sets the orientation of the control when it opens, and specifies how the control
+    /// behaves when it overlaps screen boundaries
     //@{
     PlacementMode GetPlacement() const;
     void SetPlacement(PlacementMode placement);
     //@}
 
-    /// Gets or sets the rectangular area relative to which the ToolTip control is positioned when
+    /// Gets or sets the rectangular area relative to which the control is positioned when
     /// it opens
     //@{
     const Rect& GetPlacementRectangle() const;
     void SetPlacementRectangle(const Rect& rect);
     //@}
 
-    /// Gets or sets the UIElement relative to which the ToolTip is positioned when it opens
+    /// Gets or sets the UIElement relative to which the control is positioned when it opens
     //@{
     UIElement* GetPlacementTarget() const;
     void SetPlacementTarget(UIElement* target);
@@ -139,33 +134,34 @@ public:
     //@}
 
 protected:
-    /// From DependencyObject
+    // From DependencyObject
     //@{
-    void OnInit();
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    void OnInit() override;
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
-    /// From Visual
+    // From Visual
     //@{
-    void OnConnectToView(IView* view);
-    void OnDisconnectFromView();
+    void OnConnectToView(IView* view) override;
+    void OnDisconnectFromView() override;
     //@}
 
-    /// From UIElement
+    // From UIElement
     //@{
-    void OnPreviewMouseLeftButtonDown(const MouseButtonEventArgs& e);
-    void OnPreviewMouseLeftButtonUp(const MouseButtonEventArgs& e);
-    void OnPreviewMouseRightButtonDown(const MouseButtonEventArgs& e);
-    void OnPreviewMouseRightButtonUp(const MouseButtonEventArgs& e);
+    void OnPreviewMouseLeftButtonDown(const MouseButtonEventArgs& e) override;
+    void OnPreviewMouseLeftButtonUp(const MouseButtonEventArgs& e) override;
+    void OnPreviewMouseRightButtonDown(const MouseButtonEventArgs& e) override;
+    void OnPreviewMouseRightButtonUp(const MouseButtonEventArgs& e) override;
+    void OnMouseWheel(const MouseWheelEventArgs& e) override;
     //@}
 
-    /// From FrameworkElement
+    // From FrameworkElement
     //@{
-    void CloneOverride(FrameworkElement* clone, FrameworkTemplate* template_) const;
-    uint32_t GetLogicalChildrenCount() const;
-    BaseComponent* GetLogicalChild(uint32_t index) const;
-    Size MeasureOverride(const Size& availableSize);
-    Size ArrangeOverride(const Size& finalSize);
+    void CloneOverride(FrameworkElement* clone, FrameworkTemplate* template_) const override;
+    uint32_t GetLogicalChildrenCount() const override;
+    Ptr<BaseComponent> GetLogicalChild(uint32_t index) const override;
+    Size MeasureOverride(const Size& availableSize) override;
+    Size ArrangeOverride(const Size& finalSize) override;
     //@}
 
 private:
@@ -217,5 +213,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

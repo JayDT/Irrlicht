@@ -21,7 +21,7 @@ class ItemContainerGenerator;
 class ScrollContentPresenter;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Used within the template of an item control to specify the place in the control's visual tree
+/// Used within the template of an ItemControl to specify the place in the control's visual tree
 /// where the ItemsPanel defined by the ItemsControl is to be added.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.itemspresenter.aspx
@@ -34,8 +34,9 @@ public:
 protected:
     /// From FrameworkElement
     //@{
-    Size MeasureOverride(const Size& availableSize);
-    void OnTemplatedParentChanged(FrameworkElement* oldParent, FrameworkElement* newParent);
+    Size MeasureOverride(const Size& availableSize) override;
+    void OnTemplatedParentChanged(FrameworkElement* oldParent,
+        FrameworkElement* newParent) override;
     //@}
 
 private:
@@ -60,5 +61,6 @@ private:
 };
 
 }
+
 
 #endif

@@ -25,7 +25,6 @@ namespace Noesis
 class NS_GUI_CORE_API Canvas: public Panel
 {
 public:
-    /// Constructor
     Canvas();
 
     /// Gets a value that represents the distance between the left side of an element and
@@ -68,13 +67,13 @@ public:
 protected:
     /// From UIElement
     //@{
-    Ptr<Geometry> GetLayoutClip(const Size& layoutSlotSize) const;
+    Ptr<Geometry> GetLayoutClip(const Size& layoutSlotSize) const override;
     //@}
 
     /// From FrameworkElement
     //@{
-    Size MeasureOverride(const Size& availableSize);
-    Size ArrangeOverride(const Size& finalSize);
+    Size MeasureOverride(const Size& availableSize) override;
+    Size ArrangeOverride(const Size& finalSize) override;
     //@}
 
 private:

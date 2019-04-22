@@ -136,8 +136,8 @@ public:
     }
     static Matrix2 Rot(T radians)
     {
-        T cs = Cos(radians);
-        T sn = Sin(radians);
+        T cs = cosf(radians);
+        T sn = sinf(radians);
         
         return Matrix2<T>(Vector2<T>(cs, sn), Vector2<T>(-sn, cs));
     }
@@ -344,24 +344,24 @@ public:
     }
     static Matrix3 RotX(T radians)
     {
-        T cs = Cos(radians);
-        T sn = Sin(radians);
+        T cs = cosf(radians);
+        T sn = sinf(radians);
         
         return Matrix3<T>(Vector3<T>(T(1.0), T(0.0), T(0.0)), Vector3<T>(T(0.0), cs, sn),
             Vector3<T>(T(0.0), -sn, cs));
     }
     static Matrix3 RotY(T radians)
     {
-        T cs = Cos(radians);
-        T sn = Sin(radians);
+        T cs = cosf(radians);
+        T sn = sinf(radians);
         
         return Matrix3<T>(Vector3<T>(cs, T(0.0), sn), Vector3<T>(T(0.0), T(1.0), T(0.0)),
             Vector3<T>(-sn, T(0.0), cs));
     }
     static Matrix3 RotZ(T radians)
     {
-        T cs = Cos(radians);
-        T sn = Sin(radians);
+        T cs = cosf(radians);
+        T sn = sinf(radians);
         
         return Matrix3<T>(Vector3<T>(cs, sn, T(0.0)), Vector3<T>(-sn, cs, T(0.0)),
             Vector3<T>(T(0.0), T(0.0), T(1.0)));
@@ -665,12 +665,12 @@ typedef Matrix4<float> Matrix4f;
 
 NS_TEMPLATE NsString Matrix2f::ToString() const;
 NS_TEMPLATE uint32_t Matrix2f::GetHashCode() const;
-NS_TEMPLATE const TypeClass* Matrix2f::StaticGetClassType(T2T<Matrix2f>*);
+NS_TEMPLATE const TypeClass* Matrix2f::StaticGetClassType(TypeTag<Matrix2f>*);
 
 NS_TEMPLATE NsString Matrix3f::ToString() const;
 NS_TEMPLATE uint32_t Matrix3f::GetHashCode() const;
 NS_TEMPLATE Matrix3f::Matrix3(const Transform2f&);
-NS_TEMPLATE const TypeClass* Matrix3f::StaticGetClassType(T2T<Matrix3f>*);
+NS_TEMPLATE const TypeClass* Matrix3f::StaticGetClassType(TypeTag<Matrix3f>*);
 
 NS_TEMPLATE NsString Matrix4f::ToString() const;
 NS_TEMPLATE uint32_t Matrix4f::GetHashCode() const;
@@ -681,7 +681,7 @@ NS_TEMPLATE Matrix4f Matrix4f::Viewport(float, float);
 NS_TEMPLATE Matrix4f Inverse(const Matrix4f&);
 NS_TEMPLATE Matrix4f Inverse(const Matrix4f&, float);
 NS_TEMPLATE float Determinant(const Matrix4f&);
-NS_TEMPLATE const TypeClass* Matrix4f::StaticGetClassType(T2T<Matrix4f>*);
+NS_TEMPLATE const TypeClass* Matrix4f::StaticGetClassType(TypeTag<Matrix4f>*);
 
 #undef NS_TEMPLATE
 

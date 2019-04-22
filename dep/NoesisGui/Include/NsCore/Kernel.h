@@ -16,8 +16,6 @@
 namespace Noesis
 {
 
-class MemoryManager;
-class MemoryAllocator;
 class ReflectionRegistry;
 class ComponentFactory;
 class Symbol;
@@ -35,7 +33,7 @@ public:
     virtual bool IsInitialized() const = 0;
 
     /// Initializes the kernel. An optional memory allocator can be passed to control allocations
-    virtual void Init(MemoryAllocator* memoryAllocator) = 0;
+    virtual void Init() = 0;
 
     /// Shuts down the kernel
     virtual void Shutdown() = 0;
@@ -45,7 +43,6 @@ public:
 
     /// Access to Kernel Modules
     //@{
-    virtual MemoryManager* GetMemoryManager() const = 0;
     virtual ReflectionRegistry* GetReflectionRegistry() const = 0;
     virtual ComponentFactory* GetComponentFactory() const = 0;
     //@}
@@ -60,7 +57,7 @@ public:
 /// Returns kernel instance
 NS_CORE_KERNEL_API Noesis::Kernel* NsGetKernel();
 
-#if NS_INSTRUMENTED_ENABLED
+#ifdef NS_PROFILE
     #define NS_REGISTER_COMMAND(n, d) NsGetKernel()->RegisterCommand(n, d)
 #else
     #define NS_REGISTER_COMMAND(n, d) NS_NOOP

@@ -10,6 +10,7 @@
 
 #include <NsCore/Noesis.h>
 #include <NsGui/CoreApi.h>
+#include <NsGui/Enums.h>
 
 
 namespace Noesis
@@ -17,13 +18,14 @@ namespace Noesis
 
 class Visual;
 class Geometry;
-template<class T> class Delegate;
 struct HitTestResult;
 struct Rect;
 struct Point;
 struct Size;
 
-typedef Noesis::Delegate<void (Visual*)> HitTestDelegate;
+template<class T> class Delegate;
+typedef Noesis::Delegate<HitTestFilterBehavior (Visual* target)> HitTestFilterCallback;
+typedef Noesis::Delegate<HitTestResultBehavior (const HitTestResult& result)> HitTestResultCallback;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Provides utility methods that perform common tasks involving nodes in a visual tree.
@@ -32,10 +34,10 @@ typedef Noesis::Delegate<void (Visual*)> HitTestDelegate;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct NS_GUI_CORE_API VisualTreeHelper
 {
-    /// Returns the root of the visual tree where the specified visual is
+    /// Returns the root of the visual tree where the specified visual is connected to
     static Visual* GetRoot(const Visual* visual);
 
-    /// Returns a DependencyObject value that represents the parent of the visual object
+    /// Returns the parent of the visual object
     static Visual* GetParent(const Visual* visual);
 
     /// Returns the number of children that a parent visual contains
@@ -44,29 +46,34 @@ struct NS_GUI_CORE_API VisualTreeHelper
     /// Returns the child visual object of a parent at the specified index
     static Visual* GetChild(const Visual* visual, uint32_t childIndex);
 
-    /// Returns the cached bounding box rectangle for the Visual
+    /// Returns the cached bounding box rectangle for the visual
     static Rect GetContentBounds(const Visual* visual);
     
-    /// Returns the union of all the content bounding boxes for all the descendants of the visual
-    /// object, which includes the content bounding box of the Visual
+    /// Returns the union of all the content bounding boxes for all visual object descendants,
+    /// which includes the content bounding box of the visual itself
     static Rect GetDescendantBounds(const Visual* visual);
 
-    /// Returns the offset of the Visual
+    /// Returns the offset of the visual
     static const Point& GetOffset(const Visual* visual);
 
-    /// Returns the offset of the Visual
+    /// Returns the size of the visual
     static const Size& GetSize(const Visual* visual);
 
-    /// Returns the offset of the Visual
+    /// Returns the clip geometry of the visual
     static Geometry* GetClip(const Visual* visual);
 
-    /// Returns the top-most Visual object of a hit test. The coordinate value you pass as the
+    /// Returns the top-most visual object of a hit test. The coordinate value you pass as the
     /// point parameter has to be relative to the coordinate space of the visual object
     static HitTestResult HitTest(Visual* visual, const Point& point);
-    static HitTestResult HitTest(Visual* visual, const Point& point, 
-        const HitTestDelegate& hitTestDelegate);
+
+    /// Returns the top-most visual object of a hit test. The coordinate value you pass as the
+    /// point parameter has to be relative to the coordinate space of the visual object.
+    /// The specified callback will be called each time a visual is hit while traversing the tree
+    static void HitTest(Visual* visual, const Point& point,
+        const HitTestFilterCallback& hitTestFilter, const HitTestResultCallback& hitTestResult);
 };
 
 }
+
 
 #endif

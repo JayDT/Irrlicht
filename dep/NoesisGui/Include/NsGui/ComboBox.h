@@ -24,7 +24,7 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Represents a selection control with a drop-down list that can be shown or hidden by clicking
-/// the arrow on the control. 
+/// the arrow on the control.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.combobox.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,19 +40,20 @@ public:
     void SetIsDropDownOpen(bool value);
     //@}
 
-    /// Gets or sets a value that enables or disables editing of the text in text box of the ComboBox.
+    /// Gets or sets a value that enables or disables editing of text in text box of the ComboBox
     //@{
     bool GetIsEditable() const;
     void SetIsEditable(bool value);
     //@}
 
-    /// Gets or sets a value that enables selection-only mode, in which the contents of the combo box are selectable but not editable
+    /// Gets or sets a value that enables selection-only mode, in which the contents of the combo
+    /// box are selectable but not editable
     //@{
     bool GetIsReadOnly() const;
     void SetIsReadOnly(bool value);
     //@}
 
-    /// Gets or sets the maximum height for a combo box drop-down.
+    /// Gets or sets the maximum height for a combo box drop-down
     //@{
     float GetMaxDropDownHeight() const;
     void SetMaxDropDownHeight(float height);
@@ -68,7 +69,8 @@ public:
     DataTemplate* GetSelectionBoxItemTemplate() const;
     //@}
 
-    /// Gets or sets whether a ComboBox that is open and displays a drop-down control will remain open when a user clicks the TextBox.
+    /// Gets or sets whether a ComboBox that is open and displays a drop-down control will remain
+    /// open when a user clicks the TextBox.
     //@{
     bool GetStaysOpenOnEdit() const;
     void SetStaysOpenOnEdit(bool value);
@@ -149,6 +151,7 @@ private:
     void CloseDropDown(bool selectOnClose);
     void ToggleDropDown(bool selectOnClose);
     void ToggleDropDown(bool open, bool selectOnClose);
+    void Close();
 
     void OnIsDropDownChanged(bool isDropDown);
 
@@ -169,7 +172,7 @@ private:
 
     void SelectNext(int startIndex, int direction);
 
-    /// Used by ComboBoxItem implementation
+    // Used by ComboBoxItem implementation
     friend class ComboBoxItem;
     void ItemSelected(ComboBoxItem* lbi);
     void ItemClicked(ComboBoxItem* cbi);

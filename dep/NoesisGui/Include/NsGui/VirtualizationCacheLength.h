@@ -30,7 +30,7 @@ enum VirtualizationCacheLengthUnit
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents the measurements for the VirtualizingPanel.CacheLength attached property.
+/// Represents the measurements for the *VirtualizingPanel.CacheLength* attached property.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.virtualizationcachelength.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,5 +81,6 @@ private:
 }
 
 NS_DECLARE_REFLECTION_ENUM_EXPORT(NS_GUI_CORE_API, Noesis::VirtualizationCacheLengthUnit)
+
 
 #endif

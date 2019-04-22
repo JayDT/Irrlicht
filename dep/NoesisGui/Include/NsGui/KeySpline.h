@@ -33,14 +33,14 @@ public:
     KeySpline(const Point& controlPoint1, const Point& controlPoint2);
     KeySpline(float controlPoint1X, float controlPoint1Y, float controlPoint2X,
         float controlPoint2Y);
-    
+
     /// Gets or sets the first control point used to define a Bezier curve that describes
     /// a KeySpline
     //@{
     const Point& GetControlPoint1() const;
     void SetControlPoint1(const Point& point);
     //@}
-    
+
     /// Gets or sets the second control point used to define a Bezier curve that describes 
     /// a KeySpline
     //@{
@@ -48,13 +48,13 @@ public:
     void SetControlPoint2(const Point& point);
     //@}
 
-    /// Calculates spline progress from a supplied linear progress.
+    /// Calculates spline progress from a supplied linear progress
     float GetSplineProgress(float linearProgress) const;
 
     /// Tries to parse a KeySpline from a string
     static bool TryParse(const char* str, Ptr<KeySpline>& result);
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<Freezable> Clone() const;
     Ptr<Freezable> CloneCurrentValue() const;
@@ -63,8 +63,8 @@ public:
 private:
     /// From Freezable
     //@{
-    void CloneCommonCore(const Freezable* source);
-    Ptr<Freezable> CreateInstanceCore() const;
+    void CloneCommonCore(const Freezable* source) override;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
 private:
@@ -77,5 +77,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

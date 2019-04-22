@@ -330,9 +330,11 @@ namespace video
 
         void WriteShaderCache(System::IO::IFileWriter*) override final;
 
+        const irr::core::array<DisplayModeEntry>* getDisplayModeList() const override { return &m_displayModeList; }
+
     private:
 
-
+        irr::core::array<DisplayModeEntry> m_displayModeList;
         SMaterial Material, LastMaterial;
         irr::Ptr<IImage> blankImage;
         irr::Ptr<ITexture> blankTexture;

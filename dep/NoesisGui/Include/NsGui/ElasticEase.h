@@ -18,8 +18,8 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents an easing function that creates an animation that resembles a spring 
-/// oscillating back and forth until it comes to rest
+/// Represents an easing function that creates an animation that resembles a spring oscillating
+/// back and forth until it comes to rest.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.elasticease.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,7 +43,7 @@ public:
     void SetSpringiness(float value);
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<ElasticEase> Clone() const;
     Ptr<ElasticEase> CloneCurrentValue() const;
@@ -56,17 +56,18 @@ public:
 protected:
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
     /// From EasingFunctionBase
     //@{
-    float EaseInCore(float normalizedTime);
+    float EaseInCore(float normalizedTime) override;
     //@}
 
     NS_DECLARE_REFLECTION(ElasticEase, EasingFunctionBase)
 };
 
 }
+
 
 #endif

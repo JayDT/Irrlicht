@@ -538,9 +538,9 @@ namespace eastl
 
         void base_swap(hash_code_base& x)
         {
-            eastl::swap(mExtractKey, x.mExtractKey);
-            eastl::swap(mEqual,      x.mEqual);
-            eastl::swap(mRangedHash, x.mRangedHash);
+            eastl::swap_(mExtractKey, x.mExtractKey);
+            eastl::swap_(mEqual,      x.mEqual);
+            eastl::swap_(mRangedHash, x.mRangedHash);
         }
 
     }; // hash_code_base
@@ -623,10 +623,10 @@ namespace eastl
 
         void base_swap(hash_code_base& x)
         {
-            eastl::swap(mExtractKey, x.mExtractKey);
-            eastl::swap(mEqual,      x.mEqual);
-            eastl::swap(m_h1,        x.m_h1);
-            eastl::swap(m_h2,        x.m_h2);
+            eastl::swap_(mExtractKey, x.mExtractKey);
+            eastl::swap_(mEqual,      x.mEqual);
+            eastl::swap_(m_h1,        x.m_h1);
+            eastl::swap_(m_h2,        x.m_h2);
         }
 
     }; // hash_code_base
@@ -694,10 +694,10 @@ namespace eastl
 
         void base_swap(hash_code_base& x)
         {
-            eastl::swap(mExtractKey, x.mExtractKey);
-            eastl::swap(mEqual,      x.mEqual);
-            eastl::swap(m_h1,        x.m_h1);
-            eastl::swap(m_h2,        x.m_h2);
+            eastl::swap_(mExtractKey, x.mExtractKey);
+            eastl::swap_(mEqual,      x.mEqual);
+            eastl::swap_(m_h1,        x.m_h1);
+            eastl::swap_(m_h2,        x.m_h2);
         }
 
     }; // hash_code_base
@@ -1354,14 +1354,14 @@ namespace eastl
         {
             // We leave mAllocator as-is.
             hash_code_base<K, V, EK, Eq, H1, H2, H, bC>::base_swap(x); // hash_code_base has multiple implementations, so we let them handle the swap.
-            eastl::swap(mRehashPolicy,  x.mRehashPolicy);
-            eastl::swap(mpBucketArray,  x.mpBucketArray);
-            eastl::swap(mnBucketCount,  x.mnBucketCount);
-            eastl::swap(mnElementCount, x.mnElementCount);
+            eastl::swap_(mRehashPolicy,  x.mRehashPolicy);
+            eastl::swap_(mpBucketArray,  x.mpBucketArray);
+            eastl::swap_(mnBucketCount,  x.mnBucketCount);
+            eastl::swap_(mnElementCount, x.mnElementCount);
         }
         else
         {
-            const this_type temp(*this); // Can't call eastl::swap because that would
+            const this_type temp(*this); // Can't call eastl::swap_ because that would
             *this = x;                   // itself call this member swap function.
             x     = temp;
         }

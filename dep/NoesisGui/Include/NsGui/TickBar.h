@@ -23,9 +23,7 @@ namespace Noesis
 {
 
 class Brush;
-class Pen;
 class MeshGeometry;
-class TickBarTest;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -38,10 +36,7 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 class NS_GUI_CORE_API TickBar: public FrameworkElement
 {
 public:
-    /// Constructor
     TickBar();
-    
-    /// Destructor
     ~TickBar();
 
     /// Gets or sets the Brush that is used to draw the tick marks
@@ -178,7 +173,6 @@ private:
 
     Ptr<MeshGeometry> mGeometry;
 
-    // Controls if the ReservedSpace has been binded
     bool mReservedSpaceBinded;
 
     NS_DECLARE_REFLECTION(TickBar, FrameworkElement)

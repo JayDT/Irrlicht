@@ -26,7 +26,7 @@ private:
     struct Class
     {
         typedef TypeClass ReturnType;
-        static const ReturnType* Get() { return T::StaticGetClassType(); }
+        static const ReturnType* Get() { return T::StaticGetClassType((TypeTag<T>*)nullptr); }
     };
 
     struct Enum
@@ -35,7 +35,7 @@ private:
         static const ReturnType* Get() { return TypeEnumFiller<T>::GetType(); }
     };
 
-    typedef typename If<IsEnum<T>::Result, Enum, Class>::Result ClassEnumCheck;
+    typedef If<IsEnum<T>::Result, Enum, Class> ClassEnumCheck;
 
 public:
     typedef typename ClassEnumCheck::ReturnType ReturnType;
@@ -86,7 +86,7 @@ const typename TypeOfHelper<T>::ReturnType* TypeOf()
     return TypeOfHelper<T>::Get();
 }
 
-typedef Noesis::NullType NoParent;
+typedef void NoParent;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// TypeOf specialization for NoParent.

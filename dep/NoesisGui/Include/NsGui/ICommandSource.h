@@ -17,7 +17,6 @@ namespace Noesis
 
 class BaseComponent;
 class UIElement;
-template<class T> class Ptr;
 NS_INTERFACE ICommand;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,5 +37,6 @@ NS_INTERFACE ICommandSource: public Interface
 };
 
 }
+
 
 #endif

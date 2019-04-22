@@ -37,23 +37,29 @@ inline bool IsZero(float val, float epsilon = 10.0f * FLT_EPSILON);
 /// Returns whether or not two floats are within epsilon of each other
 inline bool AreClose(float a, float b, float epsilon = 10.0f * FLT_EPSILON);
 
-/// Tests if a number is NaN
-//@{
+/// Tests if float is NaN
 inline bool IsNaN(float val);
+
+/// Tests if double is NaN
 inline bool IsNaN(double val);
-//@}
 
-/// Tests if a number is finite (not infinity and not Nan)
-inline bool IsFinite(float val);
+/// Tests if float is positive infinity or negative infinity
+inline bool IsInfinity(float val);
 
-/// Tests if a number is positive infinity
+/// Tests if double is positive infinity or negative infinity
+inline bool IsInfinity(double val);
+
+/// Tests if float is positive infinity
 inline bool IsPositiveInfinity(float val);
 
-/// Tests if a number is negative infinity
+/// Tests if double is positive infinity
+inline bool IsPositiveInfinity(double val);
+
+/// Tests if float is negative infinity
 inline bool IsNegativeInfinity(float val);
 
-/// Tests if a number is positive infinity or negative infinity
-inline bool IsInfinity(float val);
+/// Tests if double is negative infinity
+inline bool IsNegativeInfinity(double val);
 
 /// Float to Signed Int conversion with truncation towards zero
 inline int Trunc(float val);
@@ -76,21 +82,8 @@ template<class T> const T& Min(const T& a, const T& b);
 /// Clips a value between a minimum and a maximum
 template<class T> T Clip(T val, T min, T max);
 
-/// \return a linear interpolation between x and y. 0 <= t <= 1
+/// Returns a linear interpolation between x and y. 0 <= t <= 1
 inline float Lerp(float x, float y, float t);
-
-/// Standard math functions
-inline float Pow(float base, float exponent);
-inline float Sqr(float v);
-inline float Sqrt(float v);
-inline float Sin(float v);
-inline float Cos(float v);
-inline float ASin(float v);
-inline float ACos(float v);
-inline float Tan(float v);
-inline float ATan2(float v0, float v1);
-inline int32_t Abs(int32_t v);
-inline float Abs(float v);
 
 }
 

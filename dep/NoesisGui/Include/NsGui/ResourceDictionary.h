@@ -10,12 +10,12 @@
 
 #include <NsCore/Noesis.h>
 #include <NsGui/CoreApi.h>
-#include <NsGui/DictionaryMap.h>
 #include <NsGui/DependencyObject.h>
 #include <NsGui/BaseDictionary.h>
 #include <NsGui/INameScope.h>
 #include <NsGui/IComponentInitializer.h>
 #include <NsGui/IUITreeNode.h>
+#include <NsGui/Uri.h>
 #include <NsCore/HashMap.h>
 
 
@@ -23,11 +23,10 @@ namespace Noesis
 {
 
 class ResourceDictionary;
-class ResourceDictionaryTest;
 struct NotifyCollectionChangedEventArgs;
 
-template <class T> class TypedCollection;
-typedef Noesis::TypedCollection<Noesis::ResourceDictionary> ResourceDictionaryCollection;
+template <class T> class UICollection;
+typedef Noesis::UICollection<Noesis::ResourceDictionary> ResourceDictionaryCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -41,10 +40,7 @@ class NS_GUI_CORE_API ResourceDictionary: public BaseDictionary, public INameSco
     public IUITreeNode
 {
 public:
-    /// Constructor
     ResourceDictionary();
-
-    /// Destructor
     ~ResourceDictionary();
 
     /// Indicates if this dictionary is read-only
@@ -53,29 +49,39 @@ public:
     /// Indicates if this dictionary or any of the merged dictionaries contains a resource
     bool HasResourcesDefined() const;
 
-    /// Gets a collection of the ResourceDictionary dictionaries that constitute the various 
-    /// resource dictionaries in the merged dictionaries.
+    /// Gets the collection of merged dictionaries
     ResourceDictionaryCollection* GetMergedDictionaries() const;
 
-    /// Get or set source file for dictionary
+    /// Get or set the source file for this dictionary
     //@{
-    const char* GetSource() const;
-    void SetSource(const char* source);
+    const Uri& GetSource() const;
+    void SetSource(const Uri& source);
     //@}
+
+    /// Returns the number of entries of the base dictionary (excluding merged dictionaries)
+    uint32_t Count() const;
+
+    /// Gets the value stored for the specified key
+    BaseComponent* Get(IResourceKey* key) const;
+
+    /// Determines whether the dictionary contains an element with the specified key
+    bool Contains(IResourceKey* key) const;
+
+    /// Removes the element with the specified key from the dictionary
+    void Remove(IResourceKey* key);
+
+    /// Removes all elements from the dictionary
+    void Clear();
+
+    /// Enumerates the entries of the base dictionary (excluding merged dictionaries)
+    typedef Noesis::Delegate<void (IResourceKey*, BaseComponent*)> EnumCallback;
+    void EnumKeyValues(const EnumCallback& callback) const;
 
     /// From IDictionary
     //@{
-    bool Find(IResourceKey* key, BaseComponent*& resource) const override;
-    BaseComponent* Get(IResourceKey* key) const override;
-    void Set(IResourceKey* key, BaseComponent* value) override;
     void Add(IResourceKey* key, BaseComponent* value) override;
-    void Clear() override;
-    bool Contains(IResourceKey* key) const override;
-    void Remove(IResourceKey* key) override;
-    /// The number of entries of the base dictionary (excluding merged dictionaries)
-    uint32_t Count() const override;
-    /// Enumerates the entries of the base dictionary (excluding merged dictionaries)
-    void EnumKeyValues(const EnumCallback& callback) const override;
+    void Set(IResourceKey* key, BaseComponent* value) override;
+    bool Find(IResourceKey* key, Ptr<BaseComponent>& resource) const override;
     //@}
 
     /// From INameScope
@@ -87,20 +93,20 @@ public:
     INameScope::ChangedDelegate& NameScopeChanged() override;
     //@}
 
-    // Templated version of FindName
-    // \remarks Asserts that returned object implements specified type
+    // Templated version of FindName. Asserts that returned object implements specified type
     template<class T>
     T* FindName(const char* name) const
     {
-        return NsStaticCast<T*>(FindName(name));
+        BaseComponent* resource = FindName(name);
+        NS_ASSERT(resource == 0 || DynamicCast<T*>(resource) != 0);
+        return static_cast<T*>(resource);
     }
 
     /// From IUITreeNode
     //@{
     IUITreeNode* GetNodeParent() const override;
     void SetNodeParent(IUITreeNode* parent) override;
-    BaseComponent* FindNodeResource(IResourceKey* key,
-        bool fullElementSearch) const override;
+    BaseComponent* FindNodeResource(IResourceKey* key, bool fullElementSearch) const override;
     BaseComponent* FindNodeName(const char* name) const override;
     ObjectWithNameScope FindNodeNameAndScope(const char* name) const override;
     //@}
@@ -124,7 +130,7 @@ private:
     //@}
 
     /// Tries to get an object from the map
-    BaseComponent* TryGet(IResourceKey* key) const;
+    Ptr<BaseComponent> TryGet(IResourceKey* key) const;
 
     /// Clears all dictionary elements, including merged dictionaries
     void Reset();
@@ -142,12 +148,12 @@ private:
     void OnRemoveMergedDictionary(ResourceDictionary* dict);
     void OnRemoveMergedDictionaryForMerged(ResourceDictionary* dict);
 
-    void EnsureMergedDictionaries() const;
+    void EnsureMergedDictionaries(bool registerNotifications) const;
 
 private:
     IUITreeNode* mOwner;
 
-    NsString mSource;
+    Uri mSource;
 
     struct Data;
     Ptr<Data> mData;
@@ -160,5 +166,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

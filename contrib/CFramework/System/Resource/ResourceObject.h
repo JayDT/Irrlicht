@@ -37,6 +37,7 @@ namespace System::Resource
 
 		void Reset();
         void LoadCompressRawData(const uint8_t* src, const size_t src_size, const size_t total_size);
+		void LoadRawData(const uint8_t* src, const size_t src_size);
         void CreateResource();
 
         std::string ToString() const;

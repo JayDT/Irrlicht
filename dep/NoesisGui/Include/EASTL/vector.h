@@ -1078,13 +1078,13 @@ namespace eastl
         if(mAllocator == x.mAllocator) // If allocators are equivalent...
         {
             // We leave mAllocator as-is.
-            eastl::swap(mpBegin,     x.mpBegin);
-            eastl::swap(mpEnd,       x.mpEnd);
-            eastl::swap(mpCapacity,  x.mpCapacity);
+            eastl::swap_(mpBegin,     x.mpBegin);
+            eastl::swap_(mpEnd,       x.mpEnd);
+            eastl::swap_(mpCapacity,  x.mpCapacity);
         }
         else // else swap the contents.
         {
-            const this_type temp(*this); // Can't call eastl::swap because that would
+            const this_type temp(*this); // Can't call eastl::swap_ because that would
             *this = x;                   // itself call this member swap function.
             x     = temp;
         }

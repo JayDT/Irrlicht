@@ -26,7 +26,7 @@ template<class T> class Delegate;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class Class, class Parent> uint32_t CalculateParentOffset()
 {
-    static_assert((IsDerived<Class, Parent>::Result), "class must inherit from parent");
+    static_assert(IsDerived<Class, Parent>::Result, "class must inherit from parent");
 
     // First we define a pointer to the Class, then we cast to the Parent class, and finally we
     // calculate the offset from the Class pointer to the Parent class pointer
@@ -67,7 +67,7 @@ public:
 
     /// Adds meta data to the type class
     template<class T, class ...Args>
-    Ptr<T> Meta(Args... args);
+    T* Meta(Args... args);
 
     /// Specifies that the class implements the interface T
     template<class ClassT, class T>

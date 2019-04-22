@@ -10,24 +10,24 @@
 
 #include <NsCore/Noesis.h>
 #include <NsGui/Panel.h>
+#include <NsGui/Enums.h>
 
 
 namespace Noesis
 {
 
-enum Orientation;
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Positions child elements in sequential position from left to right, breaking content
-/// to the next line at the edge of the containing box. Subsequent ordering happens sequentially
-/// from top to bottom or from right to left, depending on the value of the Orientation property.
+/// Positions child elements in sequential position from left to right, breaking content to the
+/// next line at the edge of the containing box.
+///
+/// Subsequent ordering happens sequentially from top to bottom or from right to left, depending on
+/// the value of the Orientation property.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.wrappanel.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API WrapPanel: public Panel
 {
 public:
-    /// Constructor
     WrapPanel();
 
     /// Gets or sets a value that specifies the width of all items contained in the panel
@@ -56,27 +56,27 @@ public:
     static const DependencyProperty* OrientationProperty;
     //@}
 
-private:
+protected:
     /// From FrameworkElement
     //@{
-    Size MeasureOverride(const Size& availableSize);
-    Size ArrangeOverride(const Size& finalSize);
+    Size MeasureOverride(const Size& availableSize) override;
+    Size ArrangeOverride(const Size& finalSize) override;
     //@}
 
+private:
     Size MeasureHorizontal(const Size& availableSize);
     Size MeasureVertical(const Size& availableSize);
 
     void ArrangeHorizontal(const Size& finalSize);
     void ArrangeVertical(const Size& finalSize);
 
-    void ArrangeLine(uint32_t start, uint32_t end, float y, float height,
-        bool autoW, float itemW);
-    void ArrangeColumn(uint32_t start, uint32_t end, float x, float width,
-        bool autoH, float itemH);
+    void ArrangeLine(uint32_t start, uint32_t end, float y, float height, bool autoW, float itemW);
+    void ArrangeColumn(uint32_t start, uint32_t end, float x, float width, bool autoH, float itemH);
 
     NS_DECLARE_REFLECTION(WrapPanel, Panel)
 };
 
 }
+
 
 #endif

@@ -17,6 +17,8 @@
 #include <NsDrawing/Size.h>
 #include <NsDrawing/Rect.h>
 #include <NsCore/List.h>
+#include <NsMath/MatrixForward.h>
+#include <NsMath/TransformForward.h>
 
 
 namespace Noesis
@@ -30,10 +32,6 @@ class Transform;
 class Projection;
 class RenderTreeUpdater;
 NS_INTERFACE IView;
-template<class T> class Matrix4;
-typedef Noesis::Matrix4<float> Matrix4f;
-template<class T> class Transform2;
-typedef Noesis::Transform2<float> Transform2f;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Indicates the visual that was hit in a HitTest operation
@@ -42,23 +40,20 @@ struct HitTestResult
 {
     Visual* visualHit;
 
-    HitTestResult() : visualHit(0) { }
+    HitTestResult(): visualHit(0) { }
 };
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Callback that is called each time a visual is hit in a HitTest operation
-////////////////////////////////////////////////////////////////////////////////////////////////////
-typedef Noesis::Delegate<void (Visual*)> HitTestDelegate;
+typedef Noesis::Delegate<HitTestFilterBehavior (Visual* target)> HitTestFilterCallback;
+typedef Noesis::Delegate<HitTestResultBehavior (const HitTestResult& result)> HitTestResultCallback;
+
+typedef Noesis::Delegate<void ()> SubtreeDrawingCommandsChangedDelegate;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Provides support for: output display (rendering the persisted, serialized drawing 
-/// content of a visual), transformations (performing transformations on a visual), clipping 
-/// (providing clipping region support for a visual), hit testing (determining whether a 
-/// coordinate or geometry is contained within the bounds of a visual), and bounding box
-/// calculations (determining the bounding rectangle of a visual).
+/// Provides rendering support, which includes hit testing, coordinate transformation, and bounding
+/// box calculations.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.visual.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,15 +66,15 @@ public:
     virtual ~Visual() = 0;
 
     /// Determines whether the visual object is an ancestor of the descendant visual object
-    /// \remarks This object is not considered to be an ancestor of "visual" if they are the same
+    /// This object is not considered to be an ancestor of *visual* if they are the same
     bool IsAncestorOf(const Visual* visual) const;
 
     /// Determines whether the visual object is a descendant of the ancestor visual object
-    /// \remarks This object is not considered to be a descendant of "visual" if they are the same
+    /// This object is not considered to be a descendant of *visual* if they are the same
     bool IsDescendantOf(const Visual* visual) const;
 
     /// Finds the common ancestor of two visuals objects
-    /// \remarks If "visual" is the same object as this, the common ancestor will be the parent
+    /// If *visual* is the same object as this, the common ancestor will be the parent
     Visual* FindCommonVisualAncestor(const Visual* visual) const;
 
     /// Converts a Point in screen coordinates into a Point that represents the current coordinate
@@ -92,18 +87,17 @@ public:
 
     /// Returns a transform that can be used to transform coordinates from the Visual to the
     /// specified ancestor of the visual object
-    Noesis::Matrix4f TransformToAncestor(const Visual* ancestor) const;
+    Matrix4f TransformToAncestor(const Visual* ancestor) const;
 
     /// Returns a transform that can be used to transform coordinates from the Visual to the
     /// specified visual object descendant
-    Noesis::Matrix4f TransformToDescendant(const Visual* descendant) const;
+    Matrix4f TransformToDescendant(const Visual* descendant) const;
 
     /// Returns a transform that can be used to transform coordinates from the Visual to the
     /// specified visual object
-    Noesis::Matrix4f TransformToVisual(const Visual* visual) const;
+    Matrix4f TransformToVisual(const Visual* visual) const;
 
-    // Raise subtree render commands changed
-    typedef Noesis::Delegate<void ()> SubtreeDrawingCommandsChangedDelegate;
+    /// Occurs when subtree render commands have changed
     SubtreeDrawingCommandsChangedDelegate& SubtreeDrawingCommandsChanged();
 
     /// Indicates if this visual is invalidated and should send updates to the render tree
@@ -112,11 +106,11 @@ public:
     /// Indicates if this visual has been connected to a View
     bool IsConnectedToView() const;
 
-    /// Enables or disables visual for render
-    //@{
+    /// Enables visual for render
     void ConnectToView(IView* view);
+
+    /// Disables visual for render
     void DisconnectFromView();
-    //@}
 
     /// Gets the view where this visual is connected to
     IView* GetView() const;
@@ -124,10 +118,10 @@ public:
     /// Indicates if a render node has been created in the RenderTree for this visual
     bool IsInRenderTree() const;
 
-    /// Gets render tree id
+    /// Gets RenderTree's identifier
     uint32_t GetRenderTreeId() const;
 
-    // Pushes all the layout updates into the UI render thread queue to update render nodes
+    /// Pushes all the layout updates into the UI render thread queue to update render nodes
     void UpdateRender(RenderTreeUpdater& updater);
 
     /// Sets the flag that indicates that this Visual contains a VisualBrush
@@ -208,6 +202,9 @@ protected:
     void SetVisualProjection(Projection* projection);
     //@}
 
+    /// Disables PPAA generation on this visual node
+    void DisablePPAA(bool disable);
+
     /// Invalidate visual render commands
     void InvalidateDrawingCommands() const;
 
@@ -275,8 +272,8 @@ protected:
 
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
-    bool OnSubPropertyChanged(const DependencyProperty* prop);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
+    bool OnSubPropertyChanged(const DependencyProperty* prop) override;
     //@}
 
     // Layout requests are stored in the element
@@ -285,6 +282,7 @@ protected:
 private:
     friend struct VisualTreeHelper;
     friend class VisualCollection;
+    friend class UIElementCollection;
     friend class ViewLayout;
 
     void Invalidate();
@@ -299,8 +297,7 @@ private:
     Point FromProjectedSurface(const Point& point, const Matrix4f& m) const;
 
     Matrix4f InternalTransformToRoot() const;
-    Matrix4f InternalTransformToAncestor(const Visual* ancestor,
-        const Size& surface) const;
+    Matrix4f InternalTransformToAncestor(const Visual* ancestor, const Size& surface) const;
     Matrix4f InternalTransformToParent(const Size& surface) const;
 
     /// Returns the topmost Visual object of a hit test by specifying a Point in local coordinates
@@ -308,11 +305,14 @@ private:
     HitTestResult InternalHitTest(const Point& point, bool isProjectionIdentity,
         const Size& surface);
 
-    /// Initiates a hit test on this Visual, with caller-defined HitTestDelegate allowing to
-    /// retrieve all of the visuals under the specified point, not just the topmost one.
-    HitTestResult HitTest(const Point& point, const HitTestDelegate& hitTestDelegate);
-    HitTestResult InternalHitTest(const Point& point, bool isProjectionIdentity,
-        const Size& surface, const HitTestDelegate& hitTestDelegate);
+    /// Initiates a hit test on this Visual, with caller-defined HitTestFilterCallback and
+    /// HitTestResultCallback allowing to retrieve all of the visuals under the specified point,
+    /// not just the topmost one
+    void HitTest(const Point& point, const HitTestFilterCallback& hitTestFilter,
+        const HitTestResultCallback& hitTestResult);
+    HitTestResultBehavior InternalHitTest(const Point& point, bool isProjectionIdentity,
+        const Size& surface, const HitTestFilterCallback& hitTestFilter,
+        const HitTestResultCallback& hitTestResult);
 
     // Pushes all the necessary commands into the UI render thread queue to update corresponding
     // render nodes
@@ -385,5 +385,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

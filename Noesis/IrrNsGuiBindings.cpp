@@ -31,7 +31,7 @@ PACKAGE_EXPORT void NsRegisterReflection_NoesisApp(Noesis::ComponentFactory* fac
 }
 
 extern "C"
-void NoesisApp::Noesis_Init(Noesis::ErrorHandler NsErrorHandler, Noesis::LogHandler NsLogHandler, Noesis::MemoryAllocator* NsAllocator)
+void NoesisApp::Noesis_Init(Noesis::ErrorHandler NsErrorHandler, Noesis::LogHandler NsLogHandler, Noesis::MemoryCallbacks* NsAllocator)
 {
     Noesis::GUI::Init(NsErrorHandler, NsLogHandler, NsAllocator);
     InstallResourceProviders();

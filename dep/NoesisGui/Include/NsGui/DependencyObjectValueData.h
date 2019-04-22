@@ -19,7 +19,7 @@ namespace Noesis
 {
 
 class DependencyProperty;
-NS_INTERFACE IExpression;
+class Expression;
 typedef void* ValueStorage;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@ struct NS_GUI_DEPENDENCYSYSTEM_API StoredValue
     {
         /// Stores the expression when the property is set using SetExpression or a 
         /// ValueProvider returned an expression
-        Ptr<IExpression> expression;
+        Ptr<Expression> expression;
         // Source value (using SetValue or returned by a ValueProvider), or if there is an
         /// expression stored above, this will contain the result of evaluating the expression
         ValueStorage base;

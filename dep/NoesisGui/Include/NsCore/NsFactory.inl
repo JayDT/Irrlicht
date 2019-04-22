@@ -13,8 +13,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
-inline Noesis::Ptr<T> NsCreateComponent(NsSymbol classId)
+inline Noesis::Ptr<T> NsCreateComponent(NsSymbol id)
 {
-    return NsDynamicCast<Noesis::Ptr<T> >(
-        NsGetKernel()->GetComponentFactory()->CreateComponent(classId));
+    return Noesis::DynamicPtrCast<T>(NsGetKernel()->GetComponentFactory()->CreateComponent(id));
 }

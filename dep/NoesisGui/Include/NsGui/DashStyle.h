@@ -25,7 +25,7 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.dashstyle.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API DashStyle: public Animatable, public IRenderProxyCreator
+class NS_GUI_CORE_API DashStyle final: public Animatable, public IRenderProxyCreator
 {
 public:
     DashStyle();
@@ -43,7 +43,7 @@ public:
     void SetOffset(float offset);
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<DashStyle> Clone() const;
     Ptr<DashStyle> CloneCurrentValue() const;
@@ -91,5 +91,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

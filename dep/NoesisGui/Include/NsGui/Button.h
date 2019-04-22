@@ -16,37 +16,34 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents a push button which reacts to the Click event.
+/// Represents a push button which reacts to the *Click* event.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.button.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API Button: public BaseButton
 {
 public:
-    /// Constructor
     Button();
-
-    /// Destructor
     ~Button();
 
     /// Gets or sets a value that indicates whether a Button is a Cancel button. A user can
-    /// activate the Cancel button by pressing the ESC key
+    /// activate the Cancel button by pressing the *ESC* key
     //@{
     bool GetIsCancel() const;
     void SetIsCancel(bool value);
     //@}
 
     /// Gets or sets a value that indicates whether a Button is the default button. A user invokes
-    /// the default button by pressing the ENTER key
+    /// the default button by pressing the *ENTER* key
     //@{
     bool GetIsDefault() const;
     void SetIsDefault(bool value);
     //@}
 
     /// Gets a value that indicates whether a Button is the button that is activated when a user
-    /// presses ENTER
+    /// presses *ENTER* key
     bool GetIsDefaulted() const;
-    
+
     /// Dependency properties
     //@{
     static const DependencyProperty* IsCancelProperty;
@@ -57,7 +54,7 @@ public:
 protected:
     /// From BaseButton
     //@{
-    void OnClick();
+    void OnClick() override;
     //@}
 
     NS_DECLARE_REFLECTION(Button, BaseButton)

@@ -9,7 +9,8 @@
 
 
 #include <NsCore/Noesis.h>
-#include <NsGui/Collection.h>
+#include <NsCore/TypeOf.h>
+#include <NsGui/BaseObservableCollection.h>
 
 
 namespace Noesis
@@ -17,7 +18,9 @@ namespace Noesis
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Represents a dynamic data collection that provides notifications when items get added or
-/// removed. It is frequently used in data binding to display a collection of records within an
+/// removed.
+///
+/// It is frequently used in data binding to display a collection of records within an
 /// *ItemsControl* such as a *ListBox*, *ListView* or *TreeView*.
 ///
 /// .. code-block:: xml
@@ -27,30 +30,43 @@ namespace Noesis
 ///         ItemTemplate="{StaticResource NameItemTemplate}" />
 ///
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> class ObservableCollection: public Collection
+template<class T> class ObservableCollection: public BaseObservableCollection
 {
 public:
+    static_assert(IsDerived<T, BaseComponent>::Result, "T must inherit from BaseComponent");
+
+    /// Gets the element at the specified index
     inline T* Get(uint32_t index) const;
+
+    /// Sets the element at the specified index
     inline void Set(uint32_t index, T* item);
-    inline uint32_t Add(T* item);
-    inline bool Contains(T* item) const;
-    inline int IndexOf(T* item) const;
+
+    /// Adds an item to the collection. Returns The position into which the new element was
+    /// inserted, or -1 to indicate that the item was not inserted into the collection
+    inline int Add(T* item);
+
+    /// Inserts an item to the collection at the specified index
     inline void Insert(uint32_t index, T* item);
-    inline void Remove(T* item);
+
+    /// Determines whether the collection contains a specific value
+    inline bool Contains(T* item) const;
+
+    /// Determines the index of a specific item in the collection. Returns -1 if not found
+    inline int IndexOf(T* item) const;
+
+    /// Removes the first occurrence of a specific object from the collection. Returns true if item
+    /// was removed, false to indicate that the item was not found in the collection
+    inline bool Remove(T* item);
 
 private:
-    using Collection::Set;
-    using Collection::Add;
-    using Collection::Contains;
-    using Collection::IndexOf;
-    using Collection::Insert;
-    using Collection::Remove;
+    inline const TypeClass* GetItemType() const override;
 
-    NS_IMPLEMENT_INLINE_REFLECTION_(ObservableCollection, Collection)
+    NS_IMPLEMENT_INLINE_REFLECTION_(ObservableCollection<T>, BaseObservableCollection)
 };
 
 }
 
 #include <NsGui/ObservableCollection.inl>
+
 
 #endif

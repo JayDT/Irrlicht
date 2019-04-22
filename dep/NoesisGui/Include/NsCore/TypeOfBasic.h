@@ -26,7 +26,6 @@ class Symbol;
 /// TypeOf specialization for basic types.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //@{
-template<> class TypeOfHelper<void>: public TypeOfHelperBase<Type, Type, void> { };
 template<> class TypeOfHelper<int8_t>: public TypeOfHelperBase<Type, Type, int8_t> { };
 template<> class TypeOfHelper<int16_t>: public TypeOfHelperBase<Type, Type, int16_t> { };
 template<> class TypeOfHelper<int32_t>: public TypeOfHelperBase<Type, Type, int32_t> { };

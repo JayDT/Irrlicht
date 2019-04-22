@@ -22,17 +22,14 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents an image object that has width and height. This is an abstract class.
+/// Represents an image object that has width and height.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.imagesource.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API ImageSource: public Animatable, public IRenderProxyCreator
 {
 public:
-    /// Constructor
     ImageSource();
-
-    /// Destructor
     virtual ~ImageSource() = 0;
 
     /// Gets the width of the image in measure units (96ths of an inch)
@@ -43,7 +40,7 @@ public:
     /// \prop
     float GetHeight() const;
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<ImageSource> Clone() const;
     Ptr<ImageSource> CloneCurrentValue() const;
@@ -66,5 +63,6 @@ protected:
 NS_WARNING_POP
 
 }
+
 
 #endif

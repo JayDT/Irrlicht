@@ -16,107 +16,74 @@ namespace Noesis
 class BaseObject;
 NS_INTERFACE Interface;
 
-namespace Reflection
-{
+NS_CORE_KERNEL_API void* Cast(const TypeClass* type, BaseObject* obj);
 
-struct StaticCast
+struct DynamicCast_
 {
-    template<class CastT, class SourceT>
-    static CastT* Apply(SourceT* ptr)
+    template<class T> static BaseObject* GetBaseObject(T* obj, TrueType)
     {
-        return static_cast<CastT*>(ptr);
+        return (BaseObject*)(obj ? obj->GetBaseObject() : nullptr); 
+    }
+
+    template<class T> static BaseObject* GetBaseObject(T* obj, FalseType)
+    {
+        return (BaseObject*)obj;
+    }
+
+    template<class To_, class From_> static To_* Apply(From_* from)
+    {
+        const TypeClass* type = To_::StaticGetClassType((TypeTag<RemoveConst<To_>>*)nullptr);
+        BaseObject* obj = GetBaseObject(from, Int2Type<IsInterface<From_>::Result>());
+        return reinterpret_cast<To_*>(Cast(type, obj));
     }
 };
 
-typedef Int2Type<0> T_NoInterface;
-typedef Int2Type<1> T_Interface;
-
-template<class SourceT> BaseObject* GetBaseObject(SourceT* ptr, T_Interface)
+struct StaticCast_
 {
-    return (BaseObject*)(ptr == 0 ? 0 : ptr->GetBaseObject()); 
-}
-
-template<class SourceT> BaseObject* GetBaseObject(SourceT* ptr, T_NoInterface)
-{
-    return (BaseObject*)ptr;
-}
-
-NS_CORE_KERNEL_API void* Cast(const TypeClass* destType, BaseObject* source);
-
-struct DynamicCast
-{
-    template<class CastT, class SourceT>
-    static CastT* Apply(SourceT* ptr)
+    template<class To_, class From_> static To_* Apply(From_* from)
     {
-        typedef typename IsConst<CastT>::NonConstType CastT_;
-        const TypeClass* castType = CastT::StaticGetClassType((T2T<CastT_>*)0);
-        BaseObject* source = GetBaseObject(ptr, Int2Type<IsInterface<SourceT>::Result>());
-        return reinterpret_cast<CastT*>(Cast(castType, source));
+        return static_cast<To_*>(from);
     }
 };
 
-/// Up-casting to a derived class is optimized with a static cast
-template<class CastT, class SourceT>
-CastT* InternalDynamicCast(SourceT* ptr, T_NoInterface)
+////////////////////////////////////////////////////////////////////////////////////////////////////
+template<class To, class From> To DynamicCast(From from)
 {
-    return If<IsDerived<SourceT, CastT>::Result,
-        StaticCast,
-        DynamicCast>::Result::template Apply<CastT, SourceT>(ptr);
-}
-
-/// When casting to Interface dynamic cast must be done always, because static cast can generate an
-/// ambiguity if class implements two or more interfaces
-template<class CastT, class SourceT>
-CastT* InternalDynamicCast(SourceT* ptr, T_Interface)
-{
-    return DynamicCast::Apply<CastT, SourceT>(ptr);
-}
-
-}
+    typedef Noesis::RemovePointer<From> From_;
+    typedef Noesis::RemovePointer<To> To_;
+    static_assert(!IsConst<From_>::Result || IsConst<To_>::Result, "cannot cast from const to non-const pointer");
+    return If<IsDerived<From_, To_>::Result, StaticCast_, DynamicCast_>::template Apply<To_, From_>(from);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class CastT, class SourceT>
-CastT NsDynamicCast(SourceT ptr)
+template<class To, class From> Ptr<To> DynamicPtrCast(const Ptr<From>& from)
 {
-    typedef typename Noesis::IsPointer<CastT>::PointedType CastTT;
-    typedef typename Noesis::IsPointer<SourceT>::PointedType SourceTT;
+    return Ptr<To>(DynamicCast<To*>(from.GetPtr()));
+}
 
-    static_assert(
-        !(Noesis::IsConst<SourceTT>::Result && !Noesis::IsConst<CastTT>::Result),
-        "Cannot convert from const to non-const pointer");
-
-    enum
+////////////////////////////////////////////////////////////////////////////////////////////////////
+template<class To, class From> Ptr<To> DynamicPtrCast(Ptr<From>&& from)
+{
+    To* to = DynamicCast<To*>(from.GetPtr());
+    if (to != nullptr)
     {
-        CastToInterface =
-            Noesis::IsSame<CastTT, Noesis::Interface>::Result ||
-            Noesis::IsSame<CastTT, const Noesis::Interface>::Result
-    };
+        from.GiveOwnership();
+        return Ptr<To>(*to);
+    }
 
-    return Noesis::Reflection::InternalDynamicCast<CastTT, SourceTT>(ptr,
-        Noesis::Int2Type<CastToInterface>());
+    return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class CastT, class SourceT>
-CastT NsStaticCast(SourceT ptr)
+template<class To, class From> Ptr<To> StaticPtrCast(const Ptr<From>& from)
 {
-    NS_ASSERT(!ptr || NsDynamicCast<CastT>(ptr) != 0);
-    return static_cast<CastT>(ptr);
+    return Ptr<To>(static_cast<To*>(from.GetPtr()));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class CastT, class SourceT>
-CastT NsDynamicCast(const Noesis::Ptr<SourceT>& ptr)
+template<class To, class From> Ptr<To> StaticPtrCast(Ptr<From>&& from)
 {
-    static_assert(Noesis::IsPtr<CastT>::Result, "Ptr can only be casted to Ptr");
-    return CastT(NsDynamicCast<typename CastT::Type*>(ptr.GetPtr()));
+    return Ptr<To>(*static_cast<To*>(from.GiveOwnership()));
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class CastT, class SourceT>
-CastT NsStaticCast(const Noesis::Ptr<SourceT>& ptr)
-{
-    static_assert(Noesis::IsPtr<CastT>::Result, "Ptr can only be casted to Ptr");
-    return CastT(NsStaticCast<typename CastT::Type*>(ptr.GetPtr()));
 }

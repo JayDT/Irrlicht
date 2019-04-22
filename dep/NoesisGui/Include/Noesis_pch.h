@@ -29,8 +29,6 @@
 #include <NsCore/KernelApi.h>
 #include <NsCore/Log.h>
 #include <NsCore/Memory.h>
-#include <NsCore/MemoryAllocator.h>
-#include <NsCore/MemoryManager.h>
 #include <NsCore/MemoryStream.h>
 #include <NsCore/MemProfiler.h>
 #include <NsCore/MetaData.h>
@@ -38,7 +36,6 @@
 #include <NsCore/NsFactory.h>
 #include <NsCore/Package.h>
 #include <NsCore/PlatformSettings.h>
-#include <NsCore/Profiler.h>
 #include <NsCore/Ptr.h>
 #include <NsCore/ReflectionDeclare.h>
 #include <NsCore/ReflectionDeclareEnum.h>
@@ -48,11 +45,10 @@
 #include <NsCore/ReflectionImplementEnum.h>
 #include <NsCore/ReflectionRegistry.h>
 #include <NsCore/RegisterComponent.h>
-#include <NsCore/ScopeGuard.h>
 #include <NsCore/Stream.h>
+#include <NsCore/StringFormat.h>
 #include <NsCore/StringUtils.h>
 #include <NsCore/Symbol.h>
-#include <NsCore/TimelineProfiler.h>
 #include <NsCore/Type.h>
 #include <NsCore/TypeClass.h>
 #include <NsCore/TypeClassBuilder.h>
@@ -95,7 +91,6 @@
 #include <NsCore/List.h>
 #include <NsCore/Map.h>
 #include <NsCore/NSTLForwards.h>
-#include <NsCore/NSTLMemoryAllocator.h>
 #include <NsCore/NSTLPoolAllocator.h>
 #include <NsCore/Queue.h>
 #include <NsCore/Set.h>
@@ -142,8 +137,6 @@
 #include <NsGui/Freezable.h>
 #include <NsGui/FreezableEventReason.h>
 #include <NsGui/IComponentInitializer.h>
-#include <NsGui/IExpression.h>
-#include <NsGui/IExpressionTypes.h>
 #include <NsGui/INotifyPropertyChanged.h>
 #include <NsGui/ISealable.h>
 #include <NsGui/PropertyMetadata.h>
@@ -171,20 +164,22 @@
 
 // Gui/Core
 #include <NsGui/AdornerDecorator.h>
-#include <NsGui/AmbientPropertyMetaData.h>
-#include <NsGui/AmbientStack.h>
 #include <NsGui/Animatable.h>
 #include <NsGui/ApplicationCommands.h>
 #include <NsGui/BaseBinding.h>
 #include <NsGui/BaseBindingExpression.h>
 #include <NsGui/BaseButton.h>
+#include <NsGui/BaseCollection.h>
 #include <NsGui/BaseCommand.h>
 #include <NsGui/BaseDefinition.h>
 #include <NsGui/BaseDictionary.h>
+#include <NsGui/BaseFreezableCollection.h>
 #include <NsGui/BaseMenu.h>
+#include <NsGui/BaseObservableCollection.h>
 #include <NsGui/BaseSetter.h>
 #include <NsGui/BaseTextBox.h>
 #include <NsGui/BaseTrigger.h>
+#include <NsGui/BaseUICollection.h>
 #include <NsGui/BaseValueConverter.h>
 #include <NsGui/Binding.h>
 #include <NsGui/BindingExpression.h>
@@ -228,9 +223,8 @@
 #include <NsGui/DataTrigger.h>
 #include <NsGui/Decorator.h>
 #include <NsGui/DependsOnAttributeMetaData.h>
-#include <NsGui/DictionaryKeyPropertyMetaData.h>
-#include <NsGui/DictionaryMap.h>
 #include <NsGui/DockPanel.h>
+#include <NsGui/DragDrop.h>
 #include <NsGui/DrawingContext.h>
 #include <NsGui/Element.h>
 #include <NsGui/Ellipse.h>
@@ -272,10 +266,10 @@
 #include <NsGui/Image.h>
 #include <NsGui/ImageBrush.h>
 #include <NsGui/ImageSource.h>
-#include <NsGui/IMarkupExtension.h>
 #include <NsGui/INameScope.h>
 #include <NsGui/INameScopeTypes.h>
 #include <NsGui/Inline.h>
+#include <NsGui/InlineUIContainer.h>
 #include <NsGui/INotifyCollectionChanged.h>
 #include <NsGui/INotifyDictionaryChanged.h>
 #include <NsGui/InputBinding.h>
@@ -300,8 +294,6 @@
 #include <NsGui/IUITreeNodeTypes.h>
 #include <NsGui/IValueConverter.h>
 #include <NsGui/IView.h>
-#include <NsGui/IXamlContext.h>
-#include <NsGui/IXamlContextReceiver.h>
 #include <NsGui/KeyBinding.h>
 #include <NsGui/Keyboard.h>
 #include <NsGui/KeyboardNavigation.h>
@@ -315,13 +307,13 @@
 #include <NsGui/ListBox.h>
 #include <NsGui/ListBoxItem.h>
 #include <NsGui/LogicalTreeHelper.h>
+#include <NsGui/MarkupExtension.h>
 #include <NsGui/Matrix3DProjection.h>
 #include <NsGui/MatrixTransform.h>
 #include <NsGui/Menu.h>
 #include <NsGui/MenuItem.h>
 #include <NsGui/MeshGeometry.h>
 #include <NsGui/Mouse.h>
-#include <NsGui/MouseState.h>
 #include <NsGui/mscorlibTypes.h>
 #include <NsGui/MultiDataTrigger.h>
 #include <NsGui/MultiTrigger.h>
@@ -384,7 +376,6 @@
 #include <NsGui/TextBlock.h>
 #include <NsGui/TextBox.h>
 #include <NsGui/TextElement.h>
-#include <NsGui/TextSelector.h>
 #include <NsGui/TextureSource.h>
 #include <NsGui/Thumb.h>
 #include <NsGui/TickBar.h>
@@ -404,6 +395,7 @@
 #include <NsGui/TreeViewItem.h>
 #include <NsGui/Trigger.h>
 #include <NsGui/TriggerAction.h>
+#include <NsGui/UICollection.h>
 #include <NsGui/UIElement.h>
 #include <NsGui/UIElementCollection.h>
 #include <NsGui/UIElementData.h>
@@ -412,6 +404,7 @@
 #include <NsGui/Underline.h>
 #include <NsGui/UniformGrid.h>
 #include <NsGui/UpdateSourceTrigger.h>
+#include <NsGui/Uri.h>
 #include <NsGui/UserControl.h>
 #include <NsGui/ValueTargetProvider.h>
 #include <NsGui/Viewbox.h>
@@ -423,7 +416,6 @@
 #include <NsGui/VisualCollection.h>
 #include <NsGui/VisualTreeHelper.h>
 #include <NsGui/WrapPanel.h>
-#include <NsGui/XamlReaderProvider.h>
 
 // Gui/Providers
 #include <NsGui/FontProperties.h>
@@ -460,7 +452,6 @@
 #include <NsGui/BounceEase.h>
 #include <NsGui/CircleEase.h>
 #include <NsGui/Clock.h>
-#include <NsGui/ClockController.h>
 #include <NsGui/ClockGroup.h>
 #include <NsGui/ControllableStoryboardAction.h>
 #include <NsGui/CubicEase.h>

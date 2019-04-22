@@ -74,6 +74,8 @@ public:
 	//! Returns the base path of the file list
 	virtual const io::path& getPath() const = 0;
 
+    virtual bool isIgnoreCase() const = 0;
+
 	//! Add as a file or folder to the list
 	/** \param fullPath The file name including path, from the root of the file list.
 	\param isDirectory True if this is a directory rather than a file.

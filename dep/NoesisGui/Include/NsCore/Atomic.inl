@@ -1,12 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // NoesisGUI - http://www.noesisengine.com
 // Copyright (c) 2013 Noesis Technologies S.L. All Rights Reserved.
-// [CR #586]
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 #ifdef NS_COMPILER_MSVC
-    #include <intrin.h>
+#include <intrin.h>
 #endif
 
 
@@ -14,100 +13,138 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> Atomic32<T>::operator T() const
+AtomicInteger::operator int32_t() const
 {
-    return static_cast<T>(val);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> T Atomic32<T>::FetchAndIncrement()
-{
-#ifdef NS_COMPILER_MSVC
-    return static_cast<T>(_InterlockedIncrement(reinterpret_cast<volatile long*>(&val))) - 1;
+#if NS_MULTITHREADING
+    #ifdef NS_COMPILER_MSVC
+        return _InterlockedCompareExchange((volatile long*)(&val), 0, 0);
+    #else
+        return __sync_val_compare_and_swap((int32_t*)&val, 0, 0);
+    #endif
 #else
-    return __sync_fetch_and_add(&val, 1);
+    return val;
 #endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> T Atomic32<T>::FetchAndDecrement()
+int32_t AtomicInteger::operator=(int32_t v)
 {
-#ifdef NS_COMPILER_MSVC
-    return static_cast<T>(_InterlockedDecrement(reinterpret_cast<volatile long*>(&val))) + 1;
+    FetchAndStore(v);
+    return v;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+int32_t AtomicInteger::FetchAndIncrement()
+{
+#if NS_MULTITHREADING
+    #ifdef NS_COMPILER_MSVC
+        return _InterlockedIncrement((volatile long*)(&val)) - 1;
+    #else
+        return __sync_fetch_and_add(&val, 1);
+    #endif
 #else
-    return __sync_fetch_and_add(&val, -1);
+    return val++;
 #endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> T Atomic32<T>::FetchAndAdd(T v)
+int32_t AtomicInteger::FetchAndDecrement()
 {
-#ifdef NS_COMPILER_MSVC
-    return static_cast<T>(_InterlockedExchangeAdd(reinterpret_cast<volatile long*>(&val),
-        static_cast<long>(v)));
+#if NS_MULTITHREADING
+    #ifdef NS_COMPILER_MSVC
+        return _InterlockedDecrement((volatile long*)(&val)) + 1;
+    #else
+        return __sync_fetch_and_add(&val, -1);
+    #endif
 #else
-    return __sync_fetch_and_add(&val, v);
+    return val--;
 #endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> T Atomic32<T>::FetchAndStore(T v)
+int32_t AtomicInteger::FetchAndAdd(int32_t v)
 {
-#ifdef NS_COMPILER_MSVC
-    return static_cast<T>(_InterlockedExchange(reinterpret_cast<volatile long*>(&val), 
-        static_cast<long>(v)));
+#if NS_MULTITHREADING
+    #ifdef NS_COMPILER_MSVC
+        return _InterlockedExchangeAdd((volatile long*)(&val), v);
+    #else
+        return __sync_fetch_and_add(&val, v);
+    #endif
 #else
-    // __sync_lock_test_and_set is not a full barrier
-    __sync_synchronize();
-    return __sync_lock_test_and_set(&val, v);
+    int32_t tmp = val;
+    val += v;
+    return tmp;
 #endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> T Atomic32<T>::CompareAndSwap(T newValue, T comparand)
+int32_t AtomicInteger::FetchAndStore(int32_t v)
 {
-#ifdef NS_COMPILER_MSVC
-    return static_cast<T>(_InterlockedCompareExchange(reinterpret_cast<volatile long*>(&val), 
-        static_cast<long>(newValue), static_cast<long>(comparand)));
+#if NS_MULTITHREADING
+    #ifdef NS_COMPILER_MSVC
+        return _InterlockedExchange((volatile long*)(&val), v);
+    #else
+        // Note that __sync_lock_test_and_set() only has Acquire semantics
+        __sync_synchronize();
+        return __sync_lock_test_and_set(&val, v);
+    #endif
 #else
-    return __sync_val_compare_and_swap(&val, comparand, newValue);
+    int32_t tmp = val;
+    val = v;
+    return tmp;
 #endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> T Atomic32<T>::operator++()
+int32_t AtomicInteger::CompareAndSwap(int32_t newValue, int32_t comparand)
+{
+#if NS_MULTITHREADING
+    #ifdef NS_COMPILER_MSVC
+        return _InterlockedCompareExchange((volatile long*)(&val), newValue, comparand);
+    #else
+        return __sync_val_compare_and_swap(&val, comparand, newValue);
+    #endif
+#else
+    int32_t tmp = val;
+    val = val == comparand ? newValue : val;
+    return tmp;
+#endif
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+int32_t AtomicInteger::operator++()
 {
     return FetchAndIncrement() + 1;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> T Atomic32<T>::operator--()
+int32_t AtomicInteger::operator--()
 {
     return FetchAndDecrement() - 1;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> T Atomic32<T>::operator++(int)
+int32_t AtomicInteger::operator++(int)
 {
     return FetchAndIncrement();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> T Atomic32<T>::operator--(int)
+int32_t AtomicInteger::operator--(int)
 {
     return FetchAndDecrement();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> T Atomic32<T>::operator+=(T v)
+int32_t AtomicInteger::operator+=(int32_t v)
 {
     return FetchAndAdd(v) + v;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> T Atomic32<T>::operator-=(T v)
+int32_t AtomicInteger::operator-=(int32_t v)
 {
-    return operator+=(T(0) - v);
+    return operator+=(int32_t(0) - v);
 }
 
 }

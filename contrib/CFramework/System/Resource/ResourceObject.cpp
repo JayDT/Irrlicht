@@ -58,6 +58,13 @@ void System::Resource::ResourceObject::LoadCompressRawData(const uint8_t * src, 
     System::ThrowIfFailed<System::NotSupportedException>(success);
 }
 
+void System::Resource::ResourceObject::LoadRawData(const uint8_t* src, const size_t src_size)
+{
+	size_t wpos = mData.size();
+	mData.resize(mData.size() + src_size);
+	memcpy((void*)& mData[wpos], src, src_size);
+}
+
 void System::Resource::ResourceObject::CreateResource()
 {
 }

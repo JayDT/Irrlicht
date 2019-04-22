@@ -24,10 +24,7 @@ namespace Noesis
 class NS_GUI_CORE_API RadioButton: public ToggleButton
 {
 public:
-    /// Constructor
     RadioButton();
-    
-    /// Destructor
     ~RadioButton();
 
     /// Gets or sets the name that specifies which RadioButton controls are mutually exclusive
@@ -36,26 +33,26 @@ public:
     void SetGroupName(const char* name);
     //@}
 
+public:
     /// Dependency properties
     //@{
     static const DependencyProperty* GroupNameProperty;
     //@}
 
 protected:
+    /// From BaseButton
+    //@{
+    void OnToggle() override;
+    //@}
 
-    // From BaseButton
+    /// From UIElement
     //@{
-    void OnToggle();
+    void OnChecked(const RoutedEventArgs& e) override;
     //@}
-    
-    // From UIElement
+
+    /// From DependencyObject
     //@{
-    void OnChecked(const RoutedEventArgs& e);
-    //@}
-    
-    // From DependencyObject
-    //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
     
 private:
@@ -66,5 +63,6 @@ private:
 };
 
 }
+
 
 #endif

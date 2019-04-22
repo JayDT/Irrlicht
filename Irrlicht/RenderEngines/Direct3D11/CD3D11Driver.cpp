@@ -377,8 +377,16 @@ bool CD3D11Driver::initOutput(HWND hwnd, bool pureSoftware)
             throw std::runtime_error("Critical Error");
         }
 
+        m_displayModeList.set_used(numModes);
         for (u32 i = 0; i != numModes; ++i)
         {
+            m_displayModeList[i].Resolution.Height = displayModes[i].Height;
+            m_displayModeList[i].Resolution.Width = displayModes[i].Width;
+            m_displayModeList[i].Format = DirectXUtil::getColorFormatFromD3DFormat(displayModes[i].Format);
+            m_displayModeList[i].RefreshRate = displayModes[i].RefreshRate.Numerator;
+            m_displayModeList[i].param0 = displayModes[i].Scaling;
+            m_displayModeList[i].param1 = displayModes[i].ScanlineOrdering;
+
             if (displayModes[i].Height == Params.WindowSize.Height &&
                 displayModes[i].Width == Params.WindowSize.Width &&
                 displayModes[i].Format == D3DColorFormat)
@@ -832,7 +840,7 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
 
 IShader * CD3D11Driver::createShader(ShaderInitializerEntry * shaderCreateInfo)
 {
-    irr::video::D3D11HLSLProgram* gpuProgram = new irr::video::D3D11HLSLProgram(this);
+    irr::video::D3D11HLSLProgram* gpuProgram = shaderCreateInfo->mShader ? static_cast<irr::video::D3D11HLSLProgram*>(shaderCreateInfo->mShader.GetPtr()) : new irr::video::D3D11HLSLProgram(this);
 
     for (auto stage : shaderCreateInfo->mStages)
     {
@@ -887,7 +895,7 @@ IShader * CD3D11Driver::createShader(ShaderInitializerEntry * shaderCreateInfo)
     }
 
     gpuProgram->Init();
-    shaderCreateInfo->mShaderId = AddShaderModul(gpuProgram, shaderCreateInfo->mShaderId);
+    shaderCreateInfo->mShaderId = gpuProgram->mId = AddShaderModul(gpuProgram, shaderCreateInfo->mShaderId);
     return gpuProgram;
 }
 

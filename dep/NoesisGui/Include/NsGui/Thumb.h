@@ -17,7 +17,8 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// DragCompletedEventArgs
+/// Provides information about the *DragCompleted* event that occurs when a user completes a drag
+/// operation with the mouse of a Thumb control.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct NS_GUI_CORE_API DragCompletedEventArgs: public RoutedEventArgs
 {
@@ -32,7 +33,8 @@ struct NS_GUI_CORE_API DragCompletedEventArgs: public RoutedEventArgs
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// DragStartedEventArgs
+/// Provides information about the *DragStarted* event that occurs when a user drags a Thumb control
+/// with the mouse.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct NS_GUI_CORE_API DragStartedEventArgs: public RoutedEventArgs
 {
@@ -45,7 +47,8 @@ struct NS_GUI_CORE_API DragStartedEventArgs: public RoutedEventArgs
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// DragDeltaEventArgs
+/// Provides information about the *DragDelta* event that occurs one or more times when a user drags
+/// a Thumb control with the mouse.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct NS_GUI_CORE_API DragDeltaEventArgs: public RoutedEventArgs
 {
@@ -78,7 +81,6 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 class NS_GUI_CORE_API Thumb: public Control
 {
 public:
-    /// Constructor
     Thumb();
 
     /// Gets whether the Thumb control has logical focus and mouse capture and the left mouse
@@ -112,29 +114,22 @@ public:
     //@}
     
 protected:
-    
-    /// Responds to a change in the value of the IsDragging property
+    // Responds to a change in the value of the IsDragging property
     virtual void OnDraggingChanged(const DependencyPropertyChangedEventArgs& e);
-    
-    /// From Control
+
+    // From Control
     //@{
     void UpdateVisualStates();
     //@}
-    
-    /// From FrameworkElement
-    //@{
-    uint32_t GetLogicalChildrenCount() const;
-    BaseComponent* GetLogicalChild(uint32_t index) const;
-    //@}
-    
-    /// From UIElement
+
+    // From UIElement
     //@{
     void OnMouseLeftButtonDown(const MouseButtonEventArgs& e);
     void OnMouseLeftButtonUp(const MouseButtonEventArgs& e);
     void OnMouseMove(const MouseEventArgs& e);
     //@}
-    
-    /// From DependencyObject
+
+    // From DependencyObject
     //@{
     bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
     //@}
@@ -150,5 +145,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

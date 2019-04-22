@@ -29,13 +29,7 @@ template<class T> struct Vector2
     T y; 
 
     /// Default constructor. Does no initialization
-    inline Vector2()
-    {
-#ifdef NS_DEBUG_CFG
-        x = std::numeric_limits<T>::signaling_NaN();
-        y = std::numeric_limits<T>::signaling_NaN();
-#endif
-    }
+    inline Vector2() {}
 
     /// Copy constructor
     inline Vector2(const Vector2& v): x(v.x), y(v.y) {}
@@ -204,14 +198,7 @@ template<class T> struct Vector3
     T z;
 
     /// Default constructor. Does no initialization
-    inline Vector3()
-    {
-#ifdef NS_DEBUG_CFG
-        x = std::numeric_limits<T>::signaling_NaN();
-        y = std::numeric_limits<T>::signaling_NaN();
-        z = std::numeric_limits<T>::signaling_NaN();
-#endif
-    }
+    inline Vector3() {}
 
     /// Copy constructor
     inline Vector3(const Vector3& v): x(v.x), y(v.y), z(v.z) {}
@@ -394,15 +381,7 @@ template<class T> struct Vector4
     T w;
 
     /// Default constructor. Does no initialization
-    inline Vector4()
-    {
-#ifdef NS_DEBUG_CFG
-        x = std::numeric_limits<T>::signaling_NaN();
-        y = std::numeric_limits<T>::signaling_NaN();
-        z = std::numeric_limits<T>::signaling_NaN();
-        w = std::numeric_limits<T>::signaling_NaN();
-#endif
-    }
+    inline Vector4() {}
 
     /// Copy constructor
     inline Vector4(const Vector4& v): x(v.x), y(v.y), z(v.z), w(v.w) {}
@@ -620,10 +599,10 @@ NS_TEMPLATE uint32_t Vector2i::GetHashCode() const;
 NS_TEMPLATE uint32_t Vector3f::GetHashCode() const;
 NS_TEMPLATE uint32_t Vector4f::GetHashCode() const;
 
-NS_TEMPLATE const TypeClass* Vector2f::StaticGetClassType(T2T<Vector2f>*);
-NS_TEMPLATE const TypeClass* Vector2i::StaticGetClassType(T2T<Vector2i>*);
-NS_TEMPLATE const TypeClass* Vector3f::StaticGetClassType(T2T<Vector3f>*);
-NS_TEMPLATE const TypeClass* Vector4f::StaticGetClassType(T2T<Vector4f>*);
+NS_TEMPLATE const TypeClass* Vector2f::StaticGetClassType(TypeTag<Vector2f>*);
+NS_TEMPLATE const TypeClass* Vector2i::StaticGetClassType(TypeTag<Vector2i>*);
+NS_TEMPLATE const TypeClass* Vector3f::StaticGetClassType(TypeTag<Vector3f>*);
+NS_TEMPLATE const TypeClass* Vector4f::StaticGetClassType(TypeTag<Vector4f>*);
 
 #undef NS_TEMPLATE
 

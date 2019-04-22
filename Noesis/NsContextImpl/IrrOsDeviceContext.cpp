@@ -32,6 +32,39 @@ namespace
 {
     void* gPrivateData;
 
+    static irr::gui::ECURSOR_ICON s_CursorNsToIrrEnum[] =
+    {
+        irr::gui::ECURSOR_ICON::ECI_NORMAL, // Cursor_None = 0,
+        irr::gui::ECURSOR_ICON::ECI_NO, // Cursor_No = 1,
+        irr::gui::ECURSOR_ICON::ECI_NORMAL, // Cursor_Arrow = 2,
+        irr::gui::ECURSOR_ICON::ECI_NORMAL, // Cursor_AppStarting = 
+        irr::gui::ECURSOR_ICON::ECI_CROSS, // Cursor_Cross = 4,
+        irr::gui::ECURSOR_ICON::ECI_HELP, // Cursor_Help = 5,
+        irr::gui::ECURSOR_ICON::ECI_IBEAM, // Cursor_IBeam = 6,
+        irr::gui::ECURSOR_ICON::ECI_SIZEALL, // Cursor_SizeAll = 7,
+        irr::gui::ECURSOR_ICON::ECI_SIZENESW, // Cursor_SizeNESW = 8,
+        irr::gui::ECURSOR_ICON::ECI_SIZENS, // Cursor_SizeNS = 9,
+        irr::gui::ECURSOR_ICON::ECI_SIZENWSE, // Cursor_SizeNWSE = 10,
+        irr::gui::ECURSOR_ICON::ECI_SIZEWE, // Cursor_SizeWE = 11,
+        irr::gui::ECURSOR_ICON::ECI_UP, // Cursor_UpArrow = 12,
+        irr::gui::ECURSOR_ICON::ECI_WAIT, // Cursor_Wait = 13,
+        irr::gui::ECURSOR_ICON::ECI_HAND, // Cursor_Hand = 14,
+        irr::gui::ECURSOR_ICON::ECI_NORMAL, // Cursor_Pen = 15,
+        irr::gui::ECURSOR_ICON::ECI_NORMAL, // Cursor_ScrollNS = 16,
+        irr::gui::ECURSOR_ICON::ECI_NORMAL, // Cursor_ScrollWE = 17,
+        irr::gui::ECURSOR_ICON::ECI_NORMAL, // Cursor_ScrollAll = 18
+        irr::gui::ECURSOR_ICON::ECI_NORMAL, // Cursor_ScrollN = 19,
+        irr::gui::ECURSOR_ICON::ECI_NORMAL, // Cursor_ScrollS = 20,
+        irr::gui::ECURSOR_ICON::ECI_NORMAL, // Cursor_ScrollW = 21,
+        irr::gui::ECURSOR_ICON::ECI_NORMAL, // Cursor_ScrollE = 22,
+        irr::gui::ECURSOR_ICON::ECI_NORMAL, // Cursor_ScrollNW = 23,
+        irr::gui::ECURSOR_ICON::ECI_NORMAL, // Cursor_ScrollNE = 24,
+        irr::gui::ECURSOR_ICON::ECI_NORMAL, // Cursor_ScrollSW = 25,
+        irr::gui::ECURSOR_ICON::ECI_NORMAL, // Cursor_ScrollSE = 26,
+        irr::gui::ECURSOR_ICON::ECI_NORMAL, // Cursor_ArrowCD = 27
+        irr::gui::ECURSOR_ICON::ECI_NORMAL, //
+    };
+
     static Noesis::Key s_OISKeyMappings[] =
     {
         Key_None,  // 0, Key_None
@@ -52,23 +85,23 @@ namespace
         Key_None,  // 15, Key_None
         Key_None,  // 16, KEY_SHIFT
         Key_None,  // 17, KEY_CONTROL
-        Key_None,  // 18, KEY_MENU
+        Key_GamepadMenu,  // 18, KEY_MENU
         Key_Pause,  // 19, KEY_PAUSE
-        Key_None,  // 20, KEY_CAPITAL
-        Key_None,  // 21, KEY_KANA
+        Key_Capital,  // 20, KEY_CAPITAL
+        Key_KanaMode,  // 21, KEY_KANA
         Key_None,  // 22, Key_None
-        Key_None,  // 23, KEY_JUNJA
-        Key_None,  // 24, KEY_FINAL
-        Key_None,  // 25, KEY_HANJA
+        Key_JunjaMode,  // 23, KEY_JUNJA
+        Key_FinalMode,  // 24, KEY_FINAL
+        Key_HanjaMode,  // 25, KEY_HANJA
         Key_None,  // 26, Key_None
         Key_Escape,  // 27, KEY_ESCAPE
-        Key_None,  // 28, KEY_CONVERT
-        Key_None,  // 29, KEY_NONCONVERT
-        Key_None,  // 30, KEY_ACCEPT
-        Key_None,  // 31, KEY_MODECHANGE
+        Key_ImeConvert,  // 28, KEY_CONVERT
+        Key_ImeNonConvert,  // 29, KEY_NONCONVERT
+        Key_GamepadAccept,  // 30, KEY_ACCEPT
+        Key_GamepadCancel,  // 31, KEY_MODECHANGE
         Key_Space,  // 32, KEY_SPACE
-        Key_None,  // 33, KEY_PRIOR
-        Key_None,  // 34, KEY_NEXT
+        Key_Prior,  // 33, KEY_PRIOR
+        Key_Next,  // 34, KEY_NEXT
         Key_End,  // 35, KEY_END
         Key_Home,  // 36, KEY_HOME
         Key_Left,  // 37, KEY_LEFT
@@ -77,7 +110,7 @@ namespace
         Key_Down,  // 40, KEY_DOWN
         Key_Select,  // 41, KEY_SELECT
         Key_Print,  // 42, KEY_PRINT
-        Key_None,  // 43, KEY_EXECUT
+        Key_Execute,  // 43, KEY_EXECUT
         Key_Snapshot,  // 44, KEY_SNAPSHOT
         Key_Insert,  // 45, KEY_INSERT
         Key_Delete,  // 46, KEY_DELETE
@@ -194,12 +227,12 @@ namespace
         Key_None,  // 157, Key_None
         Key_None,  // 158, Key_None
         Key_None,  // 159, Key_None
-        Key_None,  // 160, KEY_LSHIFT
-        Key_None,  // 161, KEY_RSHIFT
-        Key_None,  // 162, KEY_LCONTROL
-        Key_None,  // 163, KEY_RCONTROL
-        Key_None,  // 164, KEY_LMENU
-        Key_None,  // 165, KEY_RMENU
+        Key_LeftShift,  // 160, KEY_LSHIFT
+        Key_RightShift,  // 161, KEY_RSHIFT
+        Key_LeftCtrl,  // 162, KEY_LCONTROL
+        Key_RightCtrl,  // 163, KEY_RCONTROL
+        Key_LeftAlt,  // 164, KEY_LMENU
+        Key_RightAlt,  // 165, KEY_RMENU
         Key_None,  // 166, Key_None
         Key_None,  // 167, Key_None
         Key_None,  // 168, Key_None
@@ -220,13 +253,13 @@ namespace
         Key_None,  // 183, Key_None
         Key_None,  // 184, Key_None
         Key_None,  // 185, Key_None
-        Key_None,  // 186, KEY_OEM_1
-        Key_None,  // 187, KEY_PLUS
-        Key_None,  // 188, KEY_COMMA
-        Key_None,  // 189, KEY_MINUS
-        Key_None,  // 190, KEY_PERIOD
-        Key_None,  // 191, KEY_OEM_2
-        Key_None,  // 192, KEY_OEM_3
+        Key_Oem1,  // 186, KEY_OEM_1
+        Key_OemPlus,  // 187, KEY_PLUS
+        Key_OemComma,  // 188, KEY_COMMA
+        Key_OemMinus,  // 189, KEY_MINUS
+        Key_OemPeriod,  // 190, KEY_PERIOD
+        Key_Oem2,  // 191, KEY_OEM_2
+        Key_Oem3,  // 192, KEY_OEM_3
         Key_None,  // 193, Key_None
         Key_None,  // 194, Key_None
         Key_None,  // 195, Key_None
@@ -253,14 +286,14 @@ namespace
         Key_None,  // 216, Key_None
         Key_None,  // 217, Key_None
         Key_None,  // 218, Key_None
-        Key_None,  // 219, KEY_OEM_4
-        Key_None,  // 220, KEY_OEM_5
-        Key_None,  // 221, KEY_OEM_6
-        Key_None,  // 222, KEY_OEM_7
-        Key_None,  // 223, KEY_OEM_8
+        Key_Oem4,  // 219, KEY_OEM_4
+        Key_Oem5,  // 220, KEY_OEM_5
+        Key_Oem6,  // 221, KEY_OEM_6
+        Key_Oem7,  // 222, KEY_OEM_7
+        Key_Oem8,  // 223, KEY_OEM_8
         Key_None,  // 224, Key_None
         Key_None,  // 225, KEY_OEM_AX
-        Key_None,  // 226, KEY_OEM_102
+        Key_Oem102,  // 226, KEY_OEM_102
         Key_None,  // 227, Key_None
         Key_None,  // 228, Key_None
         Key_None,  // 229, Key_None
@@ -282,13 +315,13 @@ namespace
         Key_None,  // 245, Key_None
         Key_Attn,  // 246, KEY_ATTN
         Key_CrSel,  // 247, KEY_CRSEL
-        Key_None,  // 248, KEY_EXSEL
-        Key_None,  // 249, KEY_EREOF
-        Key_None,  // 250, KEY_PLAY
+        Key_ExSel,  // 248, KEY_EXSEL
+        Key_EraseEof,  // 249, KEY_EREOF
+        Key_Play,  // 250, KEY_PLAY
         Key_Zoom,  // 251, KEY_ZOOM
         Key_None,  // 252, Key_None
         Key_Pa1,  // 253, KEY_PA1
-        Key_None,  // 254, KEY_OEM_CLEAR
+        Key_OemClear,  // 254, KEY_OEM_CLEAR
     };
 
 }
@@ -328,9 +361,9 @@ void* IrrNsDeviceStub::GetPrivateData()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void IrrNsDeviceStub::SetTitle(const char* title)
 {
-    uint16_t titleU16[PATH_MAX];
-    uint32_t numChars = UTF8::UTF8To16(title, titleU16, PATH_MAX);
-    NS_ASSERT(numChars <= PATH_MAX);
+    uint16_t titleU16[256];
+    uint32_t numChars = UTF8::UTF8To16(title, titleU16, 256);
+    NS_ASSERT(numChars <= 256);
 
     static_cast<irr::CIrrDeviceStub*>(mContextDevice.GetPtr())->setWindowCaption((wchar_t*)titleU16);
 }
@@ -419,6 +452,27 @@ void IrrNsDeviceStub::Close()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+void NoesisApp::IrrNsDeviceStub::OpenSoftwareKeyboard(Noesis::UIElement* focused)
+{
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void NoesisApp::IrrNsDeviceStub::CloseSoftwareKeyboard()
+{
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void NoesisApp::IrrNsDeviceStub::SetCursor(Noesis::Cursor cursor)
+{
+    mContextDevice->getCursorControl()->setActiveIcon(s_CursorNsToIrrEnum[cursor]);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void NoesisApp::IrrNsDeviceStub::OpenUrl(const char* url)
+{
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 void* NoesisApp::IrrNsDeviceStub::GetNativeHandle() const
 {
     return (void*)mContextDevice->getHandle();
@@ -434,6 +488,21 @@ uint32_t NoesisApp::IrrNsDeviceStub::GetClientWidth() const
 uint32_t NoesisApp::IrrNsDeviceStub::GetClientHeight() const
 {
     return static_cast<irr::CIrrDeviceStub*>(mContextDevice.GetPtr())->getClientSize().Height;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void NoesisApp::IrrNsDeviceStub::PlaySound(const char* filename, float volume)
+{
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void NoesisApp::IrrNsDeviceStub::PauseAudio()
+{
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void NoesisApp::IrrNsDeviceStub::ResumeAudio()
+{
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -562,6 +631,16 @@ Delegate<IrrNsDeviceStub::TouchUpT>& IrrNsDeviceStub::TouchUp()
     return mTouchUp;
 }
 
+Noesis::Delegate<IrrNsDeviceStub::ClosingT>& NoesisApp::IrrNsDeviceStub::Closing()
+{
+    return mClosing;
+}
+
+Noesis::Delegate<IrrNsDeviceStub::ClosedT>& NoesisApp::IrrNsDeviceStub::Closed()
+{
+    return mClosed;
+}
+
 bool NoesisApp::IrrNsDeviceStub::OnEvent(const irr::SEvent& event)
 {
     switch (event.EventType)
@@ -609,11 +688,21 @@ bool NoesisApp::IrrNsDeviceStub::OnEvent(const irr::SEvent& event)
                 }
                 case irr::SEvent::SWindowEvent::EventType::IWE_DROPFILES:
                 {
-                    char filename[PATH_MAX];
-                    uint32_t numChars = UTF8::UTF16To8((uint16_t*)event.WindowEvent.UnicodeParam, filename, PATH_MAX);
-                    NS_ASSERT(numChars <= PATH_MAX);
+                    char filename[256];
+                    uint32_t numChars = UTF8::UTF16To8((uint16_t*)event.WindowEvent.UnicodeParam, filename, 256);
+                    NS_ASSERT(numChars <= 256);
 
                     mFileDropped(this, filename);
+                    break;
+                }
+                case irr::SEvent::SWindowEvent::EventType::IWE_CLOSE:
+                {
+                    mClosing(this);
+                    break;
+                }
+                case irr::SEvent::SWindowEvent::EventType::IWE_DESTROY:
+                {
+                    mClosed(this);
                     break;
                 }
             }

@@ -19,12 +19,13 @@ namespace Noesis
 {
 
 class PopupLayer;
+class ItemCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents a selectable item inside a Menu.
+/// Represents a selectable item inside a Menu or ContextMenu.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.menuitem.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -88,7 +89,7 @@ public:
     bool GetIsSubmenuOpen() const;
     void SetIsSubmenuOpen(bool value);
     //@}
-    
+
     /// Gets a value that indicates the role of a MenuItem
     MenuItemRole GetRole() const;
 
@@ -190,11 +191,18 @@ private:
 
     void OnDirectlyOverChanged(UIElement* directlyOver);
 
+    void OnMouseButtonDown(const MouseButtonEventArgs& e, bool clickAllowed);
+    void OnMouseButtonUp(const MouseButtonEventArgs& e, bool clickAllowed);
+
+    void UpdateIsPressed();
+
     void UpdateSubmenuVisibility(bool visible);
     void UpdateRole();
 
     void ShowSubmenu();
     void HideSubmenu();
+
+    static void UpdateCommandCanExecute(ItemCollection* items);
 
     void ActivateMenu(bool activate);
 
@@ -239,5 +247,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

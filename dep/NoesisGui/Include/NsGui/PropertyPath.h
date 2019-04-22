@@ -16,18 +16,17 @@
 #include <NsCore/Symbol.h>
 #include <NsCore/Vector.h>
 #include <NsGui/CoreApi.h>
+#include <NsGui/IResourceKey.h>
 
 
 namespace Noesis
 {
 
 class TypeProperty;
-class Collection;
 class DependencyProperty;
 class CollectionView;
 class PropertyPathTest;
 template<class T> class Delegate;
-NS_INTERFACE IResourceKey;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -38,7 +37,7 @@ struct NS_GUI_CORE_API PathElement
     PathElement();
     PathElement(const PathElement& pe);
     ~PathElement();
-    
+
     PathElement& operator=(const PathElement& pe);
 
     // If you add a new member here, remember to add the proper code in copy ctor and operator=
@@ -51,7 +50,9 @@ struct NS_GUI_CORE_API PathElement
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// PropertyPath
+/// Implements a data structure for describing a property as a path below another property, or below
+/// an owning type. Property paths are used in data binding to objects, and in storyboards and
+/// timelines for animations.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API PropertyPath: public BaseComponent
 {
@@ -60,10 +61,6 @@ public:
     PropertyPath(const char* str);
     PropertyPath(const DependencyProperty* dp);
     ~PropertyPath();
-
-    /// Creates and caches a property path that points to a property
-    /// Returns Null if path does not corresponds to a valid property name
-    static PropertyPath* Create(const char* path);
 
     /// Gets or sets path
     //@{
@@ -101,13 +98,11 @@ private:
             int index;
             NsString key;
 
-            /// Constructor
             IndexKey();
         };
 
         NsVector<IndexKey> keys;
 
-        /// Constructor
         PathItem();
     };
 
@@ -120,5 +115,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

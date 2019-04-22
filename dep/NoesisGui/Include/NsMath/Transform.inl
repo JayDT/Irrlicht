@@ -4,6 +4,9 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+#include <NsMath/Utils.h>
+
+
 namespace Noesis
 {
 
@@ -81,8 +84,8 @@ Transform2<T> PreRot(T radians, const Transform2<T>& m)
 {
     Transform2<T> res;
     
-    T cs = Cos(radians);
-    T sn = Sin(radians);
+    T cs = cosf(radians);
+    T sn = sinf(radians);
     
     res[0][0] = m[0][0] * cs + m[1][0] * sn; 
     res[0][1] = m[0][1] * cs + m[1][1] * sn;   
@@ -151,8 +154,8 @@ Transform2<T> PostRot(const Transform2<T>& m, T radians)
 {
     Transform2<T> res;
     
-    T cs = Cos(radians);
-    T sn = Sin(radians);
+    T cs = cosf(radians);
+    T sn = sinf(radians);
     
     res[0][0] = m[0][0] * cs - m[0][1] * sn; 
     res[0][1] = m[0][1] * cs + m[0][0] * sn;    
@@ -390,8 +393,8 @@ Transform3<T> PreRotX(T radians, const Transform3<T>& m)
 {
     Transform3<T> res;
     
-    T cs = Cos(radians);
-    T sn = Sin(radians);
+    T cs = cosf(radians);
+    T sn = sinf(radians);
     
     res[0] = m[0]; 
     
@@ -414,8 +417,8 @@ Transform3<T> PreRotY(T radians, const Transform3<T>& m)
 {
     Transform3<T> res;
     
-    T cs = Cos(radians);
-    T sn = Sin(radians);
+    T cs = cosf(radians);
+    T sn = sinf(radians);
     
     res[0][0] = m[0][0] * cs + m[2][0] * sn; 
     res[0][1] = m[0][1] * cs + m[2][1] * sn;
@@ -438,8 +441,8 @@ Transform3<T> PreRotZ(T radians, const Transform3<T>& m)
 {
     Transform3<T> res;
     
-    T cs = Cos(radians);
-    T sn = Sin(radians);
+    T cs = cosf(radians);
+    T sn = sinf(radians);
     
     res[0][0] = m[0][0] * cs + m[1][0] * sn; 
     res[0][1] = m[0][1] * cs + m[1][1] * sn;
@@ -503,8 +506,8 @@ Transform3<T> PostRotX(const Transform3<T>& m, T radians)
 {
     Transform3<T> res;
     
-    T cs = Cos(radians);
-    T sn = Sin(radians);
+    T cs = cosf(radians);
+    T sn = sinf(radians);
     
     res[0][0] = m[0][0]; 
     res[0][1] = m[0][1] * cs - m[0][2] * sn;
@@ -531,8 +534,8 @@ Transform3<T> PostRotY(const Transform3<T>& m, T radians)
 {
     Transform3<T> res;
     
-    T cs = Cos(radians);
-    T sn = Sin(radians);
+    T cs = cosf(radians);
+    T sn = sinf(radians);
     
     res[0][0] = m[0][0] * cs - m[0][2] * sn;
     res[0][1] = m[0][1];
@@ -559,8 +562,8 @@ Transform3<T> PostRotZ(const Transform3<T>& m, T radians)
 {
     Transform3<T> res;
     
-    T cs = Cos(radians);
-    T sn = Sin(radians);
+    T cs = cosf(radians);
+    T sn = sinf(radians);
     
     res[0][0] = m[0][0] * cs - m[0][1] * sn; 
     res[0][1] = m[0][1] * cs + m[0][0] * sn;

@@ -33,6 +33,8 @@ namespace irr
 
             VulkanSwapChain* GetSwapChain() { return mSwapChain; }
 
+            const VkSurfaceKHR& GetSurface() const { return mSurface; }
+
         protected:
             CVulkanDriver * mDriver = nullptr;
 

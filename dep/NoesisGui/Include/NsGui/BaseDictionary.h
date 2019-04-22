@@ -23,7 +23,7 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Base class for dictionaries
+/// Base class for dictionaries.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API BaseDictionary: public BaseComponent, public IDictionary,
     public INotifyDictionaryChanged
@@ -36,7 +36,7 @@ public:
 
     /// From INotifyDictionaryChanged
     //@{
-    NotifyDictionaryChangedEventHandler& DictionaryChanged();
+    NotifyDictionaryChangedEventHandler& DictionaryChanged() final;
     //@}
 
 protected:

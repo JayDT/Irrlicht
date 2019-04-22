@@ -21,8 +21,8 @@ namespace Noesis
 class FrameworkElement;
 class TriggerAction;
 
-template<class T> class TypedCollection;
-typedef Noesis::TypedCollection<Noesis::TriggerAction> TriggerActionCollection;
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::TriggerAction> TriggerActionCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -38,6 +38,7 @@ public:
     TriggerAction();
     virtual ~TriggerAction() = 0;
 
+    /// Seals all actions in the collection
     static void SealActions(TriggerActionCollection* actions);
 
     /// Performs the action over the supplied element
@@ -48,11 +49,11 @@ public:
 
     /// From IUITreeNode
     //@{
-    IUITreeNode* GetNodeParent() const final;
-    void SetNodeParent(IUITreeNode* parent) final;
-    BaseComponent* FindNodeResource(IResourceKey* key, bool fullElementSearch) const final;
-    BaseComponent* FindNodeName(const char* name) const final;
-    ObjectWithNameScope FindNodeNameAndScope(const char* name) const final;
+    IUITreeNode* GetNodeParent() const override;
+    void SetNodeParent(IUITreeNode* parent) override;
+    BaseComponent* FindNodeResource(IResourceKey* key, bool fullElementSearch) const override;
+    BaseComponent* FindNodeName(const char* name) const override;
+    ObjectWithNameScope FindNodeNameAndScope(const char* name) const override;
     //@}
 
     NS_IMPLEMENT_INTERFACE_FIXUP
@@ -75,5 +76,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

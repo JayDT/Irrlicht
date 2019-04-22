@@ -15,9 +15,9 @@
 #define DEVEL_LOG(msg,code)	os::Printer::log(msg, code)	
 #endif
 
-#define IRR_DIRECTX_DEBUG 0
-#define IRR_DIRECTX_SHADER_DEBUG IRR_DIRECTX_DEBUG | 0
-#define IRR_DIRECTX_INSTRUMENTED_ENABLED 1
+#define IRR_DIRECTX_DEBUG false
+#define IRR_DIRECTX_SHADER_DEBUG IRR_DIRECTX_DEBUG | false
+#define IRR_DIRECTX_INSTRUMENTED_ENABLED true
 
 #if IRR_DIRECTX_INSTRUMENTED_ENABLED
 	#define DX_BEGIN_EVENT(n) if (GroupMarker) { GroupMarker->BeginEvent(n); }

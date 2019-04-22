@@ -20,7 +20,7 @@ namespace Noesis
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.scaletransform.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API ScaleTransform: public Transform
+class NS_GUI_CORE_API ScaleTransform final: public Transform
 {
 public:
     ScaleTransform();
@@ -53,10 +53,10 @@ public:
 
     /// From Transform
     //@{
-    Transform2f GetTransform() const;
+    Transform2f GetTransform() const override;
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<ScaleTransform> Clone() const;
     Ptr<ScaleTransform> CloneCurrentValue() const;
@@ -64,9 +64,9 @@ public:
 
     /// From IRenderProxyCreator
     //@{
-    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UnregisterRenderer(ViewId viewId);
+    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UnregisterRenderer(ViewId viewId) override;
     //@}
 
 public:
@@ -81,12 +81,12 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& e);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& e) override;
     //@}
 
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
 private:
@@ -104,5 +104,6 @@ private:
 };
 
 }
+
 
 #endif

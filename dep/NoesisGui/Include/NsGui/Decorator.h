@@ -27,10 +27,7 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 class NS_GUI_CORE_API Decorator: public FrameworkElement
 {
 public:
-    /// Constructor
     Decorator(bool logicalChild = true);
-
-    /// Destructor
     ~Decorator();
 
     /// Gets or sets child element
@@ -45,13 +42,13 @@ protected:
 
     /// From FrameworkElement
     //@{
-    void CloneOverride(FrameworkElement* clone, FrameworkTemplate* template_) const;
-    uint32_t GetLogicalChildrenCount() const;
-    BaseComponent* GetLogicalChild(uint32_t index) const;
+    void CloneOverride(FrameworkElement* clone, FrameworkTemplate* template_) const override;
+    uint32_t GetLogicalChildrenCount() const override;
+    Ptr<BaseComponent> GetLogicalChild(uint32_t index) const override;
     //@}
 
 private:
-    /// Indicates if child is also logical
+    // Indicates if child is also logical
     bool mIsLogicalChild;
 
     NS_DECLARE_REFLECTION(Decorator, FrameworkElement)

@@ -37,22 +37,22 @@ public:
     /// Selects the entire contents of the PasswordBox
     void SelectAll();
 
-    /// Gets or sets the brush that is used to paint the caret of the text box (WPF 4.0)
+    /// Gets or sets the brush that is used to paint the caret of the PasswordBox
     //@{
     Brush* GetCaretBrush() const;
     void SetCaretBrush(Brush* brush);
     //@}
 
-    /// Gets or sets the maximum length for passwords to be handled by this PasswordBox. 
+    /// Gets or sets the maximum length for passwords to be handled by this PasswordBox
     //@{
     int GetMaxLength() const;
     void SetMaxLength(int length);
     //@}
 
-    /// Gets or sets the masking character for the PasswordBox.
+    /// Gets or sets the masking character for the PasswordBox
     //@{
-    char GetPasswordChar() const;
-    void SetPasswordChar(char value);
+    uint32_t GetPasswordChar() const;
+    void SetPasswordChar(uint32_t value);
     //@}
 
     /// Gets or sets the password currently held by the PasswordBox.
@@ -67,14 +67,17 @@ public:
     void SetSelectionBrush(Brush* selectionBrush);
     //@}
 
-    /// Gets or sets the opacity of the SelectionBrush
-    /// \remarks If SelectionOpacity is set to 0, the SelectionBrush is transparent and is not
-    /// visible. If SelectionOpacity is set to 1.0 or greater, the SelectionBrush is opaque and the
+    /// Gets or sets the opacity of the *SelectionBrush*.
+    /// If *SelectionOpacity* is set to 0, the *SelectionBrush* is transparent and is not visible.
+    /// If *SelectionOpacity* is set to 1.0 or greater, the *SelectionBrush* is opaque and the
     /// selected text is not visible.
     //@{
     float GetSelectionOpacity() const;
     void SetSelectionOpacity(float selectionOpacity);
     //@}
+
+    /// Removes the caret until control gets focused again
+    void HideCaret();
 
     /// Occurs when password changes
     UIElement::RoutedEvent_<RoutedEventHandler> PasswordChanged();
@@ -89,12 +92,12 @@ public:
     static const RoutedEvent* PasswordChangedEvent;
 
 protected:
-    /// From DependencyObject
+    // From DependencyObject
     //@{
     bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
-    /// From UIElement
+    // From UIElement
     //@{
     void OnKeyDown(const KeyEventArgs& e) override;
     void OnKeyUp(const KeyEventArgs& e) override;
@@ -106,13 +109,7 @@ protected:
     void OnMouseMove(const MouseEventArgs& e) override;
     //@}
 
-    /// From FrameworkElement
-    //@{
-    uint32_t GetLogicalChildrenCount() const override;
-    BaseComponent* GetLogicalChild(uint32_t index) const override;
-    //@}
-
-    /// From Control
+    // From Control
     //@{
     void OnTemplateChanged(FrameworkTemplate* oldTemplate, FrameworkElement* oldRoot,
         FrameworkTemplate* newTemplate, FrameworkElement* newRoot) override;
@@ -149,7 +146,8 @@ private:
     {
         mutable struct
         {
-            bool mouseDown:1;
+            bool mouseDown : 1;
+            bool caretDisabled : 1;
         } mFlags;
 
         // To quickly set all flags to 0
@@ -163,5 +161,5 @@ NS_WARNING_POP
 
 }
 
+
 #endif
-    

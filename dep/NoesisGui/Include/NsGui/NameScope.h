@@ -28,15 +28,12 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// NameScope. Store relationships between the XAML defined names of objects and their instances.
+/// Store relationships between the XAML defined names of objects and their instances.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API NameScope: public BaseComponent, public INameScope
 {
 public:
-    /// Constructor
     NameScope();
-    
-    /// Destructor
     ~NameScope();
 
     /// Gets the attached NameScope property
@@ -44,14 +41,12 @@ public:
     /// Sets the attached NameScope property
     static void SetNameScope(DependencyObject* element, NameScope* nameScope);
 
-    /// Finds the name of an object if it is registered in the NameScope
-    /// \return Null if object was not found. Otherwise it returns the registration name
-    /// \remarks This is a slow search
+    /// Finds the name of an object if it is registered in the NameScope.
+    /// Returns null if object was not found
     const char* FindObject(BaseComponent* obj) const;
 
     /// Calls the delegate for each named object registered in the NameScope
-    typedef Noesis::Delegate<void (const char*, BaseComponent*, void*)>
-        EnumNamedObjectsDelegate;
+    typedef Noesis::Delegate<void (const char*, BaseComponent*, void*)> EnumNamedObjectsDelegate;
     void EnumNamedObjects(const EnumNamedObjectsDelegate& delegate, void* context = 0) const;
 
     /// From INameScope
@@ -88,5 +83,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

@@ -19,8 +19,8 @@ namespace Noesis
 {
 
 class BaseSetter;
-template<class T> class TypedCollection;
-typedef Noesis::TypedCollection<Noesis::BaseSetter> BaseSetterCollection;
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::BaseSetter> BaseSetterCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -38,19 +38,19 @@ public:
     BaseSetter();
     virtual ~BaseSetter() = 0;
 
+    // Seals a collection of setters
     static void SealSetters(BaseSetterCollection* setters);
 
-    // Seals the setters
+    // Seals this setter
     virtual void Seal();
 
     /// From IUITreeNode
     //@{
-    IUITreeNode* GetNodeParent() const override;
-    void SetNodeParent(IUITreeNode* parent) override;
-    BaseComponent* FindNodeResource(IResourceKey* key,
-        bool fullElementSearch) const override;
-    BaseComponent* FindNodeName(const char* name) const override;
-    ObjectWithNameScope FindNodeNameAndScope(const char* name) const override;
+    IUITreeNode* GetNodeParent() const final;
+    void SetNodeParent(IUITreeNode* parent) final;
+    BaseComponent* FindNodeResource(IResourceKey* key, bool fullElementSearch) const final;
+    BaseComponent* FindNodeName(const char* name) const final;
+    ObjectWithNameScope FindNodeNameAndScope(const char* name) const final;
     //@}
 
     NS_IMPLEMENT_INTERFACE_FIXUP

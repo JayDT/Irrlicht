@@ -24,7 +24,7 @@
 #include <NsCore/Kernel.h>
 #include <NsCore/TypeId.h>
 #include <NsCore/Nullable.h>
-#include <NsCore/MemoryManager.h>
+#include <NsCore/Memory.h>
 #include <NsCore/ReflectionImplement.h>
 #include <NsImpl/IrrRenderContext.h>
 #include <NsDrawing/Color.h>
@@ -92,6 +92,8 @@ Window::~Window()
         mDisplay->KeyDown() -= MakeDelegate(this, &Window::OnDisplayKeyDown);
         mDisplay->KeyUp() -= MakeDelegate(this, &Window::OnDisplayKeyUp);
         mDisplay->Char() -= MakeDelegate(this, &Window::OnDisplayChar);
+        mDisplay->Closing() -= MakeDelegate(this, &Window::OnDisplayClosing);
+        mDisplay->Closed() -= MakeDelegate(this, &Window::OnDisplayClosed);
     }
 }
 
@@ -132,7 +134,7 @@ void Window::Init(IrrNsDeviceStub* display, IrrRenderContext* context, uint32_t 
     // Create view
     mView = GUI::CreateView(this);
     mView->SetIsPPAAEnabled(ppaa);
-    mView->SetTessellationQuality(TessellationQuality_High);
+    mView->SetTessellationMaxPixelError(TessellationMaxPixelError::HighQuality());
     mView->GetRenderer()->Init(context->GetDevice());
     mActiveView = mView;
 
@@ -161,6 +163,8 @@ void Window::Init(IrrNsDeviceStub* display, IrrRenderContext* context, uint32_t 
     mDisplay->KeyDown() += MakeDelegate(this, &Window::OnDisplayKeyDown);
     mDisplay->KeyUp() += MakeDelegate(this, &Window::OnDisplayKeyUp);
     mDisplay->Char() += MakeDelegate(this, &Window::OnDisplayChar);
+    mDisplay->Closing() += MakeDelegate(this, &Window::OnDisplayClosing);
+    mDisplay->Closed() += MakeDelegate(this, &Window::OnDisplayClosed);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1104,73 +1108,54 @@ void Window::UpdateStats(double time)
 
             if (mStatsMode == StatsMode_TitleBar)
             {
-                char title[PATH_MAX];
-                String::FormatBuffer(title, sizeof(title), "%s [%.0f fps %.2f ms (%.2f %.2f %.2f)]",
+                char title[512];
+                snprintf(title, sizeof(title), "%s [%.0f fps %.2f ms (%.2f %.2f %.2f)]",
                     mCachedTitle, fps, frame, update, render, gpu);
                 mDisplay->SetTitle(title);
             }
             else
             {
                 char buffer[64];
-                String::FormatBuffer(buffer, 64, "%s - %ux%u - %dx", mRenderContext->Description(),
+                snprintf(buffer, 64, "%S - %ux%u - %dx", mRenderContext->Description(),
                     mDisplay->GetClientWidth(), mDisplay->GetClientHeight(), mSamples);
                 String::Append(buffer, 64, mPPAA ? " - PPAA" : "");
                 mTextTitle->SetText(buffer);
 
-                String::FormatBuffer(buffer, 64, "%.0f fps", fps);
+                snprintf(buffer, 64, "%.0f fps", fps);
                 mTextFps->SetText(buffer);
 
-                String::FormatBuffer(buffer, 64, "%.2f ms", frame);
+                snprintf(buffer, 64, "%.2f ms", frame);
                 mTextMs->SetText(buffer);
 
-                String::FormatBuffer(buffer, 64, "%5.2f ms", update);
+                snprintf(buffer, 64, "%5.2f ms", update);
                 mTextUpdate->SetText(buffer);
 
-                String::FormatBuffer(buffer, 64, "%5.2f ms", render);
+                snprintf(buffer, 64, "%5.2f ms", render);
                 mTextRender->SetText(buffer);
 
-                String::FormatBuffer(buffer, 64, "%5.2f ms", gpu);
+                snprintf(buffer, 64, "%5.2f ms", gpu);
                 mTextGPU->SetText(buffer);
 
-                uint32_t triangles = stats.triangles;
-                uint32_t solidTris = (uint32_t)((stats.solidTriangles * 100) / (float)triangles);
-                uint32_t linearTris = (uint32_t)((stats.linearTriangles * 100) / (float)triangles);
-                uint32_t radialTris = (uint32_t)((stats.radialTriangles * 100) / (float)triangles);
-                uint32_t patternTris = (uint32_t)((stats.patternTriangles * 100) / (float)triangles);
-
-                String::FormatBuffer(buffer, 64, "Tris: %6d  (S:%2d%% L:%2d%% R:%2d%% P:%2d%%)",
-                    triangles, solidTris, linearTris, radialTris, patternTris);
+                snprintf(buffer, 64, "Tris: %6d  Draws: %6d  Batches: %5d", stats.triangles,
+                    stats.draws, stats.batches);
                 mTextTriangles->SetText(buffer);
 
-                uint32_t primitives= stats.paths + stats.images + stats.texts;
-                uint32_t batches = stats.batches;
-                uint32_t masks = stats.masks;
-
-                String::FormatBuffer(buffer, 64, "Draws: %5d  Batches: %5d  Masks: %5d",
-                    primitives, batches, masks);
+                snprintf(buffer, 64, "Tess: %6d  Flushes: %4d  Size: %5d KB", stats.tessellations,
+                    stats.flushes, stats.geometrySize / 1024);
                 mTextPrimitives->SetText(buffer);
 
-                uint32_t fills = stats.fills;
-                uint32_t strokes = stats.strokes;
-                uint32_t switches = stats.renderTargetSwitches;
-
-                String::FormatBuffer(buffer, 64, "Fills: %5d  Strokes: %5d  SetRT: %5d", fills,
-                    strokes, switches);
+                snprintf(buffer, 64, "Masks: %5d  Tiles: %6d  SetRTs: %6d", stats.masks,
+                    stats.opacities, stats.renderTargetSwitches);
                 mTextNodes->SetText(buffer);
 
-                uint32_t glyphs = stats.glyphs;
-                uint32_t rasterizedglyphs = stats.rasterizedGlyphs;
-                uint32_t ramps = stats.uploadedRamps;
-
-                String::FormatBuffer(buffer, 64, "Glyphs: %4d  Glyphs^: %5d Ramps^: %5d", glyphs,
-                    rasterizedglyphs, ramps);
+                snprintf(buffer, 64, "Ramps^ %5d  Glyphs^ %5d  Discards: %4d", stats.uploadedRamps,
+                    stats.rasterizedGlyphs, stats.discardedGlyphTiles);
                 mTextUploads->SetText(buffer);
-            
-                MemoryManager::Stats memStats = NsGetKernel()->GetMemoryManager()->GetStats();
-                float mem = memStats.memory / (1024.0f * 1024.0f);
-                uint32_t allocsAccum = memStats.allocsAccum;
 
-                String::FormatBuffer(buffer, 64, "Memory %.2f MB (%d allocs)", mem, allocsAccum);
+                float mem = GetAllocatedMemory() / (1024.0f * 1024.0f);
+                uint32_t allocsAccum = GetAllocationsCount();
+
+                snprintf(buffer, 64, "Memory %.2f MB (%d allocs)", mem, allocsAccum);
                 mTextMemory->SetText(buffer);
 
                 static_assert(NS_COUNTOF(mHistogramCPU) == NS_COUNTOF(mHistogramGPU), "array size");
@@ -1430,10 +1415,20 @@ void Window::OnDisplayChar(IrrNsDeviceStub*, uint32_t c)
     mActiveView->Char(c);
 }
 
+void NoesisApp::Window::OnDisplayClosing(IrrNsDeviceStub* display)
+{
+}
+
+void NoesisApp::Window::OnDisplayClosed(IrrNsDeviceStub* display)
+{
+    if (mClosed)
+        mClosed(this, EventArgs::Empty);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Window::CoerceWindowStyle(const DependencyObject* object, const void* in, void* out)
 {
-    const Window* window = NsStaticCast<const Window*>(object);
+    const Window* window = static_cast<const Window*>(object);
     WindowStyle newValue = *static_cast<const WindowStyle*>(in);
     WindowStyle& coerced = *static_cast<WindowStyle*>(out);
 
@@ -1445,7 +1440,7 @@ bool Window::CoerceWindowStyle(const DependencyObject* object, const void* in, v
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Window::CoerceResizeMode(const DependencyObject* object, const void* in, void* out)
 {
-    const Window* window = NsStaticCast<const Window*>(object);
+    const Window* window = static_cast<const Window*>(object);
     ResizeMode newValue = *static_cast<const ResizeMode*>(in);
     ResizeMode& coerced = *static_cast<ResizeMode*>(out);
 
@@ -1457,10 +1452,10 @@ bool Window::CoerceResizeMode(const DependencyObject* object, const void* in, vo
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Window::CoerceBackground(const DependencyObject* object, const void* in, void* out)
 {
-    const Window* window = NsStaticCast<const Window*>(object);
+    const Window* window = static_cast<const Window*>(object);
     Brush* newValue = static_cast<const Ptr<Brush>*>(in)->GetPtr();
     Ptr<Brush>& coerced = *static_cast<Ptr<Brush>*>(out);
-    SolidColorBrush* clearColor = NsDynamicCast<SolidColorBrush*>(newValue);
+    SolidColorBrush* clearColor = Noesis::DynamicCast<SolidColorBrush*>(newValue);
 
     // Doing a color clear is usually faster than drawing a rectangle, so in case the window has
     // a solid background we disable it and transfer to the render context
@@ -1483,6 +1478,8 @@ bool Window::CoerceBackground(const DependencyObject* object, const void* in, vo
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+NS_BEGIN_COLD_REGION
+
 NS_IMPLEMENT_REFLECTION(Window)
 {
     NsMeta<TypeId>("Window");
@@ -1491,48 +1488,44 @@ NS_IMPLEMENT_REFLECTION(Window)
     Ptr<ResourceKeyType> defaultStyleKey = ResourceKeyType::Create(type);
 
     // register properties and events
-    Ptr<UIElementData> data = NsMeta<UIElementData>(TypeOf<SelfClass>());
+    UIElementData* data = NsMeta<UIElementData>(TypeOf<SelfClass>());
 
     data->AddOwner<bool>(AllowsTransparencyProperty, "AllowsTransparency",
         Popup::AllowsTransparencyProperty);
     data->RegisterProperty<bool>(FullscreenProperty, "Fullscreen",
-        FrameworkPropertyMetadata::Create(false, FrameworkOptions_AffectsMeasure |
-        FrameworkOptions_AffectsRender));
+        FrameworkPropertyMetadata::Create(false, FrameworkPropertyMetadataOptions_AffectsMeasure |
+            FrameworkPropertyMetadataOptions_AffectsRender));
     data->RegisterProperty<bool>(IsActiveProperty, "IsActive",
-        FrameworkPropertyMetadata::Create(false, FrameworkOptions_None));
+        FrameworkPropertyMetadata::Create(false));
     data->AddOwner<float>(LeftProperty, "Left", Canvas::LeftProperty);
     data->RegisterProperty<ResizeMode>(ResizeModeProperty, "ResizeMode",
         FrameworkPropertyMetadata::Create(ResizeMode_CanResize, &Window::CoerceResizeMode));
     data->RegisterProperty<bool>(ShowInTaskbarProperty, "ShowInTaskbar",
-        FrameworkPropertyMetadata::Create(true, FrameworkOptions_None));
+        FrameworkPropertyMetadata::Create(true));
     data->RegisterProperty<NsString>(TitleProperty, "Title",
-        FrameworkPropertyMetadata::Create(NsString(), FrameworkOptions_None));
+        FrameworkPropertyMetadata::Create(NsString()));
     data->AddOwner<float>(TopProperty, "Top", Canvas::TopProperty);
     data->RegisterProperty<bool>(TopmostProperty, "Topmost",
-        FrameworkPropertyMetadata::Create(false, FrameworkOptions_None));
+        FrameworkPropertyMetadata::Create(false));
     data->RegisterProperty<WindowState>(WindowStateProperty, "WindowState",
-        FrameworkPropertyMetadata::Create(WindowState_Normal, FrameworkOptions_None));
+        FrameworkPropertyMetadata::Create(WindowState_Normal));
     data->RegisterProperty<WindowStyle>(WindowStyleProperty, "WindowStyle",
         FrameworkPropertyMetadata::Create(WindowStyle_SingleBorderWindow,
         &Window::CoerceWindowStyle));
     data->RegisterProperty<WindowStartupLocation>(WindowStartupLocationProperty,
-        "WindowStartupLocation", FrameworkPropertyMetadata::Create(WindowStartupLocation_Manual,
-        FrameworkOptions_None));
+        "WindowStartupLocation", FrameworkPropertyMetadata::Create(WindowStartupLocation_Manual));
 
     data->OverrideMetadata<Ptr<Brush>>(Control::BackgroundProperty, "Background",
-        FrameworkPropertyMetadata::Create(&Window::CoerceBackground));
+        FrameworkPropertyMetadata::Create(CoerceValueCallback(CoerceBackground)));
 
     data->OverrideMetadata<bool>(Control::IsTabStopProperty, "IsTabStop",
-        FrameworkPropertyMetadata::Create(false, FrameworkOptions_None));
+        FrameworkPropertyMetadata::Create(false));
     data->OverrideMetadata<KeyboardNavigationMode>(KeyboardNavigation::DirectionalNavigationProperty,
-        "DirectionalNavigation", FrameworkPropertyMetadata::Create(KeyboardNavigationMode_Cycle,
-        FrameworkOptions_None));
+        "DirectionalNavigation", FrameworkPropertyMetadata::Create(KeyboardNavigationMode_Cycle));
     data->OverrideMetadata<KeyboardNavigationMode>(KeyboardNavigation::TabNavigationProperty,
-        "TabNavigation", FrameworkPropertyMetadata::Create(KeyboardNavigationMode_Cycle,
-        FrameworkOptions_None));
+        "TabNavigation", FrameworkPropertyMetadata::Create(KeyboardNavigationMode_Cycle));
     data->OverrideMetadata<KeyboardNavigationMode>(KeyboardNavigation::ControlTabNavigationProperty,
-        "ControlTabNavigation", FrameworkPropertyMetadata::Create(KeyboardNavigationMode_Cycle,
-        FrameworkOptions_None));
+        "ControlTabNavigation", FrameworkPropertyMetadata::Create(KeyboardNavigationMode_Cycle));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

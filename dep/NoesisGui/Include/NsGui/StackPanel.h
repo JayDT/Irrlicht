@@ -11,16 +11,13 @@
 #include <NsCore/Noesis.h>
 #include <NsGui/Panel.h>
 #include <NsGui/IScrollInfo.h>
+#include <NsGui/Enums.h>
 
 #include <memory>
 
 
 namespace Noesis
 {
-
-enum Orientation;
-enum TextAlignment;
-class ScrollViewerTest;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -106,5 +103,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

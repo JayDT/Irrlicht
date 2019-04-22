@@ -24,7 +24,7 @@ struct Point;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Represents a pop-up menu that enables a control to expose functionality that is specific to
-/// the context of the control. 
+/// the context of the control.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.contextmenu.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@ public:
     void SetHorizontalOffset(float value);
     //@}
 
-    /// Gets or sets a value that indicates whether the ContextMenu is visible. 
+    /// Gets or sets a value that indicates whether the ContextMenu is visible
     //@{
     bool GetIsOpen() const;
     void SetIsOpen(bool value);
@@ -81,9 +81,6 @@ public:
     void SetVerticalOffset(float value);
     //@}
 
-    /// Gets Popup where ContextMenu is shown
-    Popup* GetPopup() const;
-
     /// Occurs when a particular instance of a ContextMenu closes
     UIElement::RoutedEvent_<RoutedEventHandler> Closed();
 
@@ -94,6 +91,9 @@ public:
     //@{
     void SetNodeParent(IUITreeNode* parent) override;
     //@}
+
+    // Gets Popup where ContextMenu is shown
+    Popup* GetPopup() const;
 
 public:
     /// Dependency properties

@@ -38,15 +38,12 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// DrawingContext. Describes visual content using draw, push, and pop commands.
+/// Describes visual content using draw, push, and pop commands during UIElement *OnRender*.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API DrawingContext: public BaseComponent
 {
 public:
-    /// Constructor
     DrawingContext();
-
-    /// Destructor
     ~DrawingContext();
 
     /// Gets drawing commands generated for the specified drawing operations

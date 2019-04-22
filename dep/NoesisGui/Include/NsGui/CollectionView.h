@@ -9,16 +9,16 @@
 
 
 #include <NsCore/Noesis.h>
+#include <NsCore/BaseComponent.h>
+#include <NsCore/Vector.h>
+#include <NsCore/Delegate.h>
+#include <NsCore/ReflectionDeclare.h>
 #include <NsGui/CoreApi.h>
+#include <NsGui/ICollectionView.h>
 #include <NsGui/INotifyCollectionChanged.h>
 #include <NsGui/IComponentInitializer.h>
 #include <NsGui/IUITreeNode.h>
 #include <NsGui/Events.h>
-#include <NsGui/ICollectionView.h>
-#include <NsCore/ReflectionDeclare.h>
-#include <NsCore/BaseComponent.h>
-#include <NsCore/Vector.h>
-#include <NsCore/Delegate.h>
 
 
 namespace Noesis
@@ -31,57 +31,54 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// CollectionView
+/// Represents a view for grouping, sorting, filtering, and navigating a data collection.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.data.collectionview.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API CollectionView: public BaseComponent, public ICollectionView,
     public INotifyCollectionChanged, public IComponentInitializer, public IUITreeNode
 {
 public:
-    /// Serialization constructor
-    CollectionView();
-
-    /// Constructor
     CollectionView(IList* collection);
-
-    /// Destructor
     ~CollectionView();
 
     /// Returns the underlying unfiltered collection
     IList* GetSourceCollection() const;
 
     /// Gets the number of records in the view
-    uint32_t Count() const;
+    /// \prop
+    int Count() const;
 
     /// Retrieves the item at the specified zero-based index in the view
-    BaseComponent* GetItemAt(uint32_t index) const;
+    Ptr<BaseComponent> GetItemAt(uint32_t index) const;
 
     /// Returns the index at which the specified item is located; -1 if the item is unknown
     int IndexOf(BaseComponent* item) const;
 
     /// From ICollectionView
     //@{
-    bool CanFilter() const override;
-    bool CanGroup() const override;
-    bool CanSort() const override;
-    bool Contains(BaseComponent* item) const override;
-    BaseComponent* CurrentItem() const override;
-    int CurrentPosition() const override;
-    bool IsCurrentAfterLast() const override;
-    bool IsCurrentBeforeFirst() const override;
-    bool IsEmpty() const override;
-    bool MoveCurrentTo(BaseComponent* item) override;
-    bool MoveCurrentToFirst() override;
-    bool MoveCurrentToLast() override;
-    bool MoveCurrentToNext() override;
-    bool MoveCurrentToPosition(int position) override;
-    bool MoveCurrentToPrevious() override;
-    void Refresh() override;
-    EventHandler& CurrentChanged() override;
+    bool CanFilter() const final;
+    bool CanGroup() const final;
+    bool CanSort() const final;
+    bool Contains(BaseComponent* item) const final;
+    Ptr<BaseComponent> CurrentItem() const final;
+    int CurrentPosition() const final;
+    bool IsCurrentAfterLast() const final;
+    bool IsCurrentBeforeFirst() const final;
+    bool IsEmpty() const final;
+    bool MoveCurrentTo(BaseComponent* item) final;
+    bool MoveCurrentToFirst() final;
+    bool MoveCurrentToLast() final;
+    bool MoveCurrentToNext() final;
+    bool MoveCurrentToPosition(int position) final;
+    bool MoveCurrentToPrevious() final;
+    void Refresh() final;
+    EventHandler& CurrentChanged() final;
     //@}
 
     /// From INotifyCollectionChanged
     //@{
-    NotifyCollectionChangedEventHandler& CollectionChanged() override;
+    NotifyCollectionChangedEventHandler& CollectionChanged() final;
     //@}
 
     /// From IComponentInitializer
@@ -92,12 +89,11 @@ public:
 
     /// From IUITreeNode
     //@{
-    IUITreeNode* GetNodeParent() const override;
-    void SetNodeParent(IUITreeNode* parent) override;
-    BaseComponent* FindNodeResource(IResourceKey* key,
-        bool fullElementSearch) const override;
-    BaseComponent* FindNodeName(const char* name) const override;
-    ObjectWithNameScope FindNodeNameAndScope(const char* name) const override;
+    IUITreeNode* GetNodeParent() const final;
+    void SetNodeParent(IUITreeNode* parent) final;
+    BaseComponent* FindNodeResource(IResourceKey* key, bool fullElementSearch) const final;
+    BaseComponent* FindNodeName(const char* name) const final;
+    ObjectWithNameScope FindNodeNameAndScope(const char* name) const final;
     //@}
 
     NS_IMPLEMENT_INTERFACE_FIXUP
@@ -107,7 +103,7 @@ private:
         const NotifyCollectionChangedEventArgs& args);
 
     void ConnectCollection();
-    
+
     void SetCurrentPosition(int pos);
 
 private:
@@ -130,5 +126,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

@@ -16,24 +16,17 @@
 namespace Noesis
 {
 
-// Forward declaration
-//@{
 struct Point;
-//@}
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents the geometry of a circle or ellipse. 
+/// Represents the geometry of a circle or ellipse.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.ellipsegeometry.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API EllipseGeometry: public Geometry
+class NS_GUI_CORE_API EllipseGeometry final: public Geometry
 {
 public:
-    /// Constructor
     EllipseGeometry();
-
-    /// Constructor with ellipse parameters
     EllipseGeometry(const Point& center, float rX, float rY);
 
     /// Gets or sets the center point
@@ -56,10 +49,10 @@ public:
 
     /// From Geometry
     //@{
-    bool IsEmpty() const;
+    bool IsEmpty() const override;
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<EllipseGeometry> Clone() const;
     Ptr<EllipseGeometry> CloneCurrentValue() const;
@@ -67,8 +60,8 @@ public:
 
     /// From IRenderProxyCreator
     //@{
-    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
+    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
     //@}
 
 public:
@@ -82,19 +75,19 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
     /// From Geometry
     //@{
-    Rect GetRenderBoundsOverride(Pen* pen) const;
-    bool FillContainsOverride(const Point& point) const;
-    bool StrokeContainsOverride(Pen* pen, const Point& point) const;
+    Rect GetRenderBoundsOverride(Pen* pen) const override;
+    bool FillContainsOverride(const Point& point) const override;
+    bool StrokeContainsOverride(Pen* pen, const Point& point) const override;
     //@}
 
 private:
@@ -109,5 +102,6 @@ private:
 };
 
 }
+
 
 #endif

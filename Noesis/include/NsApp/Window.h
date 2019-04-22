@@ -242,6 +242,8 @@ namespace NoesisApp
         void OnDisplayKeyDown(IrrNsDeviceStub* display, Noesis::Key key);
         void OnDisplayKeyUp(IrrNsDeviceStub* display, Noesis::Key key);
         void OnDisplayChar(IrrNsDeviceStub* display, uint32_t c);
+        void OnDisplayClosing(IrrNsDeviceStub* display);
+        void OnDisplayClosed(IrrNsDeviceStub* display);
 
         static bool CoerceWindowStyle(const DependencyObject* object, const void* in, void* out);
         static bool CoerceResizeMode(const DependencyObject* object, const void* in, void* out);
@@ -280,7 +282,7 @@ namespace NoesisApp
         Noesis::ToggleButton* mStatsBtn;
         Noesis::Storyboard* mWaitToHideToolbar;
 
-        char mCachedTitle[PATH_MAX];
+        char mCachedTitle[256];
         Noesis::TextBlock* mTextTitle;
         Noesis::TextBlock* mTextFps;
         Noesis::TextBlock* mTextMs;

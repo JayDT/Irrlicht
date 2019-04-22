@@ -24,12 +24,6 @@ PoolAllocator& PoolAllocator::operator=(const PoolAllocator&)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void PoolAllocator::Init(Noesis::MemoryAllocator* allocator, uint32_t nodeSize, uint32_t nodeCount)
-{
-    mFixedAllocator.Initialize(allocator, nodeSize, nodeSize * nodeCount);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 void PoolAllocator::Init(uint32_t nodeSize, uint32_t nodeCount)
 {
     mFixedAllocator.Initialize(nodeSize, nodeSize * nodeCount);
@@ -44,7 +38,7 @@ void* PoolAllocator::allocate(size_t n, int)
     }
     else
     {
-        return mFixedAllocator.GetMemoryAllocator()->Alloc(n);
+        return Noesis::Alloc(n);
     }
 }
 
@@ -63,14 +57,8 @@ void PoolAllocator::deallocate(void* p, size_t n)
     }
     else
     {
-        mFixedAllocator.GetMemoryAllocator()->Dealloc(p);
+        Noesis::Dealloc(p);
     }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-Noesis::MemoryAllocator* PoolAllocator::GetMemoryAllocator() const
-{
-    return mFixedAllocator.GetMemoryAllocator();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

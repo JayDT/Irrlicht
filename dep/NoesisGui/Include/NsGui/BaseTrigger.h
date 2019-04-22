@@ -22,10 +22,11 @@ class FrameworkElement;
 class BaseSetter;
 class BaseTrigger;
 class TriggerAction;
-template<class T> class TypedCollection;
-typedef Noesis::TypedCollection<Noesis::BaseSetter> BaseSetterCollection;
-typedef Noesis::TypedCollection<Noesis::BaseTrigger> TriggerCollection;
-typedef Noesis::TypedCollection<Noesis::TriggerAction> TriggerActionCollection;
+
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::BaseSetter> BaseSetterCollection;
+typedef Noesis::UICollection<Noesis::BaseTrigger> TriggerCollection;
+typedef Noesis::UICollection<Noesis::TriggerAction> TriggerActionCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -49,20 +50,17 @@ public:
     virtual ~BaseTrigger() = 0;
 
     static void RegisterTriggers(TriggerCollection* triggers, FrameworkElement* element,
-        FrameworkElement* nameScope, bool skipSourceName, bool skipTargetName,
-        uint8_t priority);
+        FrameworkElement* nameScope, bool skipSourceName, bool skipTargetName, uint8_t priority);
     static void UnregisterTriggers(TriggerCollection* triggers, FrameworkElement* element,
         bool skipSourceName);
     static void SealTriggers(TriggerCollection* triggers);
 
-    /// Gets a collection of TriggerAction objects to apply 
-    /// when the trigger object becomes active. This property does not apply to the EventTrigger
-    /// class
+    /// Gets a collection of TriggerAction objects to apply when the trigger object becomes active.
+    /// This property does not apply to the EventTrigger class
     TriggerActionCollection* GetEnterActions() const;
 
-    /// Gets a collection of TriggerAction objects to apply
-    /// when the trigger object becomes inactive. This property does not apply to the EventTrigger
-    /// class
+    /// Gets a collection of TriggerAction objects to apply when the trigger object becomes
+    /// inactive. This property does not apply to the EventTrigger class
     TriggerActionCollection* GetExitActions() const;
 
     // Invoke enter actions
@@ -87,7 +85,7 @@ public:
 
     // Tests if this trigger will be active for the specified object and looks for a setter value
     // that can be applied to the specified object and property
-    // \return UnsetValue if trigger can't be applied or a valid setter was not found
+    // Returns UnsetValue if trigger can't be applied or a valid setter was not found
     virtual BaseComponent* FindValue(FrameworkElement* target, FrameworkElement* nameScope,
         DependencyObject* object, const DependencyProperty* dp, bool skipSourceName,
         bool skipTargetName);
@@ -102,7 +100,7 @@ public:
         const void* oldValue, const void* newValue, bool skipSourceName, bool skipTargetName,
         uint8_t priority);
 
-    // Seals the triggers
+    // Seals this trigger
     virtual void Seal();
 
     /// From IUITreeNode

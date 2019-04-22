@@ -43,10 +43,10 @@ protected:
     bool IsSame(const void* left, const void* right) const override final;
     bool IsSame(const void* left, BaseComponent* right) const override final;
     void SetValue(DependencyObject* dob, const DependencyProperty* dp, const void* value,
-        uint8_t priority, IExpression* expression, const PropertyMetadata* metadata,
+        uint8_t priority, Expression* expression, const PropertyMetadata* metadata,
         Value::Destination destination) const override final;
     void SetValue(DependencyObject* dob, const DependencyProperty* dp,
-        BaseComponent* value, uint8_t priority, IExpression* expression,
+        BaseComponent* value, uint8_t priority, Expression* expression,
         const PropertyMetadata* metadata, Value::Destination destination) const override;
     void ClearAnimation(DependencyObject* dob, const DependencyProperty* dp) const override final;
     void CoerceValue(DependencyObject* dob, const DependencyProperty* dp,

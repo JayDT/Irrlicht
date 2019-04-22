@@ -9,10 +9,10 @@
 
 
 #include <NsCore/Noesis.h>
-#include <NsGui/CoreApi.h>
-#include <NsGui/Enums.h>
 #include <NsCore/BaseComponent.h>
 #include <NsCore/String.h>
+#include <NsCore/Vector.h>
+#include <NsGui/CoreApi.h>
 
 
 namespace Noesis
@@ -23,6 +23,8 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Represents a family of related fonts.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.media.fontfamily.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API FontFamily: public BaseComponent
 {
@@ -32,24 +34,35 @@ public:
     FontFamily(const char* baseUri, const char* source);
     ~FontFamily();
 
-    /// Gets the resource identifier that is used to resolve a font family name
+    /// Gets the base resource identifier used to resolve font family names
     const char* GetBaseUri() const;
 
-    /// Gets font family name that is used to construct the FontFamily object
+    /// Gets font family text used to construct the FontFamily object
     const char* GetSource() const;
 
-    /// Gets FontFamily name
-    // TODO: return a collection of family names
-    const char* GetName() const;
+    /// Gets the number of fonts in the family
+    uint32_t GetNumFonts() const;
+
+    /// Gets the base Uri for specified font. Returns 0 for system fonts
+    const char* GetFontPath(uint32_t index) const;
+
+    /// Gets the name for specified font
+    const char* GetFontName(uint32_t index) const;
 
 private:
-    friend class UISystem;
-    void EnsureName();
+    void FindFonts();
 
 private:
     NsString mBaseUri;
     NsString mSource;
-    NsString mName;
+
+    struct Font
+    {
+        NsString path;
+        NsString name;
+    };
+
+    NsVector<Font> mFonts;
 
     NS_DECLARE_REFLECTION(FontFamily, BaseComponent)
 };

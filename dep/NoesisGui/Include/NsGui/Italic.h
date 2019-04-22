@@ -18,6 +18,8 @@ namespace Noesis
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// An inline-level flow content element that causes content to render with an italic font style.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.documents.italic.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API Italic: public Span
 {
@@ -29,5 +31,6 @@ public:
 };
 
 }
+
 
 #endif

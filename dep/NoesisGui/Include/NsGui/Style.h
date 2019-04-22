@@ -27,10 +27,10 @@ class ResourceDictionary;
 class ResourceKeyType;
 class FrameworkElement;
 
-template<class T> class TypedCollection;
-typedef Noesis::TypedCollection<Noesis::BaseSetter> BaseSetterCollection;
-typedef Noesis::TypedCollection<Noesis::BaseTrigger> TriggerCollection;
-typedef Noesis::TypedCollection<Noesis::Condition> ConditionCollection;
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::BaseSetter> BaseSetterCollection;
+typedef Noesis::UICollection<Noesis::BaseTrigger> TriggerCollection;
+typedef Noesis::UICollection<Noesis::Condition> ConditionCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -122,5 +122,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

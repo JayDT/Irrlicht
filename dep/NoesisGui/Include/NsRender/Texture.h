@@ -23,7 +23,7 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Base class for 2D textures
+/// Base class for 2D textures.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_RENDER_RENDERDEVICE_API Texture: public BaseComponent
 {
@@ -33,9 +33,6 @@ public:
 
     /// Returns the height of the texture
     virtual uint32_t GetHeight() const = 0;
-
-    /// Returns the format of the texture
-    virtual TextureFormat::Enum GetFormat() const = 0;
 
     /// True if the texture has mipmaps
     virtual bool HasMipMaps() const = 0;

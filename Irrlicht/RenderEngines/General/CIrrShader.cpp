@@ -628,9 +628,9 @@ void irr::video::SConstantBuffer::setRawValue(const u8* values, u32 offset, u32 
 {
     assert(mType->Stride >= (offset + count));
 
-    if (memcmp(mHostMemory.data() + offset, values, count))
+    if (std::memcmp(mHostMemory.data() + offset, values, count))
     {
-        memcpy(mHostMemory.data() + offset, values, count);
+        std::memcpy(mHostMemory.data() + offset, values, count);
         setDirty();
     }
 }
@@ -809,8 +809,8 @@ void irr::video::IrrDefaultShaderFragmentCallBack::OnSetConstants(irr::video::IC
                 {
                     IrrDefaultShaderFragmentCallBack::Light l;
                     SLight dl = driver->getDynamicLight(i);
-                    memcpy(l.Position, &dl.Position.X, sizeof(float) * 3);
-                    memcpy(l.Atten, &dl.Attenuation.X, sizeof(float) * 3);
+                    std::memcpy(l.Position, &dl.Position.X, sizeof(float) * 3);
+                    std::memcpy(l.Atten, &dl.Attenuation.X, sizeof(float) * 3);
                     l.Ambient = dl.AmbientColor;
                     l.Diffuse = dl.DiffuseColor;
                     l.Specular = dl.SpecularColor;

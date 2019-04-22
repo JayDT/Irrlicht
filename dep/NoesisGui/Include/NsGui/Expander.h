@@ -17,15 +17,13 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents the control that displays a header that has a collapsible window that
-/// displays content.
+/// Represents a control that displays a header with a collapsible window to display content.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.expander.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API Expander: public HeaderedContentControl
 {
 public:
-    /// Constructor
     Expander();
 
     /// Gets or sets the direction in which the Expander content window opens
@@ -47,6 +45,7 @@ public:
     /// and content
     UIElement::RoutedEvent_<RoutedEventHandler> Expanded();
 
+public:
     /// Dependency properties
     //@{
     static const DependencyProperty* ExpandDirectionProperty;
@@ -58,29 +57,25 @@ public:
     static const RoutedEvent* CollapsedEvent;
     static const RoutedEvent* ExpandedEvent;
     //@}
-    
+
 protected:
     virtual void OnCollapsed();
     virtual void OnExpanded();
-    
+
     /// From Control
     //@{
-    void UpdateVisualStates();
+    void UpdateVisualStates() override;
     //@}
-    
-    /// From UIElement
-    //@{
-    //AutomationPeer OnCreateAutomationPeer();
-    //@}
-    
+
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
     NS_DECLARE_REFLECTION(Expander, HeaderedContentControl)
 };
 
 }
+
 
 #endif

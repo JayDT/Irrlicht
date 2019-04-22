@@ -32,13 +32,14 @@ class NS_GUI_ANIMATION_API VisualState: public DependencyObject, public IUITreeN
 {
 public:
     VisualState();
+    ~VisualState();
 
     /// Gets the name of the VisualState
     //@{
     NsSymbol GetName() const;
     void SetName(NsSymbol name);
     //@}
-    
+
     /// Gets or sets a Storyboard that defines the appearance of the control when it is the state 
     /// that is represented by the VisualState
     //@{
@@ -50,8 +51,7 @@ public:
     //@{
     IUITreeNode* GetNodeParent() const override;
     void SetNodeParent(IUITreeNode* parent) override;
-    BaseComponent* FindNodeResource(IResourceKey* key,
-        bool fullElementSearch) const override;
+    BaseComponent* FindNodeResource(IResourceKey* key, bool fullElementSearch) const override;
     BaseComponent* FindNodeName(const char* name) const override;
     ObjectWithNameScope FindNodeNameAndScope(const char* name) const override;
     //@}
@@ -77,5 +77,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

@@ -24,9 +24,10 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Defines a geometric shape, described using a mesh of vertices and indices. Geometry is directly
-/// sent to the GPU without extra preprocessing, no tessellation, making this class ideal when
-/// rendering dynamic geometry that changes per frame.
+/// Defines a geometric shape described using a mesh of vertices and indices.
+///
+/// Geometry is directly sent to the GPU without extra preprocessing, no tessellation, making this
+/// class ideal when rendering dynamic geometry that changes per frame.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API MeshGeometry: public Geometry
 {
@@ -45,7 +46,7 @@ public:
 
     /// Returns a pointer to the internal vertex buffer
     Point* GetVertices();
-    
+
     /// Returns a pointer to the internal index buffer
     uint16_t* GetIndices();
 
@@ -99,5 +100,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

@@ -20,22 +20,22 @@ namespace Noesis
 template<class T> class Delegate;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// INameScope. Defines how names of elements should be accessed within a particular scope, and how
-/// to enforce uniqueness of names within that scope.
+/// Defines how names of elements should be accessed within a particular XAML scope, and how to
+/// enforce uniqueness of names within that scope.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 NS_INTERFACE INameScope: public Interface
 {
     /// Returns an object that has the provided identifying name
     virtual BaseComponent* FindName(const char* name) const = 0;
 
-    /// Registers the provided name into the current namescope
+    /// Registers the provided name into the current XAML namescope
     virtual void RegisterName(const char* name, BaseComponent* object) = 0;
 
-    /// Unregisters the provided name from the current namescope
+    /// Unregisters the provided name from the current XAML namescope
     virtual void UnregisterName(const char* name) = 0;
 
-    /// Updates previously registered item with new one. This is usefull to refresh Binginds when
-    /// freezables are cloned
+    /// Updates previously registered item with new one. This is required to refresh Binginds when
+    /// freezables are cloned during animations
     virtual void UpdateName(const char* name, BaseComponent* object) = 0;
 
     /// Delegate to be notified about events
@@ -46,5 +46,6 @@ NS_INTERFACE INameScope: public Interface
 };
 
 }
+
 
 #endif

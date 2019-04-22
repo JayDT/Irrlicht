@@ -503,7 +503,7 @@ namespace eastl
     /// more efficient in some way. 
     ///
     template <typename T>
-    inline void swap(T& a, T& b)
+    inline void swap_(T& a, T& b)
     {
         T temp(a);
         a = b;
@@ -534,7 +534,7 @@ namespace eastl
         template <typename ForwardIterator1, typename ForwardIterator2>
         static void iter_swap(ForwardIterator1 a, ForwardIterator2 b)
         {
-            eastl::swap(*a, *b);
+            eastl::swap_(*a, *b);
         }
     };
 

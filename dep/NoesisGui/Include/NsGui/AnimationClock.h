@@ -30,19 +30,21 @@ class NS_GUI_ANIMATION_API AnimationClock: public Clock
 {
 public:
     AnimationClock(AnimationTimeline* animation, bool controllable);
-    
+
+    /// Starts the animation for the specified object and property
     void Start(DependencyObject* object, const DependencyProperty* dp, ITimeManager* timeManager, 
         HandoffBehavior handoff = HandoffBehavior_SnapshotAndReplace);
-        
+
 private:
     // From Clock
     //@{
-    void Recycle(TimeManager* owner);
+    void Recycle(TimeManager* owner) override;
     //@}
-    
+
     NS_DECLARE_REFLECTION(AnimationClock, Clock)
 };
 
 }
+
 
 #endif

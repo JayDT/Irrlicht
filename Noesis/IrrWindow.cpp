@@ -25,7 +25,7 @@
 #include <NsCore/Kernel.h>
 #include <NsCore/TypeId.h>
 #include <NsCore/Nullable.h>
-#include <NsCore/MemoryManager.h>
+#include <NsCore/Memory.h>
 #include <NsCore/ReflectionImplement.h>
 #include <NsImpl/IrrRenderContext.h>
 #include <NsDrawing/Color.h>
@@ -42,6 +42,7 @@ NS_REGISTER_REFLECTION(Application, IrrWindow)
 
 NoesisApp::IrrWindow::IrrWindow()
 	: mActionModeFlags(0)
+    , mIsMaximized(false)
 	, mOnDragMove(false)
 	, mOnResize(false)
 {
@@ -133,12 +134,20 @@ NoesisApp::WindowState NoesisApp::IrrWindow::GetWindowState() const
 
 void NoesisApp::IrrWindow::SetWindowState(NoesisApp::WindowState value)
 {
-	SetValue<bool>(IsActiveProperty, value);
+	SetValue<WindowState>(WindowStateProperty, value);
 }
 
 void NoesisApp::IrrWindow::Close()
 {
-	NoesisApp::RemoveChildHelper::RemoveChild(GetParent(), this);
+    if (GetParent())
+    {
+        Panel* panel = Noesis::DynamicCast<Panel*>(GetParent());
+        if (panel)
+        {
+            panel->UnregisterName(GetName());
+        }
+        NoesisApp::RemoveChildHelper::RemoveChild(GetParent(), this);
+    }
 }
 
 void NoesisApp::IrrWindow::Hide()
@@ -158,6 +167,12 @@ void NoesisApp::IrrWindow::DragMove()
 
 void NoesisApp::IrrWindow::OnGotFocus(const Noesis::RoutedEventArgs& e)
 {
+    Noesis::ContentControl::OnGotFocus(e);
+}
+
+void NoesisApp::IrrWindow::OnLostFocus(const Noesis::RoutedEventArgs& e)
+{
+    Noesis::ContentControl::OnLostFocus(e);
 }
 
 void NoesisApp::IrrWindow::OnMouseLeftButtonDown(const Noesis::MouseButtonEventArgs& e)
@@ -203,6 +218,28 @@ void NoesisApp::IrrWindow::OnMouseLeftButtonUp(const Noesis::MouseButtonEventArg
 
 		ReleaseMouseCapture();
 	}
+
+    if (Panel::GetZIndex(this) != 0x1000000)
+    {
+        //Focus();
+        Panel* panel = Noesis::DynamicCast<Panel*>(GetParent());
+        if (panel)
+        {
+            uint32_t count = panel->GetChildren()->Count();
+            for (uint32_t i = 0; i != count; ++i)
+            {
+                Noesis::DependencyObject* element = panel->GetChildren()->Get(i);
+                if (element == this)
+                    continue;
+
+                uint32_t index = Panel::GetZIndex(element);
+                if (index == 0x1000000)
+                    Panel::SetZIndex(element, 0);
+            }
+
+            Panel::SetZIndex(this, 0x1000000);
+        }
+    }
 }
 
 void NoesisApp::IrrWindow::OnMouseMove(const Noesis::MouseEventArgs& e)
@@ -260,71 +297,79 @@ void NoesisApp::IrrWindow::OnMouseMove(const Noesis::MouseEventArgs& e)
 
 		if (top < maxdelta && top > -maxdelta && right < maxdelta && right > -maxdelta)
 		{
-			if (!HasActionModeFlags(EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_TR))
+			if (ChangeCanResizeState(EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_TR))
 			{
-				SetCursor(Noesis::Cursor::Cursor_ScrollNW);
-				mActionModeFlags |= EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_TR;
+				SetCursor(Noesis::Cursor::Cursor_SizeNESW);
+                mActionModeFlags &= ~EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_ALL;
+                mActionModeFlags |= EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_TR;
 			}
 		}
 		else if (top < maxdelta && top > -maxdelta && left < maxdelta && left > -maxdelta)
 		{
-			if (!HasActionModeFlags(EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_TL))
+			if (ChangeCanResizeState(EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_TL))
 			{
-				SetCursor(Noesis::Cursor::Cursor_ScrollNE);
-				mActionModeFlags |= EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_TL;
+				SetCursor(Noesis::Cursor::Cursor_SizeNWSE);
+                mActionModeFlags &= ~EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_ALL;
+                mActionModeFlags |= EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_TL;
 			}
 		}
 		else if (bottom < maxdelta && bottom > -maxdelta && right < maxdelta && right > -maxdelta)
 		{
-			if (!HasActionModeFlags(EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_BR))
+			if (ChangeCanResizeState(EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_BR))
 			{
-				SetCursor(Noesis::Cursor::Cursor_ScrollSW);
-				mActionModeFlags |= EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_BR;
+				SetCursor(Noesis::Cursor::Cursor_SizeNWSE);
+                mActionModeFlags &= ~EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_ALL;
+                mActionModeFlags |= EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_BR;
 			}
 		}
 		else if (bottom < maxdelta && bottom > -maxdelta && left < maxdelta && left > -maxdelta)
 		{
-			if (!HasActionModeFlags(EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_BL))
+			if (ChangeCanResizeState(EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_BL))
 			{
-				SetCursor(Noesis::Cursor::Cursor_ScrollSE);
-				mActionModeFlags |= EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_BL;
+				SetCursor(Noesis::Cursor::Cursor_SizeNESW);
+                mActionModeFlags &= ~EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_ALL;
+                mActionModeFlags |= EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_BL;
 			}
 		}
 		else if (top < maxdelta && top > -maxdelta)
 		{
-			if (!HasActionModeFlags(EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_T))
+			if (ChangeCanResizeState(EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_T))
 			{
-				SetCursor(Noesis::Cursor::Cursor_ScrollNS);
+				SetCursor(Noesis::Cursor::Cursor_SizeNS);
+                mActionModeFlags &= ~EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_ALL;
 				mActionModeFlags |= EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_T;
 			}
 		}
 		else if (bottom < maxdelta && bottom > -maxdelta)
 		{
-			if (!HasActionModeFlags(EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_B))
+			if (ChangeCanResizeState(EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_B))
 			{
-				SetCursor(Noesis::Cursor::Cursor_ScrollNS);
-				mActionModeFlags |= EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_B;
+				SetCursor(Noesis::Cursor::Cursor_SizeNS);
+                mActionModeFlags &= ~EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_ALL;
+                mActionModeFlags |= EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_B;
 			}
 		}
 		else if (left < maxdelta && left > -maxdelta)
 		{
-			if (!HasActionModeFlags(EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_L))
+			if (ChangeCanResizeState(EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_L))
 			{
-				SetCursor(Noesis::Cursor::Cursor_ScrollWE);
-				mActionModeFlags |= EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_L;
+				SetCursor(Noesis::Cursor::Cursor_SizeWE);
+                mActionModeFlags &= ~EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_ALL;
+                mActionModeFlags |= EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_L;
 			}
 		}
 		else if (right < maxdelta && right > -maxdelta)
 		{
-			if (!HasActionModeFlags(EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_R))
+			if (ChangeCanResizeState(EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_R))
 			{
-				SetCursor(Noesis::Cursor::Cursor_ScrollWE);
-				mActionModeFlags |= EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_R;
+				SetCursor(Noesis::Cursor::Cursor_SizeWE);
+                mActionModeFlags &= ~EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_ALL;
+                mActionModeFlags |= EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_R;
 			}
 		}
-		else if (HasActionModeFlags(EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_ALL))
+		else if (mActionModeFlags & EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_ALL)
 		{
-			SetCursor(Noesis::Cursor::Cursor_SizeNESW);
+			SetCursor(Noesis::Cursor::Cursor_None);
 			mActionModeFlags &= ~EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_ALL;
 		}
 	}
@@ -334,7 +379,7 @@ void NoesisApp::IrrWindow::OnTitleMouseUp(BaseComponent* sender, const Noesis::M
 {
 	if (mOnDragMove)
 	{
-		Noesis::Control* control = NsDynamicCast<Noesis::Control*>(sender);
+		Noesis::Control* control = Noesis::DynamicCast<Noesis::Control*>(sender);
 		mOnDragMove = false;
 		control->ReleaseMouseCapture();
 		arg.handled = true;
@@ -345,7 +390,7 @@ void NoesisApp::IrrWindow::OnTitleMouseDown(BaseComponent* sender, const Noesis:
 {
 	if (!mOnDragMove)
 	{
-		Noesis::Control* control = NsDynamicCast<Noesis::Control*>(sender);
+		Noesis::Control* control = Noesis::DynamicCast<Noesis::Control*>(sender);
 		mOnDragMove = true;
 		mLastPointerPosition = arg.position;
 		control->CaptureMouse();
@@ -357,7 +402,7 @@ void NoesisApp::IrrWindow::OnTitleMouseLeave(BaseComponent* sender, const Noesis
 {
 	if (mOnDragMove)
 	{
-		Noesis::Control* control = NsDynamicCast<Noesis::Control*>(sender);
+		Noesis::Control* control = Noesis::DynamicCast<Noesis::Control*>(sender);
 		mOnDragMove = false;
 		control->ReleaseMouseCapture();
 		arg.handled = true;
@@ -370,14 +415,116 @@ void NoesisApp::IrrWindow::OnParentMouseMove(BaseComponent* sender, const Noesis
 
 void NoesisApp::IrrWindow::OnClickClose(Noesis::BaseComponent*, const Noesis::RoutedEventArgs&)
 {
+    Close();
 }
 
 void NoesisApp::IrrWindow::OnClickMinimize(Noesis::BaseComponent*, const Noesis::RoutedEventArgs&)
 {
+    auto pos = GetMargin();
+    Noesis::FrameworkElement* root = this;
+    while (root->GetParent())
+        root = root->GetParent();
+
+    if (GetWindowState() != NoesisApp::WindowState::WindowState_Minimized)
+    {
+        Noesis::Control* TitleBar = GetTemplateChild<Noesis::Control>("PART_TITLEBAR");
+
+        if (GetWindowState() == NoesisApp::WindowState::WindowState_Normal)
+        {
+            mOriginalLastPosition.x = pos.left;
+            mOriginalLastPosition.y = pos.top;
+            mOriginalDimension.x = GetWidth();
+            mOriginalDimension.y = GetHeight();
+        }
+
+        SetWindowState(NoesisApp::WindowState::WindowState_Minimized);
+
+        //pos.left = 0;
+        //pos.top = 0;
+
+        //SetMargin(pos);
+        //SetWidth(-1);
+        SetHeight(TitleBar ? TitleBar->GetHeight() : 40);
+    }
+    else
+    {
+        if (mIsMaximized)
+        {
+            SetWindowState(NoesisApp::WindowState::WindowState_Maximized);
+
+            pos.left = 0;
+            pos.top = 0;
+
+            SetMargin(pos); 
+            SetWidth(root->GetWidth());
+            SetHeight(root->GetHeight());
+        }
+        else
+        {
+            SetWindowState(NoesisApp::WindowState::WindowState_Normal);
+
+            //pos.left = mOriginalLastPosition.x;
+            //pos.top = mOriginalLastPosition.y;
+
+            //SetMargin(pos);
+            SetWidth(mOriginalDimension.x);
+            SetHeight(mOriginalDimension.y);
+        }
+    }
 }
 
 void NoesisApp::IrrWindow::OnClickMaximize(Noesis::BaseComponent*, const Noesis::RoutedEventArgs&)
 {
+    auto pos = GetMargin();
+    Noesis::FrameworkElement* root = this;
+    while (root->GetParent())
+        root = root->GetParent();
+
+    if (GetWindowState() != NoesisApp::WindowState::WindowState_Maximized)
+    {
+        if (GetWindowState() == NoesisApp::WindowState::WindowState_Normal)
+        {
+            mOriginalLastPosition.x = pos.left;
+            mOriginalLastPosition.y = pos.top;
+            mOriginalDimension.x = GetWidth();
+            mOriginalDimension.y = GetHeight();
+        }
+
+        SetWindowState(NoesisApp::WindowState::WindowState_Maximized);
+        mIsMaximized = true;
+
+        pos.left = 0;
+        pos.top = 0;
+
+        SetMargin(pos);
+        SetWidth(root->GetWidth());
+        SetHeight(root->GetHeight());
+    }
+    else
+    {
+        mIsMaximized = false;
+
+        SetWindowState(NoesisApp::WindowState::WindowState_Normal);
+
+        pos.left = mOriginalLastPosition.x;
+        pos.top = mOriginalLastPosition.y;
+
+        SetMargin(pos);
+        SetWidth(mOriginalDimension.x);
+        SetHeight(mOriginalDimension.y);
+    }
+}
+
+bool NoesisApp::IrrWindow::ChangeCanResizeState(uint32_t flag)
+{
+    if ((~mActionModeFlags & flag) == flag)
+    {
+        uint32_t remainingflags = mActionModeFlags & EGUI_ACTION_MODE_FLAGS::EAMF_CAN_RESIZE_ALL & ~flag;
+        if (remainingflags)
+            mActionModeFlags &= ~remainingflags;
+        return true;
+    }
+    return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -389,30 +536,27 @@ NS_IMPLEMENT_REFLECTION(NoesisApp::IrrWindow)
 	Ptr<ResourceKeyType> defaultStyleKey = ResourceKeyType::Create(type);
 
 	// register properties and events
-	Ptr<UIElementData> data = NsMeta<UIElementData>(TypeOf<SelfClass>());
+	UIElementData* data = NsMeta<UIElementData>(TypeOf<SelfClass>());
 
 	data->RegisterProperty<bool>(IsActiveProperty, "IsActive",
-		FrameworkPropertyMetadata::Create(false, FrameworkOptions_None));
+		FrameworkPropertyMetadata::Create(false));
 	data->AddOwner<float>(LeftProperty, "Left", Canvas::LeftProperty);
 	data->RegisterProperty<ResizeMode>(ResizeModeProperty, "ResizeMode",
-		FrameworkPropertyMetadata::Create(ResizeMode_CanResize, FrameworkOptions_None));
+		FrameworkPropertyMetadata::Create(ResizeMode_CanResize));
 	data->RegisterProperty<NsString>(TitleProperty, "Title",
-		FrameworkPropertyMetadata::Create(NsString(), FrameworkOptions_None));
+		FrameworkPropertyMetadata::Create(NsString()));
 	data->AddOwner<float>(TopProperty, "Top", Canvas::TopProperty);
 	data->RegisterProperty<WindowState>(WindowStateProperty, "WindowState",
-		FrameworkPropertyMetadata::Create(WindowState_Normal, FrameworkOptions_None));
+		FrameworkPropertyMetadata::Create(WindowState_Normal));
 
 	data->OverrideMetadata<bool>(Control::IsTabStopProperty, "IsTabStop",
-		FrameworkPropertyMetadata::Create(false, FrameworkOptions_None));
+		FrameworkPropertyMetadata::Create(false));
 	data->OverrideMetadata<KeyboardNavigationMode>(KeyboardNavigation::DirectionalNavigationProperty,
-		"DirectionalNavigation", FrameworkPropertyMetadata::Create(KeyboardNavigationMode_Cycle,
-			FrameworkOptions_None));
+		"DirectionalNavigation", FrameworkPropertyMetadata::Create(KeyboardNavigationMode_Cycle));
 	data->OverrideMetadata<KeyboardNavigationMode>(KeyboardNavigation::TabNavigationProperty,
-		"TabNavigation", FrameworkPropertyMetadata::Create(KeyboardNavigationMode_Cycle,
-			FrameworkOptions_None));
+		"TabNavigation", FrameworkPropertyMetadata::Create(KeyboardNavigationMode_Cycle));
 	data->OverrideMetadata<KeyboardNavigationMode>(KeyboardNavigation::ControlTabNavigationProperty,
-		"ControlTabNavigation", FrameworkPropertyMetadata::Create(KeyboardNavigationMode_Cycle,
-			FrameworkOptions_None));
+		"ControlTabNavigation", FrameworkPropertyMetadata::Create(KeyboardNavigationMode_Cycle));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

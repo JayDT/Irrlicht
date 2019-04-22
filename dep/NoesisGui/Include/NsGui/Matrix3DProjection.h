@@ -16,7 +16,7 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Applies a 3D Matrix to an object.
+/// Applies a 3D matrix to an object.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.matrix3dprojection.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,13 +27,13 @@ public:
     Matrix3DProjection(const Matrix4f& matrix);
     ~Matrix3DProjection();
 
-    /// Gets or sets the Matrix3D  that is used for the projection that is applied to the object
+    /// Gets or sets the 3D matrix that is used for the projection that is applied to the object
     //@{
     const Matrix4f& GetProjectionMatrix() const;
     void SetProjectionMatrix(const Matrix4f& matrix);
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<Matrix3DProjection> Clone() const;
     Ptr<Matrix3DProjection> CloneCurrentValue() const;
@@ -41,15 +41,15 @@ public:
 
     /// From Projection
     //@{
-    bool IsIdentity() const;
-    Matrix4f GetProjection(const Size& surface, const Size& size) const;
+    bool IsIdentity() const override;
+    Matrix4f GetProjection(const Size& surface, const Size& size) const override;
     //@}
 
     /// From IRenderProxyCreator
     //@{
-    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UnregisterRenderer(ViewId viewId);
+    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UnregisterRenderer(ViewId viewId) override;
     //@}
 
 public:
@@ -61,12 +61,12 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& e);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& e) override;
     //@}
 
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
 private:
@@ -81,5 +81,6 @@ private:
 };
 
 }
+
 
 #endif

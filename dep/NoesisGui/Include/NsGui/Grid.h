@@ -23,10 +23,10 @@ namespace Noesis
 
 class ColumnDefinition;
 class RowDefinition;
-template<class T> class TypedCollection;
 
-typedef Noesis::TypedCollection<Noesis::ColumnDefinition> ColumnDefinitionCollection;
-typedef Noesis::TypedCollection<Noesis::RowDefinition> RowDefinitionCollection;
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::ColumnDefinition> ColumnDefinitionCollection;
+typedef Noesis::UICollection<Noesis::RowDefinition> RowDefinitionCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -39,11 +39,10 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 class NS_GUI_CORE_API Grid: public Panel
 {
 public:
-    /// Constructor
     Grid();
     ~Grid();
 
-    /// Gets column definitions collection
+    /// Gets a ColumnDefinitionCollection defined on this instance of Grid
     ColumnDefinitionCollection* GetColumnDefinitions() const;
 
     /// Gets a value that indicates which column child within a Grid should appear in
@@ -51,9 +50,9 @@ public:
     /// Sets a value that indicates which column child within a Grid should appear in
     static void SetColumn(DependencyObject* element, uint32_t column);
 
-    /// Gets a value that indicates the number of columns that child spans within a grid
+    /// Gets a value that indicates the number of columns that child spans within a Grid
     static uint32_t GetColumnSpan(const DependencyObject* element);
-    /// Sets a value that indicates the number of columns that child spans within a grid
+    /// Sets a value that indicates the number of columns that child spans within a Grid
     static void SetColumnSpan(DependencyObject* element, uint32_t columnSpan);
 
     /// Gets a value that indicates that multiple Grid elements are sharing size information
@@ -61,21 +60,17 @@ public:
     /// Sets a value that indicates that multiple Grid elements are sharing size information
     static void SetIsSharedSizeScope(DependencyObject* element, bool value);
 
-    /// Gets row definitions collection
+    /// Gets a RowDefinitionCollection defined on this instance of Grid
     RowDefinitionCollection* GetRowDefinitions() const;
 
-    /// Gets a value that represents the distance between the top of an element and the top
-    /// of its parent Canvas
+    /// Gets a value that indicates which row child within a Grid should appear in
     static uint32_t GetRow(const DependencyObject* element);
-    /// Sets a value that represents the distance between the top of an element and the top
-    /// of its parent Canvas
+    /// Sets a value that indicates which row child within a Grid should appear in
     static void SetRow(DependencyObject* element, uint32_t row);
 
-    /// Gets a value that represents the distance between the top of an element and the top
-    /// of its parent Canvas
+    /// Gets a value that indicates the number of rows that child spans within a Grid
     static uint32_t GetRowSpan(const DependencyObject* element);
-    /// Sets a value that represents the distance between the top of an element and the top
-    /// of its parent Canvas
+    /// Sets a value that indicates the number of rows that child spans within a Grid
     static void SetRowSpan(DependencyObject* element, uint32_t rowSpan);
 
 public:
@@ -91,23 +86,23 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    void OnInit();
+    void OnInit() override;
     //@}
 
     /// From Visual
     //@{
-    uint32_t GetVisualChildrenCount() const;
-    Visual* GetVisualChild(uint32_t index) const;
-    void OnVisualChildrenChanged(Visual* added, Visual* removed);
+    uint32_t GetVisualChildrenCount() const override;
+    Visual* GetVisualChild(uint32_t index) const override;
+    void OnVisualChildrenChanged(Visual* added, Visual* removed) override;
     //@}
 
     /// From FrameworkElement
     //@{
-    void CloneOverride(FrameworkElement* clone, FrameworkTemplate* template_) const;
-    uint32_t GetLogicalChildrenCount() const;
-    BaseComponent* GetLogicalChild(uint32_t index) const;
-    Size MeasureOverride(const Size& availableSize);
-    Size ArrangeOverride(const Size& finalSize);
+    void CloneOverride(FrameworkElement* clone, FrameworkTemplate* template_) const override;
+    uint32_t GetLogicalChildrenCount() const override;
+    Ptr<BaseComponent> GetLogicalChild(uint32_t index) const override;
+    Size MeasureOverride(const Size& availableSize) override;
+    Size ArrangeOverride(const Size& finalSize) override;
     //@}
 
 private:
@@ -123,8 +118,10 @@ private:
 
     // Gets element column and row info
     //@{
-    void GetColumnInfo(const UIElement* child, uint32_t numCols, uint32_t& col, uint32_t& colSpan) const;
-    void GetRowInfo(const UIElement* child, uint32_t numRows, uint32_t& row, uint32_t& rowSpan) const;
+    void GetColumnInfo(const UIElement* child, uint32_t numCols,
+        uint32_t& col, uint32_t& colSpan) const;
+    void GetRowInfo(const UIElement* child, uint32_t numRows,
+        uint32_t& row, uint32_t& rowSpan) const;
     //@}
 
     struct DefinitionsInfo;
@@ -145,7 +142,7 @@ private:
     // Measure helpers
     //@{
     Size DoMeasure(const Size& availableSize);
-    void MeasureElements(uint32_t start, uint32_t end);
+    void MeasureElements(uint32_t start, uint32_t end, bool colsSolved, bool rowsSolved);
     float MeasureSizes(const DefinitionCacheVector& defVec, FloatVector& sizes);
     void UpdateSizes(const DefinitionCacheVector& defVec, uint32_t index, uint32_t span,
         bool allAutoSpan, float size, float starTotal, FloatVector& sizes);
@@ -159,8 +156,8 @@ private:
     void ArrangeDef(float finalSize, float desiredSize, bool isDesiredSize,
         const DefinitionsInfo& info, const FloatVector& measureSizes,
         FloatVector& arrangeSizes, FloatVector& arrangePositions);
-    void UpdateArrangeSize(uint32_t index, FloatVector& arrangeSizes, float size,
-        float& usedSize, float star, float& usedStar);
+    void UpdateArrangeSize(uint32_t index, FloatVector& arrangeSizes, float size, float minSize,
+        float& usedSize);
     //@}
 
     // Determines if grid size is determined by children
@@ -190,11 +187,9 @@ private:
     void InvalidateCellCache();
 
     // Creates column/row definitions if necessary
-    void EnsureColumns() const;
-    void ConnectColumns() const;
+    void EnsureColumns();
     void DisconnectColumns();
-    void EnsureRows() const;
-    void ConnectRows() const;
+    void EnsureRows();
     void DisconnectRows();
 
     // Detects changes in cell properties of children elements
@@ -310,5 +305,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

@@ -17,6 +17,7 @@
 using namespace Noesis;
 using namespace NoesisApp;
 
+#undef PlaySound
 
 namespace
 {
@@ -104,6 +105,7 @@ void Application::Init(IrrNsDeviceStub* display, const CommandLine& arguments)
 
     // Application resources
     GUI::SetApplicationResources(GetResources());
+    SetIntegrationAPICallbacks(display);
     
     display->Activated() += MakeDelegate(this, &Application::OnActivated);
     display->Deactivated() += MakeDelegate(this, &Application::OnDeactivated);
@@ -213,6 +215,7 @@ Window* NoesisApp::Application::CreateNsWindow(const char* uri, irr::SIrrlichtCr
 
 		renderContext = NoesisApp::CreateRenderContext("Irr");
 		renderContext->SetIrrlichtDevice(_device);
+        SetIntegrationAPICallbacks(display);
 
 		display->Activated() += MakeDelegate(this, &Application::OnActivated);
 		display->Deactivated() += MakeDelegate(this, &Application::OnDeactivated);
@@ -234,12 +237,37 @@ Window* NoesisApp::Application::CreateNsWindow(const char* uri, irr::SIrrlichtCr
 	if (display && renderContext)
 	{
 		Noesis::Ptr<BaseComponent> root = Noesis::GUI::LoadXaml(uri);
-		wnd = NsDynamicCast<Noesis::Ptr<NoesisApp::Window>>(root);
+		wnd = Noesis::DynamicPtrCast<NoesisApp::Window>(root);
 		wnd->Init(display.GetPtr(), renderContext.GetPtr(), 1, false);
 		AddChildren(wnd, renderContext.GetPtr());
 	}
 
 	return wnd.GetPtr();
+}
+
+Noesis::BaseComponent* NoesisApp::Application::FindName(const char* name) const
+{
+    if (mMainWindow)
+    {
+        if (!Noesis::String::Compare(name, mMainWindow->GetName()))
+            return mMainWindow.GetPtr();
+
+        Noesis::BaseComponent* component = mMainWindow->FindName(name);
+        if (component)
+            return component;
+    }
+
+    for (const auto& child : mChildrens)
+    {
+        if (!Noesis::String::Compare(name, child->GetName()))
+            return child.GetPtr();
+
+        Noesis::BaseComponent* component = child->FindName(name);
+        if (component)
+            return component;
+    }
+
+    return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -257,7 +285,7 @@ void Application::SetNodeParent(IUITreeNode* parent)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 BaseComponent* Application::FindNodeResource(IResourceKey* key, bool fullElementSearch) const
 {
-    BaseComponent* resource = 0;
+    Ptr<BaseComponent> resource = 0;
     if (mResources && mResources->Find(key, resource))
     {
         return resource;
@@ -299,10 +327,41 @@ void Application::SetIrrlichDevice(irr::IrrlichtDevice* device)
 	mIrrDevice = irr::Ptr(device);
 }
 
+void NoesisApp::Application::SetIntegrationAPICallbacks(IrrNsDeviceStub* display)
+{
+    // Redirect integration callbacks to display
+    Noesis::GUI::SetSoftwareKeyboardCallback(display, [](void* user, UIElement * focused, bool open)
+    {
+        if (open)
+        {
+            ((IrrNsDeviceStub*)user)->OpenSoftwareKeyboard(focused);
+        }
+        else
+        {
+            ((IrrNsDeviceStub*)user)->CloseSoftwareKeyboard();
+        }
+    });
+
+    Noesis::GUI::SetCursorCallback(display, [](void* user, IView*, Cursor cursor)
+    {
+        ((IrrNsDeviceStub*)user)->SetCursor(cursor);
+    });
+
+    Noesis::GUI::SetOpenUrlCallback(display, [](void* user, const char* url)
+    {
+        ((IrrNsDeviceStub*)user)->OpenUrl(url);
+    });
+
+    Noesis::GUI::SetPlaySoundCallback(display, [](void* user, const char* filename, float volume)
+    {
+        ((IrrNsDeviceStub*)user)->PlaySound(filename, volume);
+    });
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 const char* Application::GetTitleOverride(UIElement* root) const
 {
-    Window* window = NsDynamicCast<Window*>(root);
+    Window* window = Noesis::DynamicCast<Window*>(root);
     return window ? window->GetTitle() : "";
 }
 

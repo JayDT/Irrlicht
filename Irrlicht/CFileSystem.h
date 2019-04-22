@@ -119,7 +119,7 @@ public:
 
 	//! Creates a list of files and directories in the current working directory
 	//! and returns it.
-	virtual IFileList* createFileList() _IRR_OVERRIDE_;
+	virtual IFileList* createFileList(const char* filter = nullptr, bool onlySubdir = false) _IRR_OVERRIDE_;
 
 	//! Creates an empty filelist
 	virtual IFileList* createEmptyFileList(const io::path& path, bool ignoreCase, bool ignorePaths) _IRR_OVERRIDE_;
@@ -147,6 +147,8 @@ public:
 
 	//! Creates a new empty collection of attributes, usable for serialization and more.
 	virtual IAttributes* createEmptyAttributes(video::IVideoDriver* driver) _IRR_OVERRIDE_;
+
+    core::array<IFileArchive*>& GetVirtualFiles() { return FileArchives; }
 
 private:
 

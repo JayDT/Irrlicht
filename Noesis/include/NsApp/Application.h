@@ -90,6 +90,8 @@ namespace NoesisApp
 
 		NoesisApp::Window* CreateNsWindow(const char* uri, irr::SIrrlichtCreationParameters* deviceDesc = nullptr);
 
+        BaseComponent* FindName(const char* name) const;
+
         /// From IUITreeNode
         //@{
         IUITreeNode* GetNodeParent() const override;
@@ -99,11 +101,14 @@ namespace NoesisApp
         Noesis::ObjectWithNameScope FindNodeNameAndScope(const char* name) const override;
         //@}
 
+        irr::IrrlichtDevice* GetIrrlichDevice() const { return mIrrDevice; }
+
         NS_IMPLEMENT_INTERFACE_FIXUP
 
 	protected:
 
 		void SetIrrlichDevice(irr::IrrlichtDevice* device);
+        void SetIntegrationAPICallbacks(IrrNsDeviceStub* display);
 
     private:
         virtual const char* GetTitleOverride(Noesis::UIElement* root) const;

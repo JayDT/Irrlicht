@@ -22,9 +22,10 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Defines an object that has a modifiable state and a read-only (frozen) state. Classes that 
-/// derive from Freezable provide detailed change notification, can be made immutable, and can 
-/// clone themselves.
+/// Defines an object that has a modifiable state and a read-only (frozen) state.
+///
+/// Classes that derive from Freezable provide detailed change notification, can be made immutable,
+/// and can clone themselves.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_DEPENDENCYSYSTEM_API Freezable: public DependencyObject, public ISealable
 {

@@ -11,7 +11,6 @@
 #include <NsCore/Noesis.h>
 #include <NsCore/ReflectionDeclareEnum.h>
 #include <NsCore/Vector.h>
-#include <NsCore/FixedString.h>
 #include <NsGui/FrameworkElement.h>
 #include <NsGui/Enums.h>
 
@@ -24,11 +23,10 @@ class Brush;
 class FontFamily;
 class Inline;
 class RectangleGeometry;
-class TextBlockTest;
 struct NotifyCollectionChangedEventArgs;
 
-template<class T> class TypedCollection;
-typedef TypedCollection<Inline> InlineCollection;
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::Inline> InlineCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -111,10 +109,19 @@ public:
     /// contents of the TextBlock
     InlineCollection* GetInlines() const;
 
+    /// Indicates if this TextBlock contains any inlines (avoids creating Inlines if not needed)
+    bool HasInlines() const;
+
     /// Gets or sets the height of each line of content
     //@{
     float GetLineHeight() const;
     void SetLineHeight(float value);
+    //@}
+
+    /// Gets or sets the mechanism by which a line box is determined for each line of text
+    //@{
+    LineStackingStrategy GetLineStackingStrategy() const;
+    void SetLineStackingStrategy(LineStackingStrategy value);
     //@}
 
     /// Gets or sets the padding inside a control
@@ -165,6 +172,9 @@ public:
     void SetTextWrapping(TextWrapping textWrap);
     //@}
 
+    /// Returns the object used to layout and render text for this TextBlock
+    FormattedText* GetFormattedText() const;
+
     /// From BaseObject
     //@{
     NsString ToString() const override;
@@ -181,6 +191,7 @@ public:
     static const DependencyProperty* FontWeightProperty;
     static const DependencyProperty* ForegroundProperty;
     static const DependencyProperty* LineHeightProperty;
+    static const DependencyProperty* LineStackingStrategyProperty;
     static const DependencyProperty* PaddingProperty;
     static const DependencyProperty* StrokeProperty;
     static const DependencyProperty* StrokeThicknessProperty;
@@ -211,6 +222,8 @@ protected:
     /// From Visual
     //@{
     void OnConnectToViewChildren() override;
+    uint32_t GetVisualChildrenCount() const override;
+    Visual* GetVisualChild(uint32_t index) const override;
     //@}
 
     /// From UIElement
@@ -223,7 +236,7 @@ protected:
     //@{
     void CloneOverride(FrameworkElement* clone, FrameworkTemplate* template_) const override;
     uint32_t GetLogicalChildrenCount() const override;
-    BaseComponent* GetLogicalChild(uint32_t index) const override;
+    Ptr<BaseComponent> GetLogicalChild(uint32_t index) const override;
     Size MeasureOverride(const Size& availableSize) override;
     Size ArrangeOverride(const Size& finalSize) override;
     //@}
@@ -240,8 +253,10 @@ private:
     void DoSyncTextAndInlines();
     void ConnectInlines();
 
-    void BuildInlinesInfo(NsFixedString<4096>& text) const;
-    void BuildInlinesInfo(InlineCollection* inlines, NsFixedString<4096>& text) const;
+    void DisconnectInlineContainers();
+
+    void BuildInlinesInfo(NsFixedString<4096>& text);
+    void BuildInlinesInfo(InlineCollection* inlines, NsFixedString<4096>& text);
 
     void RegisterInlines(InlineCollection* inlines);
     void UnregisterInlines(InlineCollection* inlines, bool removeLogical);
@@ -250,6 +265,8 @@ private:
 
     void RegisterInnerInlines(InlineCollection* inlines);
     void UnregisterInnerInlines(InlineCollection* inlines);
+
+    void RemoveTemplatedParentInlines(InlineCollection* inlines);
 
     void OnInlineChanged(BaseComponent* sender, const DependencyPropertyChangedEventArgs& e);
     void OnInlineTextChanged();
@@ -260,11 +277,8 @@ private:
     struct InlineInfo;
     const InlineInfo* FindInline(uint32_t position) const;
 
-    void UpdateInlinesInheritedProps(InlineCollection* inlines);
-
 private:
     friend class TextBlockTest;
-    friend class TextSelector;
 
     Ptr<InlineCollection> mInlines;
     Ptr<RectangleGeometry> mBackgroundGeometry;
@@ -279,8 +293,8 @@ private:
     };
 
     typedef NsVector<InlineInfo> InlineInfoList;
-    mutable InlineInfoList mInlineInfo;
-
+    InlineInfoList mInlineInfo;
+    NsVector<uint32_t> mInlineContainers;
 
     NS_DECLARE_REFLECTION(TextBlock, FrameworkElement)
 };
@@ -288,5 +302,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

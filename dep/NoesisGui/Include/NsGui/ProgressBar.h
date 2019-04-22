@@ -10,13 +10,11 @@
 
 #include <NsCore/Noesis.h>
 #include <NsGui/RangeBase.h>
+#include <NsGui/Enums.h>
 
 
 namespace Noesis
 {
-
-// Forward declaration
-enum Orientation;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -30,20 +28,20 @@ class NS_GUI_CORE_API ProgressBar: public RangeBase
 {
 public:
     ProgressBar();
-    
+
     /// Gets or sets whether the ProgressBar shows actual values or generic, continuous progress 
     /// feedback
     //@{
     bool GetIsIndeterminate() const;
     void SetIsIndeterminate(bool value);
     //@}
-    
+
     /// Gets or sets the orientation of a ProgressBar: horizontal or vertical.
     //@{
     Orientation GetOrientation() const;
     void SetOrientation(Orientation orientation);
     //@}
-    
+
 public:
     /// Dependency Properties
     //@{
@@ -54,25 +52,24 @@ public:
 protected:
     /// From RangeBase
     //@{
-    void OnMaximumValueChanged(float oldMaximum, float newMaximum);
-    void OnMinimumValueChanged(float oldMinimum, float newMinimum);
-    void OnValueChanged(float oldValue, float newValue);
+    void OnMaximumValueChanged(float oldMaximum, float newMaximum) override;
+    void OnMinimumValueChanged(float oldMinimum, float newMinimum) override;
+    void OnValueChanged(float oldValue, float newValue) override;
     //@}
 
     /// From FrameworkElement
     //@{
     void OnTemplateChanged(FrameworkTemplate* oldTemplate, FrameworkElement* oldRoot,
-        FrameworkTemplate* newTemplate, FrameworkElement* newRoot);
-    void UpdateVisualStates();
+        FrameworkTemplate* newTemplate, FrameworkElement* newRoot) override;
+    void UpdateVisualStates() override;
     //@}
 
     /// From DependencyProperty
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
 private:
-
     void OnTrackSizeChanged(BaseComponent* o, const SizeChangedEventArgs& e);
     void UpdateIndicator();
 
@@ -86,5 +83,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

@@ -28,10 +28,12 @@ constexpr size_t strlen_(const char(&data)[N]) noexcept {
 	return N - 1;
 }
 
+#define NS_REGISTER_UI_CONTROL(VAR, NAME) VAR = FindName<std::remove_pointer<decltype(VAR)>::type>(NAME)
+
 #define NS_REGISTER_UI_EVENT(UICLASS, EVENT, METHOD) \
 if (strlen(event) == strlen_(#EVENT) && !strcmp(event, #EVENT) && strlen(handler) == strlen_(#METHOD) && !strcmp(handler, #METHOD))\
 {\
-	NsDynamicCast<UICLASS*>(source)->EVENT() += Noesis::MakeDelegate(this, &SelfClass::METHOD); \
+	Noesis::DynamicCast<UICLASS*>(source)->EVENT() += Noesis::MakeDelegate(this, &SelfClass::METHOD); \
 }
 
 #endif

@@ -1351,12 +1351,12 @@ namespace eastl
             ListNodeBase::swap((ListNodeBase&)mNode, (ListNodeBase&)x.mNode); // We need to implement a special swap because we can't do a shallow swap.
 
             #if EASTL_LIST_SIZE_CACHE
-                eastl::swap(mSize, x.mSize);
+                eastl::swap_(mSize, x.mSize);
             #endif
         }
         else // else swap the contents.
         {
-            const this_type temp(*this); // Can't call eastl::swap because that would
+            const this_type temp(*this); // Can't call eastl::swap_ because that would
             *this = x;                   // itself call this member swap function.
             x     = temp;
 

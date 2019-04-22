@@ -27,18 +27,18 @@ class StreamGeometryContext;
 ///
 /// .. code-block:: c#
 ///
-///    var geometry = new StreamGeometry();
+///    StreamGeometry geometry = new StreamGeometry();
 ///
-///    using (var context = geometry.Open())
+///    using (StreamGeometryContext context = geometry.Open())
 ///    {
-///        context.BeginFigure(new Point(100.0f, 100.0f), true);
-///        context.LineTo(new Point(200.0f, 100.0f));
-///        context.LineTo(new Point(200.0f, 200.0f));
+///        context.BeginFigure(new Point(100.0f, 100.0f), true, true);
+///        context.LineTo(new Point(200.0f, 100.0f), false, false);
+///        context.LineTo(new Point(200.0f, 200.0f), false, false);
 ///    }
 ///
 /// .. code-block:: c#
 ///
-///    var geometry = new StreamGeometry();
+///    StreamGeometry geometry = new StreamGeometry();
 ///    geometry.SetData("M 100, 100 L 200, 100 200, 200 Z");
 ///
 /// .. code-block:: xml
@@ -86,7 +86,7 @@ public:
     bool IsEmpty() const override;
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<StreamGeometry> Clone() const;
     Ptr<StreamGeometry> CloneCurrentValue() const;
@@ -112,13 +112,12 @@ protected:
     //@{
     bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
-    
+
     /// From Freezable
     //@{
     void CloneCommonCore(const Freezable* source) override;
     Ptr<Freezable> CreateInstanceCore() const override;
     //@}
-
 
     /// From Geometry
     //@{
@@ -147,5 +146,6 @@ private:
 };
 
 }
+
 
 #endif

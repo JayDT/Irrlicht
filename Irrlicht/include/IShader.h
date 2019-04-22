@@ -143,6 +143,7 @@ namespace irr
 
         struct IShader : virtual irr::IReferenceCounted
         {
+            virtual u32 getId() const = 0;
             virtual E_SHADER_LANG getShaderType() const = 0;
             virtual video::IVideoDriver* getVideoDriver() = 0;
 

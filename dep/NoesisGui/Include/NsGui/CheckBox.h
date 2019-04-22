@@ -23,17 +23,12 @@ namespace Noesis
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API CheckBox: public ToggleButton
 {
-public:
-    /// Constructor
-    CheckBox();
-
 protected:
-
     /// From UIElement
     //@{
-    void OnKeyDown(const KeyEventArgs& e);
+    void OnKeyDown(const KeyEventArgs& e) override;
     //@}
-    
+
     NS_DECLARE_REFLECTION(CheckBox, ToggleButton)
 };
 

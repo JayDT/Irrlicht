@@ -29,12 +29,12 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 ///
 ///    // Geometry
 ///    Ptr<StreamGeometry> geometry = *new StreamGeometry();
-///    {
-///        StreamGeometryContext context = geometry->Open();
-///        context.BeginFigure(Point(260.0f, 200.0f), true);
-///        context.ArcTo(Point(140.0f, 200.0f), Size(60.0f, 60.0f), 0, false, true);
-///        context.ArcTo(Point(260.0f, 200.0f), Size(60.0f, 60.0f), 0, false, true);
-///    }
+///
+///    StreamGeometryContext context = geometry->Open();
+///    context.BeginFigure(Point(260.0f, 200.0f), true);
+///    context.ArcTo(Point(140.0f, 200.0f), Size(60.0f, 60.0f), 0, false, true);
+///    context.ArcTo(Point(260.0f, 200.0f), Size(60.0f, 60.0f), 0, false, true);
+///    context.Close();
 ///
 ///    // Path
 ///    Ptr<Path> path = *new Path();
@@ -50,13 +50,10 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.shapes.path.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API Path: public Shape
+class NS_GUI_CORE_API Path final: public Shape
 {
 public:
-    /// Constructor
     Path();
-
-    /// Destructor
     ~Path();
 
     /// Gets or sets the geometry that specifies the shape to be drawn
@@ -74,18 +71,18 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
     /// From UIElement
     //@{
-    void OnRender(DrawingContext* context);
+    void OnRender(DrawingContext* context) override;
     //@}
 
     /// From FrameworkElement
     //@{
-    Size MeasureOverride(const Size& availableSize);
-    Size ArrangeOverride(const Size& finalSize);
+    Size MeasureOverride(const Size& availableSize) override;
+    Size ArrangeOverride(const Size& finalSize) override;
     //@}
 
 private:
@@ -101,5 +98,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

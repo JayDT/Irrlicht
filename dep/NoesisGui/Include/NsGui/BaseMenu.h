@@ -17,17 +17,14 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents a control that defines choices for users to select. 
+/// Represents a control that defines choices for users to select.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.primitives.menubase.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API BaseMenu: public ItemsControl
 {
 public:
-    /// Constructor
     BaseMenu();
-    
-    /// Destructor
     virtual ~BaseMenu() = 0;
 
 protected:

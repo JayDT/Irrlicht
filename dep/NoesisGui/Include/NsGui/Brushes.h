@@ -17,161 +17,579 @@
 namespace Noesis
 {
 
-// Forward declaration
-//@{
 class Color;
 class SolidColorBrush;
-//@}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Declares a set of predefined SolidColorBrush objects.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.media.brushes.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct NS_GUI_CORE_API Brushes
 {
-    /// List of predefined brushes
-    //@{
-    static SolidColorBrush* AliceBlue(); // #FFF0F8FF
-    static SolidColorBrush* AntiqueWhite(); // #FFFAEBD7
-    static SolidColorBrush* Aqua(); // #FF00FFFF
-    static SolidColorBrush* Aquamarine(); // #FF7FFFD4
-    static SolidColorBrush* Azure(); // #FFF0FFFF
-    static SolidColorBrush* Beige(); // #FFF5F5DC
-    static SolidColorBrush* Bisque(); // #FFFFE4C4
-    static SolidColorBrush* Black(); // #FF000000
-    static SolidColorBrush* BlanchedAlmond(); // #FFFFEBCD
-    static SolidColorBrush* Blue(); // #FF0000FF
-    static SolidColorBrush* BlueViolet(); // #FF8A2BE2
-    static SolidColorBrush* Brown(); // #FFA52A2A
-    static SolidColorBrush* BurlyWood(); // #FFDEB887
-    static SolidColorBrush* CadetBlue(); // #FF5F9EA0
-    static SolidColorBrush* Chartreuse(); // #FF7FFF00
-    static SolidColorBrush* Chocolate(); // #FFD2691E
-    static SolidColorBrush* Coral(); // #FFFF7F50
-    static SolidColorBrush* CornflowerBlue(); // #FF6495ED
-    static SolidColorBrush* Cornsilk(); // #FFFFF8DC
-    static SolidColorBrush* Crimson(); // #FFDC143C
-    static SolidColorBrush* Cyan(); // #FF00FFFF
-    static SolidColorBrush* DarkBlue(); // #FF00008B
-    static SolidColorBrush* DarkCyan(); // #FF008B8B
-    static SolidColorBrush* DarkGoldenrod(); // #FFB8860B
-    static SolidColorBrush* DarkGray(); // #FFA9A9A9
-    static SolidColorBrush* DarkGreen(); // #FF006400
-    static SolidColorBrush* DarkKhaki(); // #FFBDB76B
-    static SolidColorBrush* DarkMagenta(); // #FF8B008B
-    static SolidColorBrush* DarkOliveGreen(); // #FF556B2F
-    static SolidColorBrush* DarkOrange(); // #FFFF8C00
-    static SolidColorBrush* DarkOrchid(); // #FF9932CC
-    static SolidColorBrush* DarkRed(); // #FF8B0000
-    static SolidColorBrush* DarkSalmon(); // #FFE9967A
-    static SolidColorBrush* DarkSeaGreen(); // #FF8FBC8F
-    static SolidColorBrush* DarkSlateBlue(); // #FF483D8B
-    static SolidColorBrush* DarkSlateGray(); // #FF2F4F4F
-    static SolidColorBrush* DarkTurquoise(); // #FF00CED1
-    static SolidColorBrush* DarkViolet(); // #FF9400D3
-    static SolidColorBrush* DeepPink(); // #FFFF1493
-    static SolidColorBrush* DeepSkyBlue(); // #FF00BFFF
-    static SolidColorBrush* DimGray(); // #FF696969
-    static SolidColorBrush* DodgerBlue(); // #FF1E90FF
-    static SolidColorBrush* Firebrick(); // #FFB22222
-    static SolidColorBrush* FloralWhite(); // #FFFFFAF0
-    static SolidColorBrush* ForestGreen(); // #FF228B22
-    static SolidColorBrush* Fuchsia(); // #FFFF00FF
-    static SolidColorBrush* Gainsboro(); // #FFDCDCDC
-    static SolidColorBrush* GhostWhite(); // #FFF8F8FF
-    static SolidColorBrush* Gold(); // #FFFFD700
-    static SolidColorBrush* Goldenrod(); // #FFDAA520
-    static SolidColorBrush* Gray(); // #FF808080
-    static SolidColorBrush* Green(); // #FF008000
-    static SolidColorBrush* GreenYellow(); // #FFADFF2F
-    static SolidColorBrush* Honeydew(); // #FFF0FFF0
-    static SolidColorBrush* HotPink(); // #FFFF69B4
-    static SolidColorBrush* IndianRed(); // #FFCD5C5C
-    static SolidColorBrush* Indigo(); // #FF4B0082
-    static SolidColorBrush* Ivory(); // #FFFFFFF0
-    static SolidColorBrush* Khaki(); // #FFF0E68C
-    static SolidColorBrush* Lavender(); // #FFE6E6FA
-    static SolidColorBrush* LavenderBlush(); // #FFFFF0F5
-    static SolidColorBrush* LawnGreen(); // #FF7CFC00
-    static SolidColorBrush* LemonChiffon(); // #FFFFFACD
-    static SolidColorBrush* LightBlue(); // #FFADD8E6
-    static SolidColorBrush* LightCoral(); // #FFF08080
-    static SolidColorBrush* LightCyan(); // #FFE0FFFF
-    static SolidColorBrush* LightGoldenrodYellow(); // #FFFAFAD2
-    static SolidColorBrush* LightGray(); // #FFD3D3D3
-    static SolidColorBrush* LightGreen(); // #FF90EE90
-    static SolidColorBrush* LightPink(); // #FFFFB6C1
-    static SolidColorBrush* LightSalmon(); // #FFFFA07A
-    static SolidColorBrush* LightSeaGreen(); // #FF20B2AA
-    static SolidColorBrush* LightSkyBlue(); // #FF87CEFA
-    static SolidColorBrush* LightSlateGray(); // #FF778899
-    static SolidColorBrush* LightSteelBlue(); // #FFB0C4DE
-    static SolidColorBrush* LightYellow(); // #FFFFFFE0
-    static SolidColorBrush* Lime(); // #FF00FF00
-    static SolidColorBrush* LimeGreen(); // #FF32CD32
-    static SolidColorBrush* Linen(); // #FFFAF0E6
-    static SolidColorBrush* Magenta(); // #FFFF00FF
-    static SolidColorBrush* Maroon(); // #FF800000
-    static SolidColorBrush* MediumAquamarine(); // #FF66CDAA
-    static SolidColorBrush* MediumBlue(); // #FF0000CD
-    static SolidColorBrush* MediumOrchid(); // #FFBA55D3
-    static SolidColorBrush* MediumPurple(); // #FF9370DB
-    static SolidColorBrush* MediumSeaGreen(); // #FF3CB371
-    static SolidColorBrush* MediumSlateBlue(); // #FF7B68EE
-    static SolidColorBrush* MediumSpringGreen(); // #FF00FA9A
-    static SolidColorBrush* MediumTurquoise(); // #FF48D1CC
-    static SolidColorBrush* MediumVioletRed(); // #FFC71585
-    static SolidColorBrush* MidnightBlue(); // #FF191970
-    static SolidColorBrush* MintCream(); // #FFF5FFFA
-    static SolidColorBrush* MistyRose(); // #FFFFE4E1
-    static SolidColorBrush* Moccasin(); // #FFFFE4B5
-    static SolidColorBrush* NavajoWhite(); // #FFFFDEAD
-    static SolidColorBrush* Navy(); // #FF000080
-    static SolidColorBrush* OldLace(); // #FFFDF5E6
-    static SolidColorBrush* Olive(); // #FF808000
-    static SolidColorBrush* OliveDrab(); // #FF6B8E23
-    static SolidColorBrush* Orange(); // #FFFFA500
-    static SolidColorBrush* OrangeRed(); // #FFFF4500
-    static SolidColorBrush* Orchid(); // #FFDA70D6
-    static SolidColorBrush* PaleGoldenrod(); // #FFEEE8AA
-    static SolidColorBrush* PaleGreen(); // #FF98FB98
-    static SolidColorBrush* PaleTurquoise(); // #FFAFEEEE
-    static SolidColorBrush* PaleVioletRed(); // #FFDB7093
-    static SolidColorBrush* PapayaWhip(); // #FFFFEFD5
-    static SolidColorBrush* PeachPuff(); // #FFFFDAB9
-    static SolidColorBrush* Peru(); // #FFCD853F
-    static SolidColorBrush* Pink(); // #FFFFC0CB
-    static SolidColorBrush* Plum(); // #FFDDA0DD
-    static SolidColorBrush* PowderBlue(); // #FFB0E0E6
-    static SolidColorBrush* Purple(); // #FF800080
-    static SolidColorBrush* Red(); // #FFFF0000
-    static SolidColorBrush* RosyBrown(); // #FFBC8F8F
-    static SolidColorBrush* RoyalBlue(); // #FF4169E1
-    static SolidColorBrush* SaddleBrown(); // #FF8B4513
-    static SolidColorBrush* Salmon(); // #FFFA8072
-    static SolidColorBrush* SandyBrown(); // #FFF4A460
-    static SolidColorBrush* SeaGreen(); // #FF2E8B57
-    static SolidColorBrush* SeaShell(); // #FFFFF5EE
-    static SolidColorBrush* Sienna(); // #FFA0522D
-    static SolidColorBrush* Silver(); // #FFC0C0C0
-    static SolidColorBrush* SkyBlue(); // #FF87CEEB
-    static SolidColorBrush* SlateBlue(); // #FF6A5ACD
-    static SolidColorBrush* SlateGray(); // #FF708090
-    static SolidColorBrush* Snow(); // #FFFFFAFA
-    static SolidColorBrush* SpringGreen(); // #FF00FF7F
-    static SolidColorBrush* SteelBlue(); // #FF4682B4
-    static SolidColorBrush* Tan(); // #FFD2B48C
-    static SolidColorBrush* Teal(); // #FF008080
-    static SolidColorBrush* Thistle(); // #FFD8BFD8
-    static SolidColorBrush* Tomato(); // #FFFF6347
-    static SolidColorBrush* Transparent(); // #00FFFFFF
-    static SolidColorBrush* Turquoise(); // #FF40E0D0
-    static SolidColorBrush* Violet(); // #FFEE82EE
-    static SolidColorBrush* Wheat(); // #FFF5DEB3
-    static SolidColorBrush* White(); // #FFFFFFFF
-    static SolidColorBrush* WhiteSmoke(); // #FFF5F5F5
-    static SolidColorBrush* Yellow(); // #FFFFFF00
-    static SolidColorBrush* YellowGreen(); // #FF9ACD32
-    //@}
+    /// Gets the solid fill color that has a hexadecimal value of #FFF0F8FF
+    /// \prop
+    static SolidColorBrush* AliceBlue();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFAEBD7
+    /// \prop
+    static SolidColorBrush* AntiqueWhite();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF00FFFF
+    /// \prop
+    static SolidColorBrush* Aqua();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF7FFFD4
+    /// \prop
+    static SolidColorBrush* Aquamarine();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFF0FFFF
+    /// \prop
+    static SolidColorBrush* Azure();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFF5F5DC
+    /// \prop
+    static SolidColorBrush* Beige();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFE4C4
+    /// \prop
+    static SolidColorBrush* Bisque();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF000000
+    /// \prop
+    static SolidColorBrush* Black();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFEBCD
+    /// \prop
+    static SolidColorBrush* BlanchedAlmond();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF0000FF
+    /// \prop
+    static SolidColorBrush* Blue();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF8A2BE2
+    /// \prop
+    static SolidColorBrush* BlueViolet();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFA52A2A
+    /// \prop
+    static SolidColorBrush* Brown();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFDEB887
+    /// \prop
+    static SolidColorBrush* BurlyWood();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF5F9EA0
+    /// \prop
+    static SolidColorBrush* CadetBlue();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF7FFF00
+    /// \prop
+    static SolidColorBrush* Chartreuse();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFD2691E
+    /// \prop
+    static SolidColorBrush* Chocolate();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFF7F50
+    /// \prop
+    static SolidColorBrush* Coral();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF6495ED
+    /// \prop
+    static SolidColorBrush* CornflowerBlue();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFF8DC
+    /// \prop
+    static SolidColorBrush* Cornsilk();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFDC143C
+    /// \prop
+    static SolidColorBrush* Crimson();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF00FFFF
+    /// \prop
+    static SolidColorBrush* Cyan();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF00008B
+    /// \prop
+    static SolidColorBrush* DarkBlue();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF008B8B
+    /// \prop
+    static SolidColorBrush* DarkCyan();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFB8860B
+    /// \prop
+    static SolidColorBrush* DarkGoldenrod();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFA9A9A9
+    /// \prop
+    static SolidColorBrush* DarkGray();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF006400
+    /// \prop
+    static SolidColorBrush* DarkGreen();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFBDB76B
+    /// \prop
+    static SolidColorBrush* DarkKhaki();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF8B008B
+    /// \prop
+    static SolidColorBrush* DarkMagenta();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF556B2F
+    /// \prop
+    static SolidColorBrush* DarkOliveGreen();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFF8C00
+    /// \prop
+    static SolidColorBrush* DarkOrange();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF9932CC
+    /// \prop
+    static SolidColorBrush* DarkOrchid();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF8B0000
+    /// \prop
+    static SolidColorBrush* DarkRed();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFE9967A
+    /// \prop
+    static SolidColorBrush* DarkSalmon();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF8FBC8F
+    /// \prop
+    static SolidColorBrush* DarkSeaGreen();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF483D8B
+    /// \prop
+    static SolidColorBrush* DarkSlateBlue();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF2F4F4F
+    /// \prop
+    static SolidColorBrush* DarkSlateGray();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF00CED1
+    /// \prop
+    static SolidColorBrush* DarkTurquoise();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF9400D3
+    /// \prop
+    static SolidColorBrush* DarkViolet();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFF1493
+    /// \prop
+    static SolidColorBrush* DeepPink();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF00BFFF
+    /// \prop
+    static SolidColorBrush* DeepSkyBlue();
+
+    /// Gets the solid fill color that has a hexadecimal value of  #FF696969
+    /// \prop
+    static SolidColorBrush* DimGray();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF1E90FF
+    /// \prop
+    static SolidColorBrush* DodgerBlue();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFB22222
+    /// \prop
+    static SolidColorBrush* Firebrick();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFFAF0
+    /// \prop
+    static SolidColorBrush* FloralWhite(); 
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF228B22
+    /// \prop
+    static SolidColorBrush* ForestGreen();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFF00FF
+    /// \prop
+    static SolidColorBrush* Fuchsia();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFDCDCDC
+    /// \prop
+    static SolidColorBrush* Gainsboro();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFF8F8FF
+    /// \prop
+    static SolidColorBrush* GhostWhite();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFD700
+    /// \prop
+    static SolidColorBrush* Gold();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFDAA520
+    /// \prop
+    static SolidColorBrush* Goldenrod();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF808080
+    /// \prop
+    static SolidColorBrush* Gray();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF008000
+    /// \prop
+    static SolidColorBrush* Green();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFADFF2F
+    /// \prop
+    static SolidColorBrush* GreenYellow();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFF0FFF0
+    /// \prop
+    static SolidColorBrush* Honeydew();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFF69B4
+    /// \prop
+    static SolidColorBrush* HotPink();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFCD5C5C
+    /// \prop
+    static SolidColorBrush* IndianRed();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF4B0082
+    /// \prop
+    static SolidColorBrush* Indigo();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFFFF0
+    /// \prop
+    static SolidColorBrush* Ivory();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFF0E68C
+    /// \prop
+    static SolidColorBrush* Khaki();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFE6E6FA
+    /// \prop
+    static SolidColorBrush* Lavender();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFF0F5
+    /// \prop
+    static SolidColorBrush* LavenderBlush();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF7CFC00
+    /// \prop
+    static SolidColorBrush* LawnGreen();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFFACD
+    /// \prop
+    static SolidColorBrush* LemonChiffon();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFADD8E6
+    /// \prop
+    static SolidColorBrush* LightBlue();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFF08080
+    /// \prop
+    static SolidColorBrush* LightCoral();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFE0FFFF
+    /// \prop
+    static SolidColorBrush* LightCyan();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFAFAD2
+    /// \prop
+    static SolidColorBrush* LightGoldenrodYellow();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFD3D3D3
+    /// \prop
+    static SolidColorBrush* LightGray();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF90EE90
+    /// \prop
+    static SolidColorBrush* LightGreen();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFB6C1
+    /// \prop
+    static SolidColorBrush* LightPink();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFA07A
+    /// \prop
+    static SolidColorBrush* LightSalmon();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF20B2AA
+    /// \prop
+    static SolidColorBrush* LightSeaGreen();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF87CEFA
+    /// \prop
+    static SolidColorBrush* LightSkyBlue();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF778899
+    /// \prop
+    static SolidColorBrush* LightSlateGray();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFB0C4DE
+    /// \prop
+    static SolidColorBrush* LightSteelBlue();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFFFE0
+    /// \prop
+    static SolidColorBrush* LightYellow();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF00FF00
+    /// \prop
+    static SolidColorBrush* Lime();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF32CD32
+    /// \prop
+    static SolidColorBrush* LimeGreen();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFAF0E6
+    /// \prop
+    static SolidColorBrush* Linen();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFF00FF
+    /// \prop
+    static SolidColorBrush* Magenta();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF800000
+    /// \prop
+    static SolidColorBrush* Maroon();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF66CDAA
+    /// \prop
+    static SolidColorBrush* MediumAquamarine();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF0000CD
+    /// \prop
+    static SolidColorBrush* MediumBlue();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFBA55D3
+    /// \prop
+    static SolidColorBrush* MediumOrchid();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF9370DB
+    /// \prop
+    static SolidColorBrush* MediumPurple();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF3CB371
+    /// \prop
+    static SolidColorBrush* MediumSeaGreen();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF7B68EE
+    /// \prop
+    static SolidColorBrush* MediumSlateBlue();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF00FA9A
+    /// \prop
+    static SolidColorBrush* MediumSpringGreen();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF48D1CC
+    /// \prop
+    static SolidColorBrush* MediumTurquoise();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFC71585
+    /// \prop
+    static SolidColorBrush* MediumVioletRed();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF191970
+    /// \prop
+    static SolidColorBrush* MidnightBlue();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFF5FFFA
+    /// \prop
+    static SolidColorBrush* MintCream();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFE4E1
+    /// \prop
+    static SolidColorBrush* MistyRose();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFE4B5
+    /// \prop
+    static SolidColorBrush* Moccasin();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFDEAD
+    /// \prop
+    static SolidColorBrush* NavajoWhite();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF000080
+    /// \prop
+    static SolidColorBrush* Navy();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFDF5E6
+    /// \prop
+    static SolidColorBrush* OldLace();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF808000
+    /// \prop
+    static SolidColorBrush* Olive();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF6B8E23
+    /// \prop
+    static SolidColorBrush* OliveDrab();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFA500
+    /// \prop
+    static SolidColorBrush* Orange();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFF4500
+    /// \prop
+    static SolidColorBrush* OrangeRed();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFDA70D6
+    /// \prop
+    static SolidColorBrush* Orchid();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFEEE8AA
+    /// \prop
+    static SolidColorBrush* PaleGoldenrod();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF98FB98
+    /// \prop
+    static SolidColorBrush* PaleGreen();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFAFEEEE
+    /// \prop
+    static SolidColorBrush* PaleTurquoise();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFDB7093
+    /// \prop
+    static SolidColorBrush* PaleVioletRed();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFEFD5
+    /// \prop
+    static SolidColorBrush* PapayaWhip();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFDAB9
+    /// \prop
+    static SolidColorBrush* PeachPuff();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFCD853F
+    /// \prop
+    static SolidColorBrush* Peru();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFC0CB
+    /// \prop
+    static SolidColorBrush* Pink();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFDDA0DD
+    /// \prop
+    static SolidColorBrush* Plum();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFB0E0E6
+    /// \prop
+    static SolidColorBrush* PowderBlue();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF800080
+    /// \prop
+    static SolidColorBrush* Purple();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFF0000
+    /// \prop
+    static SolidColorBrush* Red();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFBC8F8F
+    /// \prop
+    static SolidColorBrush* RosyBrown();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF4169E1
+    /// \prop
+    static SolidColorBrush* RoyalBlue();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF8B4513
+    /// \prop
+    static SolidColorBrush* SaddleBrown();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFA8072
+    /// \prop
+    static SolidColorBrush* Salmon();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFF4A460
+    /// \prop
+    static SolidColorBrush* SandyBrown();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF2E8B57
+    /// \prop
+    static SolidColorBrush* SeaGreen();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFF5EE
+    /// \prop
+    static SolidColorBrush* SeaShell();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFA0522D
+    /// \prop
+    static SolidColorBrush* Sienna();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFC0C0C0
+    /// \prop
+    static SolidColorBrush* Silver();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF87CEEB
+    /// \prop
+    static SolidColorBrush* SkyBlue();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF6A5ACD
+    /// \prop
+    static SolidColorBrush* SlateBlue();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF708090
+    /// \prop
+    static SolidColorBrush* SlateGray();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFFAFA
+    /// \prop
+    static SolidColorBrush* Snow();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF00FF7F
+    /// \prop
+    static SolidColorBrush* SpringGreen();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF4682B4
+    /// \prop
+    static SolidColorBrush* SteelBlue();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFD2B48C
+    /// \prop
+    static SolidColorBrush* Tan();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF008080
+    /// \prop
+    static SolidColorBrush* Teal();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFD8BFD8
+    /// \prop
+    static SolidColorBrush* Thistle();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFF6347
+    /// \prop
+    static SolidColorBrush* Tomato();
+
+    /// Gets the solid fill color that has a hexadecimal value of #00FFFFFF
+    /// \prop
+    static SolidColorBrush* Transparent();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF40E0D0
+    /// \prop
+    static SolidColorBrush* Turquoise();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFEE82EE
+    /// \prop
+    static SolidColorBrush* Violet();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFF5DEB3
+    /// \prop
+    static SolidColorBrush* Wheat();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFFFFF
+    /// \prop
+    static SolidColorBrush* White();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFF5F5F5
+    /// \prop
+    static SolidColorBrush* WhiteSmoke();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FFFFFF00
+    /// \prop
+    static SolidColorBrush* Yellow();
+
+    /// Gets the solid fill color that has a hexadecimal value of #FF9ACD32
+    /// \prop
+    static SolidColorBrush* YellowGreen();
 
     /// Returns the predefined solid color brush that corresponds to the given color
     static Ptr<SolidColorBrush> FromColor(const Color& color);

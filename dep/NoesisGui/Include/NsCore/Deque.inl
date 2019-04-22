@@ -521,11 +521,11 @@ void deque_index<T, Allocator>::grow(size_type n)
 template <typename T, typename Allocator>
 void deque_index<T, Allocator>::swap(this_type& other)
 {
-    eastl::swap(mAllocator, other.mAllocator);
-    eastl::swap(mVector, other.mVector);
-    eastl::swap(mBegin, other.mBegin);
-    eastl::swap(mEnd, other.mEnd);
-    eastl::swap(mSize, other.mSize);
+    eastl::swap_(mAllocator, other.mAllocator);
+    eastl::swap_(mVector, other.mVector);
+    eastl::swap_(mBegin, other.mBegin);
+    eastl::swap_(mEnd, other.mEnd);
+    eastl::swap_(mSize, other.mSize);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -871,9 +871,9 @@ deque<T, Allocator, kNodeSize>::operator=(const this_type& other)
 template <typename T, typename Allocator, size_t kNodeSize>
 void deque<T, Allocator, kNodeSize>::swap(this_type& other)
 {
-    eastl::swap(mAllocator, other.mAllocator);
+    eastl::swap_(mAllocator, other.mAllocator);
     mIndex.swap(other.mIndex);
-    eastl::swap(mSize, other.mSize);
+    eastl::swap_(mSize, other.mSize);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

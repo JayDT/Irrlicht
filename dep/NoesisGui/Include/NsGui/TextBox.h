@@ -17,7 +17,6 @@
 namespace Noesis
 {
 
-NS_INTERFACE IScrollInfo;
 class ScrollViewer;
 class TextBoxTextContainer;
 
@@ -26,7 +25,6 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Represents a control that can be used to display or edit unformatted text.
-/// (Mixed WPF definitions of TextBoxBase and TextBox).
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.textbox.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -87,6 +85,39 @@ public:
     /// Selects all text
     void SelectAll();
 
+    /// Select the text in the given position and length
+    void Select(int32_t start, int32_t length);
+
+    /// Clear all the content in the TextBox control
+    void Clear();
+
+    /// Return the 0-based character index of the given point.  If there is no character
+    /// at that point and snapToText is false, return -1. Point is specified in TextBox coordinates
+    int32_t GetCharacterIndexFromPoint(Point point, bool snapToText) const;
+
+    /// Return the 0-based character index of the first character of lineIndex, or -1 if no layout
+    /// information is available
+    int32_t GetCharacterIndexFromLineIndex(int32_t lineIndex) const;
+
+    /// Return the 0-based index of the line containing the given character index, or -1 if no
+    /// layout information is available
+    int32_t GetLineIndexFromCharacterIndex(int32_t charIndex) const;
+
+    /// Return the number of characters in the given line, or -1 if no
+    /// layout information is available
+    int32_t GetLineLength(int32_t lineIndex) const;
+
+    /// Return the index of the first line that is currently visible in the TextBox, or -1 if no
+    /// layout information is available
+    int32_t GetFirstVisibleLineIndex() const;
+
+    /// Return the index of the last line that is currently visible in the TextBox, or -1 if no
+    /// layout information is available
+    int32_t GetLastVisibleLineIndex() const;
+
+    /// Scroll the minimal amount necessary to bring the given line into full view.
+    void ScrollToLine(int32_t lineIndex);
+
     /// Gets or sets the horizontal alignment of the contents of the text box
     //@{
     TextAlignment GetTextAlignment() const;
@@ -105,19 +136,26 @@ public:
     void SetTextWrapping(TextWrapping textWrap);
     //@}
 
-    // Gets the container element of the drawn text
-    UIElement* GetContentHost() const;
+    /// Gets the visual that renders the text of the TextBox
+    Visual* GetTextView() const;
 
-    // Calculates the bounding box of a range of text
+    /// Calculates the bounding box of a range of text
     Rect GetRangeBounds(uint32_t start, uint32_t end) const;
 
-    // IME composition underlines management
-    //@{
+    /// Removes the caret until control gets focused again
+    void HideCaret();
+
+    /// Returns the number of IME composition underlines
     uint32_t GetNumCompositionUnderlines() const;
+
+    /// Gets the specified IME composition underline
     const CompositionUnderline& GetCompositionUnderline(uint32_t index) const;
+
+    /// Adds a new IME composition underline
     void AddCompositionUnderline(const CompositionUnderline& compositionUnderline);
+
+    /// Removes all IME composition underlines
     void ClearCompositionUnderlines();
-    //@}
 
 public:
     /// Dependency properties
@@ -131,19 +169,30 @@ public:
     //@}
     
 protected:
-    /// From DependencyObject
+    // From DependencyObject
     //@{
     bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
-    /// From FrameworkElement
+    // From UIElement
     //@{
-    uint32_t GetLogicalChildrenCount() const override;
-    BaseComponent* GetLogicalChild(uint32_t index) const override;
+    void OnKeyDown(const KeyEventArgs& e) override;
+    void OnKeyUp(const KeyEventArgs& e) override;
+    void OnTextInput(const TextCompositionEventArgs& e) override;
+    void OnGotKeyboardFocus(const KeyboardFocusChangedEventArgs& e) override;
+    void OnLostKeyboardFocus(const KeyboardFocusChangedEventArgs& e) override;
+    void OnMouseLeftButtonDown(const MouseButtonEventArgs& e) override;
+    void OnMouseLeftButtonUp(const MouseButtonEventArgs& e) override;
+    void OnMouseRightButtonDown(const MouseButtonEventArgs& e) override;
+    void OnMouseMove(const MouseEventArgs& e) override;
+    //@}
+
+    // From FrameworkElement
+    //@{
     Size MeasureOverride(const Size& availableSize) override;
     //@}
-    
-    /// From Control
+
+    // From Control
     //@{
     void OnTemplateChanged(FrameworkTemplate* oldTemplate, FrameworkElement* oldRoot,
         FrameworkTemplate* newTemplate, FrameworkElement* newRoot) override;
@@ -157,24 +206,14 @@ protected:
     void OnIsFocusEngagedChanged(bool engaged) override;
     //@}
 
-    /// From BaseTextBox
+    // From BaseTextBox
     //@{
     void OnCaretBrushChanged(Brush* oldBrush, Brush* newBrush) override;
     void OnSelectionBrushChanged(Brush* oldBrush, Brush* newBrush) override;
     void OnSelectionOpacityChanged(float oldOpacity, float newOpacity) override;
+    void DoLineUp(ScrollViewer* scrollViewer) override;
+    void DoLineDown(ScrollViewer* scrollViewer) override;
     ScrollViewer* GetScrollViewer() const override;
-    //@}
-    
-    /// From UIElement
-    //@{
-    void OnKeyDown(const KeyEventArgs& e) override;
-    void OnKeyUp(const KeyEventArgs& e) override;
-    void OnTextInput(const TextCompositionEventArgs& e) override;
-    void OnGotKeyboardFocus(const KeyboardFocusChangedEventArgs& e) override;
-    void OnLostKeyboardFocus(const KeyboardFocusChangedEventArgs& e) override;
-    void OnMouseLeftButtonDown(const MouseButtonEventArgs& e) override;
-    void OnMouseLeftButtonUp(const MouseButtonEventArgs& e) override;
-    void OnMouseMove(const MouseEventArgs& e) override;
     //@}
 
 private:
@@ -220,6 +259,8 @@ private:
     void OnCanExecuteSelectAll(const CanExecuteRoutedEventArgs& args);
     void OnExecuteSelectAll(const ExecutedRoutedEventArgs& args);
 
+    static void StaticTextWrappingChanged(DependencyObject* d,
+        const DependencyPropertyChangedEventArgs& e);
     static bool StaticCoerceHorizontalScrollBarVisibility(const DependencyObject* object,
         const void* value, void* coercedValue);
 
@@ -234,8 +275,8 @@ private:
     {
         mutable struct
         {
-            bool mouseDown:1;
-            bool updateContentHostMinMax:1;
+            bool mouseDown : 1;
+            bool updateContentHostMinMax : 1;
         } mFlags;
 
         // To quickly set all flags to 0
@@ -248,5 +289,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

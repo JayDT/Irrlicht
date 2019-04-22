@@ -15,7 +15,6 @@
 namespace Noesis
 {
 
-class ToggleButton;
 class TreeView;
 
 NS_WARNING_PUSH
@@ -31,39 +30,33 @@ class NS_GUI_CORE_API TreeViewItem: public HeaderedItemsControl
 public:
     TreeViewItem();
     ~TreeViewItem();
-    
+
     /// Gets or sets whether the nested items in a TreeViewItem are expanded or collapsed
     //@{
     bool GetIsExpanded() const;
     void SetIsExpanded(bool value);
     //@}
-    
-    /// Gets or sets whether a TreeViewItem control is selected.
+
+    /// Gets or sets whether a TreeViewItem control is selected
     //@{
     bool GetIsSelected() const;
     void SetIsSelected(bool value);
     //@}
-    
-    /// Gets or sets whether a TreeViewItem control is selected.
-    //@{
-    bool GetIsSelectionActive() const;
-    void SetIsSelectionActive(bool value);
-    //@}
 
-    // Events
-    //@{
-    /// Occurs when the IsExpanded property changes from true to false.
+    /// Gets a value that indicates whether the containing TreeView has keyboard focus
+    bool GetIsSelectionActive() const;
+
+    /// Occurs when the IsExpanded property changes from true to false
     UIElement::RoutedEvent_<RoutedEventHandler> Collapsed();
 
-    /// Occurs when the IsExpanded property changes from false to true.
+    /// Occurs when the IsExpanded property changes from false to true
     UIElement::RoutedEvent_<RoutedEventHandler> Expanded();
 
-    /// Occurs when the IsSelected property of a TreeViewItem changes from false to true.
+    /// Occurs when the IsSelected property of a TreeViewItem changes from false to true
     UIElement::RoutedEvent_<RoutedEventHandler> Selected();
 
-    /// Occurs when the IsSelected property of a TreeViewItem changes from true to false.
+    /// Occurs when the IsSelected property of a TreeViewItem changes from true to false
     UIElement::RoutedEvent_<RoutedEventHandler> Unselected();
-    //@}
 
 public:
     static const DependencyProperty* IsExpandedProperty;
@@ -126,6 +119,8 @@ private:
     static void FocusParentPrev(TreeViewItem* current);
     static void FocusLatestCollapsed(ItemsControl* current);
 
+    static void StaticOnRequestBringIntoView(BaseComponent* obj, const EventArgs& e);
+
 private:
     Ptr<FrameworkElement> mHeaderHost;
 
@@ -135,5 +130,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

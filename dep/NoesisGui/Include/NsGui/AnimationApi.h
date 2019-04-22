@@ -11,14 +11,12 @@
 #include <NsCore/CompilerSettings.h>
 
 
-#ifdef NS_GUI_ANIMATION_PRIVATE
+#if defined(NS_GUI_ANIMATION_PRIVATE)
     #define NS_GUI_ANIMATION_API
+#elif defined(NS_GUI_ANIMATION_EXPORTS)
+    #define NS_GUI_ANIMATION_API NS_DLL_EXPORT
 #else
-    #ifdef NS_GUI_ANIMATION_EXPORTS
-        #define NS_GUI_ANIMATION_API NS_DLL_EXPORT
-    #else
-        #define NS_GUI_ANIMATION_API NS_DLL_IMPORT
-    #endif
+    #define NS_GUI_ANIMATION_API NS_DLL_IMPORT
 #endif
 
 

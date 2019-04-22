@@ -24,11 +24,11 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct NS_GUI_CORE_API RequestNavigateEventArgs: public RoutedEventArgs
 {
-    NsString uri;
-    NsString targetName;
+    const char* uri;
+    const char* target;
 
     RequestNavigateEventArgs(BaseComponent* source_, const RoutedEvent* event_,
-        const char* uri_,  const char* targetName_);
+        const char* uri_, const char* target_);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -37,6 +37,8 @@ typedef Noesis::Delegate<void (BaseComponent*, const RequestNavigateEventArgs&)>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// An inline-level flow content element that hosts hyperlinks within flow content.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.documents.hyperlink.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API Hyperlink: public Span, public ICommandSource
 {
@@ -113,5 +115,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

@@ -42,7 +42,6 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 class NS_GUI_CORE_API UniformGrid: public Panel
 {
 public:
-    /// Constructor
     UniformGrid();
     ~UniformGrid();
 
@@ -75,8 +74,8 @@ public:
 protected:
     /// From FrameworkElement
     //@{
-    Size MeasureOverride(const Size& availableSize);
-    Size ArrangeOverride(const Size& finalSize);
+    Size MeasureOverride(const Size& availableSize) override;
+    Size ArrangeOverride(const Size& finalSize) override;
     //@}
 
 private:
@@ -92,5 +91,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

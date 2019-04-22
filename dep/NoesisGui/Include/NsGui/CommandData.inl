@@ -8,11 +8,10 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T>
-const T* CommandData::RegisterCommand(const Ptr<T>& command)
+template<class T> const T* CommandData::RegisterCommand(const Ptr<T>& command)
 {
-    InsertCommand(command);
-    return command.GetPtr();
+    InsertCommand((RoutedCommand*)command);
+    return command;
 }
 
 }

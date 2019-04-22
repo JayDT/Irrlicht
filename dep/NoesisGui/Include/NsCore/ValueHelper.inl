@@ -64,6 +64,7 @@ NS_CORE_KERNEL_API uint32_t GetHashCode(int32_t value);
 NS_CORE_KERNEL_API uint32_t GetHashCode(int64_t value);
 NS_CORE_KERNEL_API uint32_t GetHashCode(float value);
 NS_CORE_KERNEL_API uint32_t GetHashCode(double value);
+NS_CORE_KERNEL_API uint32_t GetHashCode(const void* value);
 NS_CORE_KERNEL_API uint32_t GetHashCode(const NsString& value);
 NS_CORE_KERNEL_API uint32_t GetHashCode(Symbol value);
 
@@ -85,12 +86,6 @@ template<class T> uint32_t GetHashCode(const T& value, Int2Type<1>)
     return Impl::GetHashCode(uint32_t(value));
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> uint32_t GetHashCode(const T& value, Int2Type<2>)
-{
-    return Impl::GetHashCode(reinterpret_cast<uintptr_t>(value));
-}
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,7 +98,7 @@ template<class T> NsString ToString(const T& value)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T> uint32_t GetHashCode(const T& value)
 {
-    enum { ValueTypeId = IsPointer<T>::Result ? 2 : IsEnum<T>::Result ? 1 : 0 };
+    enum { ValueTypeId = IsEnum<T>::Result ? 1 : 0 };
     return Impl::GetHashCode(value, Int2Type<ValueTypeId>());
 }
 

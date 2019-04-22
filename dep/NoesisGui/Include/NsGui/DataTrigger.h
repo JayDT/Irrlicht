@@ -9,10 +9,11 @@
 
 
 #include <NsCore/Noesis.h>
+#include <NsCore/Set.h>
+#include <NsCore/Ptr.h>
 #include <NsGui/CoreApi.h>
 #include <NsGui/BaseTrigger.h>
 #include <NsGui/BindingListener.h>
-#include <NsCore/Set.h>
 
 
 namespace Noesis
@@ -20,8 +21,8 @@ namespace Noesis
 
 class BaseSetter;
 class BaseBinding;
-template<class T> class TypedCollection;
-typedef Noesis::TypedCollection<Noesis::BaseSetter> BaseSetterCollection;
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::BaseSetter> BaseSetterCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)

@@ -49,10 +49,9 @@ public:
     const BaseComponent* oldValue;
     const BaseComponent* newValue;
 
-    /// Constructor
     NotifyDictionaryChangedEventArgs(NotifyDictionaryChangedAction act, const IResourceKey* k,
         const BaseComponent* oldVal, const BaseComponent* newVal);
-    
+
 private:
     NS_DECLARE_REFLECTION(NotifyDictionaryChangedEventArgs, NoParent)
 };
@@ -69,11 +68,13 @@ typedef Delegate<void (BaseComponent*, const NotifyDictionaryChangedEventArgs&)>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 NS_INTERFACE INotifyDictionaryChanged: public Interface
 {
+    /// Occurs when the dictionary changes
     virtual NotifyDictionaryChangedEventHandler& DictionaryChanged() = 0;
 
     NS_IMPLEMENT_INLINE_REFLECTION_(INotifyDictionaryChanged, Interface)
 };
 
 }
+
 
 #endif

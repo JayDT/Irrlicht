@@ -349,14 +349,14 @@ namespace
     {
         switch (format)
         {
-            case TextureFormat::BGRA8:
-            {
-                return irr::video::ECOLOR_FORMAT::ECF_B8G8R8A8;
-            }
-            case TextureFormat::BGRX8:
+            case TextureFormat::RGBA8:
             {
                 return irr::video::ECOLOR_FORMAT::ECF_A8R8G8B8;
             }
+            //case TextureFormat::BGRX8:
+            //{
+            //    return irr::video::ECOLOR_FORMAT::ECF_A8R8G8B8;
+            //}
             case TextureFormat::R8:
             {
                 return irr::video::ECOLOR_FORMAT::ECF_R8;
@@ -372,7 +372,7 @@ namespace
         {
             case irr::video::ECOLOR_FORMAT::ECF_A8R8G8B8:
             {
-                return TextureFormat::BGRA8;
+                return TextureFormat::RGBA8;
             }
             //case :
             //{
@@ -513,7 +513,7 @@ namespace
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class IrrTexture final : public Noesis::Texture
+class NS_IRR_NOESIS_API IrrTexture final : public Noesis::Texture
 {
 public:
     IrrTexture(irr::video::ITexture* view_, uint32_t width_, uint32_t height_, uint32_t levels_,
@@ -524,7 +524,7 @@ public:
 
     uint32_t GetWidth() const override { return view->getSize().Width; }
     uint32_t GetHeight() const override { return view->getSize().Height; }
-    TextureFormat::Enum GetFormat() const override { return format; };
+    TextureFormat::Enum GetFormat() const { return format; };
     bool HasMipMaps() const override { return view->hasMipMaps(); }
     bool IsInverted() const override { return isInverted; }
 
@@ -543,7 +543,7 @@ NS_IMPLEMENT_REFLECTION(IrrTexture)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_IRR_NOESIS_API IrrRenderTarget final : public Noesis::RenderTarget
+class IrrRenderTarget final : public Noesis::RenderTarget
 {
 public:
     IrrRenderTarget(uint32_t width_, uint32_t height_, uint8_t sample_count_)
@@ -559,15 +559,7 @@ public:
 
     irr::Ptr<irr::video::IRenderTarget> renderTarget;
     Noesis::Ptr<IrrTexture> texture;
-
-	NS_DECLARE_REFLECTION(IrrRenderTarget, RenderTarget)
 };
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-NS_IMPLEMENT_REFLECTION(IrrRenderTarget)
-{
-	NsMeta<TypeId>("IrrRenderTarget");
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 NoesisApp::IrrRenderContext::IrrRenderContext()
@@ -628,9 +620,9 @@ void NoesisApp::IrrRenderContext::Init(void* window, uint32_t& samples, bool vsy
 	mVertices.reserve(mCaps.dynamicVerticesSize);
 	mIndices.reserve(mCaps.dynamicIndicesSize);
 
-	mCaps.supportedTextureFormats[TextureFormat::BGRA8] = true;
-	mCaps.supportedTextureFormats[TextureFormat::BGRX8] = true;
-	mCaps.supportedTextureFormats[TextureFormat::R8] = true;
+	//mCaps.supportedTextureFormats[TextureFormat::RGBA8] = true;
+	//mCaps.supportedTextureFormats[TextureFormat::BGRX8] = true;
+	//mCaps.supportedTextureFormats[TextureFormat::R8] = true;
 
     if (GetIrrDevice()->getVideoDriver()->getDriverType() == irr::video::E_DRIVER_TYPE::EDT_DIRECT3D11 ||
         GetIrrDevice()->getVideoDriver()->getDriverType() == irr::video::E_DRIVER_TYPE::EDT_DIRECT3D9)
@@ -942,10 +934,10 @@ Noesis::Ptr<Noesis::RenderTarget> NoesisApp::IrrRenderContext::CreateRenderTarge
 
     Noesis::Ptr<IrrRenderTarget> surface = Noesis::MakePtr<IrrRenderTarget>(width, height, sampleCount);
 
-	irr::Ptr<irr::video::ITexture> renderTargetTex = *mContext->getVideoDriver()->addRenderTargetTexture(irr::core::dimension2d<irr::u32>(width, height), "RTT1", ToIrr(TextureFormat::BGRA8, false));
+	irr::Ptr<irr::video::ITexture> renderTargetTex = *mContext->getVideoDriver()->addRenderTargetTexture(irr::core::dimension2d<irr::u32>(width, height), "RTT1", ToIrr(TextureFormat::RGBA8, false));
 	irr::Ptr<irr::video::ITexture> renderTargetDepth = *mContext->getVideoDriver()->addRenderTargetTexture(irr::core::dimension2d<irr::u32>(width, height), "DepthStencil", irr::video::ECF_D32_S8X24);
 
-    Noesis::Ptr<IrrTexture> texture = Noesis::MakePtr<IrrTexture>(renderTargetTex, width, height, 1, TextureFormat::BGRA8, false);
+    Noesis::Ptr<IrrTexture> texture = Noesis::MakePtr<IrrTexture>(renderTargetTex, width, height, 1, TextureFormat::RGBA8, false);
 
     surface->renderTarget = *mContext->getVideoDriver()->addRenderTarget();
     surface->texture = texture;
@@ -964,11 +956,12 @@ Noesis::Ptr<RenderTarget> NoesisApp::IrrRenderContext::CloneRenderTarget(const c
 	IrrRenderTarget* irrSurface = static_cast<IrrRenderTarget*>(surface);
 
 	Noesis::Ptr<IrrRenderTarget> cloneSurface = Noesis::MakePtr<IrrRenderTarget>(irrSurface->width, irrSurface->height, irrSurface->sample_count);
+    IrrTexture* cloneTexture = static_cast<IrrTexture*>(irrSurface->GetTexture());
 	
-	irr::Ptr<irr::video::ITexture> renderTargetTex = *mContext->getVideoDriver()->addRenderTargetTexture(irr::core::dimension2d<irr::u32>(irrSurface->width, irrSurface->height), "CLONE_RTT1", ToIrr(irrSurface->GetTexture()->GetFormat(), false));
+	irr::Ptr<irr::video::ITexture> renderTargetTex = *mContext->getVideoDriver()->addRenderTargetTexture(irr::core::dimension2d<irr::u32>(irrSurface->width, irrSurface->height), "CLONE_RTT1", ToIrr(cloneTexture->GetFormat(), false));
 	irr::Ptr<irr::video::ITexture> renderTargetDepth = *mContext->getVideoDriver()->addRenderTargetTexture(irr::core::dimension2d<irr::u32>(irrSurface->width, irrSurface->height), "CLONE_DepthStencil", irr::video::ECF_D32_S8X24);
 	
-	Noesis::Ptr<IrrTexture> texture = Noesis::MakePtr<IrrTexture>(renderTargetTex, irrSurface->width, irrSurface->height, 1, irrSurface->GetTexture()->GetFormat(), false);
+	Noesis::Ptr<IrrTexture> texture = Noesis::MakePtr<IrrTexture>(renderTargetTex, irrSurface->width, irrSurface->height, 1, cloneTexture->GetFormat(), false);
 	
 	cloneSurface->renderTarget = *mContext->getVideoDriver()->addRenderTarget();
 	cloneSurface->texture = texture;
@@ -1192,9 +1185,9 @@ Ptr<IrrRenderContext> NoesisApp::CreateRenderContext(const char* name)
 	ComponentFactory* factory = NsGetKernel()->GetComponentFactory();
 
 	char id[256];
-	String::FormatBuffer(id, 256, "%sRenderContext", name);
+	snprintf(id, 256, "%sRenderContext", name);
 
-	return NsDynamicCast< Ptr<IrrRenderContext> >(factory->CreateComponent(NsSymbol(id)));
+	return Noesis::DynamicPtrCast<IrrRenderContext>(factory->CreateComponent(NsSymbol(id)));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////

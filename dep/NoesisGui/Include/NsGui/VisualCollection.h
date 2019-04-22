@@ -10,7 +10,8 @@
 
 #include <NsCore/Noesis.h>
 #include <NsGui/CoreApi.h>
-#include <NsGui/Collection.h>
+#include <NsGui/UICollection.h>
+#include <NsGui/Visual.h>
 
 
 namespace Noesis
@@ -19,43 +20,34 @@ namespace Noesis
 class Visual;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// VisualCollection. A collection of Visual objects.
+/// Represents an ordered collection of Visual objects. 
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.media.visualcollection.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API VisualCollection: public Collection
+class NS_GUI_CORE_API VisualCollection final: public UICollection<Visual>
 {
 public:
-    /// Default constructor
-    VisualCollection();
-
-    /// Constructor
     VisualCollection(Visual* visualParent);
-
-    /// Destructor
     ~VisualCollection();
 
-    /// Gets or sets visual parent
-    //@{
+    /// Gets visual parent of the items stored in this collection
     Visual* GetVisualParent() const;
-    void SetVisualParent(Visual* visualParent);
-    //@}
 
 protected:
-    /// From Collection
+    /// From BaseUICollection
     //@{
-    void OnItemAdded(BaseComponent* item, uint32_t index) override;
-    void OnItemRemoved(BaseComponent* item, uint32_t index) override;
-    bool CheckItem(BaseComponent* item) const override;
+    void OnItemAdded(BaseComponent* item) override;
+    void OnItemRemoved(BaseComponent* item) override;
+    void OnItemsRemoved() override;
     //@}
-
-private:
-    void ResetChildren();
 
 private:
     Visual* mVisualParent;
 
-    NS_DECLARE_REFLECTION(VisualCollection, Collection)
+    NS_DECLARE_REFLECTION(VisualCollection, BaseUICollection)
 };
 
 }
+
 
 #endif

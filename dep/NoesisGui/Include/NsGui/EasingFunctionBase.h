@@ -19,7 +19,9 @@
 namespace Noesis
 {
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Specifies how the animation associated with an easing function interpolates.
+////////////////////////////////////////////////////////////////////////////////////////////////////
 enum EasingMode
 {
     /// Interpolation follows 100% interpolation minus the output of the formula associated with 
@@ -36,8 +38,8 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Provides the base class for all the easing functions. You can create your
-/// own custom easing functions by inheriting from this class.
+/// Provides the base class for all the easing functions. You can create your own custom easing
+/// functions by inheriting from this class.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.easingfunctionbase.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -65,7 +67,7 @@ public:
     //@{
     static const DependencyProperty* EasingModeProperty;
     //@}
-    
+
 protected:
     /// Provides the logic portion of the easing function that you can override to produce the 
     /// EaseIn mode of the custom easing function
@@ -79,5 +81,6 @@ NS_WARNING_POP
 }
 
 NS_DECLARE_REFLECTION_ENUM_EXPORT(NS_GUI_ANIMATION_API, Noesis::EasingMode)
+
 
 #endif

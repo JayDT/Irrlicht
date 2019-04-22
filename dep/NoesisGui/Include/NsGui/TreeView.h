@@ -29,10 +29,7 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 class NS_GUI_CORE_API TreeView: public ItemsControl
 {
 public:
-    /// Constructor
     TreeView();
-
-    /// Destructor
     ~TreeView();
 
     /// Gets the selected item in a TreeView
@@ -42,8 +39,11 @@ public:
     typedef RoutedPropertyChangedEventHandler<Ptr<BaseComponent>>::Handler SelectedItemChangedT;
     UIElement::RoutedEvent_<SelectedItemChangedT> SelectedItemChanged();
 
-    /// Used by TreeViewItem implementation
+    // Used by TreeViewItem implementation
+    //@{
     virtual void ItemClicked(TreeViewItem* tvi);
+    void ResetSelectedItem();
+    //@}
 
 public:
     /// Dependency Properties
@@ -61,10 +61,11 @@ protected:
     // Notifies inheritors about SelectedItem property changes and raises SelectedItemChanged event
     virtual void OnSelectedItemChanged(const RoutedPropertyChangedEventArgs<Ptr<BaseComponent>>& e);
 
-    // From ItemsControl
+    /// From ItemsControl
     //@{
     Ptr<DependencyObject> GetContainerForItemOverride() const override;
     bool IsItemItsOwnContainerOverride(BaseComponent* item) const override;
+    void OnItemsChanged(const NotifyCollectionChangedEventArgs& args) override;
     //@}
 
     // From Control
@@ -72,29 +73,29 @@ protected:
     void OnIsFocusEngagedChanged(bool engaged) override;
     //@}
 
-    // From UIElement
+    /// From UIElement
     //@{
     void OnGotFocus(const RoutedEventArgs& e) override;
     //@}
 
-    // From DependencyObject
+    /// From DependencyObject
     //@{
     bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& e) override;
     //@}
 
 private:
     void TryFocusSelected();
-    void OnSelectedUnloaded(BaseComponent* sender, const RoutedEventArgs& e);
     BaseComponent* ItemFromContainer(TreeViewItem* tvi) const;
 
 private:
     Ptr<TreeViewItem> mSelectedContainer;
-    
+
     NS_DECLARE_REFLECTION(TreeView, ItemsControl)
 };
 
 NS_WARNING_POP
 
 }
+
 
 #endif

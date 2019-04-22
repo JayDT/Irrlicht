@@ -10,6 +10,7 @@
 
 #include <NsCore/Noesis.h>
 #include <NsGui/FrameworkElement.h>
+#include <NsGui/Enums.h>
 
 
 namespace Noesis
@@ -18,11 +19,7 @@ namespace Noesis
 class Brush;
 class Pen;
 class Geometry;
-class Transform;
 class MatrixTransform;
-enum PenLineCap;
-enum PenLineJoin;
-enum Stretch;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -52,7 +49,7 @@ public:
     void SetStretch(Stretch stretch);
     //@}
 
-    /// Gets or sets the Brush that specifies how the Shape outline is painted
+    /// Gets or sets the Brush that specifies how the shape's outline is painted
     //@{
     Brush* GetStroke() const;
     void SetStroke(Brush* stroke);
@@ -152,13 +149,7 @@ protected:
 
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
-    //@}
-
-    /// From FrameworkElement
-    //@{
-    uint32_t GetLogicalChildrenCount() const;
-    BaseComponent* GetLogicalChild(uint32_t index) const;
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
 private:
@@ -173,5 +164,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

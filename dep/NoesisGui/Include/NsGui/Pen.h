@@ -30,16 +30,13 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.pen.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API Pen: public Animatable, public IRenderProxyCreator
+class NS_GUI_CORE_API Pen final: public Animatable, public IRenderProxyCreator
 {
 public:
-    /// Constructor
     Pen();
-
-    /// Destructor
     ~Pen();
 
-    /// Gets or sets the fill the outline produced by this Pen
+    /// Gets or sets the Brush used to fill the outline produced by this Pen
     //@{
     Brush* GetBrush() const;
     void SetBrush(Brush* brush);
@@ -90,7 +87,7 @@ public:
     /// Indicates if pen is renderable
     bool IsRenderable() const;
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<Pen> Clone() const;
     Ptr<Pen> CloneCurrentValue() const;
@@ -151,5 +148,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

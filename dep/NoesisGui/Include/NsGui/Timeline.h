@@ -30,6 +30,7 @@ template<class T> class Nullable;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Specifies how a Timeline behaves when it is outside its active period but its parent is 
 /// inside its active or hold period
+////////////////////////////////////////////////////////////////////////////////////////////////////
 enum FillBehavior
 {
     /// After it reaches the end of its active period, the timeline holds its progress until the 
@@ -50,8 +51,7 @@ struct TimelineEventArgs: public EventArgs
     TimelineEventArgs(DependencyObject* t = 0): target(t) { }
 };
 
-typedef Delegate<void (BaseComponent*, const TimelineEventArgs&)> 
-    TimelineEventHandler;
+typedef Delegate<void (BaseComponent*, const TimelineEventArgs&)> TimelineEventHandler;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -92,9 +92,9 @@ public:
     //@}
     
     /// Gets or sets the time at which this Timeline should begin.
-    /// A timeline's own SpeedRatio setting does not affect its BeginTime. For example, 
-    /// a timeline with a BeginTime of 5 seconds, a SpeedRatio of 2, and a parent timeline
-    /// with a SpeedRatio of 1 starts after 5 seconds, not 2.5.
+    /// A timeline's own *SpeedRatio* setting does not affect its BeginTime. For example, a
+    /// timeline with a *BeginTime* of 5 seconds, a *SpeedRatio* of 2, and a parent timeline
+    /// with a *SpeedRatio* of 1 starts after 5 seconds, not 2.5.
     //@{
     const Nullable<TimeSpan>& GetBeginTime() const;
     void SetBeginTime(const Nullable<TimeSpan>& time);
@@ -148,9 +148,17 @@ public:
     /// Gets the duration of the timeline when duration is set to automatic
     virtual Duration GetNaturalDuration(Clock* clock) const;
 
+    /// Gets duration of a single pass (without the reverse)
     const Duration& GetSinglePassDuration() const;
+
+    /// Gets duration of a complete pass (with the reverse, if applicable)
     const Duration& GetIterationDuration() const;
+
+    /// Gets total duration of the animation (with repetitions and autoreverse, but without
+    /// BeginTime nor SpeedRatio)
     const Duration& GetTotalDuration() const;
+
+    /// Indicates that the total duration is not affected by SpeedRatio
     bool IsTotalDurationAbsolute() const;
 
     const Duration& GetNormalizedDuration() const;
@@ -158,12 +166,13 @@ public:
     /// Computes the effective durations of the timeline
     void CalculateEffectiveDurations();
 
+    /// Calculated as TotalDuration / SpeedRatio + BeginTime
     virtual Duration GetEffectiveDuration() const = 0;
 
     // Called when an owner clock is being destroyed
     virtual void OnClockDestroyed(const Clock* clock);
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<Timeline> Clone() const;
     Ptr<Timeline> CloneCurrentValue() const;
@@ -186,12 +195,11 @@ public:
 
 protected:
     /// Creates a Clock for this Timeline
-    virtual Ptr<Clock> CreateClockCore(TimeManager* timeManager,
-        bool hasControllableRoot) = 0;
-    
+    virtual Ptr<Clock> CreateClockCore(TimeManager* timeManager, bool hasControllableRoot) = 0;
+
     // From Freezable
     //@{
-    void CloneCommonCore(const Freezable* source);
+    void CloneCommonCore(const Freezable* source) override;
     //@}
 
 private:
@@ -201,25 +209,14 @@ private:
     friend class Storyboard;
     friend class TimeManager;
 
-    /// Duration of a single pass (without the reverse)
     Duration mSinglePassDurationInternal;
-    
-    /// Duration of a complete pass (with the reverse, if applicable)
     Duration mIterationDurationInternal;
-    
-    /// Total duration of the animation, with repetitions and autoreverse, but without begintime nor
-    /// speedration
     Duration mTotalDurationInternal;
-    
-    /// Indicates that the total duration is not affected by speedratio
     bool mTotalDurationAbsolute;
-    
-    /// TotalDuration / speedratio + begintime
     Duration mNormalizedDurationInternal;
 
-    /// Handler to be launched at end of timeline
     TimelineEventHandler mCompleted;
-    
+
     NS_DECLARE_REFLECTION(Timeline, Animatable)
 };
 
@@ -228,5 +225,6 @@ NS_WARNING_POP
 }
 
 NS_DECLARE_REFLECTION_ENUM_EXPORT(NS_GUI_ANIMATION_API, Noesis::FillBehavior)
+
 
 #endif

@@ -6,6 +6,8 @@
 
 #include <NsMath/Utils.h>
 
+#include <math.h>
+
 
 namespace Noesis
 {
@@ -14,7 +16,7 @@ namespace Noesis
 template<class T> 
 T Length(const Vector2<T>& v)
 {
-    return Sqrt(v.x * v.x + v.y * v.y);
+    return sqrtf(v.x * v.x + v.y * v.y);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -135,14 +137,14 @@ const Vector2<T> Lerp(const Vector2<T>& v0, const Vector2<T>& v1, float t)
 template<class T> 
 T SignedAngle(const Vector2<T>& v0, const Vector2<T>& v1)
 {
-    return ATan2(PerpDot(v0, v1), Dot(v0, v1));
+    return atan2f(PerpDot(v0, v1), Dot(v0, v1));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T> 
 T Length(const Vector3<T>& v)
 {
-    return Sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+    return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -237,7 +239,7 @@ Vector3<T> Cross(const Vector3<T>& v0, const Vector3<T>& v1)
 template<class T> 
 T Length(const Vector4<T>& v)
 {
-    return Sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+    return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -29,7 +29,7 @@ Matrix2<T> Inverse(const Matrix2<T>& m)
 template<class T>
 Matrix2<T> Inverse(const Matrix2<T>& m, T determinant)
 {
-    NS_ASSERT(Abs(determinant) > std::numeric_limits<T>::epsilon());
+    NS_ASSERT(fabsf(determinant) > std::numeric_limits<T>::epsilon());
     return Matrix2<T>(m[1][1], -m[0][1], -m[1][0], m[0][0]) / determinant;
 }
 
@@ -61,8 +61,8 @@ Matrix2<T> PreRot(T radians, const Matrix2<T>& m)
 {
     Matrix2<T> res;
     
-    T cs = Cos(radians);
-    T sn = Sin(radians);
+    T cs = cosf(radians);
+    T sn = sinf(radians);
     
     res[0][0] = m[0][0] * cs + m[1][0] * sn;
     res[0][1] = m[0][1] * cs + m[1][1] * sn;
@@ -94,8 +94,8 @@ Matrix2<T> PostRot(const Matrix2<T>& m, T radians)
 {
     Matrix2<T> res;
     
-    T cs = Cos(radians);
-    T sn = Sin(radians);
+    T cs = cosf(radians);
+    T sn = sinf(radians);
     
     res[0][0] = m[0][0] * cs - m[0][1] * sn; 
     res[0][1] = m[0][1] * cs + m[0][0] * sn;
@@ -154,7 +154,7 @@ Matrix3<T> Transpose(const Matrix3<T>& m)
 template<class T>
 bool IsAffine(const Matrix3<T>& m)
 {
-    return Abs(LengthSquared(Vector3<T>(m[0][2], m[1][2], m[2][2]) - Vector3<T>(T(0.0), T(0.0), 
+    return fabsf(LengthSquared(Vector3<T>(m[0][2], m[1][2], m[2][2]) - Vector3<T>(T(0.0), T(0.0), 
         T(1.0)))) < 0.00001f;
 }
 
@@ -163,7 +163,7 @@ template<class T>
 Matrix3<T> Inverse(const Matrix3<T>& m)
 {
     T determinant = Determinant(m);
-    NS_ASSERT(Abs(determinant) > std::numeric_limits<T>::epsilon());
+    NS_ASSERT(fabsf(determinant) > std::numeric_limits<T>::epsilon());
     return Inverse(m, determinant);    
 }
 
@@ -171,7 +171,7 @@ Matrix3<T> Inverse(const Matrix3<T>& m)
 template<class T>
 Matrix3<T> Inverse(const Matrix3<T>& m, T determinant)
 {
-    NS_ASSERT(Abs(determinant) > std::numeric_limits<T>::epsilon());
+    NS_ASSERT(fabsf(determinant) > std::numeric_limits<T>::epsilon());
     
     return Matrix3<T>(m[1][1] * m[2][2] - m[1][2] * m[2][1],
         m[0][2] * m[2][1] - m[0][1] * m[2][2],
@@ -222,8 +222,8 @@ Matrix3<T> PreRotX(T radians, const Matrix3<T>& m)
 {
     Matrix3<T> res;
     
-    T cs = Cos(radians);
-    T sn = Sin(radians);
+    T cs = cosf(radians);
+    T sn = sinf(radians);
     
     res[0] = m[0]; 
         
@@ -244,8 +244,8 @@ Matrix3<T> PreRotY(T radians, const Matrix3<T>& m)
 {
     Matrix3<T> res;
     
-    T cs = Cos(radians);
-    T sn = Sin(radians);
+    T cs = cosf(radians);
+    T sn = sinf(radians);
     
     res[0][0] = m[0][0] * cs + m[2][0] * sn; 
     res[0][1] = m[0][1] * cs + m[2][1] * sn;
@@ -266,8 +266,8 @@ Matrix3<T> PreRotZ(T radians, const Matrix3<T>& m)
 {
     Matrix3<T> res;
     
-    T cs = Cos(radians);
-    T sn = Sin(radians);
+    T cs = cosf(radians);
+    T sn = sinf(radians);
     
     res[0][0] = m[0][0] * cs + m[1][0] * sn; 
     res[0][1] = m[0][1] * cs + m[1][1] * sn;
@@ -309,8 +309,8 @@ Matrix3<T> PostRotX(const Matrix3<T>& m, T radians)
 {
     Matrix3<T> res;
     
-    T cs = Cos(radians);
-    T sn = Sin(radians);
+    T cs = cosf(radians);
+    T sn = sinf(radians);
     
     res[0][0] = m[0][0]; 
     res[0][1] = m[0][1] * cs - m[0][2] * sn;
@@ -333,8 +333,8 @@ Matrix3<T> PostRotY(const Matrix3<T>& m, T radians)
 {
     Matrix3<T> res;
     
-    T cs = Cos(radians);
-    T sn = Sin(radians);
+    T cs = cosf(radians);
+    T sn = sinf(radians);
     
     res[0][0] = m[0][0] * cs - m[0][2] * sn; 
     res[0][1] = m[0][1];
@@ -357,8 +357,8 @@ Matrix3<T> PostRotZ(const Matrix3<T>& m, T radians)
 {
     Matrix3<T> res;
     
-    T cs = Cos(radians);
-    T sn = Sin(radians);
+    T cs = cosf(radians);
+    T sn = sinf(radians);
     
     res[0][0] = m[0][0] * cs - m[0][1] * sn; 
     res[0][1] = m[0][1] * cs + m[0][0] * sn;
@@ -427,7 +427,7 @@ Matrix4<T> Transpose(const Matrix4<T>& m)
 template<class T>
 bool IsAffine(const Matrix4<T>& m)
 {
-    return Abs(LengthSquared(Vector4<T>(m[0][3], m[1][3], m[2][3], m[3][3]) - 
+    return fabsf(LengthSquared(Vector4<T>(m[0][3], m[1][3], m[2][3], m[3][3]) - 
         Vector4<T>(T(0.0), T(0.0), T(0.0), T(1.0)))) < 0.00001f;
 }
 

@@ -31,15 +31,15 @@ struct NS_GUI_CORE_API RenderOptions
     static const DependencyProperty* BitmapScalingModeProperty;
     //@}
 
-    /// Gets or sets the BitmapScalingMode for a given DependencyObject
-    //@{
+    /// Gets the *BitmapScalingMode* for a given DependencyObject
     static BitmapScalingMode GetBitmapScalingMode(const DependencyObject* obj);
+    /// Sets the *BitmapScalingMode* for a given DependencyObject
     static void SetBitmapScalingMode(DependencyObject* obj, BitmapScalingMode bitmapScalingMode);
-    //@}
 
     NS_DECLARE_REFLECTION(RenderOptions, NoParent)
 };
 
 }
+
 
 #endif

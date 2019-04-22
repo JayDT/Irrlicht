@@ -21,7 +21,7 @@ class Stream;
 
 struct FontSource
 {
-    // Font file (.ttf .otf)
+    // Font file (.ttf .otf .ttc)
     Ptr<Stream> file;
     
     // Index of the face in the font file, starting with value 0

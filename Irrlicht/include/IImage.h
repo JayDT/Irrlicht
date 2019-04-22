@@ -219,7 +219,7 @@ public:
             case ECF_B8G8R8X8:
             case ECF_R8:
 			case ECF_R8G8:
-				return false;
+                return false;
 			default:
 				return true;
 		}

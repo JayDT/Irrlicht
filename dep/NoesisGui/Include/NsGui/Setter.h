@@ -30,22 +30,22 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 class NS_GUI_CORE_API Setter: public BaseSetter
 {
 public:
-    /// Constructor
     Setter();
+    ~Setter();
 
-    /// Gets or sets the name of the target element
+    /// Gets or sets the name of the object this Setter is intended for
     //@{
     const char* GetTargetName() const;
     void SetTargetName(const char* targetName);
     //@}
 
-    /// Gets or sets property
+    /// Gets or sets the property to which the Setter will be applied
     //@{
     const DependencyProperty* GetProperty() const;
     void SetProperty(const DependencyProperty* property);
     //@}
 
-    /// Gets or sets value
+    /// Gets or sets value to apply to the property that is specified by this Setter
     //@{
     BaseComponent* GetValue() const;
     void SetValue(BaseComponent* value);
@@ -67,5 +67,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

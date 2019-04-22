@@ -25,70 +25,27 @@ namespace Noesis
 {
 
 template<class T> class KeyFrame;
-template<class T> class TypedFreezableCollection;
+template<class T> class FreezableCollection;
 template<class T> const char* AnimationUsingKeyFramesIdOf();
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Animates the value of a T property along a set of KeyFrames.
+/// Animates the value of a T property along a set of *KeyFrames*.
+///
 /// Existing types are:
-///
-/// *BooleanAnimationUsingKeyFrames*:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.booleananimationusingkeyframes.aspx
-///
-///
-/// *DoubleAnimationUsingKeyFrames*:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.doubleanimationusingkeyframes.aspx
-///
-///
-/// *Int16AnimationUsingKeyFrames*:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.int16animationusingkeyframes.aspx
-///
-///
-/// *Int32AnimationUsingKeyFrames*:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.int32animationusingkeyframes.aspx
-///
-///
-/// *ColorAnimationUsingKeyFrames*:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.coloranimationusingkeyframes.aspx
-///
-///
-/// *PointAnimationUsingKeyFrames*:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.pointanimationusingkeyframes.aspx
-///
-///
-/// *RectAnimationUsingKeyFrames*:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.rectanimationusingkeyframes.aspx
-///
-///
-/// *SizeAnimationUsingKeyFrames*:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.sizeanimationusingkeyframes.aspx
-///
-///
-/// *ThicknessAnimationUsingKeyFrames*:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.thicknessanimationusingkeyframes.aspx
-///
-///
-/// *ObjectAnimationUsingKeyFrames*:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.objectanimationusingkeyframes.aspx
-///
-///
-/// *StringAnimationUsingKeyFrames*:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.stringanimationusingkeyframes.aspx
-///
+/// `BooleanAnimationUsingKeyFrames <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.booleananimationusingkeyframes.aspx>`_,
+/// `DoubleAnimationUsingKeyFrames <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.doubleanimationusingkeyframes.aspx>`_,
+/// `Int16AnimationUsingKeyFrames <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.int16animationusingkeyframes.aspx>`_,
+/// `Int32AnimationUsingKeyFrames <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.int32animationusingkeyframes.aspx>`_,
+/// `ColorAnimationUsingKeyFrames <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.coloranimationusingkeyframes.aspx>`_,
+/// `PointAnimationUsingKeyFrames <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.pointanimationusingkeyframes.aspx>`_,
+/// `RectAnimationUsingKeyFrames <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.rectanimationusingkeyframes.aspx>`_,
+/// `SizeAnimationUsingKeyFrames <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.sizeanimationusingkeyframes.aspx>`_,
+/// `ThicknessAnimationUsingKeyFrames <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.thicknessanimationusingkeyframes.aspx>`_,
+/// `ObjectAnimationUsingKeyFrames <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.objectanimationusingkeyframes.aspx>`_ and
+/// `StringAnimationUsingKeyFrames <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.stringanimationusingkeyframes.aspx>`_
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
 class NS_GUI_ANIMATION_API AnimationUsingKeyFrames final: public AnimationTimeline
@@ -97,10 +54,13 @@ public:
     AnimationUsingKeyFrames();
     ~AnimationUsingKeyFrames();
 
-    /// Gets the collection of KeyFrame objects that define the animation
-    TypedFreezableCollection<KeyFrame<T>>* GetKeyFrames() const;
+    /// Gets the type of value this animation generates
+    const Type* GetTargetPropertyType() const override;
 
-    /// From Freezable
+    /// Gets the collection of KeyFrame objects that define the animation
+    FreezableCollection<KeyFrame<T>>* GetKeyFrames() const;
+
+    // Hides Freezable methods for convenience
     //@{
     Ptr<AnimationUsingKeyFrames<T>> Clone() const;
     Ptr<AnimationUsingKeyFrames<T>> CloneCurrentValue() const;
@@ -114,7 +74,7 @@ public:
 
 private:
     void EnsureKeyFrames() const;
-    
+
     void OrderFrames(Clock* clock);
     int FindPrevFrame(uint32_t current, bool checkUniforms) const;
     int FindNextFrame(uint32_t current, bool checkUniforms) const;
@@ -142,9 +102,8 @@ private:
     Ptr<AnimationTimeline> CreateTransitionTo() const override;
     //@}
 
-
 private:
-    mutable Ptr<TypedFreezableCollection<KeyFrame<T>>> mKeyFrames;
+    mutable Ptr<FreezableCollection<KeyFrame<T>>> mKeyFrames;
 
     NsVector<eastl::pair<Ptr<KeyFrame<T>>, double>> mOrderedFrames;
     mutable Duration mNaturalDuration;
@@ -168,17 +127,17 @@ typedef AnimationUsingKeyFrames<Ptr<Noesis::BaseComponent>> ObjectAnimationUsing
 typedef AnimationUsingKeyFrames<NsString> StringAnimationUsingKeyFrames;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-typedef TypedFreezableCollection<KeyFrame<bool>> BooleanKeyFrameCollection;
-typedef TypedFreezableCollection<KeyFrame<float>> DoubleKeyFrameCollection;
-typedef TypedFreezableCollection<KeyFrame<int16_t>> Int16KeyFrameCollection;
-typedef TypedFreezableCollection<KeyFrame<int32_t>> Int32KeyFrameCollection;
-typedef TypedFreezableCollection<KeyFrame<Noesis::Color>> ColorKeyFrameCollection;
-typedef TypedFreezableCollection<KeyFrame<Noesis::Point>> PointKeyFrameCollection;
-typedef TypedFreezableCollection<KeyFrame<Noesis::Rect>> RectKeyFrameCollection;
-typedef TypedFreezableCollection<KeyFrame<Noesis::Size>> SizeKeyFrameCollection;
-typedef TypedFreezableCollection<KeyFrame<Noesis::Thickness>> ThicknessKeyFrameCollection;
-typedef TypedFreezableCollection<KeyFrame<Ptr<Noesis::BaseComponent>>> ObjectKeyFrameCollection;
-typedef TypedFreezableCollection<KeyFrame<NsString>> StringKeyFrameCollection;
+typedef FreezableCollection<KeyFrame<bool>> BooleanKeyFrameCollection;
+typedef FreezableCollection<KeyFrame<float>> DoubleKeyFrameCollection;
+typedef FreezableCollection<KeyFrame<int16_t>> Int16KeyFrameCollection;
+typedef FreezableCollection<KeyFrame<int32_t>> Int32KeyFrameCollection;
+typedef FreezableCollection<KeyFrame<Noesis::Color>> ColorKeyFrameCollection;
+typedef FreezableCollection<KeyFrame<Noesis::Point>> PointKeyFrameCollection;
+typedef FreezableCollection<KeyFrame<Noesis::Rect>> RectKeyFrameCollection;
+typedef FreezableCollection<KeyFrame<Noesis::Size>> SizeKeyFrameCollection;
+typedef FreezableCollection<KeyFrame<Noesis::Thickness>> ThicknessKeyFrameCollection;
+typedef FreezableCollection<KeyFrame<Ptr<Noesis::BaseComponent>>> ObjectKeyFrameCollection;
+typedef FreezableCollection<KeyFrame<NsString>> StringKeyFrameCollection;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<> inline const char* AnimationUsingKeyFramesIdOf<BooleanAnimationUsingKeyFrames>() 
@@ -205,5 +164,6 @@ template<> inline const char* AnimationUsingKeyFramesIdOf<StringAnimationUsingKe
 { return "StringAnimationUsingKeyFrames"; }
 
 }
+
 
 #endif

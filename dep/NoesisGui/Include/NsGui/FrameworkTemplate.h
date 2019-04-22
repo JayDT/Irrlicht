@@ -27,8 +27,8 @@ class NameScope;
 class ResourceDictionary;
 class BaseTrigger;
 
-template<class T> class TypedCollection;
-typedef Noesis::TypedCollection<Noesis::BaseTrigger> TriggerCollection;
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::BaseTrigger> TriggerCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -38,8 +38,8 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.frameworktemplate.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API FrameworkTemplate: public BaseComponent,public INameScope,
-    public ISealable, public IUITreeNode
+class NS_GUI_CORE_API FrameworkTemplate: public BaseComponent, public INameScope, public ISealable,
+    public IUITreeNode
 {
 public:
     NS_DISABLE_COPY(FrameworkTemplate)
@@ -47,17 +47,16 @@ public:
     FrameworkTemplate();
     virtual ~FrameworkTemplate() = 0;
 
-    /// Applies current template to the element specified
+    /// Applies current template to the specified element
     Ptr<FrameworkElement> Apply(FrameworkElement* templatedParent) const;
 
-    /// Gets or sets the collection of resources that can be used within the scope of 
-    /// this template.
+    /// Gets or sets the collection of resources that can be used within the scope of this template
     //@{
     ResourceDictionary* GetResources() const;
     void SetResources(ResourceDictionary* resources);
     //@}
 
-    /// Gets or sets the root node of the template.
+    /// Gets or sets the root node of the template
     //@{
     Visual* GetVisualTree() const;
     void SetVisualTree(Visual* root);
@@ -122,5 +121,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

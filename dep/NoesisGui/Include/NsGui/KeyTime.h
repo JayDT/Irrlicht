@@ -44,7 +44,6 @@ enum KeyTimeType
 class NS_GUI_ANIMATION_API KeyTime
 {
 public:
-    /// Default constructor
     KeyTime();
 
     /// Creates a new KeyTime instance, with the KeyTimeType property initialized to the value of 
@@ -103,5 +102,6 @@ private:
 }
 
 #include <NsGui/KeyTime.inl>
+
 
 #endif

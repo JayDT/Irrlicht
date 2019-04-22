@@ -42,7 +42,7 @@ class Freezable;
 class ChangedHandler;
 struct ProviderValue;
 struct DependencyPropertyChangedEventArgs;
-NS_INTERFACE IExpression;
+class Expression;
 template<class T> class ValueStorageManagerImpl;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -107,7 +107,7 @@ public:
     /// Returns the local value of a dependency property, if it exists. 
     Ptr<BaseComponent> GetLocalValue(const DependencyProperty* dp) const;
     
-    /// Returns the base value without animation nor coerce (this never returns IExpression like
+    /// Returns the base value without animation nor coerce (this never returns Expression like
     /// GetLocalValue)
     template<class T>
     const T& GetBaseValue(const DependencyProperty* dp) const;
@@ -129,7 +129,7 @@ public:
     void SetCurrentValueObject(const DependencyProperty* dp, const Ptr<BaseComponent>& value);
 
     /// Sets the expression to be evaluated dynamically to obtain the value of the property
-    void SetExpression(const DependencyProperty* dp, IExpression* expression);
+    void SetExpression(const DependencyProperty* dp, Expression* expression);
 
     /// Clears the local value of a property
     /// The property to be cleared is specified by a DependencyProperty identifier
@@ -157,6 +157,9 @@ public:
     /// Returns if the value is stored in the cache. If true, the priority is returned in the 
     /// provider field
     bool IsCached(const DependencyProperty* dp, uint8_t* provider) const;
+
+    /// Gets a value that indicates whether this instance is currently sealed (read-only)
+    bool IsSealed() const;
 
     /// Returns true if there is any animated property
     bool HasAnimatedProperties() const;
@@ -189,7 +192,6 @@ protected:
 
     // Sealed objects cannot be modified
     void Seal();
-    bool IsSealed() const;
 
     // Called to initialize inheritors
     virtual void OnInit();
@@ -221,9 +223,9 @@ protected:
 
     void ClearReadOnlyProperty(const DependencyProperty* dp);
 
-    void SetReadOnlyExpression(const DependencyProperty* dp, IExpression* expr) const;
+    void SetReadOnlyExpression(const DependencyProperty* dp, Expression* expr) const;
 
-    void InternalSetExpression(const DependencyProperty* dp, IExpression* newExpression,
+    void InternalSetExpression(const DependencyProperty* dp, Expression* newExpression,
         uint8_t priority);
 
 protected:
@@ -256,11 +258,11 @@ private:
         const PropertyMetadata* metadata) const;
     StoredValue* ValidateAndGetEntry(const void *value, const DependencyProperty *dp,
         bool& justCreated);
-    bool EvaluateLocalExpression(IExpression*& newExpression, StoredValue& sv, 
+    bool EvaluateLocalExpression(Expression*& newExpression, StoredValue& sv, 
         const DependencyProperty* dp, const void* value, bool valueChanged);
-    void NotifyLocalExpression(IExpression* expression, const DependencyProperty* dp, 
+    void NotifyLocalExpression(Expression* expression, const DependencyProperty* dp, 
         const void* value, bool valueChanged);
-    void StoreExpression(IExpression* expression, StoredValue& sv);
+    void StoreExpression(Expression* expression, StoredValue& sv);
 
     // SetValue helpers
     //@{
@@ -278,7 +280,7 @@ private:
     //@}
 
     void InternalSetValue(const DependencyProperty* dp, void* oldValue, const void* newValue,
-        void* coercedValue, uint8_t priority, IExpression* newExpression,
+        void* coercedValue, uint8_t priority, Expression* newExpression,
         const PropertyMetadata* metadata, Value::Destination destination, bool isBaseComponent);
     void InternalClearAnimation(const DependencyProperty* dp, void* oldValue,
         void* coercedValue, void* baseValue, bool isBaseComponent);

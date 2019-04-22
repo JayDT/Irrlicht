@@ -27,10 +27,7 @@ class TextBlock;
 class NS_GUI_CORE_API ContentPresenter: public FrameworkElement
 {
 public:
-    /// Constructor
     ContentPresenter();
-
-    /// Destructor
     ~ContentPresenter();
 
     /// Gets or sets content
@@ -39,24 +36,33 @@ public:
     void SetContent(BaseComponent* content);
     void SetContent(const char* content);
     //@}
-    
+
     /// Gets or sets the base name to use during automatic aliasing.
     //@{
     const char* GetContentSource() const;
     void SetContentSource(const char* source);
     //@}
-    
-    /// Gets or sets the template used to display the content of the control. 
+
+    /// Gets or sets the template used to display the content of the control.
     //@{
     DataTemplate* GetContentTemplate() const;
     void SetContentTemplate(DataTemplate* value);
     //@}
-    
-    /// Gets or sets the DataTemplateSelector, which allows the application writer to provide 
+
+    /// Gets or sets the DataTemplateSelector, which allows the application writer to provide
     /// custom logic for choosing the template that is used to display the content of the control.
     //@{
     DataTemplateSelector* GetContentTemplateSelector() const;
     void SetContentTemplateSelector(DataTemplateSelector* selector);
+    //@}
+
+public:
+    /// Dependency properties
+    //@{
+    static const DependencyProperty* ContentProperty;
+    static const DependencyProperty* ContentSourceProperty;
+    static const DependencyProperty* ContentTemplateProperty;
+    static const DependencyProperty* ContentTemplateSelectorProperty;
     //@}
 
 protected:
@@ -68,13 +74,14 @@ protected:
 
     /// From DependencyProperty
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    void OnInit() override;
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
     /// From FrameworkElement
     //@{
-    void CloneOverride(FrameworkElement* clone, FrameworkTemplate* template_) const;
-    Size MeasureOverride(const Size& availableSize);
+    void CloneOverride(FrameworkElement* clone, FrameworkTemplate* template_) const override;
+    Size MeasureOverride(const Size& availableSize) override;
     //@}
 
 private:
@@ -93,15 +100,6 @@ private:
 
     bool UsingDefaultTemplate() const;
     bool UsingContentTemplate() const;
-
-public:
-    /// Dependency properties
-    //@{
-    static const DependencyProperty* ContentProperty;
-    static const DependencyProperty* ContentSourceProperty;
-    static const DependencyProperty* ContentTemplateProperty;
-    static const DependencyProperty* ContentTemplateSelectorProperty;
-    //@}
 
 private:
     bool mRefreshVisualTree;

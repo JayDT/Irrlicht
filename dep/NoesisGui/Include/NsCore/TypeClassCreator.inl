@@ -40,10 +40,10 @@ void TypeClassCreator::Fill(Type* type)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T, class ...Args>
-Ptr<T> TypeClassCreator::Meta(Args... args)
+T* TypeClassCreator::Meta(Args... args)
 {
     Ptr<T> metaData = *new T(args...);
-    mTypeClass->GetMetaData().Add(metaData.GetPtr());
+    mTypeClass->GetMetaData().Add(metaData);
     return metaData;
 }
 
@@ -51,12 +51,11 @@ Ptr<T> TypeClassCreator::Meta(Args... args)
 template<class ClassT, class T>
 void TypeClassCreator::Impl()
 {
-    enum { isDerived = IsDerived<ClassT, T>::Result };
-    static_assert(isDerived, "class does not implement specified interface");
+    static_assert(IsDerived<ClassT, T>::Result, "class does not implement specified interface");
     static_assert(IsInterface<T>::Result, "NsImpl used with non interface class");
 
     uint32_t offset = CalculateParentOffset<ClassT, T>();
-    mTypeClass->AddInterface(T::StaticGetClassType((T2T<T>*)0), offset);
+    mTypeClass->AddInterface(T::StaticGetClassType((TypeTag<T>*)nullptr), offset);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,7 +118,7 @@ template<class ClassT, class T>
 typename TypeClassCreator::TypePropertyCreator TypeClassCreator::Prop(const char* name,
     T (ClassT::*getter)() const)
 {
-    typedef typename IsConst<typename IsReference<T>::NonReferenceType>::NonConstType Type;
+    typedef RemoveConst<RemoveReference<T>> Type;
     TypeProperty* typeProperty = new TypePropertyFunction<ClassT, Type>(NsSymbol(name), getter, 0);
     mTypeClass->AddProperty(typeProperty);
 
@@ -131,7 +130,7 @@ template<class ClassT, class T>
 typename TypeClassCreator::TypePropertyCreator TypeClassCreator::Prop(const char* name,
     T (ClassT::*getter)() const, void (ClassT::*setter)(T))
 {
-    typedef typename IsConst<typename IsReference<T>::NonReferenceType>::NonConstType Type;
+    typedef RemoveConst<RemoveReference<T>> Type;
     TypeProperty* typeProperty = new TypePropertyFunction<ClassT, Type>(NsSymbol(name), getter,
         setter);
     mTypeClass->AddProperty(typeProperty);
@@ -167,8 +166,7 @@ typename TypeClassCreator::TypePropertyCreator TypeClassCreator::Event(const cha
 template<class ClassT, class T>
 void TypeClassCreator::Base(Int2Type<0>)
 {
-    enum { isDerived = IsDerived<ClassT, T>::Result };
-    static_assert(isDerived, "class does not derive from specified base");
+    static_assert(IsDerived<ClassT, T>::Result, "class does not derive from specified base");
 
     mTypeClass->AddBase(TypeOf<T>());
 }
@@ -191,7 +189,7 @@ typename TypeClassCreator::TypePropertyCreator&
 TypeClassCreator::TypePropertyCreator::Meta(Args... args)
 {
     Ptr<T> meta = *new T(args...);
-    mTypeProperty->GetMetaData().Add(meta.GetPtr());
+    mTypeProperty->GetMetaData().Add(meta);
     return *this;
 }
 

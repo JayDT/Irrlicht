@@ -23,17 +23,18 @@ class BaseComponent;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 NS_INTERFACE IListIndexer: public Interface
 {
-    /// Gets or sets the item at the specified index
-    /// \return False if index is out of bounds
-    //@{
-    virtual bool TryGet(uint32_t index, BaseComponent*& item) const = 0;
+    /// Gets the item at the specified index.
+    /// Returns false if index is out of bounds
+    virtual bool TryGet(uint32_t index, Ptr<BaseComponent>& item) const = 0;
+
+    /// Sets the item at the specified index.
+    /// Returns false if index is out of bounds
     virtual bool TrySet(uint32_t index, BaseComponent* item) = 0;
-    virtual bool TrySet(uint32_t index, const char* item) = 0;
-    //@}
 
     NS_IMPLEMENT_INLINE_REFLECTION_(IListIndexer, Interface)
 };
 
 }
+
 
 #endif

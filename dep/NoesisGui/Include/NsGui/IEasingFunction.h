@@ -16,16 +16,17 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// IEasingFunction
+/// Defines the basic functionality of an easing function.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 NS_INTERFACE IEasingFunction: public Interface
 {
-    /// Transforms normalized time to control the pace of an animation.
+    /// Transforms normalized time to control the pace of an animation
     virtual float Ease(float normalizedTime) = 0;
 
     NS_IMPLEMENT_INLINE_REFLECTION_(IEasingFunction, Interface)
 };
 
 }
+
 
 #endif

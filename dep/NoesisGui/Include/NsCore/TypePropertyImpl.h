@@ -45,7 +45,7 @@ protected:
     //@}
 
 private:
-    typedef typename IsConst<T>::NonConstType TT;
+    typedef RemoveConst<T> TT;
     uint32_t mOffset;
 };
 
@@ -113,7 +113,7 @@ private:
     };
 
 public:
-    typedef typename If<IsBestByCopy<T>::Result, ByCopy, ByRef>::Result Helper;
+    typedef If<IsBestByCopy<T>::Result, ByCopy, ByRef> Helper;
     typedef typename Helper::GetterFn GetterFn;
     typedef typename Helper::SetterFn SetterFn;
 

@@ -29,7 +29,7 @@ public:
     SineEase();
     ~SineEase();
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<SineEase> Clone() const;
     Ptr<SineEase> CloneCurrentValue() const;
@@ -38,17 +38,18 @@ public:
 protected:
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
     /// From EasingFunctionBase
     //@{
-    float EaseInCore(float normalizedTime);
+    float EaseInCore(float normalizedTime) override;
     //@}
 
     NS_DECLARE_REFLECTION(SineEase, EasingFunctionBase)
 };
 
 }
+
 
 #endif

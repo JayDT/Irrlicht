@@ -40,11 +40,11 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// BindingExpression. Provides high-level access to the definition of a binding, which connects the
-/// properties of binding target objects (UI elements), and any data source (for example, a
-/// database, an XML file, or any object that contains data).
+/// Contains information about a single instance of a Binding.
+///
+/// https://msdn.microsoft.com/en-us/library/system.windows.data.bindingexpression.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API BindingExpression: public BaseBindingExpression
+class NS_GUI_CORE_API BindingExpression final: public BaseBindingExpression
 {
 public:
     ~BindingExpression();
@@ -55,19 +55,19 @@ public:
 
     /// From BaseBindingExpression
     //@{
-    void UpdateTarget() const;
-    void UpdateSource() const;
+    void UpdateTarget() const override;
+    void UpdateSource() const override;
     //@}
 
-    /// From IExpression
+    /// From Expression
     //@{
-    Ptr<BaseComponent> Evaluate() const;
-    Ptr<IExpression> Reapply(DependencyObject* targetObject,
-        const DependencyProperty* targetProperty) const;
+    Ptr<BaseComponent> Evaluate() const override;
+    Ptr<Expression> Reapply(DependencyObject* targetObject,
+        const DependencyProperty* targetProperty) const override;
     BeforeSetAction BeforeSet(DependencyObject* obj, const DependencyProperty* prop, 
-        const void* value, bool valueChanged);
+        const void* value, bool valueChanged) override;
     void AfterSet(DependencyObject* obj, const DependencyProperty* prop, 
-        const void* value, bool valueChanged);
+        const void* value, bool valueChanged) override;
     //@}
 
 private:
@@ -102,8 +102,10 @@ private:
     bool IsSourceReadOnly() const;
     Ptr<BaseComponent> GetValue(const WeakPathElement& element, const Type*& valueType) const;
 
-    /// Checks if a converter is needed, creating one when required
-    bool CheckConverter(const Type* sourceType, BaseComponent* sourceVal) const;
+    // Checks if a converter is needed, creating one when required
+    bool CheckConverter(const Type* sourceType, BaseComponent* sourceVal,
+        const Type* targetType, BaseComponent* targetVal) const;
+    bool NeedsConverter(BaseComponent* value) const;
 
     void UpdateSourceInternal(const void* value) const;
     void TransferSourceValue(const void* value) const;
@@ -146,13 +148,10 @@ private:
     void OnCurrentChanged(BaseComponent* sender, const EventArgs& args);
     //@}
 
-    /// Event notification
+    // Event notification
     //@{
     void OnTargetLostFocus(BaseComponent*, const RoutedEventArgs& args);
-    //@}
 
-    // HACK #884
-    //@{
     void OnTargetDestroyed(DependencyObject* object);
     void OnSourceDestroyed(DependencyObject* object);
     //@}
@@ -160,7 +159,6 @@ private:
     bool IsTargetAlive() const;
 
 private:
-    /// Source object for the expression
     BaseComponent* mSource;
     FrameworkElement* mTargetElement;
     INameScope* mNameScope;
@@ -175,22 +173,27 @@ private:
         Ptr<IResourceKey> key;
     };
 
-    /// List of objects to access final source property
+    // List of objects to access final source property
     NsVector<WeakPathElement> mPaths;
 
-    /// Effective binding mode (never set to Default because the proper value is retrieved from 
-    /// metadata)
+    // Effective binding mode (never set to Default because proper value is retrieved from metadata)
     BindingMode mEffectiveBindingMode;
 
-    /// Value converter is used when source and target property types are different, or when set by
-    /// the user in the Converter field of the Binding class.
+    // Value converter is used when source and target property types are different, or when set by
+    // the user in the Converter field of the Binding class
     mutable Ptr<IValueConverter> mEffectiveConverter;
 
-    /// The effective fallback value to assign in case of fail in the binding
+    // The effective fallback value to assign in case of fail in the binding
     Ptr<BaseComponent> mEffectiveFallback;
-    
-    /// The effective UpdateSourceTrigger value to use
+
+    // The effective value to assign in case the final target value is null
+    Ptr<BaseComponent> mEffectiveTargetNull;
+
+    // The effective UpdateSourceTrigger value to use
     UpdateSourceTrigger mEffectiveUpdateSourceTrigger;
+
+    // The delay timer identifier
+    int mDelayTimer;
 
     union
     {
@@ -223,5 +226,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

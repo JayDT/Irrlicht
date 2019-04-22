@@ -4,8 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-#ifndef __GUI_BASECOLLECTION_H__
-#define __GUI_BASECOLLECTION_H__
+#ifndef __GUI_INOTIFYCOLLECTIONCHANGED_H__
+#define __GUI_INOTIFYCOLLECTIONCHANGED_H__
 
 
 #include <NsCore/Noesis.h>
@@ -20,6 +20,7 @@ namespace Noesis
 class BaseComponent;
 template<class T> class Delegate;
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 enum NotifyCollectionChangedAction
 {
     /// One item was added to the collection
@@ -45,14 +46,13 @@ struct NS_GUI_CORE_API NotifyCollectionChangedEventArgs
 {
 public:
     NotifyCollectionChangedAction action;
-    uint32_t oldIndex;
-    uint32_t newIndex;
+    int oldIndex;
+    int newIndex;
     BaseComponent* oldValue;
     BaseComponent* newValue;
 
-    /// Constructor
     NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction a,
-        uint32_t oldIdx, uint32_t newIdx, BaseComponent* oldVal, BaseComponent* newVal);
+        int oldIdx, int newIdx, BaseComponent* oldVal, BaseComponent* newVal);
 
 private:
     NS_DECLARE_REFLECTION(NotifyCollectionChangedEventArgs, NoParent)
@@ -70,11 +70,13 @@ typedef Delegate<void (BaseComponent*, const NotifyCollectionChangedEventArgs&)>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 NS_INTERFACE INotifyCollectionChanged: public Interface
 {
+    /// Occurs when the collection changes
     virtual NotifyCollectionChangedEventHandler& CollectionChanged() = 0;
 
     NS_IMPLEMENT_INLINE_REFLECTION_(INotifyCollectionChanged, Interface)
 };
 
 }
+
 
 #endif

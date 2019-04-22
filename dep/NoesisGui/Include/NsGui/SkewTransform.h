@@ -16,12 +16,12 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Represents a 2-D skew. It is useful for creating the illusion of 3-dimensional
+/// Represents a 2D skew. It is useful for creating the illusion of 3-dimensional
 /// depth in a 2D object.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.skewtransform.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API SkewTransform: public Transform
+class NS_GUI_CORE_API SkewTransform final: public Transform
 {
 public:
     SkewTransform();
@@ -56,10 +56,10 @@ public:
 
     /// From Transform
     //@{
-    Transform2f GetTransform() const;
+    Transform2f GetTransform() const override;
     //@}
 
-    /// From Freezable
+    /// Hides Freezable methods for convenience
     //@{
     Ptr<SkewTransform> Clone() const;
     Ptr<SkewTransform> CloneCurrentValue() const;
@@ -67,9 +67,9 @@ public:
 
     /// From IRenderProxyCreator
     //@{
-    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UnregisterRenderer(ViewId viewId);
+    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UnregisterRenderer(ViewId viewId) override;
     //@}
 
 public:
@@ -84,12 +84,12 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& e);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& e) override;
     //@}
 
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
 private:
@@ -107,5 +107,6 @@ private:
 };
 
 }
+
 
 #endif

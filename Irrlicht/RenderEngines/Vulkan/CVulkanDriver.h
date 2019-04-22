@@ -352,10 +352,13 @@ namespace irr
 
             void WriteShaderCache(System::IO::IFileWriter*) override final;
 
+            const irr::core::array<DisplayModeEntry>* getDisplayModeList() const override { return &m_displayModeList; }
+    
         private:
-
+    
             void initialize(void* param);
 
+            irr::core::array<DisplayModeEntry> m_displayModeList;
             SMaterial Material, LastMaterial;
             IImage* blankImage = nullptr;
             CVulkanTexture* blankTexture = nullptr;

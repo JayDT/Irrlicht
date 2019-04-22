@@ -32,19 +32,13 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 class NS_GUI_CORE_API CommandBinding: public BaseComponent
 {
 public:
-    /// Constructor
     CommandBinding();
-
-    /// Constructors for code
-    //@{
     CommandBinding(ICommand* command);
     CommandBinding(ICommand* command, const CanExecuteRoutedEventHandler& canExecuteHandler);
     CommandBinding(ICommand* command, const ExecutedRoutedEventHandler& executedHandler);
     CommandBinding(ICommand* command, const CanExecuteRoutedEventHandler& canExecuteHandler,
         const ExecutedRoutedEventHandler& executedHandler);
-    //@}
 
-    /// Destructor
     ~CommandBinding();
 
     /// Gets or sets the ICommand associated with this CommandBinding

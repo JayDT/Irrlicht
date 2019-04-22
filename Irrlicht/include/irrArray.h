@@ -114,6 +114,14 @@ public:
 		insert(element, used);
 	}
 
+    T& emplace_back()
+    {
+        set_used(used + 1);
+        allocator.construct(&getLast());
+        // set to false as we don't know if we have the comparison operators
+        is_sorted = false;
+        return getLast();
+    }
 
 	//! Adds an element at the front of the array.
 	/** If the array is to small to add this new element, the array is

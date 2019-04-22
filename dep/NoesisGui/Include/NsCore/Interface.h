@@ -50,8 +50,8 @@ inline Interface::~Interface() {}
 #define NS_IMPLEMENT_INTERFACE_FIXUP \
     Noesis::BaseObject* GetBaseObject() const override \
     { return (Noesis::BaseObject*)this; } \
-    int32_t AddReference() const override { return InternalAddReference(); } \
-    int32_t Release() const override { return InternalRelease(); } \
+    int32_t AddReference() const override { return this->InternalAddReference(); } \
+    int32_t Release() const override { return this->InternalRelease(); } \
     int32_t GetNumReferences() const override \
     { return Noesis::BaseRefCounted::GetNumReferences(); }
 

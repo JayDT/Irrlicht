@@ -9,13 +9,13 @@
 
 
 #include <NsCore/Noesis.h>
-#include <NsGui/UIElementCollection.h>
 #include <NsGui/FrameworkElement.h>
 
 
 namespace Noesis
 {
 
+class UIElementCollection;
 class ItemsControl;
 class ItemContainerGenerator;
 class RectangleGeometry;
@@ -26,8 +26,8 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Provides a base class for all Panel elements. Use Panel elements to position and arrange 
-/// child objects.
+/// Provides a base class for all Panel elements. Use Panel elements to position and arrange child
+/// objects.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.panel.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,9 +38,6 @@ public:
 
     Panel();
     virtual ~Panel() = 0;
-
-    /// Invalidates panel Z-order
-    void InvalidateZOrder();
 
     /// Gets or sets panel background
     //@{
@@ -93,33 +90,35 @@ protected:
 
     /// From DependencyObject
     //@{
-    void OnInit();
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    void OnInit() override;
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
     /// From Visual
     //@{
-    uint32_t GetVisualChildrenCount() const;
-    Visual* GetVisualChild(uint32_t index) const;
-    void OnVisualChildrenChanged(Visual* added, Visual* removed);
+    uint32_t GetVisualChildrenCount() const override;
+    Visual* GetVisualChild(uint32_t index) const override;
+    void OnVisualChildrenChanged(Visual* added, Visual* removed) override;
     //@}
 
     /// From UIElement
     //@{
-    void OnRender(DrawingContext* context);
+    void OnRender(DrawingContext* context) override;
     //@}
 
     /// From FrameworkElement
     //@{
-    void CloneOverride(FrameworkElement* clone, FrameworkTemplate* template_) const;
-    uint32_t GetLogicalChildrenCount() const;
-    BaseComponent* GetLogicalChild(uint32_t index) const;
-    void OnTemplatedParentChanged(FrameworkElement* oldParent, FrameworkElement* newParent);
+    void CloneOverride(FrameworkElement* clone, FrameworkTemplate* template_) const override;
+    uint32_t GetLogicalChildrenCount() const override;
+    Ptr<BaseComponent> GetLogicalChild(uint32_t index) const override;
+    void OnTemplatedParentChanged(FrameworkElement* oldParent,
+        FrameworkElement* newParent) override;
     //@}
 
 private:
     /// Updates Z-order indirection vector taking into account children elements ZIndex
     void UpdateChildrenZOrder();
+    void InvalidateZOrder();
 
     void EnsureChildrenCollection(FrameworkElement* logicalParent);
 
@@ -161,5 +160,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

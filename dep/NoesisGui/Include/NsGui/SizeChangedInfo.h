@@ -23,21 +23,27 @@ namespace Noesis
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct SizeChangedInfo
 {
+    /// Gets the new size of the object
     Size newSize;
+    /// Gets the previous size of the object
     Size previousSize;
+    /// Gets a value that indicates whether the *Width* component of the Size changed
     bool widthChanged;
+    /// Gets a value that indicates whether the *Height* component of the Size changed
     bool heightChanged;
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Provides data related to the FrameworkElement.SizeChanged event.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct NS_GUI_CORE_API SizeChangedEventArgs: public RoutedEventArgs
 {
     SizeChangedInfo sizeChangedInfo;
 
-    SizeChangedEventArgs(BaseComponent* s, const RoutedEvent* e, 
-        const SizeChangedInfo& sizeChangedInfo);
+    SizeChangedEventArgs(BaseComponent* s, const RoutedEvent* e, const SizeChangedInfo& info);
 };
 
 }
+
 
 #endif

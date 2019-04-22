@@ -8,21 +8,21 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T, class E>
-EnumConverter<T, E>::EnumConverter(): BaseEnumConverter(TypeOf<T>())
+template<class T>
+EnumConverter<T>::EnumConverter(): BaseEnumConverter(TypeOf<T>())
 {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T, class E>
-Ptr<BaseComponent> EnumConverter<T, E>::Box(uint32_t v) const
+template<class T>
+Ptr<BaseComponent> EnumConverter<T>::Box(uint32_t v) const
 {
     return Boxing::Box((T)v);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T, class E>
-uint32_t EnumConverter<T, E>::Unbox(BaseComponent* value) const
+template<class T>
+uint32_t EnumConverter<T>::Unbox(BaseComponent* value) const
 {
     return (uint32_t)(Boxing::Unbox<T>(value));
 }

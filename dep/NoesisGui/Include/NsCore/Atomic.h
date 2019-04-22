@@ -1,7 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // NoesisGUI - http://www.noesisengine.com
 // Copyright (c) 2013 Noesis Technologies S.L. All Rights Reserved.
-// [CR #586]
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -16,57 +15,51 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Template class for atomic operations
+/// An atomic type for signed 32-bits integers
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> struct Atomic;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// 32 bits atomic implementation. Using compiler generated constructors to have trivial
-/// constructors that behave correctly with static instances.
-////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> struct Atomic32
+struct AtomicInteger
 {
-    inline operator T() const;
+    /// Trivial constructor to behave correctly with static instances
+    AtomicInteger() = default;
+
+    /// Atomics are neither copyable nor movable
+    AtomicInteger(const AtomicInteger&) = delete;
+    AtomicInteger &operator=(const AtomicInteger&) = delete;
+
+    /// Assignment operator
+    inline int32_t operator=(int32_t v);
+
+    /// Conversion to primitive type
+    inline operator int32_t() const;
 
     /// All these atomic operations return the original value before applying the new value
     //@{
-    inline T FetchAndIncrement();
-    inline T FetchAndDecrement();
-    inline T FetchAndAdd(T v);
-    inline T FetchAndStore(T v);
-    inline T CompareAndSwap(T newValue, T comparand);
+    inline int32_t FetchAndIncrement();
+    inline int32_t FetchAndDecrement();
+    inline int32_t FetchAndAdd(int32_t v);
+    inline int32_t FetchAndStore(int32_t v);
+    inline int32_t CompareAndSwap(int32_t newValue, int32_t comparand);
     //@}
 
     /// Standard Operators
     //@{
-    inline T operator++();
-    inline T operator--();
-    inline T operator++(int);
-    inline T operator--(int);
-    inline T operator+=(T v);
-    inline T operator-=(T v);
+    inline int32_t operator++();
+    inline int32_t operator--();
+    inline int32_t operator++(int);
+    inline int32_t operator--(int);
+    inline int32_t operator+=(int32_t v);
+    inline int32_t operator-=(int32_t v);
     //@}
 
-protected:
-    volatile T val;
+#if NS_MULTITHREADING
+    volatile int32_t val;
+#else
+    int32_t val;
+#endif
 };
-
-#define DEFINE_ATOMIC32(T) \
-template<> struct Atomic<T>: public Atomic32<T>\
-{\
-    inline T operator=(T v)\
-    {\
-        FetchAndStore(v);\
-        return v;\
-    }\
-};
-
-DEFINE_ATOMIC32(uint32_t)
-DEFINE_ATOMIC32(int32_t)
 
 }
 
 #include <NsCore/Atomic.inl>
-
 
 #endif

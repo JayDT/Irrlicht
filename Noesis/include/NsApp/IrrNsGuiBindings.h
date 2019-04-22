@@ -4,7 +4,7 @@
 #include <NsCore/CompilerSettings.h>
 #include <NsCore/ComponentFactory.h>
 #include <NsCore/Log.h>
-#include <NsCore/MemoryAllocator.h>
+#include <NsCore/Memory.h>
 #include <NsApp/IrrNoesis.h>
 
 #ifdef NS_MULTIPLE_DLLS
@@ -36,7 +36,7 @@ namespace NoesisApp
     // Noesis kernel management
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     //@{
-    extern "C" NS_IRR_NOESIS_API void Noesis_Init(Noesis::ErrorHandler NsErrorHandler, Noesis::LogHandler NsLogHandler, Noesis::MemoryAllocator* NsAllocator);
+    extern "C" NS_IRR_NOESIS_API void Noesis_Init(Noesis::ErrorHandler NsErrorHandler, Noesis::LogHandler NsLogHandler, Noesis::MemoryCallbacks* NsAllocator);
     extern "C" NS_IRR_NOESIS_API void Noesis_Shutdown();
 }
 

@@ -10,54 +10,35 @@
 
 #include <NsCore/Noesis.h>
 #include <NsCore/Interface.h>
-#include <NsGui/IResourceKey.h>
 
 
 namespace Noesis
 {
 
-template<class T> class Delegate;
+template<class T> class Ptr;
+class BaseComponent;
+NS_INTERFACE IResourceKey;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// IDictionary. Interface to a dictionary container of generic items using a string as key.
-/// Note: keys are case-sensitive
+/// Interface to a dictionary container of generic items using strings or Types as keys.
+/// Note: String keys are case-sensitive.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 NS_INTERFACE IDictionary: public Interface
 {
-    /// Looks for an element in the dictionary
-    /// \param key Search key
-    /// \param resource Variable that will store element if it was found
-    /// \return True if element was found, false otherwise
-    virtual bool Find(IResourceKey* key, BaseComponent*& resource) const = 0;
+    /// Looks for an element in the dictionary.
+    /// Returns true if element was found, false otherwise
+    virtual bool Find(IResourceKey* key, Ptr<BaseComponent>& resource) const = 0;
 
-    /// Gets or sets the element with the specified key
-    //@{
-    virtual BaseComponent* Get(IResourceKey* key) const = 0;
+    /// Sets the element with the specified key
     virtual void Set(IResourceKey* key, BaseComponent* value) = 0;
-    //@}
 
     /// Adds an element with the provided key and value to the dictionary
     virtual void Add(IResourceKey* key, BaseComponent* value) = 0;
-
-    /// Removes all elements from the dictionary
-    virtual void Clear() = 0;
-
-    /// Determines whether the dictionary contains an element with the specified key
-    virtual bool Contains(IResourceKey* key) const = 0;
-
-    /// Removes the element with the specified key from the dictionary
-    virtual void Remove(IResourceKey* key) = 0;
-    
-    /// Gets the number of elements in the dictionary
-    virtual uint32_t Count() const = 0;
-    
-    /// Get an iterator to the elements of the dictionary
-    typedef Noesis::Delegate<void (IResourceKey*, BaseComponent*)> EnumCallback;
-    virtual void EnumKeyValues(const EnumCallback& callback) const = 0;
 
     NS_IMPLEMENT_INLINE_REFLECTION_(IDictionary, Interface)
 };
 
 }
+
 
 #endif

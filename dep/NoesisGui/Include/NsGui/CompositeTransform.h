@@ -16,12 +16,13 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// This class lets you apply multiple different transforms to an object. The transformations run
-/// in the following order:  scale -> skew -> rotate -> translate.
+/// This class lets you apply multiple different transforms to an object.
+/// 
+/// The transformations run in the following order: *scale* - *skew* - *rotate* - *translate*.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.compositetransform.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API CompositeTransform: public Transform
+class NS_GUI_CORE_API CompositeTransform final: public Transform
 {
 public:
     CompositeTransform();
@@ -85,22 +86,22 @@ public:
     void SetTranslateY(float y);
     //@}
 
-    /// From Transform
-    //@{
-    Transform2f GetTransform() const;
-    //@}
-
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<CompositeTransform> Clone() const;
     Ptr<CompositeTransform> CloneCurrentValue() const;
     //@}
 
+    /// From Transform
+    //@{
+    Transform2f GetTransform() const override;
+    //@}
+
     /// From IRenderProxyCreator
     //@{
-    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UnregisterRenderer(ViewId viewId);
+    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UnregisterRenderer(ViewId viewId) override;
     //@}
 
 public:
@@ -120,12 +121,12 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& e);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& e) override;
     //@}
 
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
 private:
@@ -148,5 +149,6 @@ private:
 };
 
 }
+
 
 #endif

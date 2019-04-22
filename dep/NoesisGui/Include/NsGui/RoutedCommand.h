@@ -10,8 +10,7 @@
 
 #include <NsCore/Noesis.h>
 #include <NsGui/CoreApi.h>
-#include <NsGui/ICommand.h>
-#include <NsCore/BaseComponent.h>
+#include <NsGui/BaseCommand.h>
 #include <NsCore/ReflectionDeclare.h>
 #include <NsCore/Delegate.h>
 #include <NsCore/Symbol.h>
@@ -20,14 +19,11 @@
 namespace Noesis
 {
 
-class ConfigValueList;
 class InputGesture;
-class KeyGestureConverter;
 class UIElement;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> class TypedCollection;
-typedef Noesis::TypedCollection<Noesis::InputGesture> InputGestureCollection;
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::InputGesture> InputGestureCollection;
 
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
@@ -37,15 +33,19 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.input.routedcommand.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API RoutedCommand: public BaseComponent, public ICommand
+class NS_GUI_CORE_API RoutedCommand: public BaseCommand
 {
 public:
-    /// Constructor
-    RoutedCommand(NsSymbol name, const TypeClass* owner,
-        InputGestureCollection* inputGestures);
-
-    /// Destructor
+    RoutedCommand(NsSymbol name, const TypeClass* owner, InputGestureCollection* inputGestures);
     ~RoutedCommand();
+
+    ///  Gets the name of the command as it is registered in the CommandManager
+    /// \prop
+    Symbol GetName() const;
+
+    /// Gets the class type of the object that defines the command
+    /// \prop
+    const TypeClass* GetOwnerType() const;
 
     // Creates a routed command
     //@{
@@ -67,14 +67,9 @@ public:
 
     /// From ICommand
     //@{
-    NsSymbol GetName() const override;
-    const TypeClass* GetOwnerType() const override;
-    EventHandler& CanExecuteChanged() override;
     bool CanExecute(BaseComponent* param) const override;
     void Execute(BaseComponent* param) const override;
     //@}
-
-    NS_IMPLEMENT_INTERFACE_FIXUP
 
 protected:
     static Ptr<InputGestureCollection> CreateInputGestures(InputGesture* inputGesture1,
@@ -82,22 +77,19 @@ protected:
 
 private:
     friend struct CommandManager;
-    bool CanExecute(BaseComponent* param, UIElement* target,
-        bool& continueRouting) const;
+    bool CanExecute(BaseComponent* param, UIElement* target, bool& continueRouting) const;
 
 private:
     NsSymbol mName;
     const TypeClass* mOwnerType;
-
-    EventHandler mCanExecuteChanged;
-
     Ptr<InputGestureCollection> mInputGestures;
 
-    NS_DECLARE_REFLECTION(RoutedCommand, BaseComponent)
+    NS_DECLARE_REFLECTION(RoutedCommand, BaseCommand)
 };
 
 NS_WARNING_POP
 
 }
+
 
 #endif

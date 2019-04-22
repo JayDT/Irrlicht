@@ -15,12 +15,9 @@
 namespace Noesis
 {
 
-/// Forward declaration
-//@{
 class DataTemplate;
 class DataTemplateSelector;
 class ItemsControl;
-//@}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Represents a control with a single piece of content.
@@ -30,10 +27,7 @@ class ItemsControl;
 class NS_GUI_CORE_API ContentControl: public Control
 {
 public:
-    /// Constructor
     ContentControl();
-
-    /// Destructor
     ~ContentControl();
 
     /// Gets or sets the content of a ContentControl
@@ -49,7 +43,7 @@ public:
     void SetContentTemplate(DataTemplate* dataTemplate);
     //@}
 
-    /// Gets or sets a data template selector that provides custom logic for choosing the template
+    /// Gets or sets a DataTemplateSelector that provides custom logic for choosing the template
     /// used to display the content
     //@{
     DataTemplateSelector* GetContentTemplateSelector() const;
@@ -61,7 +55,7 @@ public:
 
     /// From BaseObject
     //@{
-    NsString ToString() const;
+    NsString ToString() const override;
     //@}
 
 public:
@@ -74,26 +68,24 @@ public:
     //@}
 
 protected:
-    /// Content property value changed event
-    //@{
+    // Content property value changed event
     virtual void OnContentChanged(BaseComponent* oldContent, BaseComponent* newContent);
+
+    // From DependencyObject
+    //@{
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
-    /// From DependencyObject
+    // From FrameworkElement
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
-    //@}
-
-    /// From FrameworkElement
-    //@{
-    uint32_t GetLogicalChildrenCount() const;
-    BaseComponent* GetLogicalChild(uint32_t index) const;
+    uint32_t GetLogicalChildrenCount() const override;
+    Ptr<BaseComponent> GetLogicalChild(uint32_t index) const override;
     //@}
 
 protected:
     bool mContentAsLogicalChild;
 
-
+private:
     friend class ItemsControl;
     void PrepareContainer(BaseComponent* item, DataTemplate* itemTemplate,
         DataTemplateSelector* itemTemplateSelector);

@@ -17,7 +17,7 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Control that is used to separate items in items controls. 
+/// Control that is used to separate items in items controls.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.separator.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,5 +27,6 @@ class NS_GUI_CORE_API Separator: public Control
 };
 
 }
+
 
 #endif

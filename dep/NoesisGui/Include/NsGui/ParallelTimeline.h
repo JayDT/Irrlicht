@@ -23,15 +23,16 @@ enum SlipBehavior
     /// Indicates that a ParallelTimeline will not slip with the child Timeline, but will expand 
     /// to fit all slipping Timeline children. NOTE: This is only effective when the Duration of 
     /// the ParallelTimeline is not explicitly specified. 
-    SlipBehavior_Grow, 
+    SlipBehavior_Grow,
     /// Indicates that a ParallelTimeline will slip along with its first child Timeline that can 
     /// slip whenever that child is delayed or accelerated.
     SlipBehavior_Slip
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Defines a segment of time that may contain child Timeline
-/// objects. These child timelines become active according to their respective BeginTime 
+/// Defines a segment of time that may contain child Timeline objects.
+///
+/// These child timelines become active according to their respective BeginTime 
 /// properties. Also, child timelines are able to overlap (run in parallel) with each other.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.paralleltimeline.aspx
@@ -42,22 +43,22 @@ public:
     ParallelTimeline();
     ~ParallelTimeline();
 
-    /// Get or Set SlipBehavior property
+    /// Gets or sets SlipBehavior property
     //@{
     SlipBehavior GetSlipBehavior() const;
     void SetSlipBehavior(SlipBehavior behavior); 
     //@}
-    
-    /// From Timeline
-    //@{
-    Duration GetNaturalDuration(Clock* clock) const;
-    Duration GetEffectiveDuration() const;
-    //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<ParallelTimeline> Clone() const;
     Ptr<ParallelTimeline> CloneCurrentValue() const;
+    //@}
+
+    /// From Timeline
+    //@{
+    Duration GetNaturalDuration(Clock* clock) const override;
+    Duration GetEffectiveDuration() const override;
     //@}
 
 public:
@@ -69,7 +70,7 @@ public:
 protected:
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
     NS_DECLARE_REFLECTION(ParallelTimeline, TimelineGroup)
@@ -78,5 +79,6 @@ protected:
 }
 
 NS_DECLARE_REFLECTION_ENUM_EXPORT(NS_GUI_ANIMATION_API, Noesis::SlipBehavior)
+
 
 #endif

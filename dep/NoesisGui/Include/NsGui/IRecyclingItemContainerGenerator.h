@@ -28,14 +28,15 @@ NS_INTERFACE IRecyclingItemContainerGenerator: public IItemContainerGenerator
 {
     /// Recycle generated elements. Equivalent to *Remove()* except that the generator retains this
     /// container in a list. This container will be handed back in a future call to
-    /// *GenerateNext()*. The position must refer to a previously generated item, which means its
-    /// position offset must be 0.
-    /// The parameter *count* is the number of elements to recycle, starting at *position*
+    /// *GenerateNext()*. The *position* must refer to a previously generated item, which means its
+    /// position offset must be 0. The parameter *count* is the number of elements to recycle,
+    /// starting at *position*
     virtual void Recycle(const GeneratorPosition& position, uint32_t count) = 0;
 
     NS_IMPLEMENT_INLINE_REFLECTION_(IRecyclingItemContainerGenerator, IItemContainerGenerator)
 };
 
 }
+
 
 #endif

@@ -17,15 +17,15 @@ namespace Noesis
 
 struct NotifyCollectionChangedEventArgs;
 
-template <class T> class TypedFreezableCollection;
-typedef Noesis::TypedFreezableCollection<Noesis::Transform> TransformCollection;
+template <class T> class FreezableCollection;
+typedef Noesis::FreezableCollection<Noesis::Transform> TransformCollection;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Represents a composite Transform composed of other Transform objects.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.transformgroup.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API TransformGroup: public Transform
+class NS_GUI_CORE_API TransformGroup final: public Transform
 {
 public:
     TransformGroup();
@@ -43,22 +43,22 @@ public:
     void SetChildren(TransformCollection* children);
     //@}
 
-    /// From Transform
-    //@{
-    Transform2f GetTransform() const;
-    //@}
-
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<TransformGroup> Clone() const;
     Ptr<TransformGroup> CloneCurrentValue() const;
     //@}
 
+    /// From Transform
+    //@{
+    Transform2f GetTransform() const override;
+    //@}
+
     /// From IRenderProxyCreator
     //@{
-    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UnregisterRenderer(ViewId viewId);
+    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UnregisterRenderer(ViewId viewId) override;
     //@}
 
 public:
@@ -70,23 +70,22 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& e);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& e) override;
     //@}
 
     /// From Freezable
     //@{
-    bool FreezeCore(bool isChecking);
-    Ptr<Freezable> CreateInstanceCore() const;
+    bool FreezeCore(bool isChecking) override;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
 
 private:
-    void OnChildrenChanged(BaseComponent* sender,
-        const NotifyCollectionChangedEventArgs& args);
+    void OnChildrenChanged(BaseComponent* sender, const NotifyCollectionChangedEventArgs& args);
     void RegisterChildren(TransformCollection* children);
-    void RegisterChild(BaseComponent* child);
+    void RegisterChild(Transform* child);
     void UnregisterChildren(TransformCollection* children);
-    void UnregisterChild(BaseComponent* child);
+    void UnregisterChild(Transform* child);
 
     void OnChildChanged(Freezable* obj, FreezableEventReason reason);
 
@@ -104,5 +103,6 @@ private:
 };
 
 }
+
 
 #endif

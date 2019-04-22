@@ -19,18 +19,14 @@ class DataTemplate;
 class DataTemplateSelector;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Provides the base implementation for all controls that contain single
-/// content and have a header.
+/// Provides the base implementation for all controls that contain single content and have a header.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.headeredcontentcontrol.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class NS_GUI_CORE_API HeaderedContentControl: public ContentControl
 {
 public:
-    /// Constructor
     HeaderedContentControl();
-
-    /// Destructor
     ~HeaderedContentControl();
 
     /// Gets a value that indicates whether the header is a null reference
@@ -43,13 +39,13 @@ public:
     void SetHeader(const char* header);
     //@}
 
-    /// Gets or sets the template used to display the content of the control's header
+    /// Gets or sets the DataTemplate used to display the content of the control's header
     //@{
     DataTemplate* GetHeaderTemplate() const;
     void SetHeaderTemplate(DataTemplate* dataTemplate);
     //@}
 
-    /// Gets or sets a data template selector that provides custom logic for choosing the template
+    /// Gets or sets a DataTemplateSelector that provides custom logic for choosing the template
     /// used to display the header
     //@{
     DataTemplateSelector* GetHeaderTemplateSelector() const;
@@ -57,22 +53,21 @@ public:
     //@}
 
 protected:
-    
     virtual void OnHeaderChanged(BaseComponent* oldHeader, BaseComponent* newHeader);
     virtual void OnHeaderTemplateChanged(DataTemplate* oldHeaderTemplate,
         DataTemplate* newHeaderTemplate);
     virtual void OnHeaderTemplateSelectorChanged(DataTemplateSelector* oldHeaderTemplateSelector,
         DataTemplateSelector* newHeaderTemplateSelector);
-        
+
     /// From FrameworkElement
     //@{
-    uint32_t GetLogicalChildrenCount() const;
-    BaseComponent* GetLogicalChild(uint32_t index) const;
+    uint32_t GetLogicalChildrenCount() const override;
+    Ptr<BaseComponent> GetLogicalChild(uint32_t index) const override;
     //@}
-        
+
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
 public:
@@ -97,5 +92,6 @@ private:
 };
 
 }
+
 
 #endif

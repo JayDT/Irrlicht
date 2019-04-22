@@ -31,63 +31,21 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Abstract class that, when implemented, defines an animation segment with its own target value
-/// and interpolation method for an AnimationUsingKeyFrames.
+/// Defines an animation segment with its own target value and interpolation method for an
+/// AnimationUsingKeyFrames.
 ///
-/// BooleanKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.booleankeyframe.aspx
-///
-///
-/// DoubleKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.doublekeyframe.aspx
-///
-///
-/// Int16KeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.int16keyframe.aspx
-///
-///
-/// Int32KeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.int32keyframe.aspx
-///
-///
-/// ColorKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.colorkeyframe.aspx
-///
-///
-/// PointKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.pointkeyframe.aspx
-///
-///
-/// RectKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.rectkeyframe.aspx
-///
-///
-/// SizeKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.sizekeyframe.aspx
-///
-///
-/// ThicknessKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.thicknesskeyframe.aspx
-///
-///
-/// ObjectKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.objectkeyframe.aspx
-///
-///
-/// StringKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.stringkeyframe.aspx
-///
+/// Existing types are:
+/// `BooleanKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.booleankeyframe.aspx>`_,
+/// `DoubleKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.doublekeyframe.aspx>`_,
+/// `Int16KeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.int16keyframe.aspx>`_,
+/// `Int32KeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.int32keyframe.aspx>`_,
+/// `ColorKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.colorkeyframe.aspx>`_,
+/// `PointKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.pointkeyframe.aspx>`_,
+/// `RectKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.rectkeyframe.aspx>`_,
+/// `SizeKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.sizekeyframe.aspx>`_,
+/// `ThicknessKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.thicknesskeyframe.aspx>`_,
+/// `ObjectKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.objectkeyframe.aspx>`_ and
+/// `StringKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.stringkeyframe.aspx>`_.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
 class NS_GUI_ANIMATION_API KeyFrame: public Freezable, public IUITreeNode
@@ -109,7 +67,7 @@ public:
     // T                T (basic types) or T&
     typedef typename Noesis::SetValueType<T>::Type ValueType;
 
-    /// Gets or sets the key frame's target value.
+    /// Gets or sets the key frame's target value
     //@{
     ValueType GetValue() const;
     void SetValue(ValueType value);
@@ -125,7 +83,7 @@ public:
 
     /// Interpolates the base value by the specified progress to reach this KeyFrame value
     Ptr<BaseComponent> InterpolateValue(ParamType baseValue, float keyFrameProgress);
-    
+
     /// Helper methods to be used from AnimationUsingKeyFrames (could be eliminated if the later
     /// class uses another template argument with the type of the value)
     //@{
@@ -136,7 +94,7 @@ public:
     static float Len(ParamType a, ParamType b);
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<KeyFrame<T>> Clone() const;
     Ptr<KeyFrame<T>> CloneCurrentValue() const;
@@ -146,8 +104,7 @@ public:
     //@{
     IUITreeNode* GetNodeParent() const override;
     void SetNodeParent(IUITreeNode* parent) override;
-    BaseComponent* FindNodeResource(IResourceKey* key,
-        bool fullElementSearch) const override;
+    BaseComponent* FindNodeResource(IResourceKey* key, bool fullElementSearch) const override;
     BaseComponent* FindNodeName(const char* name) const override;
     ObjectWithNameScope FindNodeNameAndScope(const char* name) const override;
     //@}
@@ -204,5 +161,6 @@ template<> inline const char* KeyFrameIdOf<StringKeyFrame>() { return "StringKey
 NS_WARNING_POP
 
 }
+
 
 #endif

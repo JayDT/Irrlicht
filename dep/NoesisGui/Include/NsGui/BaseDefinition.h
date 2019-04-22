@@ -10,15 +10,11 @@
 
 #include <NsCore/Noesis.h>
 #include <NsGui/CoreApi.h>
-//#include <NsGui/FrameworkContentElement.h>
 #include <NsGui/FrameworkElement.h>
 
 
 namespace Noesis
 {
-
-// TODO: [sfernandez] I made BaseDefinition inherit from FrameworkElement until we add support for
-//  cloning and templating on FrameworkContentElement
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Defines the functionality required to support a shared-size group that is used
@@ -26,7 +22,6 @@ namespace Noesis
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.controls.definitionbase.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//class BaseDefinition: public FrameworkContentElement
 class NS_GUI_CORE_API BaseDefinition: public FrameworkElement
 {
 public:
@@ -45,7 +40,6 @@ public:
     static const DependencyProperty* SharedSizeGroupProperty;
 
 private:
-    //NS_DECLARE_REFLECTION(BaseDefinition, FrameworkContentElement)
     NS_DECLARE_REFLECTION(BaseDefinition, FrameworkElement)
 };
 

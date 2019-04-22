@@ -31,23 +31,46 @@ class ResourceKeyType;
 class FrameworkTemplate;
 class DataTemplate;
 class TemplateLocalValueProvider;
-class TransformGroup;
-class TranslateTransform;
-class MatrixTransform;
-class CombinedGeometry;
-class RectangleGeometry;
-class FrameworkElementTest;
-class StoryboardTest;
 template<class T> class Delegate;
 struct ContextMenuEventArgs;
 struct RequestBringIntoViewEventArgs;
 struct SizeChangedEventArgs;
 struct ToolTipEventArgs;
+struct NotifyCollectionChangedEventArgs;
 struct NotifyDictionaryChangedEventArgs;
 struct Size;
 struct Thickness;
 NS_INTERFACE ITimeManager;
 NS_INTERFACE IView;
+
+template<class T> class UICollection;
+typedef Noesis::UICollection<Noesis::BaseTrigger> TriggerCollection;
+
+/// Helper macro to easily connect events to code behind functions when overriding ConnectEvent
+#define NS_CONNECT_EVENT(type_, event_, handler_) \
+    if (Noesis::String::Equals(event, #event_) && Noesis::String::Equals(handler, #handler_)) \
+    { \
+        ((type_*)source)->event_() += Noesis::MakeDelegate(this, &SelfClass::handler_); \
+        return true; \
+    }
+
+/// Helper macro to easily connect attached events to code behind functions on ConnectEvent override
+#define NS_CONNECT_ATTACHED_EVENT(type_, event_, handler_) \
+    if (Noesis::String::Equals(event, #event_) && Noesis::String::Equals(handler, #handler_)) \
+    { \
+        ((Noesis::UIElement*)source)->AddHandler(type_::event_##Event, \
+            Noesis::MakeDelegate(this, &SelfClass::handler_)); \
+        return true; \
+    }
+////////////////////////////////////////////////////////////////////////////////////////////////////
+enum PPAAMode
+{
+    /// Uses PPAA View's setting
+    PPAAMode_Default,
+
+    /// Disabled PPAA generation for this element subtree
+    PPAAMode_Disabled
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 enum AncestorNameScopeChangeAction
@@ -80,32 +103,12 @@ typedef Noesis::Delegate<void (BaseComponent*, const SizeChangedEventArgs&)>
 typedef Noesis::Delegate<void (BaseComponent*, const ToolTipEventArgs&)> 
     ToolTipEventHandler;
 
-template<class T> class TypedCollection;
-typedef Noesis::TypedCollection<Noesis::BaseTrigger> TriggerCollection;
-
 NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 #ifdef FindResource
 #undef FindResource
 #endif
-
-/// Helper macro to easily connect events to code behind functions when overriding ConnectEvent
-#define NS_CONNECT_EVENT(type_, event_, handler_) \
-    if (Noesis::String::Equals(event, #event_) && Noesis::String::Equals(handler, #handler_)) \
-    { \
-        ((type_*)source)->event_() += Noesis::MakeDelegate(this, &SelfClass::handler_); \
-        return true; \
-    }
-
-/// Helper macro to easily connect attached events to code behind functions on ConnectEvent override
-#define NS_CONNECT_ATTACHED_EVENT(type_, event_, handler_) \
-    if (Noesis::String::Equals(event, #event_) && Noesis::String::Equals(handler, #handler_)) \
-    { \
-        ((Noesis::UIElement*)source)->AddHandler(type_::event_##Event, \
-            Noesis::MakeDelegate(this, &SelfClass::handler_)); \
-        return true; \
-    }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Provides GUI framework-level features for user interface elements.
@@ -182,6 +185,13 @@ public:
     void SetHorizontalAlignment(HorizontalAlignment hAlign);
     //@}
 
+    /// Gets or sets the context for input used by this element. The input scope, which modifies
+    /// how input from alternative input methods is interpreted
+    //@{
+    InputScope GetInputScope() const;
+    void SetInputScope(InputScope inputScope);
+    //@}
+
     /// Gets or sets a graphics transformation that should apply to this element when layout is 
     /// performed
     //@{
@@ -228,10 +238,17 @@ public:
     //@}
 
     /// Gets or sets a value that indicates whether this element incorporates style properties from 
-    /// theme styles.
+    /// theme styles
     //@{
     bool GetOverridesDefaultStyle() const;
     void SetOverridesDefaultStyle(bool value);
+    //@}
+
+    /// Gets or sets a value that indicates whether antialiasing geometry is generated for this
+    /// element. This property is inherited down by the visual tree
+    //@{
+    PPAAMode GetPPAAMode() const;
+    void SetPPAAMode(PPAAMode mode);
     //@}
 
     /// Gets or sets the style used by this element when it is rendered
@@ -375,26 +392,15 @@ public:
     void SetResources(ResourceDictionary* resources);
     //@}
 
-    /// Notifies when an ancestor has changed its parent
-    AncestorChangedDelegate& AncestorChanged();
-    /// Notifies when a change occurred in the resources dictionary of this element or an ancestor
-    AncestorResourcesChangedDelegate& AncestorResourcesChanged();
-    /// Notifies when a NameScope in an ancestor has changed any of its items
-    AncestorNameScopeChangedDelegate& AncestorNameScopeChanged();
     /// Occurs just before any context menu on the element is closed
     UIElement::RoutedEvent_<ContextMenuEventHandler> ContextMenuClosing();
     /// Occurs when any context menu on the element is opened
     UIElement::RoutedEvent_<ContextMenuEventHandler> ContextMenuOpening();
-    /// Occurs when the data context for this element changes
-    UIElement::Event_<DependencyPropertyChangedEventHandler> DataContextChanged();
-    /// Occurs when this element is initialized
-    UIElement::Event_<EventHandler> Initialized();
     /// Occurs when the element is laid out, rendered, and ready for interaction
     UIElement::RoutedEvent_<RoutedEventHandler> Loaded();
     /// Occurs when BringIntoView is called on this element
     UIElement::RoutedEvent_<RequestBringIntoViewEventHandler> RequestBringIntoView();
-    /// Occurs when either the ActualHeight or the ActualWidth properties change value on this 
-    /// element
+    /// Occurs when either ActualHeight or ActualWidth properties change value on this element
     UIElement::RoutedEvent_<SizeChangedEventHandler> SizeChanged();
     /// Occurs just before any tooltip on the element is closed
     UIElement::RoutedEvent_<ToolTipEventHandler> ToolTipClosing();
@@ -402,6 +408,18 @@ public:
     UIElement::RoutedEvent_<ToolTipEventHandler> ToolTipOpening();
     /// Occurs when the element is removed from within an element tree of loaded elements
     UIElement::RoutedEvent_<RoutedEventHandler> Unloaded();
+
+    /// Occurs when the data context for this element changes
+    UIElement::Event_<DependencyPropertyChangedEventHandler> DataContextChanged();
+    /// Occurs when this element is initialized
+    UIElement::Event_<EventHandler> Initialized();
+
+    /// Notifies when an ancestor has changed its parent
+    AncestorChangedDelegate& AncestorChanged();
+    /// Notifies when a change occurred in the resources dictionary of this element or an ancestor
+    AncestorResourcesChangedDelegate& AncestorResourcesChanged();
+    /// Notifies when a NameScope in an ancestor has changed any of its items
+    AncestorNameScopeChangedDelegate& AncestorNameScopeChanged();
 
     /// Attaches specified event to code-behind content
     virtual bool ConnectEvent(BaseComponent* source, const char* event, const char* handler);
@@ -416,8 +434,7 @@ public:
     //@{
     IUITreeNode* GetNodeParent() const override;
     void SetNodeParent(IUITreeNode* parent) override;
-    BaseComponent* FindNodeResource(IResourceKey* key,
-        bool fullElementSearch) const override;
+    BaseComponent* FindNodeResource(IResourceKey* key, bool fullElementSearch) const override;
     BaseComponent* FindNodeName(const char* name) const override;
     ObjectWithNameScope FindNodeNameAndScope(const char* name) const override;
     //@}}
@@ -437,6 +454,7 @@ public:
     static const DependencyProperty* ForceCursorProperty;
     static const DependencyProperty* HeightProperty;
     static const DependencyProperty* HorizontalAlignmentProperty;
+    static const DependencyProperty* InputScopeProperty;
     static const DependencyProperty* LayoutTransformProperty;
     static const DependencyProperty* MarginProperty;
     static const DependencyProperty* MaxHeightProperty;
@@ -445,6 +463,7 @@ public:
     static const DependencyProperty* MinWidthProperty;
     static const DependencyProperty* NameProperty;
     static const DependencyProperty* OverridesDefaultStyleProperty;
+    static const DependencyProperty* PPAAModeProperty;
     static const DependencyProperty* StyleProperty;
     static const DependencyProperty* TagProperty;
     static const DependencyProperty* ToolTipProperty;
@@ -455,9 +474,13 @@ public:
 
     /// Dependency events
     //@{
+    static const RoutedEvent* ContextMenuClosingEvent;
+    static const RoutedEvent* ContextMenuOpeningEvent;
     static const RoutedEvent* LoadedEvent;
     static const RoutedEvent* RequestBringIntoViewEvent;
     static const RoutedEvent* SizeChangedEvent;
+    static const RoutedEvent* ToolTipClosingEvent;
+    static const RoutedEvent* ToolTipOpeningEvent;
     static const RoutedEvent* UnloadedEvent;
     //@}
 
@@ -504,7 +527,7 @@ protected:
 
     /// Returns the specified element in the parent Collection
     /// \remarks Each element implementation will decide how to store logical children
-    virtual BaseComponent* GetLogicalChild(uint32_t index) const;
+    virtual Ptr<BaseComponent> GetLogicalChild(uint32_t index) const;
 
     /// Indicates that logical parent has changed
     virtual void OnLogicalParentChanged(FrameworkElement* oldParent);
@@ -512,6 +535,7 @@ protected:
     /// Process inherited properties and updates local values if required
     //@{
     void UpdateInheritedProps();
+    void PropagateInheritedProps();
     void EndUpdateInheritedProps();
     //@}
 
@@ -527,8 +551,8 @@ protected:
     virtual void OnHeightChanged(float height);
     //@}
 
-    /// Looks for a DataTemplate in the UI tree that matches the type specified
-    static DataTemplate* TryFindTemplate(FrameworkElement* element, const TypeClass* type);
+    /// Looks for a DataTemplate in the UI tree that matches the specified item type
+    static DataTemplate* TryFindTemplate(FrameworkElement* element, BaseComponent* item);
 
     /// Indicates if the property specified is set as a local value in the template
     bool IsTemplateLocalValue(const DependencyProperty* dp) const;
@@ -581,6 +605,9 @@ protected:
     /// Calculates min and max limits depending on width, height and limit values
     void GetMinMax(float width, float height,
         float& minW, float& minH, float& maxW, float& maxH) const;
+
+    /// Gets desired size before it gets clipped by size constraints and margins
+    const Size& GetUnclippedSize() const;
 
     /// From BaseRefCounted
     //@{
@@ -638,8 +665,7 @@ private:
 
     BaseComponent* TryFindResource(IResourceKey* key, FrameworkElement* boundaryElement,
         bool themeSearch) const;
-    BaseComponent* TryFindResourceInElement(IResourceKey* key,
-        bool fullElementSearch) const;
+    BaseComponent* TryFindResourceInElement(IResourceKey* key, bool fullElementSearch) const;
 
     void OnFrameworkTemplateChanged(FrameworkTemplate* oldTemplate, FrameworkTemplate* newTemplate);
 
@@ -718,6 +744,9 @@ private:
     void EnsureTriggers();
     void RegisterTriggers();
     void UnregisterTriggers();
+    void RegisterTrigger(BaseComponent* trigger);
+    void UnregisterTrigger(BaseComponent* trigger);
+    void OnTriggersChanged(BaseComponent* sender, const NotifyCollectionChangedEventArgs& e);
 
     bool CancelLoadedRequest();
 
@@ -749,6 +778,7 @@ private:
     friend struct TemplatedParentTriggerProvider;
     friend class TemplateLocalValueProvider;
     friend struct ImplicitStyleProvider;
+    friend struct BaseStyleTriggerProvider;
     friend struct StyleTriggerProvider;
     friend struct TemplateTriggerProvider;
     friend struct DefaultStyleTriggerProvider;
@@ -831,6 +861,9 @@ NS_WARNING_POP
 
 }
 
+NS_DECLARE_REFLECTION_ENUM_EXPORT(NS_GUI_CORE_API, Noesis::PPAAMode)
+
 #include <NsGui/FrameworkElement.inl>
+
 
 #endif

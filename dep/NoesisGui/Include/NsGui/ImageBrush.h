@@ -22,14 +22,11 @@ class ImageSource;
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.imagebrush.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API ImageBrush: public TileBrush
+class NS_GUI_CORE_API ImageBrush final: public TileBrush
 {
 public:
-    /// Default constructor
     ImageBrush();
     ImageBrush(ImageSource* imageSource);
-
-    /// Destructor
     ~ImageBrush();
 
     /// Gets or sets image source file
@@ -38,7 +35,7 @@ public:
     void SetImageSource(ImageSource* imageSource);
     //@}
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<ImageBrush> Clone() const;
     Ptr<ImageBrush> CloneCurrentValue() const;
@@ -46,8 +43,8 @@ public:
 
     /// From IRenderProxyCreator
     //@{
-    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
+    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
     //@}
 
 public:
@@ -59,13 +56,13 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
-    bool OnSubPropertyChanged(const DependencyProperty* dp);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
+    bool OnSubPropertyChanged(const DependencyProperty* dp) override;
     //@}
 
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
 private:
@@ -78,5 +75,6 @@ private:
 };
 
 }
+
 
 #endif

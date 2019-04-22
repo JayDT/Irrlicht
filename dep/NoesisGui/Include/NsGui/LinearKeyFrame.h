@@ -23,48 +23,18 @@ NS_WARNING_PUSH
 NS_MSVC_WARNING_DISABLE(4251 4275)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Animates from the T value of the previous key frame to its own Value using linear 
-/// interpolation. Existing types are:
+/// Animates from the T value of the previous key frame to its own *Value* using linear
+/// interpolation.
 ///
-/// LinearDoubleKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.lineardoublekeyframe.aspx
-///
-///
-/// LinearInt16KeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.linearint16keyframe.aspx
-///
-///
-/// LinearInt32KeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.linearint32keyframe.aspx
-///
-///
-/// LinearColorKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.linearcolorkeyframe.aspx
-///
-///
-/// LinearPointKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.linearpointkeyframe.aspx
-///
-///
-/// LinearRectKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.linearrectkeyframe.aspx
-///
-///
-/// LinearSizeKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.linearsizekeyframe.aspx
-///
-///
-/// LinearThicknessKeyFrame:
-///
-/// http://msdn.microsoft.com/en-us/library/system.windows.media.animation.linearthicknesskeyframe.aspx
-///
+/// Existing types are:
+/// `LinearDoubleKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.lineardoublekeyframe.aspx>`_,
+/// `LinearInt16KeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.linearint16keyframe.aspx>`_,
+/// `LinearInt32KeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.linearint32keyframe.aspx>`_,
+/// `LinearColorKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.linearcolorkeyframe.aspx>`_,
+/// `LinearPointKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.linearpointkeyframe.aspx>`_,
+/// `LinearRectKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.linearrectkeyframe.aspx>`_,
+/// `LinearSizeKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.linearsizekeyframe.aspx>`_ and
+/// `LinearThicknessKeyFrame <http://msdn.microsoft.com/en-us/library/system.windows.media.animation.linearthicknesskeyframe.aspx>`_.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T>
 class NS_GUI_ANIMATION_API LinearKeyFrame: public KeyFrame<T>
@@ -73,7 +43,7 @@ public:
     LinearKeyFrame();
     ~LinearKeyFrame();
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<LinearKeyFrame<T>> Clone() const;
     Ptr<LinearKeyFrame<T>> CloneCurrentValue() const;
@@ -82,13 +52,13 @@ public:
 protected:
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
     /// From KeyFrame
     //@{
     typedef typename Noesis::Param<T>::Type ParamType;
-    T InterpolateValueCore(ParamType baseValue, float keyFrameProgress);
+    T InterpolateValueCore(ParamType baseValue, float keyFrameProgress) override;
     //@}
 
     NS_DECLARE_REFLECTION(LinearKeyFrame, KeyFrame<T>)
@@ -125,5 +95,6 @@ template<> inline const char* LinearKeyFrameIdOf<ThicknessKeyFrame>()
 NS_WARNING_POP
 
 }
+
 
 #endif

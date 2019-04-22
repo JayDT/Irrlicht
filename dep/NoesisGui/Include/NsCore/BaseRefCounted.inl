@@ -24,12 +24,11 @@ BaseRefCounted::BaseRefCounted()
 BaseRefCounted::~BaseRefCounted()
 {
     NS_ASSERT(mRefCount != ObjectAlreadyDeleted);
-    // mRefCount == 1 is a valid number. Even if we force to always use Ptr<>, for example, if
-    // the constructor BaseRefCounted() is successfully invoked but the constructor of an
-    // inheriting class raise an exception, ~BaseRefCounted() will be invoked with 1 references
+
+    // Note that 1 is valid when the object lives is the stack or is being manually destroyed
     NS_ASSERT(mRefCount == 1 || mRefCount == 0);
 
-#if NS_ASSERTS_ENABLED
+#ifdef NS_DEBUG
     mRefCount = ObjectAlreadyDeleted;
 #endif
 }

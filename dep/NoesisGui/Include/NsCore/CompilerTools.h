@@ -20,11 +20,6 @@ template<class T> class Ptr;
 NS_INTERFACE Interface;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Used as a placeholder for "no type here"
-////////////////////////////////////////////////////////////////////////////////////////////////////
-class NullType {};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Converts each integral constant into a unique type
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<int N> struct Int2Type
@@ -32,36 +27,33 @@ template<int N> struct Int2Type
     enum { Result = N };
 };
 
-////////////////////////////////////////////////////////////////////////////////
-/// Converts each type into a unique, insipid type
-////////////////////////////////////////////////////////////////////////////////
-template<class T> struct Type2Type
-{
-    typedef T OriginalType;
-};
+typedef Int2Type<false> FalseType;
+typedef Int2Type<true> TrueType;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// If-Then-Else statements
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<bool Condition, class Then, class Else> struct If;
+template<bool Cond, class Then, class Else> struct If_;
 
-template<class Then, class Else> struct If<true, Then, Else>
+template<class Then, class Else> struct If_<true, Then, Else>
 {
     typedef Then Result;
 };
 
-template<class Then, class Else> struct If<false, Then, Else>
+template<class Then, class Else> struct If_<false, Then, Else>
 {
     typedef Else Result;
 };
+
+template<bool Cond, class Then, class Else> using If = typename If_<Cond, Then, Else>::Result;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Checks if a type is const-qualified 
 ///
 ///   Example:
-///     IsConst<MyClass>::Result             -> false
-///     IsConst<const MyClass>::Result       -> true
-///     IsConst<const MyClass>::RemoveConst  -> MyClass
+///     IsConst<MyClass>::Result       -> false
+///     IsConst<const MyClass>::Result -> true
+///     RemoveConst<const MyClass>     -> MyClass
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T> class IsConst
 {
@@ -75,24 +67,22 @@ template<class T> class IsConst
         enum { Result = true };
         typedef U Type;
     };
-    template<class U> struct ConstTraits<const U&>
-    {
-        enum { Result = true };
-        typedef U& Type;
-    };
 
 public:
     enum { Result = ConstTraits<T>::Result };
     typedef typename ConstTraits<T>::Type NonConstType;
 };
 
+/// Helper variable template
+template<class T> using RemoveConst = typename IsConst<T>::NonConstType;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Checks if a type is volatile-qualified 
 ///
 ///   Example:
-///     IsVolatile<MyClass>::Result                   -> false
-///     IsVolatile<volatile MyClass>::Result          -> true
-///     IsVolatile<volatile MyClass>::RemoveVolatile  -> MyClass
+///     IsVolatile<MyClass>::Result          -> false
+///     IsVolatile<volatile MyClass>::Result -> true
+///     RemoveVolatile<volatile MyClass>     -> MyClass
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T> class IsVolatile
 {
@@ -106,39 +96,24 @@ template<class T> class IsVolatile
         enum { Result = true };
         typedef U Type;
     };
-    template<class U> struct VolatileTraits<volatile U&>
-    {
-        enum { Result = true };
-        typedef U& Type;
-    };
 
 public:
     enum { Result = VolatileTraits<T>::Result };
     typedef typename VolatileTraits<T>::Type NonVolatileType;
 };
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Removes the const and/or volatile qualifiers from type
-///
-///   Example:
-///     RemoveCV<MyClass>::Result                -> MyClass
-///     RemoveCV<const MyClass>::Result          -> MyClass
-///     RemoveCV<volatile MyClass>::Result       -> MyClass
-///     RemoveCV<const volatile MyClass>::Result -> MyClass
-////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> struct RemoveCV
-{
-    typedef typename IsVolatile<typename IsConst<T>::NonConstType>::NonVolatileType Type;
-};
+/// Helper variable templates
+template<class T> using RemoveVolatile = typename IsVolatile<T>::NonVolatileType;
+template<class T> using RemoveCV = RemoveVolatile<RemoveConst<T>>;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Checks if a type is derived from the other type
+/// Returns true if Base is a base class of Derived, or if both types are the same
 ///
 ///   Example:
 ///     class Father { };
 ///     class Child: public Father { };
-///     IsDerived<Child, Father>::Result -> true;
-///     IsDerived<Father, Child>::Result -> false;
+///     IsDerived<Child, Father>::Result -> true
+///     IsDerived<Father, Child>::Result -> false
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class Derived, class Base> struct IsDerived
 {
@@ -165,27 +140,19 @@ template<class T> struct IsSame<T, T>
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Checks if a type is void
-////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> struct IsVoid
-{
-    enum { Result = IsSame<typename RemoveCV<T>::Type, void>::Result };
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Checks if a type is a pointer type
 ///
 ///   Example:
-///     IsPointer<MyClass>::Result       -> false
-///     IsPointer<MyClass*>::Result      -> true
-///     IsPointer<MyClass*>::PointedType -> MyClass
+///     IsPointer<MyClass>::Result  -> false
+///     IsPointer<MyClass*>::Result -> true
+///     RemovePointer<MyClass*>     -> MyClass
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T> class IsPointer
 {
     template<class U> struct PointerTraits
     {
         enum { Result = false };
-        typedef NullType Type;
+        typedef U Type;
     };
     template<class U> struct PointerTraits<U*>
     {
@@ -194,79 +161,20 @@ template<class T> class IsPointer
     };
 
 public:
-    enum { Result = PointerTraits<typename RemoveCV<T>::Type>::Result };
-    typedef typename PointerTraits<typename RemoveCV<T>::Type>::Type PointedType;
+    enum { Result = PointerTraits<RemoveCV<T>>::Result };
+    typedef typename PointerTraits<RemoveCV<T>>::Type PointedType;
 };
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Checks if a type is ref counted (derived from Interface or BaseRefCounted).
-/// If Result is true, the type T can be stored inside a Ptr<>
-///
-///   Example:
-///     IsRefCounted<int>::Result               -> false
-///     IsRefCounted<ICommand>::Result          -> true
-///     IsRefCounted<const ICommand>::Result    -> true
-///     IsRefCounted<Button>::Result            -> true
-///     IsRefCounted<const Button>::Result      -> true
-////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> class IsRefCounted
-{
-    typedef typename If<IsDerived<T, BaseRefCounted>::Result, BaseRefCounted, T>::Result TT;
-
-public:
-    enum {  Result = IsDerived<TT, BaseRefCounted>::Result || IsDerived<TT, Interface>::Result };
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Checks if a type is an interface
-///
-///   Example:
-///     IsInterface<int>::Result                -> false
-///     IsInterface<Button>::Result             -> false
-///     IsInterface<ICommand>::Result           -> true
-///     IsInterface<const ICommand>::Result     -> true
-////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> class IsInterface
-{
-    typedef typename If<IsDerived<T, BaseRefCounted>::Result, BaseRefCounted, T>::Result TT;
-
-public:
-    enum { Result = !IsDerived<TT, BaseRefCounted>::Result && IsDerived<TT, Interface>::Result };
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Checks if a type is a Ptr<> and permits getting pointed type
-///
-///   Example:
-///     IsPtr<MyClass>::Result            -> false
-///     IsPtr<Ptr<MyClass> >::Result      -> true
-///     IsPtr<Ptr<MyClass> >::PointedType -> MyClass
-////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> class IsPtr
-{
-    template<class U> struct PtrTraits
-    {
-        enum { Result = false };
-        typedef U Type;
-    };
-    template<class U> struct PtrTraits<Ptr<U> >
-    {
-        enum { Result = true };
-        typedef U Type;
-    };
-
-public:
-    enum { Result = PtrTraits<typename RemoveCV<T>::Type>::Result };
-    typedef typename PtrTraits<typename RemoveCV<T>::Type>::Type PointedType;
-};
+/// Helper variable template
+template<class T> using RemovePointer = typename IsPointer<T>::PointedType;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Checks if a type is either lvalue reference or rvalue reference
 ///
 ///   Example:
-///     IsReference<MyClass>::Result            -> false
-///     IsReference<MyClass&>::Result           -> true
-///     IsReference<MyClass&>::ReferredType     -> MyClass
+///     IsReference<MyClass>::Result  -> false
+///     IsReference<MyClass&>::Result -> true
+///     RemoveReference<MyClass&>     -> MyClass
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T> class IsReference
 {
@@ -286,23 +194,67 @@ public:
     typedef typename ReferenceTraits<T>::Type NonReferenceType;
 };
 
+/// Helper variable template
+template<class T> using RemoveReference = typename IsReference<T>::NonReferenceType;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Checks if a type is an array
+/// Checks if a type is ref counted (derived from Interface or BaseRefCounted).
+/// If Result is true, the type T can be stored inside a Ptr<>
+///
+///   Example:
+///     IsRefCounted<int>::Result            -> false
+///     IsRefCounted<ICommand>::Result       -> true
+///     IsRefCounted<const ICommand>::Result -> true
+///     IsRefCounted<Button>::Result         -> true
+///     IsRefCounted<const Button>::Result   -> true
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> class IsArray
+template<class T> struct IsRefCounted
 {
-    typedef char Small;
-    struct Big { char dummy[2]; };
+    enum { Result = IsDerived<T, BaseRefCounted>::Result || IsDerived<T, Interface>::Result };
+};
 
-    template<class R> static R (*Check1(Type2Type<R>))(Type2Type<R>);
-    template<class R> static char Check1(...);
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Checks if a type is an interface (derived from Interface but not from BaseRefCounted)
+///
+///   Example:
+///     IsInterface<int>::Result            -> false
+///     IsInterface<Button>::Result         -> false
+///     IsInterface<ICommand>::Result       -> true
+///     IsInterface<const ICommand>::Result -> true
+////////////////////////////////////////////////////////////////////////////////////////////////////
+template<class T> struct IsInterface
+{
+    enum { Result = !IsDerived<T, BaseRefCounted>::Result && IsDerived<T, Interface>::Result };
+};
 
-    template<class R> static Big Check2(R(*)(Type2Type<R>));
-    template<class R> static Small Check2(...);
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Checks if a type is Ptr<>
+///
+///   Example:
+///     IsPtr<MyClass>::Result      -> false
+///     IsPtr<Ptr<MyClass>>::Result -> true
+///     RemovePtr<Ptr<MyClass>>     -> MyClass
+////////////////////////////////////////////////////////////////////////////////////////////////////
+template<class T> class IsPtr
+{
+    template<class U> struct PtrTraits
+    {
+        enum { Result = false };
+        typedef U Type;
+    };
+    template<class U> struct PtrTraits<Ptr<U>>
+    {
+        enum { Result = true };
+        typedef U Type;
+    };
 
 public:
-    enum { Result = sizeof(Small) == sizeof(Check2<T>(Check1<T>(Type2Type<T>()))) };
+    enum { Result = PtrTraits<RemoveCV<T>>::Result };
+    typedef typename PtrTraits<RemoveCV<T>>::Type PointedType;
 };
+
+/// Helper variable template
+template<class T> using RemovePtr = typename IsPtr<T>::PointedType;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Checks if a type is a non-union class type
@@ -313,7 +265,7 @@ template<class T> struct IsClass
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Checks if type is an enum
+/// Checks if type is an enumeration type
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T> struct IsEnum
 {
@@ -321,76 +273,33 @@ template<class T> struct IsEnum
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Checks if a type is integral type 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> class IsIntegral
-{
-    template<class TT>
-    struct IsIntegralTraits
-    {
-        enum
-        {
-            Result =
-                IsSame<TT, bool>::Result ||
-                IsSame<TT, char>::Result ||
-                IsSame<TT, signed char>::Result ||
-                IsSame<TT, unsigned char>::Result ||
-                IsSame<TT, signed short>::Result ||
-                IsSame<TT, unsigned short>::Result ||
-                IsSame<TT, signed int>::Result ||
-                IsSame<TT, unsigned int>::Result ||
-                IsSame<TT, signed long>::Result ||
-                IsSame<TT, unsigned long>::Result ||
-                IsSame<TT, signed long long>::Result ||
-                IsSame<TT, unsigned long long>::Result ||
-                IsSame<TT, Symbol>::Result
-        };
-     };
-
-public:
-     enum { Result = IsIntegralTraits<typename RemoveCV<T>::Type>::Result };
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Checks if type is float
-////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> class IsFloat
-{
-    template<class TT>
-    struct IsFloatTraits
-    {
-        enum
-        {
-            Result =
-                IsSame<TT, float>::Result ||
-                IsSame<TT, double>::Result ||
-                IsSame<TT, long double>::Result
-        };
-    };
-    
-public:
-    enum { Result = IsFloatTraits<typename RemoveCV<T>::Type>::Result };
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Checks if a type is arithmetic type 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-template<class T> struct IsArithmetic
-{
-    enum
-    {
-        Result = IsIntegral<T>::Result || IsFloat<T>::Result
-    };
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Checks if it is best to pass a type as copy or as reference
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T> struct IsBestByCopy
 {
+    typedef RemoveCV<T> T_;
+
     enum
     {
-        Result = IsArithmetic<T>::Result || IsEnum<T>::Result || IsPointer<T>::Result
+        Result =
+            IsSame<T_, bool>::Result ||
+            IsSame<T_, char>::Result ||
+            IsSame<T_, signed char>::Result ||
+            IsSame<T_, unsigned char>::Result ||
+            IsSame<T_, signed short>::Result ||
+            IsSame<T_, unsigned short>::Result ||
+            IsSame<T_, signed int>::Result ||
+            IsSame<T_, unsigned int>::Result ||
+            IsSame<T_, signed long>::Result ||
+            IsSame<T_, unsigned long>::Result ||
+            IsSame<T_, signed long long>::Result ||
+            IsSame<T_, unsigned long long>::Result ||
+            IsSame<T_, Symbol>::Result ||
+            IsSame<T_, float>::Result ||
+            IsSame<T_, double>::Result ||
+            IsSame<T_, long double>::Result ||
+            IsEnum<T_>::Result ||
+            IsPointer<T_>::Result
     };
 };
 
@@ -399,7 +308,7 @@ template<class T> struct IsBestByCopy
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<class T> struct Param
 {
-    typedef typename If<IsBestByCopy<T>::Result, T, const T&>::Result Type;
+    typedef If<IsBestByCopy<T>::Result, T, const T&> Type;
 };
 
 template<class T> struct Param<T&>
@@ -412,14 +321,14 @@ template<class T> struct Param<T&>
 /// from overload resolution based on type traits and to provide separate function overloads and
 /// specializations for different type traits. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<bool B, class T = void> struct EnableIf {};
+template<bool B, class T = void> struct EnableIf_ {};
 
-template<class T> struct EnableIf<true, T>
+template<class T> struct EnableIf_<true, T>
 {
     typedef T Type;
 };
 
-template<bool B, class T = void> using EnableIfT = typename EnableIf<B,T>::Type;
+template<bool B, class T = void> using EnableIf = typename EnableIf_<B,T>::Type;
 
 }
 

@@ -29,7 +29,7 @@ public:
     CircleEase();
     ~CircleEase();
 
-    /// From Freezable
+    // Hides Freezable methods for convenience
     //@{
     Ptr<CircleEase> Clone() const;
     Ptr<CircleEase> CloneCurrentValue() const;
@@ -38,17 +38,18 @@ public:
 protected:
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
     /// From EasingFunctionBase
     //@{
-    float EaseInCore(float normalizedTime);
+    float EaseInCore(float normalizedTime) override;
     //@}
     
     NS_DECLARE_REFLECTION(CircleEase, EasingFunctionBase)
 };
 
 }
+
 
 #endif

@@ -16,11 +16,11 @@ namespace Noesis
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Translates (moves) an object in the 2D coordinate system.
+/// Translates an object in the 2D coordinate system.
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.media.translatetransform.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API TranslateTransform: public Transform
+class NS_GUI_CORE_API TranslateTransform final: public Transform
 {
 public:
     TranslateTransform();
@@ -39,7 +39,7 @@ public:
     void SetY(float y);
     //@}
 
-    /// From Freezable
+    /// Hides Freezable methods for convenience
     //@{
     Ptr<TranslateTransform> Clone() const;
     Ptr<TranslateTransform> CloneCurrentValue() const;
@@ -47,14 +47,14 @@ public:
 
     /// From Transform
     //@{
-    Transform2f GetTransform() const;
+    Transform2f GetTransform() const override;
     //@}
 
     /// From IRenderProxyCreator
     //@{
-    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex);
-    void UnregisterRenderer(ViewId viewId);
+    void CreateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UpdateRenderProxy(RenderTreeUpdater& updater, uint32_t proxyIndex) override;
+    void UnregisterRenderer(ViewId viewId) override;
     //@}
 
 public:
@@ -67,12 +67,12 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& e);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& e) override;
     //@}
 
     /// From Freezable
     //@{
-    Ptr<Freezable> CreateInstanceCore() const;
+    Ptr<Freezable> CreateInstanceCore() const override;
     //@}
 
 private:
@@ -88,5 +88,6 @@ private:
 };
 
 }
+
 
 #endif

@@ -27,13 +27,10 @@ NS_MSVC_WARNING_DISABLE(4251 4275)
 ///
 /// http://msdn.microsoft.com/en-us/library/system.windows.shapes.line.aspx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NS_GUI_CORE_API Line: public Shape
+class NS_GUI_CORE_API Line final: public Shape
 {
 public:
-    /// Constructor
     Line();
-
-    /// Destructor
     ~Line();
 
     /// Gets or sets the x-coordinate of the Line start point
@@ -72,18 +69,18 @@ public:
 protected:
     /// From DependencyObject
     //@{
-    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args);
+    bool OnPropertyChanged(const DependencyPropertyChangedEventArgs& args) override;
     //@}
 
     /// From UIElement
     //@{
-    void OnRender(DrawingContext* context);
+    void OnRender(DrawingContext* context) override;
     //@}
 
     /// From FrameworkElement
     //@{
-    Size MeasureOverride(const Size& availableSize);
-    Size ArrangeOverride(const Size& finalSize);
+    Size MeasureOverride(const Size& availableSize) override;
+    Size ArrangeOverride(const Size& finalSize) override;
     //@}
 
 private:
@@ -99,5 +96,6 @@ private:
 NS_WARNING_POP
 
 }
+
 
 #endif

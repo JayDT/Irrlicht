@@ -27,7 +27,7 @@ public:
     }
 
     /// Constructor from functor (lambdas)
-    template<class F, class = EnableIfT<IsClass<F>::Result>>
+    template<class F, class = EnableIf<IsClass<F>::Result>>
     Delegate(const F& f)
     {
         FromFunctor(f, &F::operator());
@@ -97,7 +97,7 @@ public:
     /// Check if delegate is null
     bool Empty() const
     {
-        return GetImpl()->Empty();
+        return GetImpl()->Size() == 0;
     }
 
     /// Boolean conversion
@@ -148,22 +148,35 @@ public:
         return GetImpl()->Size();
     }
 
-    /// Delegate invocation. In multidelegates the returned value corresponds to the last invocation
+    /// Delegate invocation. For multidelegates, returned value corresponds to last invocation
+    Ret operator()(Args... args) const
+    {
+        return GetImpl()->Invoke(args...);
+    }
+
+    /// Delegate invocation. For multidelegates, returned value corresponds to last invocation
     Ret Invoke(Args... args) const
     {
         return GetImpl()->Invoke(args...);
     }
 
-    /// Delegate invocation
-    Ret operator()(Args... args) const
+    /// Delegate invocation with functor to cancel
+    template<typename Func> void Invoke(Args... args, Func f) const
     {
-        return Invoke(args...);
-    }
+        GetImpl()->BeginInvoke();
 
-    /// Manual invocation of the ith delegate
-    Ret Invoke(uint32_t i, Args... args) const
-    {
-        return GetImpl()->Invoke(i, args...);
+        uint32_t size = GetImpl()->Size();
+        for (uint32_t i = 0; i < size; i++)
+        {
+            if (f())
+            {
+                break;
+            }
+
+            GetImpl()->Invoke(i, args...);
+        }
+
+        GetImpl()->EndInvoke();
     }
 
 private:
@@ -253,11 +266,12 @@ private:
     public:
         virtual ~Impl() {};
         virtual Type GetType() const = 0;
-        virtual bool Empty() const = 0;
         virtual uint32_t Size() const = 0;
         virtual bool Equal(const Impl* impl) const = 0;
         virtual Ret Invoke(Args... args) const = 0;
+        virtual void BeginInvoke() const {};
         virtual Ret Invoke(uint32_t i, Args... args) const = 0;
+        virtual void EndInvoke() const {};
         virtual void Copy(Impl* dest) const = 0;
         virtual void Add(const Delegate& d) = 0;
         virtual void Remove(const Delegate& d) = 0;
@@ -272,42 +286,37 @@ private:
     class NullStub: public Impl
     {
     public:
-        Type GetType() const
+        Type GetType() const override
         {
             return Type_Null;
         }
 
-        bool Empty() const
-        {
-            return true;
-        }
-
-        uint32_t Size() const
+        uint32_t Size() const override
         {
             return 0;
         }
 
-        bool Equal(const Impl* impl) const
+        bool Equal(const Impl* impl) const override
         {
             return GetType() == impl->GetType();
         }
 
-        Ret Invoke(Args...) const
+        Ret Invoke(Args...) const override
         {
             return Ret();
         }
 
-        Ret Invoke(uint32_t, Args...) const
+        Ret Invoke(uint32_t, Args...) const override
         {
             return Ret();
         }
 
-        void Copy(Impl* dest) const
+        void Copy(Impl* dest) const override
         {
             new(dest) NullStub(*this);
         }
 
-        void Add(const Delegate& d)
+        void Add(const Delegate& d) override
         {
             if (!d.Empty())
             {
@@ -316,7 +325,7 @@ private:
             }
         }
 
-        void Remove(const Delegate&)
+        void Remove(const Delegate&) override
         {
         }
     };
@@ -330,12 +339,12 @@ private:
             return false;
         }
 
-        uint32_t Size() const
+        uint32_t Size() const override
         {
             return 1;
         }
 
-        void Add(const Delegate& d)
+        void Add(const Delegate& d) override
         {
             if (!d.Empty())
             {
@@ -349,7 +358,7 @@ private:
             }
         }
 
-        void Remove(const Delegate& d)
+        void Remove(const Delegate& d) override
         {
             if (!d.Empty() && this->Equal(d.GetImpl()))
             {
@@ -365,29 +374,29 @@ private:
     public:
         FreeFuncStub(Func f): mFunc(f) {}
 
-        Type GetType() const
+        Type GetType() const override
         {
             return Type_FreeFunc;
         }
 
-        bool Equal(const Impl* impl) const
+        bool Equal(const Impl* impl) const override
         {
             const FreeFuncStub* funcStub = static_cast<const FreeFuncStub*>(impl);
             return GetType() == impl->GetType() && mFunc == funcStub->mFunc;
         }
 
-        Ret Invoke(Args... args) const
+        Ret Invoke(Args... args) const override
         {
             return mFunc(args...);
         }
 
-        Ret Invoke(uint32_t i, Args... args) const
+        Ret Invoke(uint32_t i, Args... args) const override
         {
             NS_ASSERT(i == 0);
             return mFunc(args...);
         }
 
-        void Copy(Impl* dest) const
+        void Copy(Impl* dest) const override
         {
             new(dest) FreeFuncStub(*this);
         }
@@ -402,28 +411,28 @@ private:
     public:
         FunctorStub(const F& f): mFunctor(f) {}
 
-        Type GetType() const
+        Type GetType() const override
         {
             return Type_Functor;
         }
 
-        bool Equal(const Impl*) const
+        bool Equal(const Impl*) const override
         {
             return false;
         }
 
-        Ret Invoke(Args... args) const
+        Ret Invoke(Args... args) const override
         {
             return const_cast<F*>(&mFunctor)->operator()(args...);
         }
 
-        Ret Invoke(uint32_t i, Args... args) const
+        Ret Invoke(uint32_t i, Args... args) const override
         {
             NS_ASSERT(i == 0);
             return const_cast<F*>(&mFunctor)->operator()(args...);
         }
 
-        void Copy(Impl* dest) const
+        void Copy(Impl* dest) const override
         {
             new(dest) FunctorStub(*this);
         }
@@ -438,30 +447,30 @@ private:
     public:
         MemberFuncStub(C* obj, Func f): mObj(obj), mFunc(f) {}
 
-        Type GetType() const
+        Type GetType() const override
         {
             return Type_MemberFunc;
         }
 
-        bool Equal(const Impl* impl) const
+        bool Equal(const Impl* impl) const override
         {
             const MemberFuncStub* memberStub = static_cast<const MemberFuncStub*>(impl);
             return GetType() == impl->GetType() && mObj == memberStub->mObj &&
                 mFunc == memberStub->mFunc;
         }
 
-        Ret Invoke(Args... args) const
+        Ret Invoke(Args... args) const override
         {
             return (mObj->*mFunc)(args...);
         }
 
-        Ret Invoke(uint32_t i, Args... args) const
+        Ret Invoke(uint32_t i, Args... args) const override
         {
             NS_ASSERT(i == 0);
             return (mObj->*mFunc)(args...);
         }
 
-        void Copy(Impl* dest) const
+        void Copy(Impl* dest) const override
         {
             new(dest) MemberFuncStub(*this);
         }
@@ -479,24 +488,19 @@ private:
         MultiDelegate(const MultiDelegate& d): mVector(*new DelegateVector(*d.mVector.GetPtr())) {}
         MultiDelegate& operator=(const MultiDelegate&) = delete;
 
-        Type GetType() const
+        Type GetType() const override
         {
             return Type_MultiDelegate;
         }
 
-        bool Empty() const
-        {
-            return mVector->v.empty();
-        }
-
-        uint32_t Size() const
+        uint32_t Size() const override
         {
             return mVector->v.size();
         }
 
         typedef eastl::fixed_vector<Delegate, 2> Delegates;
 
-        bool Equal(const Impl* impl) const
+        bool Equal(const Impl* impl) const override
         {
             if (GetType() == impl->GetType())
             {
@@ -553,7 +557,7 @@ private:
             Ptr<DelegateVector> _v;
         };
 
-        Ret Invoke(Args... args) const
+        Ret Invoke(Args... args) const override
         {
             // Hold reference to the vector to avoid it being destructed in the iteration loop
             InvokerGuard guard(mVector);
@@ -577,18 +581,40 @@ private:
             }
         }
 
-        Ret Invoke(uint32_t i, Args... args) const
+        void BeginInvoke() const override
+        {
+            mVector->AddReference();
+            mVector->nestingCount++;
+        }
+
+        Ret Invoke(uint32_t i, Args... args) const override
         {
             NS_ASSERT(i < mVector->v.size());
             return mVector->v[i](args...);
         }
 
-        void Copy(Impl* dest) const
+        void EndInvoke() const override
+        {
+            // Nesting counter could be zero in weird situations, like for example when a
+            // SingleDelegate is being converted to MultiDelegate inside an invocation. There is a
+            // test for this scenario (ticket #1336)
+            if (mVector->nestingCount > 0)
+            {
+                if (--mVector->nestingCount == 0 && mVector->compactPending == 1)
+                {
+                    mVector->Compact();
+                }
+
+                mVector->Release();
+            }
+        }
+
+        void Copy(Impl* dest) const override
         {
             new(dest) MultiDelegate(*this);
         }
 
-        void Add(const Delegate& d)
+        void Add(const Delegate& d) override
         {
             if (!d.Empty())
             {
@@ -597,7 +623,7 @@ private:
             }
         }
 
-        void Remove(const Delegate& d)
+        void Remove(const Delegate& d) override
         {
             if (!d.Empty())
             {
@@ -607,6 +633,11 @@ private:
                 {
                     it->Reset();
                     mVector->compactPending = 1;
+                }
+
+                if (mVector->nestingCount == 0 && mVector->compactPending == 1)
+                {
+                    mVector->Compact();
                 }
             }
         }

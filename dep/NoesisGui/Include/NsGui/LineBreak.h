@@ -27,4 +27,5 @@ class NS_GUI_CORE_API LineBreak : public Inline
 
 }
 
+
 #endif

@@ -10,7 +10,6 @@
 
 #include <NsCore/Noesis.h>
 #include <NsCore/KernelApi.h>
-#include <NsCore/NSTLMemoryAllocator.h>
 #include <NsCore/Vector.h>
 #include <EASTL/fixed_vector.h>
 
@@ -35,7 +34,6 @@ public:
     ~FixedAllocator();
 
     /// Initialization
-    void Initialize(MemoryAllocator* allocator, uint32_t blockSize, uint32_t pageSize);
     void Initialize(uint32_t blockSize, uint32_t pageSize);
 
     /// Allocates memory
@@ -62,20 +60,17 @@ public:
     /// Check for corruption
     /// \return A boolean indicating if the current state of the FixedAllocator is corrupted
     bool IsCorrupt() const;
-    
-    /// \return the kernel memory allocator being used by this FixedAllocator
-    MemoryAllocator* GetMemoryAllocator() const;
 
 private:
     friend class FixedAllocatorTest;
 
     struct Chunk
     {
-        void Init(uint32_t blockSize, uint8_t blocks, MemoryAllocator* allocator);
+        void Init(uint32_t blockSize, uint8_t blocks);
         void* Allocate(uint32_t blockSize);
         void Deallocate(void* p, uint32_t blockSize);
         void Reset(uint32_t blockSize, uint8_t blocks);
-        void Release(MemoryAllocator* allocator);
+        void Release();
         bool IsCorrupt(uint8_t numBlocks, uint32_t blockSize, bool checkIndexes) const;
         bool IsBlockAvailable(void* p, uint8_t numBlocks, uint32_t blockSize) const;
         bool HasBlock(void* p, uint32_t chunkLength) const;
@@ -93,7 +88,7 @@ private:
     Chunk* VicinityFind(void* p) const;
 
 private:
-    typedef eastl::fixed_vector<Chunk, 4, true, eastl::MemoryAllocator> Chunks;
+    typedef eastl::fixed_vector<Chunk, 4, true> Chunks;
     
     static const uint8_t MinObjectsPerChunk = 8;
     static const uint8_t MaxObjectsPerChunk = 0xff;
@@ -105,8 +100,6 @@ private:
     Chunk* mAllocChunk;
     Chunk* mDeallocChunk;
     Chunk* mEmptyChunk;
-    
-    MemoryAllocator* mAllocator;
 };
 
 NS_WARNING_POP
