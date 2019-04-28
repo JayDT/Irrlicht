@@ -165,6 +165,31 @@ void NoesisApp::IrrWindow::DragMove()
 
 }
 
+void NoesisApp::IrrWindow::BringToFront()
+{
+    if (Panel::GetZIndex(this) != 0x1000000)
+    {
+        //Focus();
+        Panel* panel = Noesis::DynamicCast<Panel*>(GetParent());
+        if (panel)
+        {
+            uint32_t count = panel->GetChildren()->Count();
+            for (uint32_t i = 0; i != count; ++i)
+            {
+                Noesis::DependencyObject* element = panel->GetChildren()->Get(i);
+                if (element == this)
+                    continue;
+
+                uint32_t index = Panel::GetZIndex(element);
+                if (index == 0x1000000)
+                    Panel::SetZIndex(element, 5);
+            }
+
+            Panel::SetZIndex(this, 0x1000000);
+        }
+    }
+}
+
 void NoesisApp::IrrWindow::OnGotFocus(const Noesis::RoutedEventArgs& e)
 {
     Noesis::ContentControl::OnGotFocus(e);
@@ -219,27 +244,7 @@ void NoesisApp::IrrWindow::OnMouseLeftButtonUp(const Noesis::MouseButtonEventArg
 		ReleaseMouseCapture();
 	}
 
-    if (Panel::GetZIndex(this) != 0x1000000)
-    {
-        //Focus();
-        Panel* panel = Noesis::DynamicCast<Panel*>(GetParent());
-        if (panel)
-        {
-            uint32_t count = panel->GetChildren()->Count();
-            for (uint32_t i = 0; i != count; ++i)
-            {
-                Noesis::DependencyObject* element = panel->GetChildren()->Get(i);
-                if (element == this)
-                    continue;
-
-                uint32_t index = Panel::GetZIndex(element);
-                if (index == 0x1000000)
-                    Panel::SetZIndex(element, 0);
-            }
-
-            Panel::SetZIndex(this, 0x1000000);
-        }
-    }
+    BringToFront();
 }
 
 void NoesisApp::IrrWindow::OnMouseMove(const Noesis::MouseEventArgs& e)

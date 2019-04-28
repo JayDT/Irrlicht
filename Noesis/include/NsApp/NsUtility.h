@@ -2,6 +2,8 @@
 #define __APP_ITOPLEVEL_H__
 
 #include <NsApp/IrrNoesis.h>
+#include <NsApp/IrrWindow.h>
+#include <NsApp/Window.h>
 #include <NsCore/Noesis.h>
 
 namespace Noesis
@@ -22,6 +24,17 @@ namespace NoesisApp
 {
 	class IrrNsDeviceStub;
 	class IrrRenderContext;
+
+    class Extensions final
+    {
+    public:
+        static NoesisApp::Window* FindRootWindow(Noesis::FrameworkElement* element)
+        {
+            while (element->GetParent())
+                element = element->GetParent();
+            return Noesis::DynamicCast<NoesisApp::Window*>(element);
+        }
+    };
 
 	class RemoveChildHelper final
 	{

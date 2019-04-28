@@ -109,6 +109,8 @@ namespace NoesisApp
 
 		void DragMove();
 
+        void BringToFront();
+
 		virtual void OnGotFocus(const Noesis::RoutedEventArgs& e) override;
         virtual void OnLostFocus(const Noesis::RoutedEventArgs& e) override;
 		virtual void OnMouseLeftButtonDown(const Noesis::MouseButtonEventArgs& e) override;

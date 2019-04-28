@@ -661,7 +661,6 @@ namespace scene
                 newParent->addChild(this);
             Parent = newParent;
 
-            setRefBreak(0);
             drop();
         }
 

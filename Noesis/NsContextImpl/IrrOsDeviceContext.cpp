@@ -651,8 +651,7 @@ bool NoesisApp::IrrNsDeviceStub::OnEvent(const irr::SEvent& event)
             {
                 case irr::SEvent::SWindowEvent::EventType::IWE_MOVE:
                 {
-                    mLocationChanged(this, event.WindowEvent.FParam0, event.WindowEvent.FParam1);
-                    break;
+                    return mLocationChanged(this, event.WindowEvent.FParam0, event.WindowEvent.FParam1);
                 }
                 case irr::SEvent::SWindowEvent::EventType::IWE_SIZE:
                 {
@@ -692,18 +691,15 @@ bool NoesisApp::IrrNsDeviceStub::OnEvent(const irr::SEvent& event)
                     uint32_t numChars = UTF8::UTF16To8((uint16_t*)event.WindowEvent.UnicodeParam, filename, 256);
                     NS_ASSERT(numChars <= 256);
 
-                    mFileDropped(this, filename);
-                    break;
+                    return mFileDropped(this, filename);
                 }
                 case irr::SEvent::SWindowEvent::EventType::IWE_CLOSE:
                 {
-                    mClosing(this);
-                    break;
+                    return mClosing(this);
                 }
                 case irr::SEvent::SWindowEvent::EventType::IWE_DESTROY:
                 {
-                    mClosed(this);
-                    break;
+                    return mClosed(this);
                 }
             }
             break;
@@ -712,9 +708,9 @@ bool NoesisApp::IrrNsDeviceStub::OnEvent(const irr::SEvent& event)
         {
             switch (event.TouchEvent.States)
             {
-                case irr::ETOUCH_INPUT_EVENT::ETIE_TOUCH_DOWN:  mTouchDown(this, event.TouchEvent.X, event.TouchEvent.Y, event.TouchEvent.Id); break;
-                case irr::ETOUCH_INPUT_EVENT::ETIE_NONE:        mTouchMove(this, event.TouchEvent.X, event.TouchEvent.Y, event.TouchEvent.Id); break;
-                case irr::ETOUCH_INPUT_EVENT::ETIE_TOUCH_UP:    mTouchUp  (this, event.TouchEvent.X, event.TouchEvent.Y, event.TouchEvent.Id); break;
+                case irr::ETOUCH_INPUT_EVENT::ETIE_TOUCH_DOWN:  return mTouchDown(this, event.TouchEvent.X, event.TouchEvent.Y, event.TouchEvent.Id); break;
+                case irr::ETOUCH_INPUT_EVENT::ETIE_NONE:        return mTouchMove(this, event.TouchEvent.X, event.TouchEvent.Y, event.TouchEvent.Id); break;
+                case irr::ETOUCH_INPUT_EVENT::ETIE_TOUCH_UP:    return mTouchUp  (this, event.TouchEvent.X, event.TouchEvent.Y, event.TouchEvent.Id); break;
             }
             break;
         }
@@ -728,33 +724,31 @@ bool NoesisApp::IrrNsDeviceStub::OnEvent(const irr::SEvent& event)
             {
                 switch (event.MouseInput.Event)
                 {
-                    case irr::EMOUSE_INPUT_EVENT::EMIE_MOUSE_MOVED:         mMouseMove       (this, event.MouseInput.X, event.MouseInput.Y); break;
-                    case irr::EMOUSE_INPUT_EVENT::EMIE_LMOUSE_PRESSED_DOWN: mMouseButtonDown (this, event.MouseInput.X, event.MouseInput.Y, Noesis::MouseButton_Left); break;
-                    case irr::EMOUSE_INPUT_EVENT::EMIE_LMOUSE_LEFT_UP:      mMouseButtonUp   (this, event.MouseInput.X, event.MouseInput.Y, Noesis::MouseButton_Left); break;
-                    case irr::EMOUSE_INPUT_EVENT::EMIE_RMOUSE_PRESSED_DOWN: mMouseButtonDown (this, event.MouseInput.X, event.MouseInput.Y, Noesis::MouseButton_Right); break;
-                    case irr::EMOUSE_INPUT_EVENT::EMIE_RMOUSE_LEFT_UP:      mMouseButtonUp   (this, event.MouseInput.X, event.MouseInput.Y, Noesis::MouseButton_Right); break;
-                    case irr::EMOUSE_INPUT_EVENT::EMIE_MMOUSE_PRESSED_DOWN: mMouseButtonDown (this, event.MouseInput.X, event.MouseInput.Y, Noesis::MouseButton_Middle); break;
-                    case irr::EMOUSE_INPUT_EVENT::EMIE_MMOUSE_LEFT_UP:      mMouseButtonUp   (this, event.MouseInput.X, event.MouseInput.Y, Noesis::MouseButton_Middle); break;
-                    case irr::EMOUSE_INPUT_EVENT::EMIE_LMOUSE_DOUBLE_CLICK: mMouseDoubleClick(this, event.MouseInput.X, event.MouseInput.Y, Noesis::MouseButton_Left); break;
-                    case irr::EMOUSE_INPUT_EVENT::EMIE_RMOUSE_DOUBLE_CLICK: mMouseDoubleClick(this, event.MouseInput.X, event.MouseInput.Y, Noesis::MouseButton_Right); break;
-                    case irr::EMOUSE_INPUT_EVENT::EMIE_MMOUSE_DOUBLE_CLICK: mMouseDoubleClick(this, event.MouseInput.X, event.MouseInput.Y, Noesis::MouseButton_Middle); break;
+                    case irr::EMOUSE_INPUT_EVENT::EMIE_MOUSE_MOVED:         return mMouseMove       (this, event.MouseInput.X, event.MouseInput.Y); break;
+                    case irr::EMOUSE_INPUT_EVENT::EMIE_LMOUSE_PRESSED_DOWN: return mMouseButtonDown (this, event.MouseInput.X, event.MouseInput.Y, Noesis::MouseButton_Left); break;
+                    case irr::EMOUSE_INPUT_EVENT::EMIE_LMOUSE_LEFT_UP:      return mMouseButtonUp   (this, event.MouseInput.X, event.MouseInput.Y, Noesis::MouseButton_Left); break;
+                    case irr::EMOUSE_INPUT_EVENT::EMIE_RMOUSE_PRESSED_DOWN: return mMouseButtonDown (this, event.MouseInput.X, event.MouseInput.Y, Noesis::MouseButton_Right); break;
+                    case irr::EMOUSE_INPUT_EVENT::EMIE_RMOUSE_LEFT_UP:      return mMouseButtonUp   (this, event.MouseInput.X, event.MouseInput.Y, Noesis::MouseButton_Right); break;
+                    case irr::EMOUSE_INPUT_EVENT::EMIE_MMOUSE_PRESSED_DOWN: return mMouseButtonDown (this, event.MouseInput.X, event.MouseInput.Y, Noesis::MouseButton_Middle); break;
+                    case irr::EMOUSE_INPUT_EVENT::EMIE_MMOUSE_LEFT_UP:      return mMouseButtonUp   (this, event.MouseInput.X, event.MouseInput.Y, Noesis::MouseButton_Middle); break;
+                    case irr::EMOUSE_INPUT_EVENT::EMIE_LMOUSE_DOUBLE_CLICK: return mMouseDoubleClick(this, event.MouseInput.X, event.MouseInput.Y, Noesis::MouseButton_Left); break;
+                    case irr::EMOUSE_INPUT_EVENT::EMIE_RMOUSE_DOUBLE_CLICK: return mMouseDoubleClick(this, event.MouseInput.X, event.MouseInput.Y, Noesis::MouseButton_Right); break;
+                    case irr::EMOUSE_INPUT_EVENT::EMIE_MMOUSE_DOUBLE_CLICK: return mMouseDoubleClick(this, event.MouseInput.X, event.MouseInput.Y, Noesis::MouseButton_Middle); break;
                 }
             }
             break;
         }
         case irr::EET_TEXT_INPUT_EVENT:
         {
-            mChar(this, event.KeyInput.Char);
-            break;
+            return mChar(this, event.KeyInput.Char);
         }
         case irr::EET_KEY_INPUT_EVENT:
         {
             if (event.KeyInput.Key < 0xFF && s_OISKeyMappings[event.KeyInput.Key] != 0)
             {
                 if (event.KeyInput.PressedDown)
-                    mKeyDown(this, s_OISKeyMappings[event.KeyInput.Key]);
-                else
-                    mKeyUp(this, s_OISKeyMappings[event.KeyInput.Key]);
+                    return mKeyDown(this, s_OISKeyMappings[event.KeyInput.Key]);
+                return mKeyUp(this, s_OISKeyMappings[event.KeyInput.Key]);
             }
             break;
         }

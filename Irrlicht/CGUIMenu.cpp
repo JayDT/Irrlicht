@@ -89,7 +89,7 @@ void CGUIMenu::draw()
 
 			if (font)
 				font->draw(Items[i].Text.c_str(), rect,
-					skin->getColor(c), true, true, &AbsoluteClippingRect, &Items[i].mFontCache);
+                    skin->getColor(c), true, true, &AbsoluteClippingRect, nullptr); // &Items[i].mFontCache);
 		}
 	}
 

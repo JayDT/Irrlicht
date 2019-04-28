@@ -343,7 +343,7 @@ namespace scene
 
         mutable video::IShader* m_gpuProgram;
         u16 ActiveSubBuffer;
-        core::array<CMeshVertexBufferEx*> SubBuffer;
+        std::vector<CMeshVertexBufferEx*> SubBuffer;
 
         public:
         //! Default constructor for empty meshbuffer
@@ -390,13 +390,13 @@ namespace scene
             for (u32 i = 0; i != SubBuffer.size(); ++i)
                 delete SubBuffer[i];
 
-            SubBuffer.set_used(0);
-            SubBuffer.reallocate(count);
+            SubBuffer.resize(0);
+            SubBuffer.reserve(count);
         }
 
         virtual void AddSubBuffer(u32 istart, u32 icount, u32 vstart, u32 vcount)
         {
-            SubBuffer.push_back(new CMeshVertexBufferEx(istart, icount, vstart, vcount));
+            SubBuffer.emplace_back(new CMeshVertexBufferEx(istart, icount, vstart, vcount));
         }
 
         virtual void SetActiveSubBuffer(u16 sid)

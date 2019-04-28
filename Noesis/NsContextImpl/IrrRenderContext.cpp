@@ -986,6 +986,19 @@ Noesis::Ptr<Texture> NoesisApp::IrrRenderContext::CreateTexture(const char* labe
     return texture;
 }
 
+Noesis::Ptr<Noesis::Texture> NoesisApp::IrrRenderContext::CreateIrrTexture(const char* label, irr::video::IImage* image)
+{
+    mContext->getVideoDriver()->setTextureCreationFlag(irr::video::ETCF_CREATE_MIP_MAPS, false);
+
+    irr::Ptr<irr::video::ITexture> irrTex = *mContext->getVideoDriver()->addTexture(label, image);
+
+    Noesis::Ptr<IrrTexture> texture = Noesis::MakePtr<IrrTexture>(irrTex, image->getDimension().Width, image->getDimension().Height, 1, Noesis::TextureFormat::Enum::RGBA8, false);
+
+    mContext->getVideoDriver()->setTextureCreationFlag(irr::video::ETCF_CREATE_MIP_MAPS, true);
+
+    return texture;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void NoesisApp::IrrRenderContext::UpdateTexture(Noesis::Texture* texture, uint32_t level, uint32_t x, uint32_t y, uint32_t width, uint32_t height, const void* data)
 {
@@ -1128,6 +1141,11 @@ void NoesisApp::IrrRenderContext::DrawBatch(const Noesis::Batch& batch)
 		ToIrr(mMaterial.TextureLayer[slot], MinMagFilter::Enum(batch.patternSampler.f.minmagFilter), MipFilter::Enum(batch.patternSampler.f.mipFilter));
 		ToIrr(mMaterial.TextureLayer[slot], WrapMode::Enum(batch.patternSampler.f.wrapMode));
     }
+    else
+    {
+        uint8_t slot = mShaders[batch.shader.v].texturePosition[TextureSlot::Pattern];
+        mMaterial.setTexture(slot, nullptr);
+    }
 
     if (batch.ramps != 0)
     {
@@ -1137,6 +1155,11 @@ void NoesisApp::IrrRenderContext::DrawBatch(const Noesis::Batch& batch)
 		ToIrr(mMaterial.TextureLayer[slot], MinMagFilter::Enum(batch.rampsSampler.f.minmagFilter), MipFilter::Enum(batch.rampsSampler.f.mipFilter));
 		ToIrr(mMaterial.TextureLayer[slot], WrapMode::Enum(batch.rampsSampler.f.wrapMode));
 	}
+    else
+    {
+        uint8_t slot = mShaders[batch.shader.v].texturePosition[TextureSlot::Ramps];
+        mMaterial.setTexture(slot, nullptr);
+    }
 
     if (batch.image != 0)
     {
@@ -1146,6 +1169,11 @@ void NoesisApp::IrrRenderContext::DrawBatch(const Noesis::Batch& batch)
 		ToIrr(mMaterial.TextureLayer[slot], MinMagFilter::Enum(batch.imageSampler.f.minmagFilter), MipFilter::Enum(batch.imageSampler.f.mipFilter));
 		ToIrr(mMaterial.TextureLayer[slot], WrapMode::Enum(batch.imageSampler.f.wrapMode));
 	}
+    else
+    {
+        uint8_t slot = mShaders[batch.shader.v].texturePosition[TextureSlot::Image];
+        mMaterial.setTexture(slot, nullptr);
+    }
 
     if (batch.glyphs != 0)
     {
@@ -1155,6 +1183,11 @@ void NoesisApp::IrrRenderContext::DrawBatch(const Noesis::Batch& batch)
 		ToIrr(mMaterial.TextureLayer[slot], MinMagFilter::Enum(batch.glyphsSampler.f.minmagFilter), MipFilter::Enum(batch.glyphsSampler.f.mipFilter));
 		ToIrr(mMaterial.TextureLayer[slot], WrapMode::Enum(batch.glyphsSampler.f.wrapMode));
 	}
+    else
+    {
+        uint8_t slot = mShaders[batch.shader.v].texturePosition[TextureSlot::Glyphs];
+        mMaterial.setTexture(slot, nullptr);
+    }
 
     auto _driver = mContext->getVideoDriver();
     irr::video::E_VERTEX_TYPE vType = irr::video::E_VERTEX_TYPE(0x1000000 | Programs[batch.shader.v].vShaderIdx);

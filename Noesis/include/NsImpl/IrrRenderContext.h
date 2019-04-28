@@ -104,13 +104,12 @@ namespace NoesisApp
 
 		irr::IrrlichtDevice* GetIrrDevice() const;
 
-        NS_DECLARE_REFLECTION(IrrRenderContext, BaseComponent)
-
         // Inherited via RenderDevice
         virtual const Noesis::DeviceCaps& GetCaps() const override;
         virtual Noesis::Ptr<Noesis::RenderTarget> CreateRenderTarget(const char* label, uint32_t width, uint32_t height, uint32_t sampleCount) override;
         virtual Noesis::Ptr<Noesis::RenderTarget> CloneRenderTarget(const char* label, Noesis::RenderTarget* surface) override;
         virtual Noesis::Ptr<Noesis::Texture> CreateTexture(const char* label, uint32_t width, uint32_t height, uint32_t numLevels, Noesis::TextureFormat::Enum format) override;
+        Noesis::Ptr<Noesis::Texture> CreateIrrTexture(const char* label, irr::video::IImage* image);
         virtual void UpdateTexture(Noesis::Texture* texture, uint32_t level, uint32_t x, uint32_t y, uint32_t width, uint32_t height, const void* data) override;
         virtual void BeginRender(bool offscreen) override;
         virtual void SetRenderTarget(Noesis::RenderTarget* surface) override;
@@ -124,6 +123,8 @@ namespace NoesisApp
         virtual void DrawBatch(const Noesis::Batch& batch) override;
 
     private:
+
+        NS_DECLARE_REFLECTION(IrrRenderContext, BaseComponent)
 
         // Can be use Dx11-12 and Vulkan
         void CreateHlslLayout();

@@ -133,7 +133,7 @@ namespace gui
             }
 
             //System::Events::EventHandler<GUIEventArg, System::Events::DummyMutex> OnClick;
-            CGUIFontCache mFontCache;
+            //CGUIFontCache mFontCache;
 			core::stringw Text;
 			bool IsSeparator;
 			bool Enabled;

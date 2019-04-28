@@ -196,95 +196,95 @@ namespace NoesisApp
         void ResumeAudio();
 
         /// Occurs when the window's location changes
-        typedef void LocationChangedT(IrrNsDeviceStub* display, int x, int y);
+        typedef bool LocationChangedT(IrrNsDeviceStub* display, int x, int y);
         Noesis::Delegate<LocationChangedT>& LocationChanged();
 
         /// Occurs when the window's size changes
-        typedef void SizeChangedT(IrrNsDeviceStub* display, uint32_t width, uint32_t height);
+        typedef bool SizeChangedT(IrrNsDeviceStub* display, uint32_t width, uint32_t height);
         Noesis::Delegate<SizeChangedT>& SizeChanged();
 
         /// Occurs when the window's state changes
-        typedef void StateChangedT(IrrNsDeviceStub* display, WindowState state);
+        typedef bool StateChangedT(IrrNsDeviceStub* display, WindowState state);
         Noesis::Delegate<StateChangedT>& StateChanged();
 
         /// Occurs when files are dragged and dropped over the window
-        typedef void FileDroppedT(IrrNsDeviceStub* display, const char* filename);
+        typedef bool FileDroppedT(IrrNsDeviceStub* display, const char* filename);
         Noesis::Delegate<FileDroppedT>& FileDropped();
 
         /// Occurs when a window becomes the foreground window
-        typedef void ActivatedT(IrrNsDeviceStub* display);
+        typedef bool ActivatedT(IrrNsDeviceStub* display);
         Noesis::Delegate<ActivatedT>& Activated();
 
         /// Occurs when a window becomes a background window
-        typedef void DeactivatedT(IrrNsDeviceStub* display);
+        typedef bool DeactivatedT(IrrNsDeviceStub* display);
         Noesis::Delegate<DeactivatedT>& Deactivated();
 
         /// Occurs when window needs to render a frame
-        typedef void RenderT(IrrNsDeviceStub* display);
+        typedef bool RenderT(IrrNsDeviceStub* display);
         Noesis::Delegate<RenderT>& Render();
 
         /// Occurs when mouse is moved over the window
-        typedef void MouseMoveT(IrrNsDeviceStub* display, int x, int y);
+        typedef bool MouseMoveT(IrrNsDeviceStub* display, int x, int y);
         Noesis::Delegate<MouseMoveT>& MouseMove();
 
         /// Occurs when a mouse button is pressed over the window
-        typedef void MouseButtonDownT(IrrNsDeviceStub* display, int x, int y, Noesis::MouseButton b);
+        typedef bool MouseButtonDownT(IrrNsDeviceStub* display, int x, int y, Noesis::MouseButton b);
         Noesis::Delegate<MouseButtonDownT>& MouseButtonDown();
 
         /// Occurs when a mouse button is released over the window
-        typedef void MouseButtonUpT(IrrNsDeviceStub* display, int x, int y, Noesis::MouseButton b);
+        typedef bool MouseButtonUpT(IrrNsDeviceStub* display, int x, int y, Noesis::MouseButton b);
         Noesis::Delegate<MouseButtonUpT>& MouseButtonUp();
 
         /// Occurs when a mouse button is double clicked over the window
-        typedef void MouseDoubleClickT(IrrNsDeviceStub* display, int x, int y, Noesis::MouseButton b);
+        typedef bool MouseDoubleClickT(IrrNsDeviceStub* display, int x, int y, Noesis::MouseButton b);
         Noesis::Delegate<MouseDoubleClickT>& MouseDoubleClick();
 
         /// Occurs when mouse vertical wheel is rotated over the window
-        typedef void MouseWheelT(IrrNsDeviceStub* display, int x, int y, int delta);
+        typedef bool MouseWheelT(IrrNsDeviceStub* display, int x, int y, int delta);
         Noesis::Delegate<MouseWheelT>& MouseWheel();
 
         /// Occurs when mouse horizontal wheel is rotated over the window
-        typedef void MouseHWheelT(IrrNsDeviceStub* display, int x, int y, int delta);
+        typedef bool MouseHWheelT(IrrNsDeviceStub* display, int x, int y, int delta);
         Noesis::Delegate<MouseHWheelT>& MouseHWheel();
 
         /// Occurs when vertical scroll axis is actioned
-        typedef void ScrollT(IrrNsDeviceStub* display, float value);
+        typedef bool ScrollT(IrrNsDeviceStub* display, float value);
         Noesis::Delegate<ScrollT>& Scroll();
 
         /// Occurs when horizontal scroll axis is actioned
-        typedef void HScrollT(IrrNsDeviceStub* display, float value);
+        typedef bool HScrollT(IrrNsDeviceStub* display, float value);
         Noesis::Delegate<HScrollT>& HScroll();
 
         /// Occurs when a key is pressed over the window
-        typedef void KeyDownT(IrrNsDeviceStub* display, Noesis::Key key);
+        typedef bool KeyDownT(IrrNsDeviceStub* display, Noesis::Key key);
         Noesis::Delegate<KeyDownT>& KeyDown();
 
         /// Occurs when a key is released over the window
-        typedef void KeyUpT(IrrNsDeviceStub* display, Noesis::Key key);
+        typedef bool KeyUpT(IrrNsDeviceStub* display, Noesis::Key key);
         Noesis::Delegate<KeyUpT>& KeyUp();
 
         /// Occurs when a key is translated to the corresponding character over the window
-        typedef void CharT(IrrNsDeviceStub* display, uint32_t c);
+        typedef bool CharT(IrrNsDeviceStub* display, uint32_t c);
         Noesis::Delegate<CharT>& Char();
 
         /// Occurs when a finger touches the window
-        typedef void TouchDownT(IrrNsDeviceStub* display, int x, int y, uint64_t id);
+        typedef bool TouchDownT(IrrNsDeviceStub* display, int x, int y, uint64_t id);
         Noesis::Delegate<TouchDownT>& TouchDown();
 
         /// Occurs when a finger moves on the window
-        typedef void TouchMoveT(IrrNsDeviceStub* display, int x, int y, uint64_t id);
+        typedef bool TouchMoveT(IrrNsDeviceStub* display, int x, int y, uint64_t id);
         Noesis::Delegate<TouchMoveT>& TouchMove();
 
         /// Occurs when a finger raises off of the window
-        typedef void TouchUpT(IrrNsDeviceStub* display, int x, int y, uint64_t id);
+        typedef bool TouchUpT(IrrNsDeviceStub* display, int x, int y, uint64_t id);
         Noesis::Delegate<TouchUpT>& TouchUp();
 
         /// Occurs when a window becomes a background window
-        typedef void ClosingT(IrrNsDeviceStub* display);
+        typedef bool ClosingT(IrrNsDeviceStub* display);
         Noesis::Delegate<ClosingT>& Closing();
 
         /// Occurs when a window becomes a background window
-        typedef void ClosedT(IrrNsDeviceStub* display);
+        typedef bool ClosedT(IrrNsDeviceStub* display);
         Noesis::Delegate<ClosedT>& Closed();
 
 

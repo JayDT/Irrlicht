@@ -47,7 +47,7 @@ namespace irr
          * must always be created on the core thread. Same command buffer cannot be used on multiple threads simulateously
          * without external synchronization.
          */
-        class IRRLICHT_API CommandBuffer : public irr::IReferenceCountedMT
+        class IRRLICHT_API CommandBuffer : public irr::IReferenceCounted
         {
         public:
             virtual ~CommandBuffer() { }

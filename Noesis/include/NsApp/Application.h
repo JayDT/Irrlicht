@@ -119,8 +119,9 @@ namespace NoesisApp
         virtual bool GetsRGBOverride() const;
 
         void EnsureResources() const;
-        void OnActivated(IrrNsDeviceStub* display);
-        void OnDeactivated(IrrNsDeviceStub* display);
+        bool OnActivated(IrrNsDeviceStub* display);
+        bool OnDeactivated(IrrNsDeviceStub* display);
+        bool OnWindowClosed(IrrNsDeviceStub* display);
 
 		void Shutdown(NoesisApp::Window* child) noexcept;
 

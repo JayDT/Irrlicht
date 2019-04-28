@@ -109,7 +109,8 @@ void Application::Init(IrrNsDeviceStub* display, const CommandLine& arguments)
     
     display->Activated() += MakeDelegate(this, &Application::OnActivated);
     display->Deactivated() += MakeDelegate(this, &Application::OnDeactivated);
-    
+    display->Closed() += MakeDelegate(this, &Application::OnWindowClosed);
+
     mRenderContext = GetRenderContextOverride();
     bool ppaa = GetPPAAOverride();
     uint32_t samples = GetSamplesOverride();
@@ -219,6 +220,7 @@ Window* NoesisApp::Application::CreateNsWindow(const char* uri, irr::SIrrlichtCr
 
 		display->Activated() += MakeDelegate(this, &Application::OnActivated);
 		display->Deactivated() += MakeDelegate(this, &Application::OnDeactivated);
+        display->Closed() += MakeDelegate(this, &Application::OnWindowClosed);
 
 		bool ppaa = GetPPAAOverride();
 		uint32_t samples = GetSamplesOverride();
@@ -413,15 +415,25 @@ void Application::EnsureResources() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Application::OnActivated(IrrNsDeviceStub*)
+bool Application::OnActivated(IrrNsDeviceStub*)
 {
     mActivated(this, EventArgs::Empty);
+    return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Application::OnDeactivated(IrrNsDeviceStub*)
+bool Application::OnDeactivated(IrrNsDeviceStub*)
 {
     mDeactivated(this, EventArgs::Empty);
+    return false;
+}
+
+bool NoesisApp::Application::OnWindowClosed(IrrNsDeviceStub* display)
+{
+    display->Activated() -= MakeDelegate(this, &Application::OnActivated);
+    display->Deactivated() -= MakeDelegate(this, &Application::OnDeactivated);
+    display->Closed() -= MakeDelegate(this, &Application::OnWindowClosed);
+    return false;
 }
 
 //void Application::Render(double time, RootChild& child) noexcept

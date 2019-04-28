@@ -40,21 +40,16 @@ namespace irr
     the name of the method does not start with 'create'. The texture
     is stored somewhere by the driver.
     */
-    class IRRLICHT_API IReferenceCounted
+    class IRRLICHT_API IReferenceCounted //MTA
     {
     public:
 
         //! Constructor.
         IReferenceCounted()
-            : isDeleted(false), BreakReferenceCounter(0) //DebugName(0)
+            : isDeleted(false)
         {
             ReferenceCounter = 1;
         }
-
-        //IReferenceCounted(IReferenceCounted const&)
-        //{
-        //    throw "sadf";
-        //}
 
         //! Destructor.
         virtual ~IReferenceCounted()
@@ -91,7 +86,7 @@ namespace irr
         You will not have to drop the pointer to the loaded texture,
         because the name of the method does not start with 'create'.
         The texture is stored somewhere by the driver. */
-        virtual void grab() const { ++ReferenceCounter; }
+        virtual void grab() const noexcept { ++ReferenceCounter; }
 
         //! Drops the object. Decrements the reference counter by one.
         /** The IReferenceCounted class provides a basic reference
@@ -121,11 +116,10 @@ namespace irr
         because the name of the method does not start with 'create'.
         The texture is stored somewhere by the driver.
         \return True, if the object was deleted. */
-        virtual bool drop() const
+        virtual bool drop() const noexcept
         {
             // someone is doing bad reference counting.
             _IRR_DEBUG_BREAK_IF(isDeleted || ReferenceCounter <= 0);
-            _IRR_DEBUG_BREAK_IF(BreakReferenceCounter == ReferenceCounter);
 
             --ReferenceCounter;
             if (!ReferenceCounter)
@@ -145,17 +139,15 @@ namespace irr
             return ReferenceCounter;
         }
 
-        void setRefBreak(s32 i)
-        {
-            BreakReferenceCounter = i;
-        }
-
         //! Returns the debug name of the object.
         /** The Debugname may only be set and changed by the object
         itself. This method should only be used in Debug mode.
         \return Returns a string, previously set by setDebugName(); */
         const c8* getDebugName() const
         {
+#ifdef _DEBUG
+            return DebugName;
+#endif
             return ""; // DebugName;
         }
 
@@ -167,34 +159,42 @@ namespace irr
         \param newName: New debug name to set. */
         void setDebugName(const c8* newName)
         {
-            //DebugName = newName;
+#ifdef _DEBUG
+            DebugName = newName;
+#endif
         }
 
     private:
 
+#ifdef _DEBUG
         //! The debug name.
-        //const c8* DebugName;
+        const c8* DebugName;
+#endif
 
         mutable bool isDeleted;
 
         //! The reference counter. Mutable to do reference counting on const objects.
-        mutable int ReferenceCounter;
-        mutable int BreakReferenceCounter;
+        mutable std::atomic_int ReferenceCounter;
     };
 
 
-    class IRRLICHT_API IReferenceCountedMT
+    class IRRLICHT_API IReferenceCountedSTA
     {
     public:
 
         //! Constructor.
-        IReferenceCountedMT()
+        IReferenceCountedSTA()
         {
             ReferenceCounter = 1;
         }
 
+        IReferenceCountedSTA(const IReferenceCountedSTA&) = delete;
+        IReferenceCountedSTA(IReferenceCountedSTA&&) = delete;
+        void operator=(const IReferenceCountedSTA&) = delete;
+        void operator=(IReferenceCountedSTA&&) = delete;
+
         //! Destructor.
-        virtual ~IReferenceCountedMT()
+        virtual ~IReferenceCountedSTA()
         {
         }
 
@@ -228,7 +228,7 @@ namespace irr
         You will not have to drop the pointer to the loaded texture,
         because the name of the method does not start with 'create'.
         The texture is stored somewhere by the driver. */
-        virtual void grab() const { ++ReferenceCounter; }
+        virtual void grab() const noexcept { ++ReferenceCounter; }
 
         //! Drops the object. Decrements the reference counter by one.
         /** The IReferenceCounted class provides a basic reference
@@ -258,7 +258,7 @@ namespace irr
         because the name of the method does not start with 'create'.
         The texture is stored somewhere by the driver.
         \return True, if the object was deleted. */
-        virtual bool drop() const
+        virtual bool drop() const noexcept
         {
             // someone is doing bad reference counting.
             _IRR_DEBUG_BREAK_IF(ReferenceCounter <= 0)
@@ -286,7 +286,10 @@ namespace irr
         \return Returns a string, previously set by setDebugName(); */
         const c8* getDebugName() const
         {
-            return "";
+#ifdef _DEBUG
+            return DebugName;
+#endif
+            return ""; // DebugName;
         }
 
     protected:
@@ -297,12 +300,20 @@ namespace irr
         \param newName: New debug name to set. */
         void setDebugName(const c8* newName)
         {
+#ifdef _DEBUG
+            DebugName = newName;
+#endif
         }
 
     private:
 
+#ifdef _DEBUG
+        //! The debug name.
+        const c8* DebugName;
+#endif
+
         //! The reference counter. Mutable to do reference counting on const objects.
-        mutable std::atomic_int ReferenceCounter;
+        mutable s32 ReferenceCounter;
     };
 
     // Cloning Noesis implementation
@@ -348,6 +359,9 @@ namespace irr
 
         /// Resets to null pointer
         inline void Reset();
+
+        /// Resets to null pointer
+        inline bool Release();
 
         /// Resets to pointer, increasing reference counter
         inline void Reset(T* ptr);
@@ -514,6 +528,20 @@ namespace irr
         }
 
         mPtr = 0;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    bool Ptr<T>::Release()
+    {
+        bool _deleted = false;
+        if (mPtr != 0)
+        {
+            _deleted = mPtr->drop();
+        }
+
+        mPtr = 0;
+        return _deleted;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////

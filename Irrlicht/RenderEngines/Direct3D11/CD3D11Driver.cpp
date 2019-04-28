@@ -2114,8 +2114,6 @@ void CD3D11Driver::drawMeshBuffer(const scene::IMeshBuffer * mb, scene::IMesh * 
         HWBuffer = mb->GetHWBuffer();
     }
 
-    bool hasConstantBuffer = mb->GetShaderConstantBuffers() != nullptr && !mb->GetShaderConstantBuffers()->empty();
-
     if (PrimitiveTopology == scene::E_PRIMITIVE_TYPE::EPT_TRIANGLE_FAN)
         return;
 

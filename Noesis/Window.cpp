@@ -1195,7 +1195,7 @@ void Window::RenderStats(double time)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Window::OnDisplayLocationChanged(IrrNsDeviceStub*, int x, int y)
+bool Window::OnDisplayLocationChanged(IrrNsDeviceStub*, int x, int y)
 {
     if (!CHECK_FLAG(WindowFlags_DontUpdateWindow))
     {
@@ -1204,10 +1204,12 @@ void Window::OnDisplayLocationChanged(IrrNsDeviceStub*, int x, int y)
         SetTop((float)y);
         CLEAR_FLAG(WindowFlags_DontUpdateDisplay);
     }
+
+    return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Window::OnDisplaySizeChanged(IrrNsDeviceStub*, uint32_t width, uint32_t height)
+bool Window::OnDisplaySizeChanged(IrrNsDeviceStub*, uint32_t width, uint32_t height)
 {
     if (!CHECK_FLAG(WindowFlags_DontUpdateWindow))
     {
@@ -1233,196 +1235,205 @@ void Window::OnDisplaySizeChanged(IrrNsDeviceStub*, uint32_t width, uint32_t hei
             mViewStats->SetSize(cw, ch);
         }
     }
+
+    return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Window::OnDisplayFileDropped(IrrNsDeviceStub*, const char* filename)
+bool Window::OnDisplayFileDropped(IrrNsDeviceStub*, const char* filename)
 {
     OnFileDropped(filename);
+    return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Window::OnDisplayActivated(IrrNsDeviceStub*)
+bool Window::OnDisplayActivated(IrrNsDeviceStub*)
 {
     mView->Activate();
     SetReadOnlyProperty<bool>(IsActiveProperty, true);
     mActivated(this, EventArgs::Empty);
+    return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Window::OnDisplayDeactivated(IrrNsDeviceStub*)
+bool Window::OnDisplayDeactivated(IrrNsDeviceStub*)
 {
     mView->Deactivate();
     mIsCtrlDown = false;
     mIsShiftDown = false;
     SetReadOnlyProperty<bool>(IsActiveProperty, false);
     mDeactivated(this, EventArgs::Empty);
+    return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Window::OnDisplayMouseMove(IrrNsDeviceStub*, int x, int y)
+bool Window::OnDisplayMouseMove(IrrNsDeviceStub*, int x, int y)
 {
-    mActiveView->MouseMove(x, y);
+    return mActiveView->MouseMove(x, y);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Window::OnDisplayMouseButtonDown(IrrNsDeviceStub*, int x, int y, MouseButton button)
+bool Window::OnDisplayMouseButtonDown(IrrNsDeviceStub*, int x, int y, MouseButton button)
 {
     HitTestToolbar(x, y);
-    mActiveView->MouseButtonDown(x, y, button);
+    return mActiveView->MouseButtonDown(x, y, button);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Window::OnDisplayMouseButtonUp(IrrNsDeviceStub*, int x, int y, MouseButton button)
+bool Window::OnDisplayMouseButtonUp(IrrNsDeviceStub*, int x, int y, MouseButton button)
 {
-    mActiveView->MouseButtonUp(x, y, button);
+    return mActiveView->MouseButtonUp(x, y, button);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Window::OnDisplayMouseDoubleClick(IrrNsDeviceStub*, int x, int y, MouseButton button)
+bool Window::OnDisplayMouseDoubleClick(IrrNsDeviceStub*, int x, int y, MouseButton button)
 {
-    mActiveView->MouseDoubleClick(x, y, button);
+    return mActiveView->MouseDoubleClick(x, y, button);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Window::OnDisplayMouseWheel(IrrNsDeviceStub*, int x, int y, int delta)
+bool Window::OnDisplayMouseWheel(IrrNsDeviceStub*, int x, int y, int delta)
 {
-    mActiveView->MouseWheel(x, y, delta);
+    return mActiveView->MouseWheel(x, y, delta);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Window::OnDisplayMouseHWheel(IrrNsDeviceStub*, int x, int y, int delta)
+bool Window::OnDisplayMouseHWheel(IrrNsDeviceStub*, int x, int y, int delta)
 {
-    mActiveView->MouseHWheel(x, y, delta);
+    return mActiveView->MouseHWheel(x, y, delta);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Window::OnDisplayScroll(IrrNsDeviceStub*, float value)
+bool Window::OnDisplayScroll(IrrNsDeviceStub*, float value)
 {
-    mActiveView->Scroll(value);
+    return mActiveView->Scroll(value);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Window::OnDisplayHScroll(IrrNsDeviceStub*, float value)
+bool Window::OnDisplayHScroll(IrrNsDeviceStub*, float value)
 {
-    mActiveView->HScroll(value);
+    return mActiveView->HScroll(value);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Window::OnDisplayTouchDown(IrrNsDeviceStub*, int x, int y, uint64_t id)
+bool Window::OnDisplayTouchDown(IrrNsDeviceStub*, int x, int y, uint64_t id)
 {
     HitTestToolbar(x ,y);
-    mActiveView->TouchDown(x, y, id);
+    return mActiveView->TouchDown(x, y, id);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Window::OnDisplayTouchMove(IrrNsDeviceStub*, int x, int y, uint64_t id)
+bool Window::OnDisplayTouchMove(IrrNsDeviceStub*, int x, int y, uint64_t id)
 {
-    mActiveView->TouchMove(x, y, id);
+    return mActiveView->TouchMove(x, y, id);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Window::OnDisplayTouchUp(IrrNsDeviceStub*, int x, int y, uint64_t id)
+bool Window::OnDisplayTouchUp(IrrNsDeviceStub*, int x, int y, uint64_t id)
 {
-    mActiveView->TouchUp(x, y, id);
+    return mActiveView->TouchUp(x, y, id);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Window::OnDisplayKeyDown(IrrNsDeviceStub*, Key key)
+bool Window::OnDisplayKeyDown(IrrNsDeviceStub*, Key key)
 {
-    mActiveView->KeyDown(key);
+    bool handled = mActiveView->KeyDown(key);
 
-    mIsCtrlDown = key == Key_LeftCtrl ? true : mIsCtrlDown;
-    mIsShiftDown = key == Key_LeftShift ? true : mIsShiftDown;
+    //mIsCtrlDown = key == Key_LeftCtrl ? true : mIsCtrlDown;
+    //mIsShiftDown = key == Key_LeftShift ? true : mIsShiftDown;
 
-    if ((mIsCtrlDown && key == Key_T) || key == Key_GamepadMenu)
-    {
-        ShowToolbar(mToolbar ? !mToolbar->GetIsEnabled() : true);
-    }
-    else if (mIsCtrlDown && key == Key_F)
-    {
-        if (mStatsMode == StatsMode_Disabled)
-        {
-            EnableWidgetStats(0, RoutedEventArgs(0, 0));
-        }
-        else if (mStatsMode == StatsMode_Widget)
-        {
-            EnableTitleStats(0, RoutedEventArgs(0, 0));
-        }
-        else
-        {
-            DisableStats(0, RoutedEventArgs(0, 0));
-        }
-    }
-    else if (mIsCtrlDown && key == Key_P)
-    {
-        if (mPPAA)
-        {
-            DisablePPAA(0, RoutedEventArgs(0, 0));
-        }
-        else
-        {
-            EnablePPAA(0, RoutedEventArgs(0, 0));
-        }
-    }
-    else if (mIsCtrlDown && key == Key_W)
-    {
-        if ((mViewFlags & RenderFlags_Wireframe) > 0)
-        {
-            DisableWireframe(0, RoutedEventArgs(0, 0));
-        }
-        else
-        {
-            EnableWireframe(0, RoutedEventArgs(0, 0));
-        }
-    }
-    else if (mIsCtrlDown && key == Key_B)
-    {
-        if ((mViewFlags & RenderFlags_ColorBatches) > 0)
-        {
-            DisableBatches(0, RoutedEventArgs(0, 0));
-        }
-        else
-        {
-            EnableBatches(0, RoutedEventArgs(0, 0));
-        }
-    }
-    else if (mIsCtrlDown && key == Key_O)
-    {
-        if ((mViewFlags & RenderFlags_Overdraw) > 0)
-        {
-            DisableOverdraw(0, RoutedEventArgs(0, 0));
-        }
-        else
-        {
-            EnableOverdraw(0, RoutedEventArgs(0, 0));
-        }
-    }
+    //if ((mIsCtrlDown && key == Key_T) || key == Key_GamepadMenu)
+    //{
+    //    ShowToolbar(mToolbar ? !mToolbar->GetIsEnabled() : true);
+    //}
+    //else if (mIsCtrlDown && key == Key_F)
+    //{
+    //    if (mStatsMode == StatsMode_Disabled)
+    //    {
+    //        EnableWidgetStats(0, RoutedEventArgs(0, 0));
+    //    }
+    //    else if (mStatsMode == StatsMode_Widget)
+    //    {
+    //        EnableTitleStats(0, RoutedEventArgs(0, 0));
+    //    }
+    //    else
+    //    {
+    //        DisableStats(0, RoutedEventArgs(0, 0));
+    //    }
+    //}
+    //else if (mIsCtrlDown && key == Key_P)
+    //{
+    //    if (mPPAA)
+    //    {
+    //        DisablePPAA(0, RoutedEventArgs(0, 0));
+    //    }
+    //    else
+    //    {
+    //        EnablePPAA(0, RoutedEventArgs(0, 0));
+    //    }
+    //}
+    //else if (mIsCtrlDown && key == Key_W)
+    //{
+    //    if ((mViewFlags & RenderFlags_Wireframe) > 0)
+    //    {
+    //        DisableWireframe(0, RoutedEventArgs(0, 0));
+    //    }
+    //    else
+    //    {
+    //        EnableWireframe(0, RoutedEventArgs(0, 0));
+    //    }
+    //}
+    //else if (mIsCtrlDown && key == Key_B)
+    //{
+    //    if ((mViewFlags & RenderFlags_ColorBatches) > 0)
+    //    {
+    //        DisableBatches(0, RoutedEventArgs(0, 0));
+    //    }
+    //    else
+    //    {
+    //        EnableBatches(0, RoutedEventArgs(0, 0));
+    //    }
+    //}
+    //else if (mIsCtrlDown && key == Key_O)
+    //{
+    //    if ((mViewFlags & RenderFlags_Overdraw) > 0)
+    //    {
+    //        DisableOverdraw(0, RoutedEventArgs(0, 0));
+    //    }
+    //    else
+    //    {
+    //        EnableOverdraw(0, RoutedEventArgs(0, 0));
+    //    }
+    //}
+
+    return handled;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Window::OnDisplayKeyUp(IrrNsDeviceStub*, Key key)
+bool Window::OnDisplayKeyUp(IrrNsDeviceStub*, Key key)
 {
     mIsCtrlDown = key == Key_LeftCtrl ? false : mIsCtrlDown;
     mIsShiftDown = key == Key_LeftShift ? false : mIsShiftDown;
 
-    mActiveView->KeyUp(key);
+    return mActiveView->KeyUp(key);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Window::OnDisplayChar(IrrNsDeviceStub*, uint32_t c)
+bool Window::OnDisplayChar(IrrNsDeviceStub*, uint32_t c)
 {
-    mActiveView->Char(c);
+    return mActiveView->Char(c);
 }
 
-void NoesisApp::Window::OnDisplayClosing(IrrNsDeviceStub* display)
+bool NoesisApp::Window::OnDisplayClosing(IrrNsDeviceStub* display)
 {
+    return false;
 }
 
-void NoesisApp::Window::OnDisplayClosed(IrrNsDeviceStub* display)
+bool NoesisApp::Window::OnDisplayClosed(IrrNsDeviceStub* display)
 {
     if (mClosed)
         mClosed(this, EventArgs::Empty);
+    return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -256,59 +256,16 @@ namespace irr
 
         struct IRRLICHT_API CDynamicVertexBufferObject : public irr::scene::IDynamicMeshBuffer
         {
-            CDynamicVertexBufferObject() 
-                : m_isEnabled(true), VertexBuffer(nullptr), IndexBuffer(nullptr), StreamBuffer(nullptr), m_gpuProgram(nullptr)
-                , m_gpuProgramId(-1), Material(new irr::video::SMaterial), ActiveSubBuffer(0)
-                , m_needBoundRecalulate(true)
-            {
-            }
-
+            CDynamicVertexBufferObject();
             virtual ~CDynamicVertexBufferObject();
 
-            virtual irr::scene::IVertexBuffer& getVertexBuffer() const override
-            {
-                return *VertexBuffer;
-            }
+            virtual irr::scene::IVertexBuffer& getVertexBuffer() const override { return *VertexBuffer; }
+            virtual irr::scene::IIndexBuffer& getIndexBuffer() const override { return *IndexBuffer; }
+            virtual irr::scene::IStreamBuffer* getStreamBuffer() const override { return StreamBuffer; }
 
-            virtual irr::scene::IIndexBuffer& getIndexBuffer() const override
-            {
-                return *IndexBuffer;
-            }
-
-            virtual irr::scene::IStreamBuffer* getStreamBuffer() const override
-            {
-                return StreamBuffer;
-            }
-
-            virtual void setVertexBuffer(irr::scene::IVertexBuffer *newVertexBuffer)
-            {
-                if (newVertexBuffer)
-                    newVertexBuffer->grab();
-                if (VertexBuffer)
-                    VertexBuffer->drop();
-
-                VertexBuffer = newVertexBuffer;
-            }
-
-            virtual void setIndexBuffer(irr::scene::IIndexBuffer *newIndexBuffer)
-            {
-                if (newIndexBuffer)
-                    newIndexBuffer->grab();
-                if (IndexBuffer)
-                    IndexBuffer->drop();
-
-                IndexBuffer = newIndexBuffer;
-            }
-
-            virtual void setStreamBuffer(irr::scene::IStreamBuffer *newStreamBuffer)
-            {
-                if (newStreamBuffer)
-                    newStreamBuffer->grab();
-                if (StreamBuffer)
-                    StreamBuffer->drop();
-
-                StreamBuffer = newStreamBuffer;
-            }
+            virtual void setVertexBuffer(irr::scene::IVertexBuffer* newVertexBuffer);
+            virtual void setIndexBuffer(irr::scene::IIndexBuffer* newIndexBuffer);
+            virtual void setStreamBuffer(irr::scene::IStreamBuffer* newStreamBuffer);
 
             CDynamicVertexSubBuffer const* GetSubBufferDesc(int sid)
             {
@@ -334,10 +291,9 @@ namespace irr
             }
 
             //! Get bounding box
-            virtual const irr::core::aabbox3d<float>& getBoundingBox() const
-            {
-                return BoundingBox;
-            }
+            virtual const irr::core::aabbox3df& getBoundingBox() const;
+
+            irr::core::aabbox3df& getMutableBoundingBox();
 
             //! Set bounding box
             virtual void setBoundingBox(const irr::core::aabbox3df& box)
@@ -352,106 +308,40 @@ namespace irr
             }
 
             //! Recalculate bounding box
-            virtual void recalculateBoundingBox()
-            {
-                if ( m_needBoundRecalulate )
-                {
-                    if ( !getVertexBuffer().size() )
-                        BoundingBox.reset(0, 0, 0);
-                    else
-                    {
-                        BoundingBox.reset(getVertexBuffer()[0].Pos);
-                        for ( u32 i = 1; i < getVertexBuffer().size(); ++i )
-                            BoundingBox.addInternalPoint(getVertexBuffer()[i].Pos);
-
-                        for (u32 i = 0; i != SubBuffer.size(); ++i)
-                            SubBuffer[i]->recalculateBoundingBox(this);
-                    }
-                }
-            }
+            void recalculateBoundingBox() override;
 
             virtual void CreateBuffers() {}
             virtual void UpdateBuffers() {}
-
-            virtual void InitSubBuffers(u16 count)
-            {
-                if (!count)
-                    return;
-
-                if (Material)
-                    delete Material;
-                Material = nullptr;
-                SubBuffer.reallocate(count);
-            }
-
+            virtual void InitSubBuffers(u16 count);
             virtual void AddSubBuffer(u32 istart, u32 icount, u32 vstart, u32 vcount);
-
             virtual void SetActiveSubBuffer(u16 sid);
-
             virtual u16 GetActiveSubBuffer() const { return ActiveSubBuffer; }
-
-            virtual u32 GetSubBufferCount() const
-            {
-                return SubBuffer.size();
-            }
+            virtual u32 GetSubBufferCount() const { return SubBuffer.size(); }
 
             virtual s32 GetVertexRangeStart() const { return !SubBuffer.empty() ? SubBuffer[ActiveSubBuffer]->m_vectiesStart : 0; }
             virtual s32 GetVertexRangeEnd()   const { return !SubBuffer.empty() ? SubBuffer[ActiveSubBuffer]->m_vectiesEnd : getVertexCount(); }
             virtual s32 GetIndexRangeStart()  const { return !SubBuffer.empty() ? SubBuffer[ActiveSubBuffer]->m_indicesStart : 0; }
             virtual s32 GetIndexRangeCount()  const { return !SubBuffer.empty() ? SubBuffer[ActiveSubBuffer]->m_indicesCount : getIndexCount(); }
-
             virtual s32 GetVertexStride() { return VertexBuffer ? VertexBuffer->stride() : 0; }
+            virtual void boundingBoxNeedsRecalculated(void) { m_needBoundRecalulate = true; }
+            const std::vector<video::IConstantBuffer*>* GetShaderConstantBuffers() const override final;
 
             virtual irr::video::IShader* GetGPUProgram() const;
             virtual void SetGPUProgram(irr::video::IShader* gpuProgram) override;
-            virtual void SetGPUProgram(irr::video::IVideoDriver* driver, s32 gpuProgramId) override
-            {
-                Driver = driver;
-                m_gpuProgramId = gpuProgramId;
-            }
-
-            virtual void boundingBoxNeedsRecalculated(void)
-            {
-                m_needBoundRecalulate = true;
-            }
-
             virtual void AddConstantBuffer(video::IConstantBuffer* buffer);
 
-            const std::vector<video::IConstantBuffer*>* GetShaderConstantBuffers() const override final { return &mShaderConstantBuffers; }
-
-            virtual void EnableSubBuffer(bool on, u16 sid)
-            {
-                if (SubBuffer.size() <= sid)
-                {
-                    m_isEnabled = on;
-                    return;
-                }
-
-                SubBuffer[sid]->m_isEnabled = on;
-            }
-            virtual bool IsAvailableSubBuffer(u16 sid)
-            {
-                if (SubBuffer.size() <= sid)
-                    return m_isEnabled;
-
-                return SubBuffer[sid]->m_isEnabled;
-            }
-
-            irr::video::SMaterial* Material;
-            std::vector<video::IConstantBuffer*> mShaderConstantBuffers;
-            irr::core::aabbox3d<float> BoundingBox;
+            virtual void EnableSubBuffer(bool on, u16 sid);
+            virtual bool IsAvailableSubBuffer(u16 sid);
 
         private:
-            irr::core::array<CDynamicVertexSubBuffer*> SubBuffer;
-            irr::scene::IVertexBuffer* VertexBuffer;
-            irr::scene::IStreamBuffer* StreamBuffer; // ToDo: Can be multiple (now support only instance stream)
-            irr::scene::IIndexBuffer * IndexBuffer;
-            union
-            {
-                mutable irr::video::IShader* m_gpuProgram;
-                irr::video::IVideoDriver* Driver;
-            };
-            s32 m_gpuProgramId;
+            irr::video::SMaterial* Material;
+            //std::vector<video::IConstantBuffer*> mShaderConstantBuffers;
+            std::vector<CDynamicVertexSubBuffer*> SubBuffer;
+            irr::Ptr<irr::scene::IVertexBuffer> VertexBuffer;
+            irr::Ptr<irr::scene::IStreamBuffer> StreamBuffer; // ToDo: Can be multiple (now support only instance stream)
+            irr::Ptr<irr::scene::IIndexBuffer> IndexBuffer;
+            mutable irr::video::IShader* m_gpuProgram;
+            irr::core::aabbox3df BoundingBox;
             u16 ActiveSubBuffer;
             bool m_isEnabled : 1;
             bool m_needBoundRecalulate : 1;

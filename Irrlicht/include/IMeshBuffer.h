@@ -255,8 +255,6 @@ namespace scene
 
         virtual video::IShader* GetGPUProgram() const { return nullptr; }
         virtual void SetGPUProgram(video::IShader* gpuProgram) { }
-        // Fast implementation for shader reload
-        virtual void SetGPUProgram(irr::video::IVideoDriver* driver, s32 gpuProgramId) { }
 
         virtual s32 GetVertexRangeStart() const { return 0; }
         virtual s32 GetVertexRangeEnd() const { return getVertexCount(); }
