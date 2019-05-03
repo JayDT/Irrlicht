@@ -254,7 +254,7 @@ bool CIrrDeviceStub::postEventFromUser(const SEvent& event)
         absorbed = inputReceiver->postEventFromUser(event);
 
     if (!absorbed && UserReceiver)
-        UserReceiver->OnPostEvent(event);
+        absorbed = UserReceiver->OnPostEvent(event);
 
     if (!absorbed && WorldReceiver)
         absorbed = WorldReceiver->OnPostEvent(event);

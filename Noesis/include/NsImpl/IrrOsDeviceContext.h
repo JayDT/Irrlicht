@@ -292,6 +292,7 @@ namespace NoesisApp
 
         // Inherited via IEventReceiver
         bool OnEvent(const irr::SEvent& event) override final;
+        bool OnPostEvent(const irr::SEvent& event) override final;
 
     protected:
         Noesis::Delegate<LocationChangedT> mLocationChanged;

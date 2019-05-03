@@ -742,6 +742,15 @@ bool NoesisApp::IrrNsDeviceStub::OnEvent(const irr::SEvent& event)
         {
             return mChar(this, event.KeyInput.Char);
         }
+    }
+    return false; // is absorbed
+}
+
+bool NoesisApp::IrrNsDeviceStub::OnPostEvent(const irr::SEvent& event)
+{
+    switch (event.EventType)
+    {
+        // WorkAround for Noesis key consumption
         case irr::EET_KEY_INPUT_EVENT:
         {
             if (event.KeyInput.Key < 0xFF && s_OISKeyMappings[event.KeyInput.Key] != 0)
@@ -753,7 +762,8 @@ bool NoesisApp::IrrNsDeviceStub::OnEvent(const irr::SEvent& event)
             break;
         }
     }
-    return false; // is absorbed
+
+    return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

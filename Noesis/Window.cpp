@@ -724,6 +724,11 @@ void Window::HitTestToolbar(int x, int y)
     }
 }
 
+Noesis::Visual* NoesisApp::Window::HitVisual(const Noesis::Pointi& p) const
+{
+    return VisualTreeHelper::HitTest(const_cast<NoesisApp::Window*>(this), PointFromScreen(p)).visualHit;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void Window::ShowToolbar(bool visible)
 {
@@ -1275,7 +1280,8 @@ bool Window::OnDisplayMouseMove(IrrNsDeviceStub*, int x, int y)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Window::OnDisplayMouseButtonDown(IrrNsDeviceStub*, int x, int y, MouseButton button)
 {
-    HitTestToolbar(x, y);
+    if (!HitVisual({ x, y }))
+        GetKeyboard()->ClearFocus();
     return mActiveView->MouseButtonDown(x, y, button);
 }
 
@@ -1318,7 +1324,8 @@ bool Window::OnDisplayHScroll(IrrNsDeviceStub*, float value)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Window::OnDisplayTouchDown(IrrNsDeviceStub*, int x, int y, uint64_t id)
 {
-    HitTestToolbar(x ,y);
+    if (!HitVisual({ x, y }))
+        GetKeyboard()->ClearFocus();
     return mActiveView->TouchDown(x, y, id);
 }
 

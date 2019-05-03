@@ -19,6 +19,7 @@ namespace Noesis
     class MeshGeometry;
     class Color;
     struct TimelineEventArgs;
+    struct Pointi;
     template<class T> class Delegate;
 
 }
@@ -203,6 +204,7 @@ namespace NoesisApp
         void OnToolbarTouchInteraction(BaseComponent* sender, const Noesis::TouchEventArgs& args);
         void OnToolbarKeyInteraction(BaseComponent* sender, const Noesis::KeyEventArgs& args);
         void HitTestToolbar(int x, int y);
+        Noesis::Visual* HitVisual(const Noesis::Pointi& p) const;
         void ShowToolbar(bool visible);
 
         void EnablePPAA(BaseComponent* sender, const Noesis::RoutedEventArgs& arg);
