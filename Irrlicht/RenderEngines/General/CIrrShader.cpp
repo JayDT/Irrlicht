@@ -415,6 +415,11 @@ irr::video::CNullShader::~CNullShader()
 {
 }
 
+void irr::video::CNullShader::Reset()
+{
+    mBuffers.clear();
+}
+
 void irr::video::CNullShader::AddConstantBuffer(SConstantBuffer * buffer)
 {
     assert(buffer->mShader == this);
@@ -728,9 +733,6 @@ void irr::video::IrrDefaultShaderVertexCallBack::OnPrepare(irr::video::IConstant
     mTextureMatrix2 = buffer->getVariableByName("textureMatrix2")->AsMatrix();
 
     buffer->setHardwareMappingHint(scene::E_HARDWARE_MAPPING::EHM_DYNAMIC);
-
-    // Release Allocation Reference
-    drop();
 }
 
 void irr::video::IrrDefaultShaderVertexCallBack::OnSetConstants(irr::video::IConstantBuffer* buffer, irr::scene::IMeshBuffer* meshBuffer, scene::IMesh* mesh/* = nullptr*/, scene::ISceneNode* node/* = nullptr*/)
@@ -771,9 +773,6 @@ void irr::video::IrrDefaultShaderFragmentCallBack::OnPrepare(irr::video::IConsta
     _IRR_DEBUG_BREAK_IF(mMaterialVar->getType()->Stride != sizeof(IrrDefaultShaderFragmentCallBack::Material));
 
     buffer->setHardwareMappingHint(scene::E_HARDWARE_MAPPING::EHM_DYNAMIC);
-
-    // Release Allocation Reference
-    drop();
 }
 
 void irr::video::IrrDefaultShaderFragmentCallBack::OnSetConstants(irr::video::IConstantBuffer* buffer, irr::scene::IMeshBuffer* meshBuffer, scene::IMesh* mesh/* = nullptr*/, scene::ISceneNode* node/* = nullptr*/)

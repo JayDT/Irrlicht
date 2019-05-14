@@ -21,6 +21,7 @@ namespace NoesisApp
 {
 	class IrrNsDeviceStub;
 	class IrrRenderContext;
+    class Window;
 
 	class NS_IRR_NOESIS_API IrrWindow : public Noesis::ContentControl
 	{
@@ -124,6 +125,8 @@ namespace NoesisApp
 		void OnClickClose(Noesis::BaseComponent*, const Noesis::RoutedEventArgs&);
 		void OnClickMinimize(Noesis::BaseComponent*, const Noesis::RoutedEventArgs&);
 		void OnClickMaximize(Noesis::BaseComponent*, const Noesis::RoutedEventArgs&);
+
+        NoesisApp::Window* GetRootWindow();
 
 	public:
 

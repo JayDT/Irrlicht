@@ -530,8 +530,8 @@ bool irr::video::CVulkanDriver::initDriver(void* param)
 
         shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
         shaderCI.AddShaderStage(fragShader, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "main", nullptr);
-        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
-        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
+        shaderCI.Callback["MatrixBuffer"] = irr::MakePtr<IrrDefaultShaderVertexCallBack>();
+        shaderCI.Callback["PixelConstats"] = irr::MakePtr<IrrDefaultShaderFragmentCallBack>();
         m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD] = static_cast<CVulkanGLSLProgram*>(createShader(&shaderCI));
 
         delete vertShader;
@@ -562,7 +562,7 @@ bool irr::video::CVulkanDriver::initDriver(void* param)
 #endif
 
         shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
-        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
+        shaderCI.Callback["MatrixBuffer"] = irr::MakePtr<IrrDefaultShaderVertexCallBack>();
         m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW] = static_cast<CVulkanGLSLProgram*>(createShader(&shaderCI));
 
         delete vertShader;
@@ -582,8 +582,8 @@ bool irr::video::CVulkanDriver::initDriver(void* param)
 
         shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
         shaderCI.AddShaderStage(fragShader, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "main", nullptr);
-        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
-        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
+        shaderCI.Callback["MatrixBuffer"] = irr::MakePtr<IrrDefaultShaderVertexCallBack>();
+        shaderCI.Callback["PixelConstats"] = irr::MakePtr<IrrDefaultShaderFragmentCallBack>();
         m_defaultShader[E_VERTEX_TYPE::EVT_2TCOORDS] = static_cast<CVulkanGLSLProgram*>(createShader(&shaderCI));
 
         delete vertShader;
@@ -603,8 +603,8 @@ bool irr::video::CVulkanDriver::initDriver(void* param)
 
         shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
         shaderCI.AddShaderStage(fragShader, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "main", nullptr);
-        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
-        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
+        shaderCI.Callback["MatrixBuffer"] = irr::MakePtr<IrrDefaultShaderVertexCallBack>();
+        shaderCI.Callback["PixelConstats"] = irr::MakePtr<IrrDefaultShaderFragmentCallBack>();
         m_defaultShader[E_VERTEX_TYPE::EVT_SKINNING] = static_cast<CVulkanGLSLProgram*>(createShader(&shaderCI));
 
         delete vertShader;

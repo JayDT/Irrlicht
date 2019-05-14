@@ -163,6 +163,9 @@ namespace NoesisApp
 		IrrNsDeviceStub* GetDisplayDevice() const { return mDisplay; }
 		IrrRenderContext* GetIrrRenderContext() const { return mRenderContext; }
 
+        Noesis::Ptr<Noesis::Texture> CreateTexture(const char* label, uint32_t width, uint32_t height, uint32_t numLevels, Noesis::TextureFormat::Enum format);
+        Noesis::Ptr<Noesis::RenderTarget> CreateRenderTarget(const char* label, uint32_t width, uint32_t height, uint32_t sampleCount);
+
     protected:
         virtual void OnFullscreenChanged(bool fullscreen);
         virtual void OnTitleChanged(const char* title);

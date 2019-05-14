@@ -843,8 +843,8 @@ void NoesisApp::IrrRenderContext::CreateGlslLayout()
 
         shaderCI.AddShaderStage(vSteam.get(), irr::video::E_SHADER_TYPES::EST_VERTEX_SHADER, "main", "", irr::video::E_GPU_SHADING_LANGUAGE::EGSL_DEFAULT, true);
         shaderCI.AddShaderStage(pSteam.get(), irr::video::E_SHADER_TYPES::EST_FRAGMENT_SHADER, "main", "", irr::video::E_GPU_SHADING_LANGUAGE::EGSL_DEFAULT, true);
-        shaderCI.Callback["MatrixBuffer"] = new IrrNoesisShaderVertexReflectedCallBack(mSharedBuffer);
-        shaderCI.Callback["ColorBuffer"] = new IrrNoesisShaderPixelReflectedCallBack(mSharedBuffer);
+        shaderCI.Callback["MatrixBuffer"] = irr::MakePtr<IrrNoesisShaderVertexReflectedCallBack>(mSharedBuffer);
+        shaderCI.Callback["ColorBuffer"] = irr::MakePtr< IrrNoesisShaderPixelReflectedCallBack>(mSharedBuffer);
         irr::video::CNullShader * shader = static_cast<irr::video::CNullShader*>(mContext->getVideoDriver()->getGPUProgrammingServices()->createShader(&shaderCI));
         mShaders[i].shader = irr::Ptr<irr::video::IShader>(shader);
 

@@ -343,7 +343,7 @@ namespace video
         std::wstring DriverAndFeatureName;
 		DXGI_SAMPLE_DESC mSampleDescs[MSAA::Count];
 
-        irr::video::D3D11HLSLProgram* m_defaultShader[(s32)E_VERTEX_TYPE::EVT_MAX_VERTEX_TYPE];
+        irr::Ptr<irr::video::D3D11HLSLProgram> m_defaultShader[(s32)E_VERTEX_TYPE::EVT_MAX_VERTEX_TYPE];
 		irr::Ptr<irr::video::D3D11HLSLProgram> m_rtResolveShader[MSAA::Count];
 
 		// Direct3D 11 objects
@@ -662,6 +662,8 @@ namespace video
 
     public:
         bool ResetBlending : 1;
+
+        bool ResolveMSAA(Msw::ComPtr<ID3D11Texture2D> pStaging, Msw::ComPtr<ID3D11Texture2D> pResolveTex, uint8_t msaa);
 
     protected:
 

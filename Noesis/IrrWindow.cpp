@@ -520,6 +520,11 @@ void NoesisApp::IrrWindow::OnClickMaximize(Noesis::BaseComponent*, const Noesis:
     }
 }
 
+NoesisApp::Window* NoesisApp::IrrWindow::GetRootWindow()
+{
+    return NoesisApp::Extensions::FindRootWindow(this);
+}
+
 bool NoesisApp::IrrWindow::ChangeCanResizeState(uint32_t flag)
 {
     if ((~mActionModeFlags & flag) == flag)

@@ -384,6 +384,18 @@ EventHandler& Window::StateChanged()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+Noesis::Ptr<Noesis::Texture> Window::CreateTexture(const char* label, uint32_t width, uint32_t height, uint32_t numLevels, Noesis::TextureFormat::Enum format)
+{
+    return GetIrrRenderContext()->CreateTexture(label, width, height, numLevels, format);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+Noesis::Ptr<Noesis::RenderTarget> Window::CreateRenderTarget(const char* label, uint32_t width, uint32_t height, uint32_t sampleCount)
+{
+    return GetIrrRenderContext()->CreateRenderTarget(label, width, height, sampleCount);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 void Window::OnFullscreenChanged(bool)
 {
     CoerceValue<WindowStyle>(WindowStyleProperty);

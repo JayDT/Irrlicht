@@ -766,7 +766,8 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
 			std::string value = std::to_string(counts[i]);
 			psEntry->Macros[0].Name = "NUM_SAMPLES";
 			psEntry->Macros[0].Value = value.c_str();
-			m_rtResolveShader[i] = irr::Ptr<D3D11HLSLProgram>(*static_cast<D3D11HLSLProgram*>(createShader(&shaderCI)));
+			m_rtResolveShader[i].Reset(static_cast<D3D11HLSLProgram*>(createShader(&shaderCI)));
+            shaderCI.mShader.Reset();
 		}
 	}
 
@@ -775,9 +776,9 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
 
         shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_VERTEX_SHADER, "vs_main", "vs_4_0");
         shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "ps_main", "ps_4_0");
-        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
-        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
-        m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD] = static_cast<D3D11HLSLProgram*>(createShader(&shaderCI));
+        shaderCI.Callback["MatrixBuffer"] = irr::MakePtr<IrrDefaultShaderVertexCallBack>();
+        shaderCI.Callback["PixelConstats"] = irr::MakePtr<IrrDefaultShaderFragmentCallBack>();
+        m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD].Reset(static_cast<D3D11HLSLProgram*>(createShader(&shaderCI)));
 
         irr::video::VertexDeclaration* vertDecl = GetVertexDeclaration(E_VERTEX_TYPE::EVT_STANDARD);
         m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD]->m_inputLayout = static_cast<CD3D11VertexDeclaration*>(vertDecl)->getInputLayout(m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD]);
@@ -788,9 +789,9 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
 
         shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_VERTEX_SHADER, "vs_main_t2", "vs_4_0");
         shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "ps_main", "ps_4_0");
-        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
-        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
-        m_defaultShader[E_VERTEX_TYPE::EVT_2TCOORDS] = static_cast<D3D11HLSLProgram*>(createShader(&shaderCI));
+        shaderCI.Callback["MatrixBuffer"] = irr::MakePtr<IrrDefaultShaderVertexCallBack>();
+        shaderCI.Callback["PixelConstats"] = irr::MakePtr<IrrDefaultShaderFragmentCallBack>();
+        m_defaultShader[E_VERTEX_TYPE::EVT_2TCOORDS].Reset(static_cast<D3D11HLSLProgram*>(createShader(&shaderCI)));
 
         irr::video::VertexDeclaration* vertDecl = GetVertexDeclaration(E_VERTEX_TYPE::EVT_2TCOORDS);
         m_defaultShader[E_VERTEX_TYPE::EVT_2TCOORDS]->m_inputLayout = static_cast<CD3D11VertexDeclaration*>(vertDecl)->getInputLayout(m_defaultShader[E_VERTEX_TYPE::EVT_2TCOORDS]);
@@ -801,9 +802,9 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
 
         shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_VERTEX_SHADER, "vs_main_sk", "vs_4_0");
         shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "ps_main", "ps_4_0");
-        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
-        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
-        m_defaultShader[E_VERTEX_TYPE::EVT_SKINNING] = static_cast<D3D11HLSLProgram*>(createShader(&shaderCI));
+        shaderCI.Callback["MatrixBuffer"] = irr::MakePtr<IrrDefaultShaderVertexCallBack>();
+        shaderCI.Callback["PixelConstats"] = irr::MakePtr<IrrDefaultShaderFragmentCallBack>();
+        m_defaultShader[E_VERTEX_TYPE::EVT_SKINNING].Reset(static_cast<D3D11HLSLProgram*>(createShader(&shaderCI)));
 
         irr::video::VertexDeclaration* vertDecl = GetVertexDeclaration(E_VERTEX_TYPE::EVT_SKINNING);
         m_defaultShader[E_VERTEX_TYPE::EVT_SKINNING]->m_inputLayout = static_cast<CD3D11VertexDeclaration*>(vertDecl)->getInputLayout(m_defaultShader[E_VERTEX_TYPE::EVT_SKINNING]);
@@ -814,9 +815,9 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
 
         shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_VERTEX_SHADER, "vs_main_bt", "vs_4_0");
         shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "ps_main", "ps_4_0");
-        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
-        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
-        m_defaultShader[E_VERTEX_TYPE::EVT_TANGENTS] = static_cast<D3D11HLSLProgram*>(createShader(&shaderCI));
+        shaderCI.Callback["MatrixBuffer"] = irr::MakePtr<IrrDefaultShaderVertexCallBack>();
+        shaderCI.Callback["PixelConstats"] = irr::MakePtr<IrrDefaultShaderFragmentCallBack>();
+        m_defaultShader[E_VERTEX_TYPE::EVT_TANGENTS].Reset(static_cast<D3D11HLSLProgram*>(createShader(&shaderCI)));
 
         irr::video::VertexDeclaration* vertDecl = GetVertexDeclaration(E_VERTEX_TYPE::EVT_TANGENTS);
         m_defaultShader[E_VERTEX_TYPE::EVT_TANGENTS]->m_inputLayout = static_cast<CD3D11VertexDeclaration*>(vertDecl)->getInputLayout(m_defaultShader[E_VERTEX_TYPE::EVT_TANGENTS]);
@@ -826,8 +827,8 @@ bool CD3D11Driver::initDriver(HWND hwnd, bool pureSoftware)
         ShaderInitializerEntry shaderCI;
 
         shaderCI.AddShaderStage(resource, E_SHADER_TYPES::EST_VERTEX_SHADER, "vs_main_sh", "vs_4_0");
-        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
-        m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW] = static_cast<D3D11HLSLProgram*>(createShader(&shaderCI));
+        shaderCI.Callback["MatrixBuffer"] = irr::MakePtr<IrrDefaultShaderVertexCallBack>();
+        m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW].Reset(static_cast<D3D11HLSLProgram*>(createShader(&shaderCI)));
 
         irr::video::VertexDeclaration* vertDecl = GetVertexDeclaration(E_VERTEX_TYPE::EVT_SHADOW);
         m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW]->m_inputLayout = static_cast<CD3D11VertexDeclaration*>(vertDecl)->getInputLayout(m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW]);
@@ -842,6 +843,7 @@ IShader * CD3D11Driver::createShader(ShaderInitializerEntry * shaderCreateInfo)
 {
     irr::video::D3D11HLSLProgram* gpuProgram = shaderCreateInfo->mShader ? static_cast<irr::video::D3D11HLSLProgram*>(shaderCreateInfo->mShader.GetPtr()) : new irr::video::D3D11HLSLProgram(this);
 
+    gpuProgram->Reset();
     for (auto stage : shaderCreateInfo->mStages)
     {
         if (!stage->DataStream)
@@ -869,15 +871,15 @@ IShader * CD3D11Driver::createShader(ShaderInitializerEntry * shaderCreateInfo)
         switch (stage->ShaderStageType)
         {
             case E_SHADER_TYPES::EST_VERTEX_SHADER:
-                gpuProgram->createVertexShader(Device.Get(), stage->DataStream, ShaderEntryPoint, ShaderModel, Macros);
+                gpuProgram->createVertexShader(Device.Get(), stage->DataStream, ShaderEntryPoint, ShaderModel, Macros, !!shaderCreateInfo->mShader);
 				DX_NAME(gpuProgram->m_vertexShader.Get(), "%s_VS", stage->DataStream->FileName.c_str());
                 break;
             case E_SHADER_TYPES::EST_GEOMETRY_SHADER:
-                gpuProgram->createGeometryShader(Device.Get(), stage->DataStream, ShaderEntryPoint, ShaderModel, Macros);
+                gpuProgram->createGeometryShader(Device.Get(), stage->DataStream, ShaderEntryPoint, ShaderModel, Macros, !!shaderCreateInfo->mShader);
 				DX_NAME(gpuProgram->m_geometryShader.Get(), "%s_GS", stage->DataStream->FileName.c_str());
 				break;
             case E_SHADER_TYPES::EST_FRAGMENT_SHADER:
-                gpuProgram->createPixelShader(Device.Get(), stage->DataStream, ShaderEntryPoint, ShaderModel, Macros);
+                gpuProgram->createPixelShader(Device.Get(), stage->DataStream, ShaderEntryPoint, ShaderModel, Macros, !!shaderCreateInfo->mShader);
 				DX_NAME(gpuProgram->m_pixelShader.Get(), "%s_PS", stage->DataStream->FileName.c_str());
 				break;
         }
@@ -896,7 +898,7 @@ IShader * CD3D11Driver::createShader(ShaderInitializerEntry * shaderCreateInfo)
 
     gpuProgram->Init();
     shaderCreateInfo->mShaderId = gpuProgram->mId = AddShaderModul(gpuProgram, shaderCreateInfo->mShaderId);
-    return gpuProgram;
+    return shaderCreateInfo->mShader = *gpuProgram;
 }
 
 bool CD3D11Driver::SyncShaderConstant(CD3D11HardwareBuffer * HWBuffer, scene::IMesh* mesh/* = nullptr*/, scene::ISceneNode* node/* = nullptr*/)
@@ -3089,57 +3091,225 @@ void CD3D11Driver::clearZBuffer(f32 clearDepth /*= 1.f*/, u8 clearStencil /*= 0*
         ImmediateContext->ClearDepthStencilView( CurrentDepthBuffer.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, clearDepth, clearStencil);
 }
 
+bool CD3D11Driver::ResolveMSAA(Msw::ComPtr<ID3D11Texture2D> pStaging, Msw::ComPtr<ID3D11Texture2D> pResolveTex, uint8_t msaa)
+{
+    // Resolve MSAA
+    DX_BEGIN_EVENT(L"Resolve");
+
+    Msw::ComPtr<ID3D11RenderTargetView> RTTextureView;
+    HRESULT hr = Device->CreateRenderTargetView(pStaging.Get(), 0, RTTextureView.GetAddressOf());
+
+    Msw::ComPtr<ID3D11ShaderResourceView> SRMSAAView;
+    hr = Device->CreateShaderResourceView(pResolveTex.Get(), 0, SRMSAAView.GetAddressOf());
+
+    auto prevShader = GetActiveShader();
+
+        u32 _current_msaa = DirectXUtil::ToMSAA(msaa);
+        Material.MaterialType = E_MATERIAL_TYPE::EMT_SOLID;
+        Material.BlendOperation = E_BLEND_OPERATION::EBO_NONE;
+        Material.ColorMask = 0xF;
+
+        Material.IsCCW = false;
+        Material.ScissorEnable = false;
+        Material.Wireframe = false;
+        Material.ZWriteEnable = false;
+        Material.DepthClipEnable = true;
+        Material.FrontfaceCulling = false;
+        Material.BackfaceCulling = false;
+        Material.ZBuffer = irr::video::E_COMPARISON_FUNC::ECFN_NEVER;
+
+        Material.StencilTest = false;
+        Material.StencilFront.Mask = 0xFF;
+        Material.StencilFront.WriteMask = 0xFF;
+        Material.StencilFront.Reference = 0;
+
+        setRenderStates3DMode();
+        SetShader(nullptr);
+        InitDrawStates(nullptr);
+
+        ImmediateContext->IASetInputLayout(nullptr);
+        SetShader(m_rtResolveShader[_current_msaa]);
+
+        ImmediateContext->OMSetRenderTargets(1, RTTextureView.GetAddressOf(), 0);
+        ImmediateContext->PSSetShaderResources(0, 1, SRMSAAView.GetAddressOf());
+
+        ImmediateContext->Draw(3, 0);
+
+
+    ImmediateContext->IASetInputLayout(CurrentInputLayout.Get());
+    SetShader(prevShader);
+
+    DX_END_EVENT();
+    return true;
+}
+
+static HRESULT CaptureTexture(CD3D11Driver* driver,
+    _In_ ID3D11DeviceContext* pContext,
+    _In_ ID3D11Resource* pSource,
+    _Inout_ D3D11_TEXTURE2D_DESC& desc,
+    _Inout_ Msw::ComPtr<ID3D11Texture2D>& pStaging)
+{
+    if (!pContext || !pSource)
+        return E_INVALIDARG;
+
+    D3D11_RESOURCE_DIMENSION resType = D3D11_RESOURCE_DIMENSION_UNKNOWN;
+    pSource->GetType(&resType);
+
+    if (resType != D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+        return HRESULT_FROM_WIN32(ERROR_NOT_SUPPORTED);
+
+    Msw::ComPtr<ID3D11Texture2D> pTexture;
+    HRESULT hr = pSource->QueryInterface(__uuidof(ID3D11Texture2D), reinterpret_cast<void**>(pTexture.GetAddressOf()));
+    if (FAILED(hr))
+        return hr;
+
+    assert(pTexture);
+
+    pTexture->GetDesc(&desc);
+
+    Msw::ComPtr<ID3D11Device> d3dDevice;
+    pContext->GetDevice(d3dDevice.GetAddressOf());
+
+    uint8_t msaa = desc.SampleDesc.Count;
+
+    if (desc.SampleDesc.Count > 1)
+    {
+        // MSAA content must be resolved before being copied to a staging texture
+        desc.SampleDesc.Count = 1;
+        desc.SampleDesc.Quality = 0;
+
+        Msw::ComPtr<ID3D11Texture2D> pTemp;
+        hr = d3dDevice->CreateTexture2D(&desc, 0, pTemp.GetAddressOf());
+        if (FAILED(hr))
+            return hr;
+
+        assert(pTemp);
+
+        DXGI_FORMAT fmt = desc.Format;
+
+        UINT support = 0;
+        hr = d3dDevice->CheckFormatSupport(fmt, &support);
+        if (FAILED(hr))
+            return hr;
+
+        if (support & D3D11_FORMAT_SUPPORT_MULTISAMPLE_RESOLVE)
+        {
+            for (UINT item = 0; item < desc.ArraySize; ++item)
+            {
+                for (UINT level = 0; level < desc.MipLevels; ++level)
+                {
+                    UINT index = D3D11CalcSubresource(level, item, desc.MipLevels);
+                    pContext->ResolveSubresource(pTemp.Get(), index, pSource, index, fmt);
+                }
+            }
+        }
+        else
+        {
+            return -1;
+            //ID3D11Texture2D* bufftex = 0;
+            //D3D11_TEXTURE2D_DESC tex_desc = desc; //(DXGI_FORMAT_R8G8B8A8_UNORM, width, height, 1, 1, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE, present.SampleDesc.Count, present.SampleDesc.Quality);
+            //tex_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+            //tex_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+            //tex_desc.SampleDesc.Count = msaa;
+            //tex_desc.Usage = D3D11_USAGE_DYNAMIC;
+            //
+            //// First, create a texture buffer
+            //HRESULT hr = d3dDevice->CreateTexture2D(&tex_desc, NULL, &bufftex);
+            //if (FAILED(hr))
+            //    return NULL;
+            //
+            //// Copy back buffer to our texture buffer
+            //pContext->CopyResource(bufftex, pTexture.Get());
+            //
+            //driver->ResolveMSAA(pTemp, bufftex, msaa);
+        }
+
+        desc.BindFlags = 0;
+        desc.MiscFlags &= D3D11_RESOURCE_MISC_TEXTURECUBE;
+        desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+        desc.Usage = D3D11_USAGE_STAGING;
+
+        hr = d3dDevice->CreateTexture2D(&desc, 0, pStaging.GetAddressOf());
+        if (FAILED(hr))
+            return hr;
+
+        assert(pStaging);
+
+        pContext->CopyResource(pStaging.Get(), pTemp.Get());
+    }
+    else if ((desc.Usage == D3D11_USAGE_STAGING) && (desc.CPUAccessFlags & D3D11_CPU_ACCESS_READ))
+    {
+        // Handle case where the source is already a staging texture we can use directly
+        pStaging = pTexture;
+    }
+    else
+    {
+        // Otherwise, create a staging texture from the non-MSAA source
+        desc.BindFlags = 0;
+        desc.MiscFlags &= D3D11_RESOURCE_MISC_TEXTURECUBE;
+        desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+        desc.Usage = D3D11_USAGE_STAGING;
+
+        hr = d3dDevice->CreateTexture2D(&desc, 0, pStaging.GetAddressOf());
+        if (FAILED(hr))
+            return hr;
+
+        assert(pStaging);
+
+        pContext->CopyResource(pStaging.Get(), pSource);
+    }
+}
+
 IImage* CD3D11Driver::createScreenShot(video::ECOLOR_FORMAT format, video::E_RENDER_TARGET target)
 {
+    CD3D11_TEXTURE2D_DESC output_desc;
+    Msw::ComPtr<ID3D11Texture2D> output;
+    // Copy back buffer to our texture buffer
+    ID3D11Resource* backBuffer = 0;
+    D3D11_MAPPED_SUBRESOURCE mappedData;
+    DefaultBackBuffer->GetResource(&backBuffer);
+    
+    if (FAILED(CaptureTexture(this, ImmediateContext.Get(), backBuffer, output_desc, output)))
+        return nullptr;
+
+    backBuffer->Release();
+
     u32 width = getCurrentRenderTargetSize().Width;
     u32 height = getCurrentRenderTargetSize().Height;
-    ID3D11Texture2D* bufftex = 0;
-    D3D11_MAPPED_SUBRESOURCE mappedData;
-    CD3D11_TEXTURE2D_DESC tex_desc(DXGI_FORMAT_R8G8B8A8_UNORM, width, height, 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE);
 
-    IImage* img = createImage(ECF_A8R8G8B8, getCurrentRenderTargetSize());
+    auto irrformat = DirectXUtil::getColorFormatFromD3DFormat(output_desc.Format);
+    IImage* img = createImage(irrformat, getCurrentRenderTargetSize());
+    IImage* imgTo = createImage(video::ECOLOR_FORMAT::ECF_A8R8G8B8, getCurrentRenderTargetSize());
 
     if( !img )
         return NULL;
-    
-    // First, create a texture buffer
-    HRESULT hr = Device->CreateTexture2D( &tex_desc, NULL, &bufftex );
-    if( FAILED( hr ) )
-        return NULL;
-
-    // Copy back buffer to our texture buffer
-    ID3D11Resource* backBuffer = 0;
-    DefaultBackBuffer->GetResource( &backBuffer );
-    ImmediateContext->CopyResource( bufftex, backBuffer );
-    backBuffer->Release();
 
     // Get buffer data
-    if( FAILED( ImmediateContext->Map( bufftex, 0, D3D11_MAP_READ_WRITE, 0, &mappedData ) ) )
+    if( FAILED( ImmediateContext->Map(output.Get(), 0, D3D11_MAP_READ, 0, &mappedData ) ) )
         return NULL;
 
     // Process data in place, handling alpha channel
-    for (u32 y = 0; y < height; ++y)
-    {
-        u8* ptr = (u8*)mappedData.pData + y * mappedData.RowPitch + 3;
-        for (u32 x = 0; x < width; ++x)
-        {
-            *ptr = 0xFF;
-            ptr += 4;
-        }
-    }
+    //for (u32 y = 0; y < height; ++y)
+    //{
+    //    u8* ptr = (u8*)mappedData.pData + y * mappedData.RowPitch + 3;
+    //    for (u32 x = 0; x < width; ++x)
+    //    {
+    //        *ptr = 0xFF;
+    //        ptr += 4;
+    //    }
+    //}
     
     // Copy data to image
     ::CopyMemory( img->lock(), mappedData.pData, width * height * 4 );
     
     // Unlock image and texture
     img->unlock();
-    ImmediateContext->Unmap( bufftex, 0 );
+    ImmediateContext->Unmap(output.Get(), 0 );
 
-    // Release texture buffer
-    bufftex->Release();
+    img->copyTo(imgTo);
 
     // Return image
-    return img;
+    return imgTo;
 }
 
 bool CD3D11Driver::setClipPlane(u32 index, const core::plane3df& plane, bool enable)

@@ -282,8 +282,8 @@ bool COpenGLDriver::initDriver()
 
         shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
         shaderCI.AddShaderStage(fragShader, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "main", nullptr);
-        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
-        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
+        shaderCI.Callback["MatrixBuffer"]  = irr::MakePtr<IrrDefaultShaderVertexCallBack>();
+        shaderCI.Callback["PixelConstats"] = irr::MakePtr<IrrDefaultShaderFragmentCallBack>();
         if (m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD])
             delete m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD];
         m_defaultShader[E_VERTEX_TYPE::EVT_STANDARD] = static_cast<GLSLGpuShader*>(createShader(&shaderCI));
@@ -304,7 +304,7 @@ bool COpenGLDriver::initDriver()
 #endif
 
         shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
-        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
+        shaderCI.Callback["MatrixBuffer"] = irr::MakePtr<IrrDefaultShaderVertexCallBack>();
         if (m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW])
             delete m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW];
         m_defaultShader[E_VERTEX_TYPE::EVT_SHADOW] = static_cast<GLSLGpuShader*>(createShader(&shaderCI));
@@ -327,8 +327,8 @@ bool COpenGLDriver::initDriver()
 
         shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
         shaderCI.AddShaderStage(fragShader, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "main", nullptr);
-        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
-        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
+        shaderCI.Callback["MatrixBuffer"] = irr::MakePtr<IrrDefaultShaderVertexCallBack>();
+        shaderCI.Callback["PixelConstats"] = irr::MakePtr<IrrDefaultShaderFragmentCallBack>();
         if (m_defaultShader[E_VERTEX_TYPE::EVT_2TCOORDS])
             delete m_defaultShader[E_VERTEX_TYPE::EVT_2TCOORDS];
         m_defaultShader[E_VERTEX_TYPE::EVT_2TCOORDS] = static_cast<GLSLGpuShader*>(createShader(&shaderCI));
@@ -352,8 +352,8 @@ bool COpenGLDriver::initDriver()
 
         shaderCI.AddShaderStage(vertShader, E_SHADER_TYPES::EST_VERTEX_SHADER, "main", nullptr);
         shaderCI.AddShaderStage(fragShader, E_SHADER_TYPES::EST_FRAGMENT_SHADER, "main", nullptr);
-        shaderCI.Callback["MatrixBuffer"] = new IrrDefaultShaderVertexCallBack;
-        shaderCI.Callback["PixelConstats"] = new IrrDefaultShaderFragmentCallBack;
+        shaderCI.Callback["MatrixBuffer"] = irr::MakePtr<IrrDefaultShaderVertexCallBack>();
+        shaderCI.Callback["PixelConstats"] = irr::MakePtr<IrrDefaultShaderFragmentCallBack>();
         if (m_defaultShader[E_VERTEX_TYPE::EVT_SKINNING])
             delete m_defaultShader[E_VERTEX_TYPE::EVT_SKINNING];
         m_defaultShader[E_VERTEX_TYPE::EVT_SKINNING] = static_cast<GLSLGpuShader*>(createShader(&shaderCI));

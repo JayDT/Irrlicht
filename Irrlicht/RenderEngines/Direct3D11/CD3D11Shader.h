@@ -51,9 +51,9 @@ namespace irr
             IConstantBuffer* AddUnknownBuffer(E_SHADER_TYPES shaderType, u32 size) override;
 
             void OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, const char* shaderFilename);
-            virtual bool createVertexShader(ID3D11Device* device, System::IO::IFileReader* file, const char* main, const char* shaderModel, D3D_SHADER_MACRO* Macros);
-            virtual bool createGeometryShader(ID3D11Device* device, System::IO::IFileReader* file, const char* main, const char* shaderModel, D3D_SHADER_MACRO* Macros);
-            virtual bool createPixelShader(ID3D11Device* device, System::IO::IFileReader* file, const char* main, const char* shaderModel, D3D_SHADER_MACRO* Macros);
+            virtual bool createVertexShader(ID3D11Device* device, System::IO::IFileReader* file, const char* main, const char* shaderModel, D3D_SHADER_MACRO* Macros, bool nocache = false);
+            virtual bool createGeometryShader(ID3D11Device* device, System::IO::IFileReader* file, const char* main, const char* shaderModel, D3D_SHADER_MACRO* Macros, bool nocache = false);
+            virtual bool createPixelShader(ID3D11Device* device, System::IO::IFileReader* file, const char* main, const char* shaderModel, D3D_SHADER_MACRO* Macros, bool nocache = false);
             HRESULT enumInputLayout(CD3D11Driver * d3dDevice, ID3D11ShaderReflection*);
             HRESULT initializeConstantBuffers(CD3D11Driver * d3dDevice, ID3D11ShaderReflection*, E_SHADER_TYPES shaderType);
 

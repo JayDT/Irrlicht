@@ -37,7 +37,7 @@ namespace irr
             };
 
             irr::Ptr<irr::video::IShader> mShader;
-            std::map<std::string/*buffer name*/, IShaderConstantSetCallBack*> Callback;
+            std::map<std::string/*buffer name*/, irr::Ptr<IShaderConstantSetCallBack>> Callback;
             std::vector<StageDesc*> mStages;
             s32 mShaderId = -1;
 
@@ -340,6 +340,7 @@ namespace irr
             video::IVideoDriver* getVideoDriver() { return mContext; }
 
             virtual void Init() {}
+            void Reset();
 
             // Add byte array buffer
             virtual IConstantBuffer* AddUnknownBuffer(E_SHADER_TYPES shaderType, u32 size) = 0;

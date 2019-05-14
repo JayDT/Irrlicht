@@ -171,7 +171,7 @@ irr::video::D3D11HLSLProgram::~D3D11HLSLProgram()
 {
 }
 
-bool irr::video::D3D11HLSLProgram::createVertexShader(ID3D11Device* device, System::IO::IFileReader* file, const char* entryPoint, const char* shaderModel, D3D_SHADER_MACRO* Macros)
+bool irr::video::D3D11HLSLProgram::createVertexShader(ID3D11Device* device, System::IO::IFileReader* file, const char* entryPoint, const char* shaderModel, D3D_SHADER_MACRO* Macros, bool nocache /*= false*/)
 {
     HRESULT hr = S_OK;
 
@@ -196,7 +196,7 @@ bool irr::video::D3D11HLSLProgram::createVertexShader(ID3D11Device* device, Syst
 		
 		auto& cacheBuffer = mSharedBinaryCache[seed];
 		
-		if (cacheBuffer.empty())
+		if (nocache || cacheBuffer.empty())
 		{
 			auto ShaderBuffer = D3D11CompileShader(file, entryPoint, shaderModel, errorMessage, Macros);
 
@@ -248,7 +248,7 @@ bool irr::video::D3D11HLSLProgram::createVertexShader(ID3D11Device* device, Syst
     return true;
 }
 
-bool irr::video::D3D11HLSLProgram::createGeometryShader(ID3D11Device* device, System::IO::IFileReader* file, const char* entryPoint, const char* shaderModel, D3D_SHADER_MACRO* Macros)
+bool irr::video::D3D11HLSLProgram::createGeometryShader(ID3D11Device* device, System::IO::IFileReader* file, const char* entryPoint, const char* shaderModel, D3D_SHADER_MACRO* Macros, bool nocache /*= false*/)
 {
     HRESULT hr = S_OK;
     LPCVOID pSrcData;
@@ -272,7 +272,7 @@ bool irr::video::D3D11HLSLProgram::createGeometryShader(ID3D11Device* device, Sy
 
         auto& cacheBuffer = mSharedBinaryCache[seed];
 
-        if (cacheBuffer.empty())
+        if (nocache || cacheBuffer.empty())
         {
             auto ShaderBuffer = D3D11CompileShader(file, entryPoint, shaderModel, errorMessage, Macros);
 
@@ -314,7 +314,7 @@ bool irr::video::D3D11HLSLProgram::createGeometryShader(ID3D11Device* device, Sy
     return true;
 }
 
-bool irr::video::D3D11HLSLProgram::createPixelShader(ID3D11Device* device, System::IO::IFileReader* file, const char* entryPoint, const char* shaderModel, D3D_SHADER_MACRO* Macros)
+bool irr::video::D3D11HLSLProgram::createPixelShader(ID3D11Device* device, System::IO::IFileReader* file, const char* entryPoint, const char* shaderModel, D3D_SHADER_MACRO* Macros, bool nocache /*= false*/)
 {
     HRESULT hr = S_OK;
     LPCVOID pSrcData;
@@ -338,7 +338,7 @@ bool irr::video::D3D11HLSLProgram::createPixelShader(ID3D11Device* device, Syste
 
         auto& cacheBuffer = mSharedBinaryCache[seed];
 
-        if (cacheBuffer.empty())
+        if (nocache || cacheBuffer.empty())
         {
             auto ShaderBuffer = D3D11CompileShader(file, entryPoint, shaderModel, errorMessage, Macros);
 
