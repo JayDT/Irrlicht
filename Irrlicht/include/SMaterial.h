@@ -244,14 +244,6 @@ namespace video
 		0
 	};
 
-
-    struct ITextureRefMgr
-    {
-        virtual void set(u32 stage, const ITexture* tex) = 0;
-        virtual void remove(const ITexture* tex) = 0;
-    };
-
-
 	//! Maximum number of texture an SMaterial can have.
 	const u32 MATERIAL_MAX_TEXTURES = _IRR_MATERIAL_MAX_TEXTURES_;
 
@@ -287,7 +279,7 @@ namespace video
 	public:
 		//! Default constructor. Creates a solid, lit material with white colors
 		SMaterial()
-		: m_textureRefMgr(nullptr), MaterialType(EMT_SOLID), AmbientColor(255,255,255,255), DiffuseColor(255,255,255,255),
+		:   MaterialType(EMT_SOLID), AmbientColor(255,255,255,255), DiffuseColor(255,255,255,255),
 			EmissiveColor(0,0,0,0), SpecularColor(255,255,255,255),
 			Shininess(0.0f), MaterialTypeParam(0.0f), MaterialTypeParam2(0.0f), Thickness(1.0f),
 			ZBuffer(ECFN_LESSEQUAL), AntiAliasing(EAAM_SIMPLE), ColorMask(ECP_ALL),
@@ -304,7 +296,7 @@ namespace video
 
 		//! Copy constructor
 		/** \param other Material to copy from. */
-		SMaterial(const SMaterial& other) : m_textureRefMgr(nullptr)
+		SMaterial(const SMaterial& other)
 		{
 			// These pointers are checked during assignment
             for (u32 i = 0; i < MATERIAL_MAX_TEXTURES; ++i)
@@ -369,7 +361,6 @@ namespace video
 
 		//! Texture layer array.
 		SMaterialLayer TextureLayer[MATERIAL_MAX_TEXTURES];
-        ITextureRefMgr* m_textureRefMgr;
 
         SStencil StencilFront;
         SStencil StencilBack;
@@ -583,9 +574,8 @@ namespace video
 		{
 			if (i>=MATERIAL_MAX_TEXTURES)
 				return;
-            if (m_textureRefMgr)
-                m_textureRefMgr->set(i, tex);
-			TextureLayer[i].Texture = tex;
+
+            TextureLayer[i].Texture.Reset(tex);
 		}
 
 		//! Sets the Material flag to the given value

@@ -121,7 +121,7 @@ inline s32 isInSameDirectory(const io::path& path, const io::path& file) noexcep
     {
         if (path[0] == '/' && file[0] != '/')
         {
-            if ((path.size() - 1) > file.size() || std::memcmp(path.c_str() + 1, file.c_str(), path.size() - 1))
+            if ((path.size() - 1) > file.size() || memcmp(path.c_str() + 1, file.c_str(), path.size() - 1))
                 return -1;
 
             --subA;
@@ -158,14 +158,14 @@ inline bool isContainDirectory(const io::path& path, const io::path& file, s32 s
         if (path[0] == '/' && file[0] != '/')
         {
             --pos;
-            if (pos > file.size() || std::memcmp(path.c_str() + 1, file.c_str(), pos))
+            if (pos > file.size() || memcmp(path.c_str() + 1, file.c_str(), pos))
                 return false;
 
             --subPath;
         }
         else
         {
-            if (pos > file.size() || std::memcmp(path.c_str(), file.c_str(), pos))
+            if (pos > file.size() || memcmp(path.c_str(), file.c_str(), pos))
                 return false;
         }
     }

@@ -509,7 +509,7 @@ void CAnimatedMeshHalfLife::initModel()
 				core::splitFilename ( currentex->name, 0, &fname, &ext );
 				io::path store = TextureBaseName + fname;
 #endif
-				m.TextureLayer[0].Texture = SceneManager->getVideoDriver()->getTexture ( store );
+				m.setTexture(0, SceneManager->getVideoDriver()->getTexture ( store ));
 				m.Lighting = false;
 
 				MeshIPol->addMeshBuffer(buffer);

@@ -107,7 +107,7 @@ void CSMFMeshFileLoader::loadLimb(io::IReadFile* file, SMesh* mesh, const core::
 	if (i == mesh->MeshBuffers.size())
 	{
 		CMeshBuffer<video::S3DVertex>* mb = new CMeshBuffer<video::S3DVertex>();
-		mb->Material.TextureLayer[0].Texture = texture;
+		mb->Material.setTexture(0, texture);
 
 		// horribly hacky way to do this, maybe it's in the flags?
 		if (core::hasFileExtension(textureName, "tga", "png"))

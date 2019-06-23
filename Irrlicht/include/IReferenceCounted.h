@@ -42,13 +42,21 @@ namespace irr
     */
     class IRRLICHT_API IReferenceCounted //MTA
     {
+        constexpr static int32_t _ObjectAlreadyDeleted = int32_t(0x8BADF00D);
+
+        bool OnDestroy() const
+        {
+            ReferenceCounter = _ObjectAlreadyDeleted;
+            delete this;
+            return true;
+        }
+
     public:
 
         //! Constructor.
         IReferenceCounted()
-            : isDeleted(false)
+            : ReferenceCounter(1)
         {
-            ReferenceCounter = 1;
         }
 
         //! Destructor.
@@ -86,7 +94,11 @@ namespace irr
         You will not have to drop the pointer to the loaded texture,
         because the name of the method does not start with 'create'.
         The texture is stored somewhere by the driver. */
-        virtual void grab() const noexcept { ++ReferenceCounter; }
+        virtual void grab() const noexcept
+        {
+            _IRR_DEBUG_BREAK_IF(ReferenceCounter == _ObjectAlreadyDeleted);
+            ++ReferenceCounter;
+        }
 
         //! Drops the object. Decrements the reference counter by one.
         /** The IReferenceCounted class provides a basic reference
@@ -119,15 +131,12 @@ namespace irr
         virtual bool drop() const noexcept
         {
             // someone is doing bad reference counting.
-            _IRR_DEBUG_BREAK_IF(isDeleted || ReferenceCounter <= 0);
+            _IRR_DEBUG_BREAK_IF(ReferenceCounter == _ObjectAlreadyDeleted);
+            _IRR_DEBUG_BREAK_IF(ReferenceCounter <= 0);
 
             --ReferenceCounter;
             if (!ReferenceCounter)
-            {
-                isDeleted = true;
-                delete this;
-                return true;
-            }
+                return OnDestroy();
 
             return false;
         }
@@ -136,6 +145,7 @@ namespace irr
         /** \return Current value of the reference counter. */
         s32 getReferenceCount() const
         {
+            _IRR_DEBUG_BREAK_IF(ReferenceCounter == _ObjectAlreadyDeleted);
             return ReferenceCounter;
         }
 
@@ -171,8 +181,6 @@ namespace irr
         const c8* DebugName;
 #endif
 
-        mutable bool isDeleted;
-
         //! The reference counter. Mutable to do reference counting on const objects.
         mutable std::atomic_int ReferenceCounter;
     };
@@ -180,12 +188,21 @@ namespace irr
 
     class IRRLICHT_API IReferenceCountedSTA
     {
+        constexpr static int32_t _ObjectAlreadyDeleted = int32_t(0x8BADF00D);
+
+        bool OnDestroy() const
+        {
+            ReferenceCounter = _ObjectAlreadyDeleted;
+            delete this;
+            return true;
+        }
+
     public:
 
         //! Constructor.
         IReferenceCountedSTA()
+            : ReferenceCounter(1)
         {
-            ReferenceCounter = 1;
         }
 
         IReferenceCountedSTA(const IReferenceCountedSTA&) = delete;
@@ -228,7 +245,11 @@ namespace irr
         You will not have to drop the pointer to the loaded texture,
         because the name of the method does not start with 'create'.
         The texture is stored somewhere by the driver. */
-        virtual void grab() const noexcept { ++ReferenceCounter; }
+        virtual void grab() const noexcept
+        {
+            _IRR_DEBUG_BREAK_IF(ReferenceCounter == _ObjectAlreadyDeleted);
+            ++ReferenceCounter;
+        }
 
         //! Drops the object. Decrements the reference counter by one.
         /** The IReferenceCounted class provides a basic reference
@@ -261,14 +282,12 @@ namespace irr
         virtual bool drop() const noexcept
         {
             // someone is doing bad reference counting.
-            _IRR_DEBUG_BREAK_IF(ReferenceCounter <= 0)
+            _IRR_DEBUG_BREAK_IF(ReferenceCounter == _ObjectAlreadyDeleted);
+            _IRR_DEBUG_BREAK_IF(ReferenceCounter <= 0);
 
             --ReferenceCounter;
             if (!ReferenceCounter)
-            {
-                delete this;
-                return true;
-            }
+                return OnDestroy();
 
             return false;
         }
@@ -277,6 +296,7 @@ namespace irr
         /** \return Current value of the reference counter. */
         s32 getReferenceCount() const
         {
+            _IRR_DEBUG_BREAK_IF(ReferenceCounter == _ObjectAlreadyDeleted);
             return ReferenceCounter;
         }
 
@@ -611,10 +631,10 @@ namespace irr
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     template<class T>
-    Ptr<T> MakePtr(T* ptr)
+    Ptr<T> ToSmartPtr(T* ptr)
     {
         if (ptr)
-            return *ptr;
+            return Ptr<T>(ptr);
         return {};
     }
 

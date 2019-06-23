@@ -221,7 +221,6 @@ namespace irr
                 m_indicesCount = 0;
                 m_vectiesStart = 0;
                 m_vectiesEnd = 0;
-                Material.m_textureRefMgr = &TextureRefMgr;
                 m_isEnabled = true;
             }
 
@@ -231,7 +230,6 @@ namespace irr
                 m_indicesCount = icount;
                 m_vectiesStart = vstart;
                 m_vectiesEnd = vend;
-                Material.m_textureRefMgr = &TextureRefMgr;
                 m_isEnabled = true;
             }
 
@@ -251,7 +249,6 @@ namespace irr
 
             irr::core::aabbox3d<float> BoundingBox;
             irr::video::SMaterial Material;
-            irr::video::STextureStageCache TextureRefMgr;
         };
 
         struct IRRLICHT_API CDynamicVertexBufferObject : public irr::scene::IDynamicMeshBuffer

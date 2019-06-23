@@ -7,13 +7,12 @@
 
 #include "matrix4.h"
 #include "irrAllocator.h"
+#include "ITexture.h"
 
 namespace irr
 {
 namespace video
 {
-	class ITexture;
-
 	//! Texture coord clamp mode outside [0.0, 1.0]
 	enum E_TEXTURE_CLAMP
 	{
@@ -50,14 +49,14 @@ namespace video
 	public:
 		//! Default constructor
 		SMaterialLayer()
-			: Texture(0),
-				TextureWrapU(ETC_REPEAT),
-				TextureWrapV(ETC_REPEAT),
-				BilinearFilter(true),
-				TrilinearFilter(false),
-				AnisotropicFilter(0),
-				LODBias(0),
-				TextureMatrix(0)
+			: Texture(),
+			  TextureWrapU(ETC_REPEAT),
+			  TextureWrapV(ETC_REPEAT),
+			  BilinearFilter(true),
+			  TrilinearFilter(false),
+			  AnisotropicFilter(0),
+			  LODBias(0),
+			  TextureMatrix(nullptr)
 			{}
 
 		//! Copy constructor
@@ -65,15 +64,18 @@ namespace video
 		SMaterialLayer(const SMaterialLayer& other)
 		{
 			// This pointer is checked during assignment
-			TextureMatrix = 0;
+			TextureMatrix = nullptr;
 			*this = other;
 		}
 
 		//! Destructor
 		~SMaterialLayer()
 		{
-			MatrixAllocator.destruct(TextureMatrix);
-			MatrixAllocator.deallocate(TextureMatrix); 
+            if (TextureMatrix != nullptr)
+            {
+                MatrixAllocator.destruct(TextureMatrix);
+                MatrixAllocator.deallocate(TextureMatrix);
+            }
 		}
 
 		//! Assignment operator
@@ -189,7 +191,7 @@ namespace video
 		{ return !(b!=*this); }
 
 		//! Texture
-		ITexture* Texture;
+		irr::Ptr<ITexture> Texture;
 
 		//! Texture Clamp Mode
 		/** Values are taken from E_TEXTURE_CLAMP. */

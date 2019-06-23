@@ -315,7 +315,6 @@ namespace scene
                 m_indicesCount = 0;
                 m_vectiesStart = 0;
                 m_vectiesEnd = 0;
-                Material.m_textureRefMgr = &TextureRefMgr;
             }
 
             CMeshVertexBufferEx(u32 istart, u32 icount, u32 vstart, u32 vend)
@@ -324,7 +323,6 @@ namespace scene
                 m_indicesCount = icount;
                 m_vectiesStart = vstart;
                 m_vectiesEnd = vend;
-                Material.m_textureRefMgr = &TextureRefMgr;
             }
 
             ~CMeshVertexBufferEx()
@@ -338,7 +336,6 @@ namespace scene
             u32 m_vectiesEnd;
 
             video::SMaterial Material;
-            video::STextureStageCache TextureRefMgr;
         };
 
         mutable video::IShader* m_gpuProgram;
