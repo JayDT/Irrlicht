@@ -19,8 +19,6 @@ CDynamicVertexBufferObject::CDynamicVertexBufferObject()
 
 CDynamicVertexBufferObject::~CDynamicVertexBufferObject()
 {
-    assert(getReferenceCount() == 0);
-
     if (SubBuffer.empty())
     {
         if (Material)
