@@ -57,14 +57,14 @@ namespace scene
             : RelativeTranslation(position), RelativeRotation(rotation), RelativeScale(scale),
                 Parent(0), SceneManager(mgr)/*, OccQuery(nullptr)*/, TriangleSelector(0), ID(id),
                 AutomaticCullingState(EAC_BOX), DebugDataVisible(EDS_OFF),
-                /*CustomRefCount(0),*/ IsVisible(true), IsInConstruct(true), IsDebugObject(false), isHighLighted(false)
+                IsVisible(true), SkipTransformCache(true), IsDebugObject(false)
         {
             if (parent)
                 parent->addChild(this);
 
             updateAbsolutePosition();
 
-            IsInConstruct = false;
+            SkipTransformCache = false;
         }
 
 
@@ -279,6 +279,22 @@ namespace scene
             IsVisible = isVisible;
         }
 
+        //! Sets if this scene node is a debug object.
+        /** Debug objects have some special properties, for example they can be easily
+        excluded from collision detection or from serialization, etc. */
+        void setIsDebugObject(bool debugObject)
+        {
+            IsDebugObject = debugObject;
+        }
+
+        //! Returns if this scene node is a debug object.
+        /** Debug objects have some special properties, for example they can be easily
+        excluded from collision detection or from serialization, etc.
+        \return If this node is a debug object, true is returned. */
+        bool isDebugObject() const
+        {
+            return IsDebugObject;
+        }
 
         //! Get the id of the scene node.
         /** This id can be used to identify the node.
@@ -621,27 +637,6 @@ namespace scene
             return DebugDataVisible;
         }
 
-
-        //! Sets if this scene node is a debug object.
-        /** Debug objects have some special properties, for example they can be easily
-        excluded from collision detection or from serialization, etc. */
-        void setIsDebugObject(bool debugObject)
-        {
-            IsDebugObject = debugObject;
-        }
-
-
-        //! Returns if this scene node is a debug object.
-        /** Debug objects have some special properties, for example they can be easily
-        excluded from collision detection or from serialization, etc.
-        \return If this node is a debug object, true is returned. */
-        bool isDebugObject() const
-        {
-            _IRR_IMPLEMENT_MANAGED_MARSHALLING_BUGFIX;
-            return IsDebugObject;
-        }
-
-
         //! Returns a const reference to the list of all children.
         /** \return The list of all children of this node. */
         const ISceneNodeList& getChildren() const
@@ -717,7 +712,7 @@ namespace scene
             else
                 AbsoluteTransformation = getRelativeTransformation();
 
-            if (!IsInConstruct)
+            if (!SkipTransformCache)
             {
                 AbsoluteTransformationBoundingBox = getBoundingBox();
                 AbsoluteTransformation.transformBoxEx(AbsoluteTransformationBoundingBox);
@@ -828,32 +823,7 @@ namespace scene
 
         virtual IMesh* getMesh(void) { return nullptr; }
 
-        //s32 GetCustomRef() const { return CustomRefCount; }
-
         virtual bool Initialized() const { return true; }
-
-        //void SetCustomRef(s32 ref)
-        //{
-        //    CustomRefCount = ref;
-        //}
-        //
-        //void IncrementCustomRef()
-        //{
-        //    ++CustomRefCount;
-        //}
-        //
-        //s32 DecrementCustomRef()
-        //{
-        //    if (CustomRefCount <= 0)
-        //        throw std::runtime_error("invalid operation");
-        //    return --CustomRefCount;
-        //}
-
-        bool IsHighLighted() const { return isHighLighted; }
-        void SetHighLighted(bool on) { isHighLighted = on; }
-
-        u32 GetRenderChangedID() const { return RenderChangedID; }
-        void SetRenderChangedID(u32 nr) { RenderChangedID = nr; }
 
         //! Sets the new scene manager for this node and all children.
         //! Called by addChild when moving nodes between scene managers
@@ -953,14 +923,10 @@ namespace scene
         //! Flag if debug data should be drawn, such as Bounding Boxes.
         u32 DebugDataVisible;
 
-        // ID for rendern culling (fast singular)
-        u32 RenderChangedID;
-
         //! Is the node visible?
         bool IsVisible : 1;
-        bool IsInConstruct : 1;
+        bool SkipTransformCache : 1;
         bool IsDebugObject : 1;
-        bool isHighLighted : 1;
     };
 
 

@@ -638,6 +638,33 @@ namespace irr
         return {};
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Hash function
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    template<class T> struct hash;
+    template<class T> struct hash<Ptr<T>>
+    {
+        size_t operator()(const Ptr<T>& s) const
+        {
+            return size_t(uintptr_t(s.GetPtr()));
+        }
+    };
+
+    template <class _Ty1, class _Ty2>
+    Ptr<_Ty1> static_pointer_cast(const Ptr<_Ty2>& _Other) noexcept
+    { // static_cast for Ptr that properly respects the reference count control block
+        const auto _Ptr = static_cast<typename Ptr<_Ty1>::Type*>(_Other.GetPtr());
+        return Ptr<_Ty1>(_Ptr);
+    }
+
+    template <class _Ty1, class _Ty2>
+    Ptr<_Ty1> dynamic_pointer_cast(const Ptr<_Ty2>& _Other) noexcept
+    { // dynamic_cast for Ptr that properly respects the reference count control block
+        const auto _Ptr = dynamic_cast<typename Ptr<_Ty1>::Type*>(_Other.GetPtr());
+        return Ptr<_Ty1>(_Ptr);
+    }
+
 } // end namespace irr
 
 #endif

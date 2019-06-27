@@ -190,7 +190,7 @@ CSceneManager::CSceneManager(video::IVideoDriver* driver, io::IFileSystem* fs,
     MeshCache(cache), CurrentRendertime(ESNRP_NONE), LightManager(0),
     IRR_XML_FORMAT_SCENE(L"irr_scene"), IRR_XML_FORMAT_NODE(L"node"), IRR_XML_FORMAT_NODE_ATTR_TYPE(L"type")
 {
-    IsInConstruct = true;
+    SkipTransformCache = true;
 
     #ifdef _DEBUG
     ISceneManager::setDebugName("CSceneManager ISceneManager");
