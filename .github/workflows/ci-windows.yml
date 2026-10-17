@@ -88,7 +88,7 @@ jobs:
     name: Create Release & Upload bin
     runs-on: windows-2022
     needs: [ build ]
-    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+    if: ${{ always() && (github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/ci-builds')) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -105,20 +105,20 @@ jobs:
           Remove-Item -Recurse -Force $dest -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Path $dest | Out-Null
 
-          # Example: copy release binaries and libs; change globs to match your build layout
-          Copy-Item -Path "build\bin\Release\**\*" -Destination $dest -Recurse -Force -ErrorAction SilentlyContinue
-          Copy-Item -Path "lib\Win64-VisualStudio\Irrlicht.lib" -Destination $dest -Force -ErrorAction SilentlyContinue
-
-          # Include the full build folder (executables, dlls, and other build outputs)
-          if (Test-Path 'build') {
-            Write-Host "Copying entire build folder into $dest\build"
-            Copy-Item -Path "build\*" -Destination (Join-Path $dest 'build') -Recurse -Force -ErrorAction SilentlyContinue
-
-            # Also explicitly copy any .exe and .dll files found anywhere under build to the top-level artifacts folder
-            Copy-Item -Path "build\**\*.exe" -Destination $dest -Recurse -Force -ErrorAction SilentlyContinue
-            Copy-Item -Path "build\**\*.dll" -Destination $dest -Recurse -Force -ErrorAction SilentlyContinue
+          # Copy likely binaries: any .exe, .dll, .lib, .pdb under the build tree
+          $files = Get-ChildItem -Path . -Recurse -Include *.exe,*.dll,*.lib,*.pdb -File -ErrorAction SilentlyContinue
+          if ($null -ne $files -and $files.Count -gt 0) {
+            foreach ($f in $files) {
+              $target = Join-Path $dest ($f.FullName.TrimStart((Get-Location).Path + '\\') )
+              $td = Split-Path $target -Parent
+              if (-not (Test-Path $td)) { New-Item -ItemType Directory -Path $td | Out-Null }
+              Copy-Item -Path $f.FullName -Destination $target -Force
+            }
           } else {
-            Write-Host "No build folder found at 'build'"
+            Write-Host "No exe/dll/lib/pdb files found — copying entire build folder as fallback"
+            if (Test-Path 'build') {
+              Copy-Item -Path "build\*" -Destination (Join-Path $dest 'build') -Recurse -Force -ErrorAction SilentlyContinue
+            }
           }
 
           # optional: list uploaded files
@@ -145,6 +145,14 @@ jobs:
             New-Item -ItemType File -Path (Join-Path $artifactDir 'placeholder.txt') -Value "No artifacts were found in this build." -Force | Out-Null
             Compress-Archive -Path "$artifactDir\*" -DestinationPath $zipPath -Force
           }
+
+      - name: Upload Windows build artifacts (workflow)
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build-artifacts
+          path: |
+            artifacts/**
 
       - name: Create release and upload artifacts
         if: ${{ always() }}
