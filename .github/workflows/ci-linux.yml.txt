@@ -80,3 +80,36 @@ jobs:
           else
             echo "No CTest configuration found."
           fi
+
+      - name: Collect build outputs
+        if: ${{ always() }}
+        run: |
+          set -e
+          dest=artifacts
+          rm -rf "$dest"
+          mkdir -p "$dest"
+
+          # Copy build folder
+          if [ -d "$BUILD_DIR" ]; then
+            echo "Copying build directory to $dest/build"
+            cp -a "$BUILD_DIR" "$dest/build" || true
+          else
+            echo "No build directory found at $BUILD_DIR"
+          fi
+
+          # Find likely binaries: executable files, shared libs, archives
+          echo "Searching for executables and libraries under $BUILD_DIR"
+          find "$BUILD_DIR" -type f \( -perm /111 -o -name '*.so' -o -name '*.a' -o -name '*.so.*' -o -name '*.dll' -o -name '*.out' -o -name '*.elf' \) -print0 |
+            xargs -0 -I{} sh -c 'mkdir -p "$(dirname "artifacts/{}")"; cp -a "{}" "artifacts/{}"' || true
+
+          echo "Artifact listing:"
+          find artifacts -type f -maxdepth 5 -exec ls -la {} \; || true
+
+      - name: Upload Linux build artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build-artifacts
+          path: |
+            artifacts/**
+
